@@ -1,0 +1,28 @@
+name: Test
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Poetry
+      run: |
+        curl -sSL https://install.python-poetry.org | python -
+        echo "$HOME/.poetry/bin" >> $GITHUB_PATH
+
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        cache: 'poetry'
+
+    - run: |
+        poetry install -vvv
+
+    - run: poetry run pytest

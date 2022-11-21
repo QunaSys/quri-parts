@@ -1,0 +1,41 @@
+name: Lint
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Poetry
+      run: |
+        curl -sSL https://install.python-poetry.org | python -
+        echo "$HOME/.poetry/bin" >> $GITHUB_PATH
+
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        cache: 'poetry'
+
+    - run: |
+        poetry install -vvv
+
+    - run: poetry run isort . --check --diff
+      if: success() || failure()
+
+    - run: poetry run black . --check
+      if: success() || failure()
+
+    - run: poetry run flake8
+      if: success() || failure()
+
+    - run: poetry run mypy .
+      if: success() || failure()
+
+    - run: poetry run docformatter -c -r .
+      if: success() || failure()

@@ -1,0 +1,10 @@
+---
+name: openpulse
+version: 0.4.1
+type: pip
+summary: Reference OpenPulse AST in Python
+homepage: https://github.com/openqasm/openpulse/
+license: apache-2.0
+licenses:
+- sources: LICENSE
+notices: []

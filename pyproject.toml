@@ -1,0 +1,81 @@
+[build-system]
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning", "setuptools"]
+build-backend = "poetry_dynamic_versioning.backend"
+
+[tool.poetry]
+name = "quri-parts"
+version = "0.0.0"
+description = "Platform-independent quantum computing library"
+license = "Apache-2.0"
+authors = ["QURI Parts Authors <opensource@qunasys.com>"]
+readme = "README.md"
+repository = "https://github.com/QunaSys/quri-parts"
+documentation = "https://quri-parts.qunasys.com"
+keywords = ["quantum", "quantum computing"]
+classifiers = [
+    "Topic :: Scientific/Engineering :: Physics",
+    "Typing :: Typed"
+]
+packages = [
+    { include = "quri_parts" }
+]
+include = ["NOTICE"]
+
+[tool.poetry-dynamic-versioning]
+enable = true
+style = "pep440"
+
+[tool.poetry.dependencies]
+python = "^3.9.8,<3.12"
+quri-parts-core = "*"
+quri-parts-circuit = "*"
+quri-parts-algo = "*"
+quri-parts-chem = "*"
+
+quri-parts-qulacs = { version = "*", optional = true }
+quri-parts-braket = { version = "*", optional = true }
+quri-parts-qiskit = { version = "*", optional = true }
+quri-parts-cirq = { version = "*", optional = true }
+quri-parts-openfermion = { version = "*", optional = true }
+quri-parts-stim = { version = "*", optional = true }
+
+[tool.poetry.extras]
+qulacs = ["quri-parts-qulacs"]
+braket = ["quri-parts-braket"]
+qiskit = ["quri-parts-qiskit"]
+cirq = ["quri-parts-cirq"]
+openfermion = ["quri-parts-openfermion"]
+stim = ["quri-parts-stim"]
+
+[tool.poetry.group.dev.dependencies]
+quri-parts-circuit = {path = "packages/circuit", develop = true}
+quri-parts-core = {path = "packages/core", develop = true}
+quri-parts-qulacs = {path = "packages/qulacs", develop = true}
+quri-parts-algo = {path = "packages/algo", develop = true}
+quri-parts-chem = {path = "packages/chem", develop = true}
+quri-parts-braket = {path = "packages/braket", develop = true}
+quri-parts-qiskit = {path = "packages/qiskit", develop = true}
+quri-parts-cirq = {path = "packages/cirq", develop = true}
+quri-parts-openfermion = {path = "packages/openfermion", develop = true}
+quri-parts-stim = {path = "packages/stim", develop = true}
+
+pytest = "^7.0.1"
+black = "^22.1.0"
+flake8 = "^4.0.1"
+mypy = ">=0.950"
+docformatter = "^1.4"
+isort = "^5.10.1"
+
+Sphinx = "^4.4.0"
+furo = "^2022.2.23"
+sphinx-autobuild = "^2021.3.14"
+nbsphinx = "^0.8.9"
+ipython = "^8.4.0"
+notebook = "^6.4.12"
+myst-parser = "^0.18.1"
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
