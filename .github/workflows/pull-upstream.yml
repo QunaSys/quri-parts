@@ -1,0 +1,14 @@
+name: Pull upstream changes
+
+on:
+  workflow_dispatch:
+
+jobs:
+  pull-upstream:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: main
+    - run: git pull --ff-only https://github.com/QunaSys/quri-parts.git
+    - run: git push
