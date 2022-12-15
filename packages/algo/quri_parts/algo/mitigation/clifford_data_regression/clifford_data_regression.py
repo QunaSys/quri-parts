@@ -20,12 +20,12 @@ from quri_parts.algo.utils import (
     polynomial_fitting,
 )
 from quri_parts.circuit import (
-    CliffordApproximationTranspiler,
     NonParametricQuantumCircuit,
     QuantumCircuit,
     QuantumGate,
     is_clifford,
 )
+from quri_parts.circuit.transpile import CliffordApproximationTranspiler
 from quri_parts.core.estimator import (
     ConcurrentQuantumEstimator,
     Estimatable,

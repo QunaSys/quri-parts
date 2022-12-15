@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from quri_parts.braket.circuit import BraketTranspiler
-from quri_parts.circuit import (
+from quri_parts.circuit.transpile import (
     IdentityInsertionTranspiler,
     PauliDecomposeTranspiler,
     PauliRotationDecomposeTranspiler,

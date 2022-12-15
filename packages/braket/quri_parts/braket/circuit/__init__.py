@@ -17,17 +17,7 @@ from braket.circuits import Circuit, Gate, Instruction
 from braket.devices import Device
 from typing_extensions import TypeAlias
 
-from quri_parts.circuit import (
-    CircuitTranspiler,
-    CZ2CNOTHTranspiler,
-    IdentityInsertionTranspiler,
-    NonParametricQuantumCircuit,
-    PauliDecomposeTranspiler,
-    PauliRotationDecomposeTranspiler,
-    QuantumGate,
-    SequentialTranspiler,
-    gate_names,
-)
+from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate, gate_names
 from quri_parts.circuit.gate_names import (
     ParametricGateNameType,
     SingleQubitGateNameType,
@@ -37,6 +27,14 @@ from quri_parts.circuit.gate_names import (
     is_parametric_gate_name,
     is_single_qubit_gate_name,
     is_two_qubit_gate_name,
+)
+from quri_parts.circuit.transpile import (
+    CircuitTranspiler,
+    CZ2CNOTHTranspiler,
+    IdentityInsertionTranspiler,
+    PauliDecomposeTranspiler,
+    PauliRotationDecomposeTranspiler,
+    SequentialTranspiler,
 )
 
 BraketCircuitConverter: TypeAlias = Callable[

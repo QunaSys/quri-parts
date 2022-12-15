@@ -1,0 +1,22 @@
+diff a/packages/circuit/tests/circuit/transpile/test_gate_kind_decomposer.py b/packages/circuit/tests/circuit/transpile/test_gate_kind_decomposer.py	(rejected hunks)
+@@ -21,7 +21,6 @@
+     U2,
+     U3,
+     H,
+-    Identity,
+     Pauli,
+     PauliRotation,
+     QuantumCircuit,
+@@ -38,12 +37,8 @@
+     Z,
+ )
+ from quri_parts.circuit.transpile import (
+-    CliffordApproximationTranspiler,
+     CZ2CNOTHTranspiler,
+     H2RZSqrtXTranspiler,
+-    IdentityInsertionTranspiler,
+-    PauliDecomposeTranspiler,
+-    PauliRotationDecomposeTranspiler,
+     RX2RZSqrtXTranspiler,
+     RY2RZSqrtXTranspiler,
+     RZSetTranspiler,
