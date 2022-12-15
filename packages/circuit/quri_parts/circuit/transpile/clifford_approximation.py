@@ -15,11 +15,11 @@ import numpy as np
 from quri_parts.circuit import QuantumGate, gate_names, gates
 
 from .gate_kind_decomposer import (
-    PauliRotationDecomposeTranspiler,
     U1ToRZTranspiler,
     U2ToRZSqrtXTranspiler,
     U3ToRZSqrtXTranspiler,
 )
+from .multi_pauli_decomposer import PauliRotationDecomposeTranspiler
 from .transpiler import GateDecomposer
 
 
