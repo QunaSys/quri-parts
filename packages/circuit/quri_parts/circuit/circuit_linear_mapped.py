@@ -23,8 +23,11 @@ from .circuit_parametric import (
     UnboundParametricQuantumCircuitBase,
     UnboundParametricQuantumCircuitProtocol,
 )
-from .gate import QuantumGate
-from .parameter_mapping import LinearParameterMapping, ParameterOrLinearFunction
+from .gate import ParametricQuantumGate, QuantumGate
+from .parameter_mapping import (
+    LinearParameterMapping,
+    ParameterOrLinearFunction,
+)
 
 
 class LinearMappedUnboundParametricQuantumCircuitBase(
@@ -47,6 +50,14 @@ class LinearMappedUnboundParametricQuantumCircuitBase(
     @property
     def depth(self) -> int:
         return self._circuit.depth
+
+    @property
+    def gates(self) -> Sequence[Union[QuantumGate, ParametricQuantumGate]]:
+        return [gate for gate, _ in self._circuit._gates]
+
+    @property
+    def has_trivial_mapping(self) -> bool:
+        return self._param_mapping.is_trivial_mapping
 
     @property
     def mapping_and_raw_circuit(

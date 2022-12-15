@@ -52,6 +52,9 @@ class TestParameterMappingBase:
 
                 return m
 
+            def is_trivial_mapping(self) -> bool:
+                return False
+
         mapping = M()
         seq_mapper = mapping.seq_mapper
 
