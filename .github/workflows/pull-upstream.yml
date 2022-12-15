@@ -14,3 +14,7 @@ jobs:
         ref: main
     - run: git pull --ff-only https://github.com/QunaSys/quri-parts.git
     - run: git push
+    - run: git fetch origin internal-main
+    - run: git switch internal-main
+    - run: git merge main
+    - run: git push origin internal-main
