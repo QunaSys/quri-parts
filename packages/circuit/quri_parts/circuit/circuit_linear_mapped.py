@@ -24,10 +24,7 @@ from .circuit_parametric import (
     UnboundParametricQuantumCircuitProtocol,
 )
 from .gate import ParametricQuantumGate, QuantumGate
-from .parameter_mapping import (
-    LinearParameterMapping,
-    ParameterOrLinearFunction,
-)
+from .parameter_mapping import LinearParameterMapping, ParameterOrLinearFunction
 
 
 class LinearMappedUnboundParametricQuantumCircuitBase(

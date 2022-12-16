@@ -14,6 +14,7 @@ from quri_parts.circuit import (
     Y,
     Z,
 )
+
 from ..operator.pauli import PauliLabel, SinglePauli, pauli_product
 
 # Returns SinglePauli and it's coefficient after the conjugation U*Pauli*U\dag
@@ -111,10 +112,12 @@ PAULI_UPDATE_TBL_2Q_GATES: dict[int, dict[str, dict[str, tuple[int, int]]]] = {
 
 
 def conjugation(gate: QuantumGate, pauli: PauliLabel) -> tuple[PauliLabel, complex]:
-    """Returns :class:`PauliLabel` :math:`P'` mapped by :class:`QuantumGate` :math:`U`
-    under the conjugation :math:`P'=UPU^{\dagger}`.
+    r"""Returns :class:`PauliLabel` :math:`P'` mapped by :class:`QuantumGate`
+    :math:`U` under the conjugation :math:`P'=UPU^{\dagger}`.
+
     In other words, returns the :math:`P'` which satisfies :math:`P'U = UP`
-    for given gate :math:`U` and :class:`PauliLabel` :math:`P`."""
+    for given gate :math:`U` and :class:`PauliLabel` :math:`P`.
+    """
     res_pauli: PauliLabel = PauliLabel()
     res_coef: complex = 1.0
     # single qubit gates
