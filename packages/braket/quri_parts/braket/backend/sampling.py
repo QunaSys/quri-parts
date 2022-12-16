@@ -30,7 +30,8 @@ from quri_parts.braket.circuit import (
     BraketTranspiler,
     convert_circuit,
 )
-from quri_parts.circuit import CircuitTranspiler, NonParametricQuantumCircuit
+from quri_parts.circuit import NonParametricQuantumCircuit
+from quri_parts.circuit.transpile import CircuitTranspiler
 
 
 class BraketSamplingResult(SamplingResult):
