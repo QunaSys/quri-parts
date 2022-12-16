@@ -1,6 +1,3 @@
-from quri_parts.core.operator import pauli_label
-from quri_parts.core.utils.conjugation import conjugation
-
 from quri_parts.circuit import (
     CNOT,
     CZ,
@@ -16,6 +13,8 @@ from quri_parts.circuit import (
     Y,
     Z,
 )
+from quri_parts.core.operator import pauli_label
+from quri_parts.core.utils.conjugation import conjugation
 
 
 def test_conjugation() -> None:
