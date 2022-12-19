@@ -38,7 +38,7 @@ jobs:
       working-directory: docs
 
     - name: deploy to Netlify
-      uses: nwtgck/actions-netlify@v1.2
+      uses: nwtgck/actions-netlify@v2.0
       with:
         publish-dir: './docs/_build'
         production-branch: main
