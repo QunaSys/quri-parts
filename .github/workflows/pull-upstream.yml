@@ -23,5 +23,7 @@ jobs:
     - run: git push
     - run: git fetch origin internal-main
     - run: git switch internal-main
+    - run: git config --global user.email "quri-parts-bot@qunasys.com"
+    - run: git config --global user.name "QURI Parts bot"
     - run: git merge main
     - run: git push origin internal-main
