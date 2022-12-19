@@ -14,9 +14,7 @@ from stim import Circuit as StimCircuit
 from typing_extensions import TypeAlias, TypeGuard
 
 from quri_parts.circuit import (
-    CliffordApproximationTranspiler,
     NonParametricQuantumCircuit,
-    PauliDecomposeTranspiler,
     QuantumGate,
     gate_names,
     is_clifford,
@@ -37,6 +35,10 @@ from quri_parts.circuit.gate_names import (
     X,
     Y,
     Z,
+)
+from quri_parts.circuit.transpile import (
+    CliffordApproximationTranspiler,
+    PauliDecomposeTranspiler,
 )
 
 _StimGateNameType: TypeAlias = Literal[

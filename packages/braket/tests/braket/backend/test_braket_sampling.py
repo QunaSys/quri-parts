@@ -18,11 +18,8 @@ from braket.tasks import GateModelQuantumTaskResult
 
 from quri_parts.backend import CompositeSamplingJob
 from quri_parts.braket.backend import BraketSamplingBackend, BraketSamplingResult
-from quri_parts.circuit import (
-    CircuitTranspiler,
-    NonParametricQuantumCircuit,
-    QuantumCircuit,
-)
+from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
+from quri_parts.circuit.transpile import CircuitTranspiler
 
 
 def circuit_converter(
