@@ -87,8 +87,9 @@ class BraketSamplingBackend(SamplingBackend):
             specific backend qubits, e.g. those with high fidelity. \
             The mapping should be specified with "from" qubit \
             indices as keys and "to" qubit indices as values. For example, if \
-            you want to map qubits 0, 1, 2, 3 to backend qubits as 0 → 4, 1 → 2, 2 → 5, \
-            3 → 0, then the ``qubit_mapping`` should be ``{0: 4, 1: 2, 2: 5, 3: 0}``.
+            you want to map qubits 0, 1, 2, 3 to backend qubits as 0 → 4, 1 → 2, \
+            2 → 5, 3 → 0, then the ``qubit_mapping`` should be \
+            ``{0: 4, 1: 2, 2: 5, 3: 0}``.
         run_kwargs: Additional keyword arguments for \
             :meth:`braket.devices.Device.run` method.
     """

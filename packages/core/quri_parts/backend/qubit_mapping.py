@@ -66,10 +66,11 @@ class BackendQubitMapping:
 @dataclass(frozen=True)
 class QubitMappedSamplingResult(SamplingResult):
     """:class:`~SamplingResult` that takes the qubit mapping into consideration.
-    
+
     Given a "raw" sampling result from the backend, returns a converted result
     with the keys (measurement results) represented in terms of qubits before
     mapping."""
+
     sampling_result: SamplingResult
     qubit_mapping: BackendQubitMapping
 
@@ -81,9 +82,10 @@ class QubitMappedSamplingResult(SamplingResult):
 @dataclass(frozen=True)
 class QubitMappedSamplingJob(SamplingJob):
     """:class:`~SamplingJob` that takes the qubit mapping into consideration.
-    
+
     Given a "raw" sampling job from the backend, returns a converted job
     which returns a :class:`~QubitMappedSamplingResult`."""
+
     sampling_job: SamplingJob
     qubit_mapping: BackendQubitMapping
 
