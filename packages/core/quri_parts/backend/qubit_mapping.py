@@ -41,10 +41,15 @@ def _reverse_map_counts(
 
 @dataclass(frozen=True)
 class BackendQubitMapping:
+    """Information related to qubit mapping of a backend."""
+
+    #: Mapping of qubit indices (from → to)
     mapping: Mapping[int, int]
 
     @cached_property
     def circuit_transpiler(self) -> QubitRemappingTranspiler:
+        """Returns a :class:`~QubitRemappingTranspiler` that remaps the qubit
+        indices in the circuit."""
         return QubitRemappingTranspiler(self.mapping)
 
     @cached_property
@@ -52,11 +57,19 @@ class BackendQubitMapping:
         return _create_reverse_map(self.mapping)
 
     def unmap_sampling_counts(self, m: SamplingCounts) -> SamplingCounts:
+        """Converts :class:`~SamplingCounts` obtained from the backend so that
+        the keys (measurement results) are represented in terms of qubits
+        before mapping."""
         return _reverse_map_counts(m, self._reverse_bit_map)
 
 
 @dataclass(frozen=True)
 class QubitMappedSamplingResult(SamplingResult):
+    """:class:`~SamplingResult` that takes the qubit mapping into consideration.
+    
+    Given a "raw" sampling result from the backend, returns a converted result
+    with the keys (measurement results) represented in terms of qubits before
+    mapping."""
     sampling_result: SamplingResult
     qubit_mapping: BackendQubitMapping
 
@@ -67,6 +80,10 @@ class QubitMappedSamplingResult(SamplingResult):
 
 @dataclass(frozen=True)
 class QubitMappedSamplingJob(SamplingJob):
+    """:class:`~SamplingJob` that takes the qubit mapping into consideration.
+    
+    Given a "raw" sampling job from the backend, returns a converted job
+    which returns a :class:`~QubitMappedSamplingResult`."""
     sampling_job: SamplingJob
     qubit_mapping: BackendQubitMapping
 
