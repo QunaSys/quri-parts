@@ -29,7 +29,7 @@ from quri_parts.circuit import (
     Z,
 )
 from quri_parts.core.operator import pauli_label
-from quri_parts.core.utils.conjugation import clifford_gate_conjugation
+from quri_parts.core.operator.conjugation import clifford_gate_conjugation
 
 
 def test_clifford_gate_conjugation() -> None:
