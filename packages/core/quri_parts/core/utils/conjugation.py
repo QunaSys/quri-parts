@@ -13,6 +13,8 @@ from quri_parts.circuit import (
     CZ,
     SWAP,
     H,
+    Identity,
+    Pauli,
     QuantumGate,
     S,
     Sdag,
@@ -24,12 +26,13 @@ from quri_parts.circuit import (
     Y,
     Z,
 )
+from quri_parts.circuit.gate_names import CLIFFORD_GATE_NAMES
 
 from ..operator.pauli import PauliLabel, SinglePauli, pauli_product
 
 # Returns SinglePauli and it's coefficient after the conjugation U*Pauli*U\dag
-# for 1q gates.
-PAULI_UPDATE_TBL_1Q_GATES: dict[int, dict[str, tuple[int, float]]] = {
+# by 1 qubit Clifford gates U.
+_PAULI_UPDATE_TBL_1Q_CLIFFORD_GATES: dict[int, dict[str, tuple[int, float]]] = {
     SinglePauli.X: {
         X.name: (SinglePauli.X, 1.0),
         Y.name: (SinglePauli.X, -1.0),
@@ -68,8 +71,10 @@ PAULI_UPDATE_TBL_1Q_GATES: dict[int, dict[str, tuple[int, float]]] = {
     },
 }
 
-# Returns SinglePaulis after the conjugation U*Pauli*U\dag for 2q gates.
-PAULI_UPDATE_TBL_2Q_GATES: dict[int, dict[str, dict[str, tuple[int, int]]]] = {
+# Returns SinglePaulis after the conjugation U*Pauli*U\dag by 2 qubit Clifford gates U.
+_PAULI_UPDATE_TBL_2Q_CLIFFORD_GATES: dict[
+    int, dict[str, dict[str, tuple[int, int]]]
+] = {
     SinglePauli.X: {
         CNOT.name: {
             # Pauli acts on control index. return: (control, target)
@@ -121,20 +126,35 @@ PAULI_UPDATE_TBL_2Q_GATES: dict[int, dict[str, dict[str, tuple[int, int]]]] = {
 }
 
 
-def conjugation(gate: QuantumGate, pauli: PauliLabel) -> tuple[PauliLabel, complex]:
+def clifford_gate_conjugation(
+    gate: QuantumGate, pauli: PauliLabel
+) -> tuple[PauliLabel, complex]:
     r"""Returns :class:`PauliLabel` :math:`P'` mapped by :class:`QuantumGate`
-    :math:`U` under the conjugation :math:`P'=UPU^{\dagger}`.
+    :math:`U` under the conjugation :math:`P'=UPU^{\dagger}`. Note that this
+    function only supports Clifford gates.
 
     In other words, returns the :math:`P'` which satisfies :math:`P'U = UP`
     for given gate :math:`U` and :class:`PauliLabel` :math:`P`.
     """
+    if gate.name not in CLIFFORD_GATE_NAMES:
+        raise ValueError("{gate.name} gate is not a Clifford gate.")
+    elif gate.name == Pauli.name:
+        raise NotImplementedError(
+            "Please decompose the multi-qubit Pauli gate into single-qubit Pauli gates"
+            "before the conjugation. You can use PauliDecomposeTranspiler."
+        )
+    if gate.name == Identity.name:
+        return pauli, 1.0
+
     res_pauli: PauliLabel = PauliLabel()
     res_coef: complex = 1.0
     # single qubit gates
     if len([*gate.target_indices, *gate.control_indices]) == 1:
         for index, single_pauli in pauli:
             if index == gate.target_indices[0]:
-                updated_pauli, coef = PAULI_UPDATE_TBL_1Q_GATES[single_pauli][gate.name]
+                updated_pauli, coef = _PAULI_UPDATE_TBL_1Q_CLIFFORD_GATES[single_pauli][
+                    gate.name
+                ]
             else:
                 updated_pauli, coef = single_pauli, 1.0
             res_pauli, _ = pauli_product(
@@ -154,28 +174,24 @@ def conjugation(gate: QuantumGate, pauli: PauliLabel) -> tuple[PauliLabel, compl
             updated_pauli_set: set[tuple[int, int]] = set()
             if index not in [control_index, target_index]:
                 updated_pauli_set.add((index, single_pauli))
-            else:
-                if index == control_index:
-                    pauli_ctrl, pauli_target = PAULI_UPDATE_TBL_2Q_GATES[single_pauli][
-                        gate.name
-                    ]["q1"]
-                elif index == target_index:
-                    pauli_ctrl, pauli_target = PAULI_UPDATE_TBL_2Q_GATES[single_pauli][
-                        gate.name
-                    ]["q2"]
-                else:
-                    updated_pauli_set.add((index, single_pauli))
 
-                if pauli_ctrl:
-                    updated_pauli_set.add((control_index, pauli_ctrl))
-                if pauli_target:
-                    updated_pauli_set.add((target_index, pauli_target))
+            if index == control_index:
+                pauli_ctrl, pauli_target = _PAULI_UPDATE_TBL_2Q_CLIFFORD_GATES[
+                    single_pauli
+                ][gate.name]["q1"]
+            elif index == target_index:
+                pauli_ctrl, pauli_target = _PAULI_UPDATE_TBL_2Q_CLIFFORD_GATES[
+                    single_pauli
+                ][gate.name]["q2"]
+
+            if pauli_ctrl:
+                updated_pauli_set.add((control_index, pauli_ctrl))
+                pauli_ctrl = 0
+            if pauli_target:
+                updated_pauli_set.add((target_index, pauli_target))
+                pauli_target = 0
             res_pauli, coef_product = pauli_product(
                 res_pauli, PauliLabel(updated_pauli_set)
             )
             res_coef *= coef_product
-    else:
-        raise NotImplementedError(
-            f"Quadratic Clifford Expansion does not support {gate.name} gate."
-        )
     return res_pauli, res_coef

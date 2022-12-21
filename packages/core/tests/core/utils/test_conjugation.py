@@ -8,76 +8,146 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 from quri_parts.circuit import (
     CNOT,
     CZ,
     SWAP,
     H,
+    Identity,
+    Pauli,
     S,
     Sdag,
     SqrtX,
     SqrtXdag,
     SqrtY,
     SqrtYdag,
+    T,
     X,
     Y,
     Z,
 )
 from quri_parts.core.operator import pauli_label
-from quri_parts.core.utils.conjugation import conjugation
+from quri_parts.core.utils.conjugation import clifford_gate_conjugation
 
 
-def test_conjugation() -> None:
+def test_clifford_gate_conjugation() -> None:
     orig_pauli = pauli_label("X0")
-    assert conjugation(X(0), orig_pauli) == (pauli_label("X0"), 1.0)
-    assert conjugation(Y(0), orig_pauli) == (pauli_label("X0"), -1.0)
-    assert conjugation(Z(0), orig_pauli) == (pauli_label("X0"), -1.0)
-    assert conjugation(H(0), orig_pauli) == (pauli_label("Z0"), 1.0)
-    assert conjugation(S(0), orig_pauli) == (pauli_label("Y0"), 1.0)
-    assert conjugation(Sdag(0), orig_pauli) == (pauli_label("Y0"), -1.0)
-    assert conjugation(SqrtX(0), orig_pauli) == (pauli_label("X0"), 1.0)
-    assert conjugation(SqrtXdag(0), orig_pauli) == (pauli_label("X0"), 1.0)
-    assert conjugation(SqrtY(0), orig_pauli) == (pauli_label("Z0"), -1.0)
-    assert conjugation(SqrtYdag(0), orig_pauli) == (pauli_label("Z0"), 1.0)
-    assert conjugation(CNOT(0, 1), orig_pauli) == (pauli_label("X0 X1"), 1.0)
-    assert conjugation(CNOT(1, 0), orig_pauli) == (pauli_label("X0"), 1.0)
-    assert conjugation(CZ(0, 1), orig_pauli) == (pauli_label("X0 Z1"), 1.0)
-    assert conjugation(CZ(1, 0), orig_pauli) == (pauli_label("X0 Z1"), 1.0)
-    assert conjugation(SWAP(0, 1), orig_pauli) == (pauli_label("X1"), 1.0)
-    assert conjugation(SWAP(1, 0), orig_pauli) == (pauli_label("X1"), 1.0)
+    assert clifford_gate_conjugation(Identity(0), orig_pauli) == (
+        pauli_label("X0"),
+        1.0,
+    )
+    assert clifford_gate_conjugation(X(0), orig_pauli) == (pauli_label("X0"), 1.0)
+    assert clifford_gate_conjugation(Y(0), orig_pauli) == (pauli_label("X0"), -1.0)
+    assert clifford_gate_conjugation(Z(0), orig_pauli) == (pauli_label("X0"), -1.0)
+    assert clifford_gate_conjugation(H(0), orig_pauli) == (pauli_label("Z0"), 1.0)
+    assert clifford_gate_conjugation(S(0), orig_pauli) == (pauli_label("Y0"), 1.0)
+    assert clifford_gate_conjugation(Sdag(0), orig_pauli) == (pauli_label("Y0"), -1.0)
+    assert clifford_gate_conjugation(SqrtX(0), orig_pauli) == (pauli_label("X0"), 1.0)
+    assert clifford_gate_conjugation(SqrtXdag(0), orig_pauli) == (
+        pauli_label("X0"),
+        1.0,
+    )
+    assert clifford_gate_conjugation(SqrtY(0), orig_pauli) == (pauli_label("Z0"), -1.0)
+    assert clifford_gate_conjugation(SqrtYdag(0), orig_pauli) == (
+        pauli_label("Z0"),
+        1.0,
+    )
+    assert clifford_gate_conjugation(CNOT(0, 1), orig_pauli) == (
+        pauli_label("X0 X1"),
+        1.0,
+    )
+    assert clifford_gate_conjugation(CNOT(1, 0), orig_pauli) == (pauli_label("X0"), 1.0)
+    assert clifford_gate_conjugation(CZ(0, 1), orig_pauli) == (
+        pauli_label("X0 Z1"),
+        1.0,
+    )
+    assert clifford_gate_conjugation(CZ(1, 0), orig_pauli) == (
+        pauli_label("X0 Z1"),
+        1.0,
+    )
+    assert clifford_gate_conjugation(SWAP(0, 1), orig_pauli) == (pauli_label("X1"), 1.0)
+    assert clifford_gate_conjugation(SWAP(1, 0), orig_pauli) == (pauli_label("X1"), 1.0)
 
     orig_pauli = pauli_label("Y0")
-    assert conjugation(X(0), orig_pauli) == (pauli_label("Y0"), -1.0)
-    assert conjugation(Y(0), orig_pauli) == (pauli_label("Y0"), 1.0)
-    assert conjugation(Z(0), orig_pauli) == (pauli_label("Y0"), -1.0)
-    assert conjugation(H(0), orig_pauli) == (pauli_label("Y0"), -1.0)
-    assert conjugation(S(0), orig_pauli) == (pauli_label("X0"), -1.0)
-    assert conjugation(Sdag(0), orig_pauli) == (pauli_label("X0"), 1.0)
-    assert conjugation(SqrtX(0), orig_pauli) == (pauli_label("Z0"), 1.0)
-    assert conjugation(SqrtXdag(0), orig_pauli) == (pauli_label("Z0"), -1.0)
-    assert conjugation(SqrtY(0), orig_pauli) == (pauli_label("Y0"), 1.0)
-    assert conjugation(SqrtYdag(0), orig_pauli) == (pauli_label("Y0"), 1.0)
-    assert conjugation(CNOT(0, 1), orig_pauli) == (pauli_label("Y0 X1"), 1.0)
-    assert conjugation(CNOT(1, 0), orig_pauli) == (pauli_label("Y0 Z1"), 1.0)
-    assert conjugation(CZ(0, 1), orig_pauli) == (pauli_label("Y0 Z1"), 1.0)
-    assert conjugation(CZ(1, 0), orig_pauli) == (pauli_label("Y0 Z1"), 1.0)
-    assert conjugation(SWAP(0, 1), orig_pauli) == (pauli_label("Y1"), 1.0)
-    assert conjugation(SWAP(1, 0), orig_pauli) == (pauli_label("Y1"), 1.0)
+    assert clifford_gate_conjugation(Identity(0), orig_pauli) == (
+        pauli_label("Y0"),
+        1.0,
+    )
+    assert clifford_gate_conjugation(X(0), orig_pauli) == (pauli_label("Y0"), -1.0)
+    assert clifford_gate_conjugation(Y(0), orig_pauli) == (pauli_label("Y0"), 1.0)
+    assert clifford_gate_conjugation(Z(0), orig_pauli) == (pauli_label("Y0"), -1.0)
+    assert clifford_gate_conjugation(H(0), orig_pauli) == (pauli_label("Y0"), -1.0)
+    assert clifford_gate_conjugation(S(0), orig_pauli) == (pauli_label("X0"), -1.0)
+    assert clifford_gate_conjugation(Sdag(0), orig_pauli) == (pauli_label("X0"), 1.0)
+    assert clifford_gate_conjugation(SqrtX(0), orig_pauli) == (pauli_label("Z0"), 1.0)
+    assert clifford_gate_conjugation(SqrtXdag(0), orig_pauli) == (
+        pauli_label("Z0"),
+        -1.0,
+    )
+    assert clifford_gate_conjugation(SqrtY(0), orig_pauli) == (pauli_label("Y0"), 1.0)
+    assert clifford_gate_conjugation(SqrtYdag(0), orig_pauli) == (
+        pauli_label("Y0"),
+        1.0,
+    )
+    assert clifford_gate_conjugation(CNOT(0, 1), orig_pauli) == (
+        pauli_label("Y0 X1"),
+        1.0,
+    )
+    assert clifford_gate_conjugation(CNOT(1, 0), orig_pauli) == (
+        pauli_label("Y0 Z1"),
+        1.0,
+    )
+    assert clifford_gate_conjugation(CZ(0, 1), orig_pauli) == (
+        pauli_label("Y0 Z1"),
+        1.0,
+    )
+    assert clifford_gate_conjugation(CZ(1, 0), orig_pauli) == (
+        pauli_label("Y0 Z1"),
+        1.0,
+    )
+    assert clifford_gate_conjugation(SWAP(0, 1), orig_pauli) == (pauli_label("Y1"), 1.0)
+    assert clifford_gate_conjugation(SWAP(1, 0), orig_pauli) == (pauli_label("Y1"), 1.0)
 
     orig_pauli = pauli_label("Z0")
-    assert conjugation(X(0), orig_pauli) == (pauli_label("Z0"), -1.0)
-    assert conjugation(Y(0), orig_pauli) == (pauli_label("Z0"), -1.0)
-    assert conjugation(Z(0), orig_pauli) == (pauli_label("Z0"), 1.0)
-    assert conjugation(H(0), orig_pauli) == (pauli_label("X0"), 1.0)
-    assert conjugation(S(0), orig_pauli) == (pauli_label("Z0"), 1.0)
-    assert conjugation(Sdag(0), orig_pauli) == (pauli_label("Z0"), 1.0)
-    assert conjugation(SqrtX(0), orig_pauli) == (pauli_label("Y0"), -1.0)
-    assert conjugation(SqrtXdag(0), orig_pauli) == (pauli_label("Y0"), 1.0)
-    assert conjugation(SqrtY(0), orig_pauli) == (pauli_label("X0"), 1.0)
-    assert conjugation(SqrtYdag(0), orig_pauli) == (pauli_label("X0"), -1.0)
-    assert conjugation(CNOT(0, 1), orig_pauli) == (pauli_label("Z0"), 1.0)
-    assert conjugation(CNOT(1, 0), orig_pauli) == (pauli_label("Z0 Z1"), 1.0)
-    assert conjugation(CZ(0, 1), orig_pauli) == (pauli_label("Z0"), 1.0)
-    assert conjugation(CZ(1, 0), orig_pauli) == (pauli_label("Z0"), 1.0)
-    assert conjugation(SWAP(0, 1), orig_pauli) == (pauli_label("Z1"), 1.0)
-    assert conjugation(SWAP(1, 0), orig_pauli) == (pauli_label("Z1"), 1.0)
+    assert clifford_gate_conjugation(Identity(0), orig_pauli) == (
+        pauli_label("Z0"),
+        1.0,
+    )
+    assert clifford_gate_conjugation(X(0), orig_pauli) == (pauli_label("Z0"), -1.0)
+    assert clifford_gate_conjugation(Y(0), orig_pauli) == (pauli_label("Z0"), -1.0)
+    assert clifford_gate_conjugation(Z(0), orig_pauli) == (pauli_label("Z0"), 1.0)
+    assert clifford_gate_conjugation(H(0), orig_pauli) == (pauli_label("X0"), 1.0)
+    assert clifford_gate_conjugation(S(0), orig_pauli) == (pauli_label("Z0"), 1.0)
+    assert clifford_gate_conjugation(Sdag(0), orig_pauli) == (pauli_label("Z0"), 1.0)
+    assert clifford_gate_conjugation(SqrtX(0), orig_pauli) == (pauli_label("Y0"), -1.0)
+    assert clifford_gate_conjugation(SqrtXdag(0), orig_pauli) == (
+        pauli_label("Y0"),
+        1.0,
+    )
+    assert clifford_gate_conjugation(SqrtY(0), orig_pauli) == (pauli_label("X0"), 1.0)
+    assert clifford_gate_conjugation(SqrtYdag(0), orig_pauli) == (
+        pauli_label("X0"),
+        -1.0,
+    )
+    assert clifford_gate_conjugation(CNOT(0, 1), orig_pauli) == (pauli_label("Z0"), 1.0)
+    assert clifford_gate_conjugation(CNOT(1, 0), orig_pauli) == (
+        pauli_label("Z0 Z1"),
+        1.0,
+    )
+    assert clifford_gate_conjugation(CZ(0, 1), orig_pauli) == (pauli_label("Z0"), 1.0)
+    assert clifford_gate_conjugation(CZ(1, 0), orig_pauli) == (pauli_label("Z0"), 1.0)
+    assert clifford_gate_conjugation(SWAP(0, 1), orig_pauli) == (pauli_label("Z1"), 1.0)
+    assert clifford_gate_conjugation(SWAP(1, 0), orig_pauli) == (pauli_label("Z1"), 1.0)
+
+
+def test_clifford_gate_conjugation_invalid_gate() -> None:
+    orig_pauli = pauli_label("X0")
+    with pytest.raises(ValueError):
+        clifford_gate_conjugation(T(0), orig_pauli)
+    with pytest.raises(NotImplementedError):
+        clifford_gate_conjugation(
+            Pauli(target_indices=(0, 1), pauli_ids=(1, 2)), orig_pauli
+        )
+    ...
