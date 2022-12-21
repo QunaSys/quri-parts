@@ -32,7 +32,9 @@ from .pauli import PauliLabel, SinglePauli, pauli_product
 
 # Returns SinglePauli and it's coefficient after the conjugation U*Pauli*U\dag
 # by 1 qubit Clifford gates U.
-_PAULI_UPDATE_TBL_1Q_CLIFFORD_GATES: dict[int, dict[str, tuple[int, float]]] = {
+_single_Pauli_1q_Clifford_gate_conjugation_table: dict[
+    int, dict[str, tuple[int, float]]
+] = {
     SinglePauli.X: {
         X.name: (SinglePauli.X, 1.0),
         Y.name: (SinglePauli.X, -1.0),
@@ -72,7 +74,7 @@ _PAULI_UPDATE_TBL_1Q_CLIFFORD_GATES: dict[int, dict[str, tuple[int, float]]] = {
 }
 
 # Returns SinglePaulis after the conjugation U*Pauli*U\dag by 2 qubit Clifford gates U.
-_PAULI_UPDATE_TBL_2Q_CLIFFORD_GATES: dict[
+_single_Pauli_2q_Clifford_gate_conjugation_table: dict[
     int, dict[str, dict[str, tuple[int, int]]]
 ] = {
     SinglePauli.X: {
@@ -152,9 +154,9 @@ def clifford_gate_conjugation(
     if len([*gate.target_indices, *gate.control_indices]) == 1:
         for index, single_pauli in pauli:
             if index == gate.target_indices[0]:
-                updated_pauli, coef = _PAULI_UPDATE_TBL_1Q_CLIFFORD_GATES[single_pauli][
-                    gate.name
-                ]
+                updated_pauli, coef = _single_Pauli_1q_Clifford_gate_conjugation_table[
+                    single_pauli
+                ][gate.name]
             else:
                 updated_pauli, coef = single_pauli, 1.0
             res_pauli, _ = pauli_product(
@@ -178,13 +180,23 @@ def clifford_gate_conjugation(
                 updated_pauli_set.add((index, single_pauli))
 
             if index == control_index:
-                pauli_ctrl, pauli_target = _PAULI_UPDATE_TBL_2Q_CLIFFORD_GATES[
-                    single_pauli
-                ][gate.name]["q1"]
+                (
+                    pauli_ctrl,
+                    pauli_target,
+                ) = _single_Pauli_2q_Clifford_gate_conjugation_table[single_pauli][
+                    gate.name
+                ][
+                    "q1"
+                ]
             elif index == target_index:
-                pauli_ctrl, pauli_target = _PAULI_UPDATE_TBL_2Q_CLIFFORD_GATES[
-                    single_pauli
-                ][gate.name]["q2"]
+                (
+                    pauli_ctrl,
+                    pauli_target,
+                ) = _single_Pauli_2q_Clifford_gate_conjugation_table[single_pauli][
+                    gate.name
+                ][
+                    "q2"
+                ]
 
             if pauli_ctrl:
                 updated_pauli_set.add((control_index, pauli_ctrl))
