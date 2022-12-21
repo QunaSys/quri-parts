@@ -28,7 +28,7 @@ from quri_parts.circuit import (
     Y,
     Z,
 )
-from quri_parts.core.operator import pauli_label
+from quri_parts.core.operator import PauliLabel, SinglePauli, pauli_label
 from quri_parts.core.operator.conjugation import clifford_gate_conjugation
 
 
@@ -141,6 +141,26 @@ def test_clifford_gate_conjugation() -> None:
     assert clifford_gate_conjugation(SWAP(0, 1), orig_pauli) == (pauli_label("Z1"), 1.0)
     assert clifford_gate_conjugation(SWAP(1, 0), orig_pauli) == (pauli_label("Z1"), 1.0)
 
+    for pauli in [SinglePauli.X, SinglePauli.Y, SinglePauli.Z]:
+        orig_pauli = PauliLabel({(2, pauli)})  # X2, Y2, or Z2
+        assert clifford_gate_conjugation(Identity(0), orig_pauli) == (orig_pauli, 1.0)
+        assert clifford_gate_conjugation(X(0), orig_pauli) == (orig_pauli, 1.0)
+        assert clifford_gate_conjugation(Y(0), orig_pauli) == (orig_pauli, 1.0)
+        assert clifford_gate_conjugation(Z(0), orig_pauli) == (orig_pauli, 1.0)
+        assert clifford_gate_conjugation(H(0), orig_pauli) == (orig_pauli, 1.0)
+        assert clifford_gate_conjugation(S(0), orig_pauli) == (orig_pauli, 1.0)
+        assert clifford_gate_conjugation(Sdag(0), orig_pauli) == (orig_pauli, 1.0)
+        assert clifford_gate_conjugation(SqrtX(0), orig_pauli) == (orig_pauli, 1.0)
+        assert clifford_gate_conjugation(SqrtXdag(0), orig_pauli) == (orig_pauli, 1.0)
+        assert clifford_gate_conjugation(SqrtY(0), orig_pauli) == (orig_pauli, 1.0)
+        assert clifford_gate_conjugation(SqrtYdag(0), orig_pauli) == (orig_pauli, 1.0)
+        assert clifford_gate_conjugation(CNOT(0, 1), orig_pauli) == (orig_pauli, 1.0)
+        assert clifford_gate_conjugation(CNOT(1, 0), orig_pauli) == (orig_pauli, 1.0)
+        assert clifford_gate_conjugation(CZ(0, 1), orig_pauli) == (orig_pauli, 1.0)
+        assert clifford_gate_conjugation(CZ(1, 0), orig_pauli) == (orig_pauli, 1.0)
+        assert clifford_gate_conjugation(SWAP(0, 1), orig_pauli) == (orig_pauli, 1.0)
+        assert clifford_gate_conjugation(SWAP(1, 0), orig_pauli) == (orig_pauli, 1.0)
+
 
 def test_clifford_gate_conjugation_invalid_gate() -> None:
     orig_pauli = pauli_label("X0")
@@ -150,4 +170,3 @@ def test_clifford_gate_conjugation_invalid_gate() -> None:
         clifford_gate_conjugation(
             Pauli(target_indices=(0, 1), pauli_ids=(1, 2)), orig_pauli
         )
-    ...

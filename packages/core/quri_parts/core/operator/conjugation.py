@@ -28,7 +28,7 @@ from quri_parts.circuit import (
 )
 from quri_parts.circuit.gate_names import CLIFFORD_GATE_NAMES
 
-from ..operator.pauli import PauliLabel, SinglePauli, pauli_product
+from .pauli import PauliLabel, SinglePauli, pauli_product
 
 # Returns SinglePauli and it's coefficient after the conjugation U*Pauli*U\dag
 # by 1 qubit Clifford gates U.
@@ -171,6 +171,8 @@ def clifford_gate_conjugation(
                 *gate.target_indices,
             )
         for index, single_pauli in pauli:
+            pauli_ctrl = 0
+            pauli_target = 0
             updated_pauli_set: set[tuple[int, int]] = set()
             if index not in [control_index, target_index]:
                 updated_pauli_set.add((index, single_pauli))
@@ -186,10 +188,8 @@ def clifford_gate_conjugation(
 
             if pauli_ctrl:
                 updated_pauli_set.add((control_index, pauli_ctrl))
-                pauli_ctrl = 0
             if pauli_target:
                 updated_pauli_set.add((target_index, pauli_target))
-                pauli_target = 0
             res_pauli, coef_product = pauli_product(
                 res_pauli, PauliLabel(updated_pauli_set)
             )
