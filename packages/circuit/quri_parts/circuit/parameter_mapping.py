@@ -117,7 +117,8 @@ class ParameterMappingBase(ABC):
 
     @abstractproperty
     def is_trivial_mapping(self) -> bool:
-        """Returns if the mapping is identical one-to-one mapping."""
+        """Returns if the mapping is trivial one-to-one mapping (Identity
+        function)."""
 
     @property
     def seq_mapper(self) -> SeqMapper:

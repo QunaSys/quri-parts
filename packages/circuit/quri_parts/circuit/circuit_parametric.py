@@ -105,7 +105,7 @@ class UnboundParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
         ...
 
     @abstractproperty
-    def has_trivial_mapping(self) -> bool:
+    def has_trivial_parameter_mapping(self) -> bool:
         """Returns if the input parameters are used for parametric gates
         without any conversions.
 
@@ -151,7 +151,7 @@ class UnboundParametricQuantumCircuitBase(UnboundParametricQuantumCircuitProtoco
         return [gate for gate, _ in self._gates]
 
     @property
-    def has_trivial_mapping(self) -> bool:
+    def has_trivial_parameter_mapping(self) -> bool:
         return True
 
     def get_mutable_copy(self) -> "UnboundParametricQuantumCircuit":

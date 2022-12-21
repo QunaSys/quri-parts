@@ -53,7 +53,7 @@ class LinearMappedUnboundParametricQuantumCircuitBase(
         return [gate for gate, _ in self._circuit._gates]
 
     @property
-    def has_trivial_mapping(self) -> bool:
+    def has_trivial_parameter_mapping(self) -> bool:
         return self._param_mapping.is_trivial_mapping
 
     @property

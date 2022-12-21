@@ -47,7 +47,7 @@ class TestUnboundParametricQuantumCircuit:
         assert circuit.qubit_count == 2
         assert len(circuit._gates) == 5
         assert len(circuit._params) == 2
-        assert circuit.has_trivial_mapping
+        assert circuit.has_trivial_parameter_mapping
 
     def test_get_mutable_copy(self) -> None:
         circuit = mutable_circuit()
@@ -93,7 +93,7 @@ class TestImmutableUnboundParametricQuantumCircuit:
         assert circuit.qubit_count == 2
         assert len(circuit._gates) == 5
         assert len(circuit._params) == 2
-        assert circuit.has_trivial_mapping
+        assert circuit.has_trivial_parameter_mapping
 
     def test_get_mutable_copy(self) -> None:
         circuit = immutable_circuit()
