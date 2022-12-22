@@ -38,6 +38,7 @@ quri-parts-qiskit = { version = "*", optional = true }
 quri-parts-cirq = { version = "*", optional = true }
 quri-parts-openfermion = { version = "*", optional = true }
 quri-parts-stim = { version = "*", optional = true }
+qiskit = "^0.39.4"
 
 [tool.poetry.extras]
 qulacs = ["quri-parts-qulacs"]
