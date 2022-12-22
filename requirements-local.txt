@@ -12,3 +12,4 @@
 # -e ./packages/openfermion
 # -e ./packages/stim
 # -e ./packages/honeywell
+# -e ./packages/ionq

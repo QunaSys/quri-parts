@@ -14,6 +14,7 @@ pkgs="
     openfermion
     stim
     honeywell
+    ionq
 "
 
 for pkg in $pkgs
