@@ -20,8 +20,8 @@ from .ionq_native_transpiler import CNOT2RXRYXXTranspiler, IonQNativeTranspiler
 
 #: CircuitTranspiler to transpile a QuantumCircuit into another
 #: QuantumCircuit contaiing only GPi, GPi2, and MS gates.
-#: Note that the converted circuit contains IonQ native gates and may have
-#: different phases for each qubit.
+#: Note that the converted circuit contains IonQ native gates and is only assumed
+#: to be executed after conversion.
 IonQSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
     [
         RotationSetTranspiler(),

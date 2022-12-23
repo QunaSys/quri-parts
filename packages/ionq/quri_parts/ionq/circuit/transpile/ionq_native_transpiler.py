@@ -29,8 +29,10 @@ class IonQNativeTranspiler(CircuitTranspilerProtocol):
     """CircuitTranspiler, which converts RX, RY, RZ, XX gates into GPi, GPi2,
     MS gates.
 
-    Note that the converted circuit contains IonQ native gates and may have different
-    phases for each qubit.
+    The conversion process to the native gates is a direct porting of the process of
+    the code in IonQ's introductory article. Due to the nature of the conversion
+    process, each qubit may have a different phase, and the circuit is only assumed
+    to be executed after conversion.
 
     Ref:
         https://ionq.com/docs/getting-started-with-native-gates#introducing-the-native-gates
