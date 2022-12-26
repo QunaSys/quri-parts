@@ -38,8 +38,7 @@ quri-parts-qiskit = { version = "*", optional = true }
 quri-parts-cirq = { version = "*", optional = true }
 quri-parts-openfermion = { version = "*", optional = true }
 quri-parts-stim = { version = "*", optional = true }
-qiskit = "^0.39.4"
-pytest = "^7.2.0"
+
 
 [tool.poetry.extras]
 qulacs = ["quri-parts-qulacs"]
@@ -61,7 +60,6 @@ quri-parts-cirq = {path = "packages/cirq", develop = true}
 quri-parts-openfermion = {path = "packages/openfermion", develop = true}
 quri-parts-stim = {path = "packages/stim", develop = true}
 
-pytest = "^7.0.1"
 black = "^22.1.0"
 flake8 = "^4.0.1"
 mypy = ">=0.950"
