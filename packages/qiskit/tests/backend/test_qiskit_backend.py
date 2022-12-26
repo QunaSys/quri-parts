@@ -10,11 +10,9 @@
 
 from typing import Optional
 
-import numpy as np
 import pytest
 
 from qiskit.circuit import QuantumCircuit as QiskitCircuit
-from qiskit.providers.backend import Backend
 from qiskit.providers.fake_provider import FakeMelbourne
 from qiskit.result import Result as QiskitResult
 from qiskit.test import QiskitTestCase
