@@ -50,7 +50,8 @@ class QiskitSamplingResult(SamplingResult):
         if qiskit_counts is None:
             raise BackendError("No valid measurement results retrieved.")
         for result in qiskit_counts:
-            measurements[int(result[2:], 16)] = qiskit_counts.pop(result) # type: ignore
+            measurements[int(result[2:], 16)] = qiskit_counts.pop(result) \
+                # type: ignore
         return measurements
 
 
@@ -72,7 +73,8 @@ class QiskitSamplingBackend(SamplingBackend):
     """A Qiskit backend for a sampling measurement.
 
     Args:
-        backend: A Qiskit :class:`qiskit.providers.backend.Backend` for circuit execution.
+        backend: A Qiskit :class:`qiskit.providers.backend.Backend` \
+            for circuit execution.
         circuit_converter: A function converting \
             :class:`~quri_parts.circuit.NonParametricQuantumCircuit` to \
             a Qiskit :class:`qiskit.circuit.QuantumCircuit`.
@@ -136,7 +138,8 @@ class QiskitSamplingBackend(SamplingBackend):
         qiskit_circuit = self._circuit_converter(circuit, self._circuit_transpiler)
         tasks = []
         try:
-            if isinstance(self._backend, AerSimulator) or isinstance(self._backend, IBMQBackend):
+            if isinstance(self._backend, AerSimulator)\
+                 or isinstance(self._backend, IBMQBackend):
                 for s in shot_dist:
                     tasks.append(
                         self._backend.run(qiskit_circuit, shots=s, **self._run_kwargs)

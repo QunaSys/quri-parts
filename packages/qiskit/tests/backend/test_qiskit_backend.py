@@ -66,6 +66,7 @@ class TestSamplingBackend(QiskitTestCase):
     def setUp(self):
         self.backend = FakeMelbourne()
         super().setUp()
+
     def test_sample(self) -> None:
         device = self.backend
         backend = QiskitSamplingBackend(device, circuit_converter)
@@ -93,7 +94,10 @@ class TestSamplingBackend(QiskitTestCase):
 
     def test_circuit_transpiler(self) -> None:
         circuit = QuantumCircuit(4)
-        backend = QiskitSamplingBackend(self.backend, circuit_transpiler=circuit_transpiler)  # With default circuit_converter.
+        backend = QiskitSamplingBackend(
+            self.backend,
+            circuit_transpiler=circuit_transpiler
+            )   # With default circuit_converter.
         job = backend.sample(circuit, 1000)
         counts = job.result().counts
 
@@ -111,7 +115,11 @@ class TestSamplingBackend(QiskitTestCase):
         assert all(c >= 0 for c in counts.values())
         assert sum(counts.values()) == 1000
 
-        backend =QiskitSamplingBackend(self.backend, circuit_converter, enable_shots_roundup=False)
+        backend = QiskitSamplingBackend(
+            self.backend,
+            circuit_converter,
+            enable_shots_roundup=False
+            )
         backend._min_shots = 1000
         with pytest.raises(ValueError):
             job = backend.sample(QuantumCircuit(4), 50)
