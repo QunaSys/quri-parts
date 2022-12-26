@@ -50,7 +50,7 @@ class QiskitSamplingResult(SamplingResult):
         if qiskit_counts is None:
             raise BackendError("No valid measurement results retrieved.")
         for result in qiskit_counts:
-            measurements[int(result, 10)] = qiskit_counts.pop(result) # type: ignore
+            measurements[int(result[2:], 16)] = qiskit_counts.pop(result) # type: ignore
         return measurements
 
 

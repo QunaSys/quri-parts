@@ -3,7 +3,7 @@
 # You may obtain a copy of the License at
 #      http://www.apache.org/licenses/LICENSE-2.0
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
+# distributed under the License is distributed on an "sAS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
@@ -12,20 +12,24 @@ from typing import Optional
 
 import numpy as np
 import pytest
-from braket.circuits import Circuit
-from braket.devices import LocalSimulator
-from braket.tasks import GateModelQuantumTaskResult
+
+from qiskit.circuit import QuantumCircuit as QiskitCircuit
+from qiskit.providers.backend import Backend
+from qiskit.providers.fake_provider import FakeMelbourne
+from qiskit.result import Result as QiskitResult
+from qiskit.test import QiskitTestCase
 
 from quri_parts.backend import CompositeSamplingJob
-from quri_parts.qiskit.backend import BraketSamplingBackend, BraketSamplingResult
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
+
+from ...backend import QiskitSamplingBackend, QiskitSamplingResult
 
 
 def circuit_converter(
     _: NonParametricQuantumCircuit, transpiler: Optional[CircuitTranspiler] = None
-) -> Circuit:
-    circuit = Circuit()
+) -> QiskitCircuit:
+    circuit = QiskitCircuit(4)
     circuit.h(0)
     circuit.i(1)
     circuit.h(2)
@@ -42,31 +46,31 @@ def circuit_transpiler(_: NonParametricQuantumCircuit) -> NonParametricQuantumCi
     return circuit
 
 
-class TestBraketSamplingResult:
+class TestSamplingResult(QiskitTestCase):
+    def setUp(self):
+        self.base_result_args = dict(backend_name="test_backend",
+                                     backend_version="1.0.0",
+                                     qobj_id="id-137",
+                                     job_id="job-137",
+                                     success=True)
+
+        super().setUp()
+
     def test_measured_qubits(self) -> None:
-        measurements = np.array(
-            [
-                [0, 0],
-                [0, 0],
-                [1, 0],
-                [1, 0],
-            ]
-        )
-        braket_result = GateModelQuantumTaskResult(
-            task_metadata={},
-            additional_metadata={},
-            measurements=measurements,
-            measured_qubits=[1, 0],
-        )
-        result = BraketSamplingResult(braket_result)
+        raw_counts = {"0x0": 2, "0x2": 2}
+        qiskit_result = QiskitResult(results=[raw_counts], **self.base_result_args)
+        result = QiskitSamplingResult(qiskit_result)
         counts = result.counts
         assert counts == {0b00: 2, 0b10: 2}
 
 
-class TestBraketSamplingBackend:
+class TestSamplingBackend(QiskitTestCase):
+    def setUp(self):
+        self.backend = FakeMelbourne()
+        super().setUp()
     def test_sample(self) -> None:
-        device = LocalSimulator()
-        backend = BraketSamplingBackend(device, circuit_converter)
+        device = self.backend
+        backend = QiskitSamplingBackend(device, circuit_converter)
         job = backend.sample(QuantumCircuit(4), 1000)
         counts = job.result().counts
 
@@ -80,8 +84,8 @@ class TestBraketSamplingBackend:
         circuit.add_H_gate(1)
         circuit.add_Z_gate(2)
 
-        device = LocalSimulator()
-        backend = BraketSamplingBackend(device)
+        device = self.backend
+        backend = QiskitSamplingBackend(device)
         job = backend.sample(circuit, 1000)
         counts = job.result().counts
 
@@ -90,12 +94,8 @@ class TestBraketSamplingBackend:
         assert sum(counts.values()) == 1000
 
     def test_circuit_transpiler(self) -> None:
-        circuit = QuantumCircuit(3)
-
-        device = LocalSimulator()
-        backend = BraketSamplingBackend(
-            device=device, circuit_transpiler=circuit_transpiler
-        )  # With default circuit_converter.
+        circuit = QuantumCircuit(4)
+        backend = QiskitSamplingBackend(self.backend, circuit_transpiler=circuit_transpiler)  # With default circuit_converter.
         job = backend.sample(circuit, 1000)
         counts = job.result().counts
 
@@ -104,9 +104,7 @@ class TestBraketSamplingBackend:
         assert sum(counts.values()) == 1000
 
     def test_min_shots(self) -> None:
-        device = LocalSimulator()
-
-        backend = BraketSamplingBackend(device, circuit_converter)
+        backend = QiskitSamplingBackend(self.backend, circuit_converter)
         backend._min_shots = 1000
         job = backend.sample(QuantumCircuit(4), 50)
         counts = job.result().counts
@@ -115,17 +113,13 @@ class TestBraketSamplingBackend:
         assert all(c >= 0 for c in counts.values())
         assert sum(counts.values()) == 1000
 
-        backend = BraketSamplingBackend(
-            device, circuit_converter, enable_shots_roundup=False
-        )
+        backend =QiskitSamplingBackend(self.backend, circuit_converter, enable_shots_roundup=False)
         backend._min_shots = 1000
         with pytest.raises(ValueError):
             job = backend.sample(QuantumCircuit(4), 50)
 
     def test_max_shots(self) -> None:
-        device = LocalSimulator()
-
-        backend = BraketSamplingBackend(device, circuit_converter)
+        backend = QiskitSamplingBackend(self.backend, circuit_converter)
         backend._max_shots = 1000
         job = backend.sample(QuantumCircuit(4), 2100)
         counts = job.result().counts
@@ -140,7 +134,7 @@ class TestBraketSamplingBackend:
             1000,
         ]
 
-        backend = BraketSamplingBackend(device, circuit_converter)
+        backend = QiskitSamplingBackend(self.backend, circuit_converter)
         backend._max_shots = 1000
         backend._min_shots = 200
         job = backend.sample(QuantumCircuit(4), 2100)
@@ -156,8 +150,8 @@ class TestBraketSamplingBackend:
             1000,
         ]
 
-        backend = BraketSamplingBackend(
-            device, circuit_converter, enable_shots_roundup=False
+        backend = QiskitSamplingBackend(
+            self.backend, circuit_converter, enable_shots_roundup=False
         )
         backend._max_shots = 1000
         backend._min_shots = 200
