@@ -115,22 +115,17 @@ def sampling_estimate(
     if len(op) == 0:
         return _ConstEstimate(0.0)
 
-    const: complex = 0.0
-    if PAULI_IDENTITY in op:
-        const = op[PAULI_IDENTITY]
-        if len(op) == 1:
-            return _ConstEstimate(const)
+    if len(op) == 1 and PAULI_IDENTITY in op:
+        return _ConstEstimate(op[PAULI_IDENTITY])
 
     # If there is a standalone Identity group then eliminate, else set const 0.
-    standalone = False
+    const: complex = 0.0
     measurements = []
     for m in measurement_factory(op):
         if m.pauli_set == {PAULI_IDENTITY}:
-            standalone = True
+            const = op[PAULI_IDENTITY]
         else:
             measurements.append(m)
-    if not standalone:
-        const = 0
 
     pauli_sets = tuple(m.pauli_set for m in measurements)
     shot_allocs = shots_allocator(op, pauli_sets, total_shots)
