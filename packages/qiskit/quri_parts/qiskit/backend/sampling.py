@@ -8,11 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# from collections import Counter
 from collections.abc import Callable, Mapping
 from typing import Any, Optional
 
-# import numpy as np
 from qiskit.circuit import QuantumCircuit
 from qiskit.providers import Job
 from qiskit.providers.backend import Backend
@@ -21,17 +19,18 @@ from qiskit.providers.ibmq.job import IBMQJob
 from qiskit.result import Result
 from qiskit_aer import AerJob, AerSimulator
 from qiskit_aer.backends.aerbackend import AerBackend
+from qiskit.providers.fake_provider.fake_backend import FakeBackendV2
 
 from quri_parts.backend import (
-    BackendError,
-    CompositeSamplingJob,
-    MeasurementCounts,
-    SamplingBackend,
-    SamplingJob,
-    SamplingResult,
+    BackendError,  # type: ignore
+    CompositeSamplingJob,  # type: ignore
+    SamplingCounts,  # type: ignore
+    SamplingBackend,  # type: ignore
+    SamplingJob,  # type: ignore
+    SamplingResult,  # type: ignore
 )
-from quri_parts.circuit import CircuitTranspiler, NonParametricQuantumCircuit
-from quri_parts.qiskit.circuit import QiskitTranspiler, convert_circuit
+from quri_parts.circuit.transpile import CircuitTranspiler
+from quri_parts.qiskit.circuit import QiskitTranspiler, convert_circuit, NonParametricQuantumCircuit
 
 
 class QiskitSamplingResult(SamplingResult):
@@ -44,14 +43,13 @@ class QiskitSamplingResult(SamplingResult):
         self._qiskit_result = qiskit_result
 
     @property
-    def counts(self) -> MeasurementCounts:
+    def counts(self) -> SamplingCounts:
         qiskit_counts = self._qiskit_result.get_counts()
         measurements: Mapping[int, int] = {}
         if qiskit_counts is None:
             raise BackendError("No valid measurement results retrieved.")
         for result in qiskit_counts:
-            measurements[int(result[2:], 16)] = qiskit_counts.pop(result) \
-                # type: ignore
+            measurements[int(result, 2)] = qiskit_counts[result]
         return measurements
 
 
@@ -62,10 +60,7 @@ class QiskitSamplingJob(SamplingJob):
         self._qiskit_job = qiskit_job
 
     def result(self) -> SamplingResult:
-        if isinstance(self._qiskit_job, IBMQJob):
-            qiskit_result: Result = self._qiskit_job.results
-        if isinstance(self._qiskit_job, AerJob):
-            qiskit_result: Result = self._qiskit_job.result()
+        qiskit_result: Result = self._qiskit_job.result()   # type: ignore
         return QiskitSamplingResult(qiskit_result)
 
 
@@ -136,10 +131,12 @@ class QiskitSamplingBackend(SamplingBackend):
                 )
 
         qiskit_circuit = self._circuit_converter(circuit, self._circuit_transpiler)
+        qiskit_circuit.measure_all()
         tasks = []
         try:
-            if isinstance(self._backend, AerSimulator)\
-                 or isinstance(self._backend, IBMQBackend):
+            if isinstance(self._backend, IBMQBackend) or\
+                isinstance(self._backend, AerBackend) or\
+                    isinstance(self._backend, FakeBackendV2):
                 for s in shot_dist:
                     tasks.append(
                         self._backend.run(qiskit_circuit, shots=s, **self._run_kwargs)

@@ -12,14 +12,6 @@ from collections.abc import Mapping, Sequence
 from typing import Callable, Optional, Type
 
 import numpy as np
-import qiskit.circuit.library as qgate
-from qiskit.circuit import QuantumCircuit
-from qiskit.circuit.gate import Gate
-from qiskit.extensions import UnitaryGate
-
-# from qiskit.providers import Backend
-from qiskit.opflow import X, Y, Z
-
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate, gate_names
 from quri_parts.circuit.gate_names import (
     MultiQubitGateNameType,
@@ -38,6 +30,14 @@ from quri_parts.circuit.transpile import (
     PauliRotationDecomposeTranspiler,
     SequentialTranspiler,
 )
+
+import qiskit.circuit.library as qgate
+from qiskit.circuit import QuantumCircuit
+from qiskit.circuit.gate import Gate
+from qiskit.extensions import UnitaryGate
+
+# from qiskit.providers import Backend
+from qiskit.opflow import X, Y, Z
 
 #: CircuitTranspiler to convert a circuit configuration suitable for Qiskit.
 QiskitTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
@@ -162,8 +162,11 @@ def convert_circuit(
 
     qiskit_circuit = QuantumCircuit(circuit.qubit_count)
     for gate in circuit.gates:
-        indices = list(gate.control_indices) + list(gate.target_indices) \
-            if gate.control_indices else list(gate.target_indices)
+        indices = (
+            list(gate.control_indices) + list(gate.target_indices)
+            if gate.control_indices
+            else list(gate.target_indices)
+        )
         qiskit_circuit.append(convert_gate(gate), qargs=indices)
     return qiskit_circuit
 

@@ -12,6 +12,8 @@ from collections.abc import Mapping
 from typing import Callable, Type, cast
 
 import numpy as np
+from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
+
 import qiskit.circuit.library as qgate
 
 # from qiskit.circuit import Instruction
@@ -19,12 +21,6 @@ from qiskit.circuit import QuantumCircuit as QiskitQuantumCircuit
 from qiskit.circuit.gate import Gate
 from qiskit.compiler import transpile
 from qiskit.extensions import UnitaryGate
-
-from quri_parts.circuit import (
-    QuantumCircuit,
-    QuantumGate,
-    gates,
-)
 from quri_parts.qiskit.circuit import convert_circuit, convert_gate
 
 
@@ -119,12 +115,7 @@ def test_convert_u2_gate() -> None:
 
 def test_convert_u3_gate() -> None:
     theta3, phi3, lmd3 = 0.125, -0.125, 0.625
-    converted = convert_gate(gates.U3(
-        theta=theta3,
-        phi=phi3,
-        lmd=lmd3,
-        target_index=0
-        ))
+    converted = convert_gate(gates.U3(theta=theta3, phi=phi3, lmd=lmd3, target_index=0))
     expected = qgate.U3Gate(theta3, phi3, lmd3)
     assert gate_equal(converted, expected)
 
