@@ -8,6 +8,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import io
+
 from quri_parts.circuit import QuantumCircuit, gates
 from quri_parts.openqasm.circuit import convert_gate_to_qasm_line, convert_to_qasm
 
@@ -104,7 +106,10 @@ class TestConvertToQasm:
         qubit_count = 7
         gate_list = [gates.X(0), gates.Z(6)]
         circuit = QuantumCircuit(qubit_count, gate_list)
-        actual = convert_to_qasm(circuit)
+        str_io = io.StringIO()
+
+        convert_to_qasm(circuit, str_io)
+        actual = str_io.getvalue()
 
         expected = """OPENQASM 3;
 include "stdgates.inc";

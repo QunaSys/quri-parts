@@ -8,6 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import io
 from typing import TYPE_CHECKING, Mapping
 
 from quri_parts.circuit import gate_names
@@ -27,7 +28,8 @@ if TYPE_CHECKING:
         TwoQubitGateNameType,
     )
 
-_HEADER = ["OPENQASM 3;", 'include "stdgates.inc";']
+_HEADER = """OPENQASM 3;
+include "stdgates.inc";"""
 _QUBIT_VAR_NAME = "q"
 
 # For information on "stdgates.inc", see https://arxiv.org/abs/2104.14722v2
@@ -76,14 +78,25 @@ _not_implemented_gates: set["SingleQubitGateNameType"] = {
 }
 
 
-def convert_to_qasm(circuit: "NonParametricQuantumCircuit") -> str:
-    lines = []
-    lines.extend(_HEADER)
-    lines.append(f"qubit[{int(circuit.qubit_count)}] {_QUBIT_VAR_NAME};")
-    lines.append("")
+def convert_to_qasm(
+    circuit: "NonParametricQuantumCircuit", text_io: io.TextIOBase
+) -> None:
+    """Converts a circuit to OpenQASM and writes it to IO stream.
+
+    Args:
+        circuit: Circuit to be converted
+    """
+    text_io.write(_HEADER + "\n")
+    text_io.write(f"qubit[{int(circuit.qubit_count)}] {_QUBIT_VAR_NAME};\n")
     for gate in circuit.gates:
-        lines.append(convert_gate_to_qasm_line(gate))
-    return "\n".join(lines)
+        text_io.write("\n")
+        text_io.write(convert_gate_to_qasm_line(gate))
+
+
+def convert_to_qasm_str(circuit: "NonParametricQuantumCircuit") -> str:
+    str_io = io.StringIO()
+    convert_to_qasm(circuit, str_io)
+    return str_io.getvalue()
 
 
 def _ref_q_str(index: int) -> str:
@@ -91,6 +104,14 @@ def _ref_q_str(index: int) -> str:
 
 
 def convert_gate_to_qasm_line(gate: "QuantumGate") -> str:
+    """Converts a gate to OpenQASM format.
+
+    Args:
+        gate: gate to be converted
+
+    Returns:
+        OpenQASM string
+    """
     if not is_gate_name(gate.name):
         raise ValueError(f"Unknown gate name: {gate.name}")
 
