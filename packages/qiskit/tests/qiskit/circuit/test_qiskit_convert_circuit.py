@@ -12,8 +12,6 @@ from collections.abc import Mapping
 from typing import Callable, Type, cast
 
 import numpy as np
-from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
-
 import qiskit.circuit.library as qgate
 
 # from qiskit.circuit import Instruction
@@ -21,17 +19,20 @@ from qiskit.circuit import QuantumCircuit as QiskitQuantumCircuit
 from qiskit.circuit.gate import Gate
 from qiskit.compiler import transpile
 from qiskit.extensions import UnitaryGate
+from qiskit.opflow import X, Y, Z, I
+import qiskit.quantum_info as qi
+
+from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
 from quri_parts.qiskit.circuit import convert_circuit, convert_gate
 
 
 def gate_equal(i1: Gate, i2: Gate) -> bool:
-    # Compare braket IR dict expression in pydantic BaseModel.
-    return cast(bool, i1.decompositions == i2.decompositions)
+    return cast(bool, i1 == i2)
 
 
 def circuit_equal(c1: QiskitQuantumCircuit, c2: QiskitQuantumCircuit) -> bool:
-    # Compare braket IR dict expression in pydantic BaseModel.
-    return cast(bool, transpile(c1) == transpile(c2))
+    # Analyze whether circuits are equivalent
+    return cast(bool, qi.Operator(c1).equiv(qi.Operator(c2)))
 
 
 single_qubit_gate_mapping: Mapping[Callable[[int], QuantumGate], Gate] = {
@@ -120,12 +121,6 @@ def test_convert_u3_gate() -> None:
     assert gate_equal(converted, expected)
 
 
-multi_qubit_gate_mapping: Mapping[Callable[..., QuantumGate], Type[Gate]] = {
-    gates.Pauli: qgate.PauliGate,
-    gates.PauliRotation: qgate.PauliEvolutionGate,
-}
-
-
 def test_convert_circuit() -> None:
     circuit = QuantumCircuit(3)
     original_gates = [
@@ -145,4 +140,35 @@ def test_convert_circuit() -> None:
     expected.h(2)
     expected.cnot(0, 2)
     expected.rx(0.125, 0)
+
+    
+    print(converted)
+    print(expected)
+
     assert circuit_equal(converted, expected)
+
+
+def test_convert_pauli() -> None:
+    circuit = QuantumCircuit(4)
+    original_gates = [
+        gates.Pauli([0, 1, 2, 3], [1, 2, 3, 1]),
+        gates.PauliRotation([0, 1, 2, 3], [1, 2, 3, 2], 0.266)
+    ]
+    for gate in original_gates:
+        circuit.add_gate(gate)
+
+    converted = convert_circuit(circuit)
+    assert converted.num_qubits == 4
+
+    expected = QiskitQuantumCircuit(4)
+
+    expected.pauli(pauli_string="XZYX", qubits=[0, 1, 2, 3])
+
+    evo = qgate.PauliEvolutionGate(Y^Z^Y^X, time=0.133)
+    expected.append(evo, [0, 1, 2, 3])
+    
+    print(converted)
+    print(expected)
+
+    assert circuit_equal(converted, expected)
+

@@ -119,9 +119,9 @@ def convert_gate(gate: QuantumGate) -> Gate:
 
     elif is_multi_qubit_gate_name(gate.name) and gate.name in _multi_qubit_gate_qiskit:
         if gate.name == gate_names.Pauli:
-            q_gate = qgate.PauliGate(label="Pauli")
+            q_gate = qgate.PauliGate(label=None)
             pauli_str = ""
-            for p in gate.pauli_ids:
+            for p in reversed(gate.pauli_ids):
                 if p == 1:
                     pauli_str += "X"
                 elif p == 2:
@@ -132,7 +132,7 @@ def convert_gate(gate: QuantumGate) -> Gate:
             return q_gate
         elif gate.name == gate_names.PauliRotation:
             operator = 1
-            for p in gate.pauli_ids:
+            for p in reversed(gate.pauli_ids):
                 if p == 1:
                     operator ^= X
                 elif p == 2:
@@ -162,11 +162,7 @@ def convert_circuit(
 
     qiskit_circuit = QuantumCircuit(circuit.qubit_count)
     for gate in circuit.gates:
-        indices = (
-            list(gate.control_indices) + list(gate.target_indices)
-            if gate.control_indices
-            else list(gate.target_indices)
-        )
+        indices = (*gate.control_indices, *gate.target_indices)
         qiskit_circuit.append(convert_gate(gate), qargs=indices)
     return qiskit_circuit
 
