@@ -12,17 +12,16 @@ from collections.abc import Mapping
 from typing import Callable, Type, cast
 
 import numpy as np
+from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
+
 import qiskit.circuit.library as qgate
+import qiskit.quantum_info as qi
 
 # from qiskit.circuit import Instruction
 from qiskit.circuit import QuantumCircuit as QiskitQuantumCircuit
 from qiskit.circuit.gate import Gate
-from qiskit.compiler import transpile
 from qiskit.extensions import UnitaryGate
-from qiskit.opflow import X, Y, Z, I
-import qiskit.quantum_info as qi
-
-from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
+from qiskit.opflow import X, Y, Z
 from quri_parts.qiskit.circuit import convert_circuit, convert_gate
 
 
@@ -60,6 +59,14 @@ single_qubit_sgate_mapping: Mapping[Callable[[int], QuantumGate], Gate] = {
         np.array([[0.5 - 0.5j, 0.5 - 0.5j], [-0.5 + 0.5j, 0.5 - 0.5j]])
     ),
 }
+
+
+def test_convert_single_qubit_sgate() -> None:
+    for qp_factory, qiskit_gate in single_qubit_sgate_mapping.items():
+        qp_gate = qp_factory(7)
+        converted = qi.Operator(convert_gate(qp_gate)).data
+        expected = qi.Operator(qiskit_gate).data
+        assert (converted == expected).all()
 
 
 def test_convert_single_qubit_gate() -> None:
@@ -141,7 +148,6 @@ def test_convert_circuit() -> None:
     expected.cnot(0, 2)
     expected.rx(0.125, 0)
 
-    
     print(converted)
     print(expected)
 
@@ -152,7 +158,7 @@ def test_convert_pauli() -> None:
     circuit = QuantumCircuit(4)
     original_gates = [
         gates.Pauli([0, 1, 2, 3], [1, 2, 3, 1]),
-        gates.PauliRotation([0, 1, 2, 3], [1, 2, 3, 2], 0.266)
+        gates.PauliRotation([0, 1, 2, 3], [1, 2, 3, 2], 0.266),
     ]
     for gate in original_gates:
         circuit.add_gate(gate)
@@ -164,11 +170,10 @@ def test_convert_pauli() -> None:
 
     expected.pauli(pauli_string="XZYX", qubits=[0, 1, 2, 3])
 
-    evo = qgate.PauliEvolutionGate(Y^Z^Y^X, time=0.133)
+    evo = qgate.PauliEvolutionGate(Y ^ Z ^ Y ^ X, time=0.133)
     expected.append(evo, [0, 1, 2, 3])
-    
+
     print(converted)
     print(expected)
 
     assert circuit_equal(converted, expected)
-

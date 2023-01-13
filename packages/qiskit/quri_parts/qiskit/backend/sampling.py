@@ -11,26 +11,27 @@
 from collections.abc import Callable, Mapping
 from typing import Any, Optional
 
-from qiskit.circuit import QuantumCircuit
-from qiskit.providers import Job
-from qiskit.providers.backend import Backend
-from qiskit.providers.ibmq import IBMQBackend
-from qiskit.providers.ibmq.job import IBMQJob
-from qiskit.result import Result
-from qiskit_aer import AerJob, AerSimulator
 from qiskit_aer.backends.aerbackend import AerBackend
-from qiskit.providers.fake_provider.fake_backend import FakeBackendV2
-
 from quri_parts.backend import (
-    BackendError,  # type: ignore
-    CompositeSamplingJob,  # type: ignore
-    SamplingCounts,  # type: ignore
-    SamplingBackend,  # type: ignore
-    SamplingJob,  # type: ignore
-    SamplingResult,  # type: ignore
+    BackendError,
+    CompositeSamplingJob,
+    SamplingBackend,
+    SamplingCounts,
+    SamplingJob,
+    SamplingResult,
 )
 from quri_parts.circuit.transpile import CircuitTranspiler
-from quri_parts.qiskit.circuit import QiskitTranspiler, convert_circuit, NonParametricQuantumCircuit
+
+from qiskit.circuit import QuantumCircuit
+from qiskit.providers import Job
+from qiskit.providers.backend import Backend, BackendV1, BackendV2
+from qiskit.providers.ibmq import IBMQBackend
+from qiskit.result import Result
+from quri_parts.qiskit.circuit import (
+    NonParametricQuantumCircuit,
+    QiskitTranspiler,
+    convert_circuit,
+)
 
 
 class QiskitSamplingResult(SamplingResult):
@@ -60,7 +61,7 @@ class QiskitSamplingJob(SamplingJob):
         self._qiskit_job = qiskit_job
 
     def result(self) -> SamplingResult:
-        qiskit_result: Result = self._qiskit_job.result()   # type: ignore
+        qiskit_result: Result = self._qiskit_job.result()  # type: ignore
         return QiskitSamplingResult(qiskit_result)
 
 
@@ -102,15 +103,12 @@ class QiskitSamplingBackend(SamplingBackend):
 
         self._min_shots = 1
         self._max_shots: Optional[int] = None
-        if isinstance(backend, IBMQBackend):
-            max_shots = backend.configuration.max_shots
+        if isinstance(backend, IBMQBackend) or isinstance(backend, AerBackend):
+            max_shots = backend.configuration().max_shots
             if max_shots > 0:
                 self._max_shots = max_shots
-        elif isinstance(backend, AerBackend):
-            if isinstance(backend, AerSimulator):
-                pass
-            else:
-                raise BackendError("Backend not supported")
+        else:
+            pass
 
     def sample(self, circuit: NonParametricQuantumCircuit, n_shots: int) -> SamplingJob:
         if not n_shots >= 1:
@@ -134,9 +132,9 @@ class QiskitSamplingBackend(SamplingBackend):
         qiskit_circuit.measure_all()
         tasks = []
         try:
-            if isinstance(self._backend, IBMQBackend) or\
-                isinstance(self._backend, AerBackend) or\
-                    isinstance(self._backend, FakeBackendV2):
+            if isinstance(self._backend, BackendV1) or isinstance(
+                self._backend, BackendV2
+            ):
                 for s in shot_dist:
                     tasks.append(
                         self._backend.run(qiskit_circuit, shots=s, **self._run_kwargs)
