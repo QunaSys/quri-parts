@@ -32,6 +32,7 @@ SingleQubitGateNameType: TypeAlias = Literal[
     "U1",
     "U2",
     "U3",
+    "UnitaryMatrix",
 ]
 
 Identity: Literal["Identity"] = "Identity"
@@ -120,6 +121,21 @@ def is_multi_qubit_gate_name(gate_name: str) -> TypeGuard[MultiQubitGateNameType
 NonParametricGateNameType: TypeAlias = Union[
     SingleQubitGateNameType, TwoQubitGateNameType, MultiQubitGateNameType
 ]
+
+
+UnitaryMatrixGateNameType: TypeAlias = Literal[
+    "UnitaryMatrix",
+]
+
+UnitaryMatrix: Literal["UnitaryMatrix"] = "UnitaryMatrix"
+
+UNITARY_MATRIX_GATE_NAMES: set[UnitaryMatrixGateNameType] = {
+    UnitaryMatrix,
+}
+
+
+def is_unitary_matrix_gate_name(gate_name: str) -> TypeGuard[UnitaryMatrixGateNameType]:
+    return gate_name in UNITARY_MATRIX_GATE_NAMES
 
 
 ParametricGateNameType: TypeAlias = Literal[

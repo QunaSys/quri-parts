@@ -236,6 +236,7 @@ class U1Factory:
 
 U1 = U1Factory()
 r"""U1 gate is a single-qubit rotation about the Z axis:
+
 :math:`U_1(\lambda) = e^{i\lambda/2} R_Z(\lambda)`.
 Represented by matrix :math:`\begin{pmatrix} 1 & 0 \\ 0 & e^{i\lambda} \end{pmatrix}`
 """
@@ -252,6 +253,7 @@ class U2Factory:
 
 U2 = U2Factory()
 r"""U2 gate is a single-qubit rotation about X + Z axis:
+
 :math:`U_2(\phi, \lambda) = R_Z(\phi)R_Y(\pi/2)R_Z(\lambda)`.
 Represented by matrix :math:`\frac{1}{\sqrt{2}}\begin{pmatrix} 1 & e^{-i\lambda} \\
 e^{i\phi} & e^{i(\phi+\lambda)} \end{pmatrix}`
@@ -361,6 +363,23 @@ PauliRotation = PauliRotationFactory()
 """Multi-qubit Pauli rotation gate such as :math:`e^{-iX_0Y_1 \\phi / 2}`."""
 
 
+class UnitaryMatrixFactory:
+    name: Literal["UnitaryMatrix"] = gate_names.UnitaryMatrix
+
+    def __call__(
+        self, target_indices: Sequence[int], unitary_matrix: Sequence[Sequence[int]]
+    ) -> QuantumGate:
+        return QuantumGate(
+            name=self.name,
+            target_indices=target_indices,
+            unitary_matrix=unitary_matrix,
+        )
+
+
+UnitaryMatrix = UnitaryMatrixFactory()
+"""UnitaryMatrix gate represented by an arbitrary unitary matrix."""
+
+
 class ParametricRXFactory:
     name: Literal["ParametricRX"] = gate_names.ParametricRX
 
@@ -370,9 +389,10 @@ class ParametricRXFactory:
 
 ParametricRX = ParametricRXFactory()
 """Parametric RX gate.
+
 Note that the instance of this class doesn't contain parameter values.
-Every parametric gate is carried with it's parameter (:class:`~Parameter`) such as
-(ParametricRX, Parameter).
+Every parametric gate is carried with it's parameter
+(:class:`~Parameter`) such as (ParametricRX, Parameter).
 """
 
 
@@ -385,9 +405,10 @@ class ParametricRYFactory:
 
 ParametricRY = ParametricRYFactory()
 """Parametric RY gate.
+
 Note that the instance of this class doesn't contain parameter values.
-Every parametric gate is carried with it's parameter (:class:`~Parameter`) such as
-(ParametricRY, Parameter).
+Every parametric gate is carried with it's parameter
+(:class:`~Parameter`) such as (ParametricRY, Parameter).
 """
 
 
@@ -400,9 +421,10 @@ class ParametricRZFactory:
 
 ParametricRZ = ParametricRZFactory()
 """Parametric RZ gate.
+
 Note that the instance of this class doesn't contain parameter values.
-Every parametric gate is carried with it's parameter (:class:`~Parameter`) such as
-(ParametricRZ, Parameter).
+Every parametric gate is carried with it's parameter
+(:class:`~Parameter`) such as (ParametricRZ, Parameter).
 """
 
 
@@ -421,7 +443,8 @@ class ParametricPauliRotationFactory:
 
 ParametricPauliRotation = ParametricPauliRotationFactory()
 """Parametric Pauli rotation gate.
+
 Note that the instance of this class doesn't contain parameter values.
-Every parametric gate is carried with it's parameter (:class:`~Parameter`) such as
-(ParametricPauliRotation, Parameter).
+Every parametric gate is carried with it's parameter
+(:class:`~Parameter`) such as (ParametricPauliRotation, Parameter).
 """
