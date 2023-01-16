@@ -31,11 +31,10 @@ U1q = U1qFactory()
 class ZZFactory:
     name: Literal["ZZ"] = gate_names.ZZ
 
-    def __call__(self, control_index: int, target_index: int) -> QuantumGate:
+    def __call__(self, target_index0: int, target_index1: int) -> QuantumGate:
         return QuantumGate(
             name=self.name,
-            control_indices=(control_index,),
-            target_indices=(target_index,),
+            target_indices=(target_index0, target_index1),
         )
 
 
@@ -45,10 +44,12 @@ ZZ = ZZFactory()
 class RZZFactory:
     name: Literal["RZZ"] = gate_names.RZZ
 
-    def __call__(self, target_index: int, theta: float) -> QuantumGate:
+    def __call__(
+        self, target_index0: int, target_index1: int, theta: float
+    ) -> QuantumGate:
         return QuantumGate(
             name=self.name,
-            target_indices=(target_index,),
+            target_indices=(target_index0, target_index1),
             params=(theta,),
         )
 
