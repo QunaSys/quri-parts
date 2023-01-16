@@ -144,9 +144,9 @@ def convert_gate(gate: QuantumGate) -> Gate:
             return qgate.PauliEvolutionGate(operator, time=float(gate.params[0] / 2))
 
     elif is_parametric_gate_name(gate.name):
-        assert False, "Unreachable"
+        raise ValueError("Unreachable.")
     else:
-        assert False, "Unreachable"
+        raise ValueError("Unreachable.")
 
     raise NotImplementedError(
         f"Conversion of {gate.name} to qiskit has not been implemented."

@@ -59,7 +59,7 @@ quri-parts-qiskit = {path = "packages/qiskit", develop = true}
 quri-parts-cirq = {path = "packages/cirq", develop = true}
 quri-parts-openfermion = {path = "packages/openfermion", develop = true}
 quri-parts-stim = {path = "packages/stim", develop = true}
-
+pytest = "^7.0.1"
 black = "^22.1.0"
 flake8 = "^4.0.1"
 mypy = ">=0.950"
