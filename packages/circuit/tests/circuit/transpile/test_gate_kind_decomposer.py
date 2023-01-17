@@ -344,6 +344,7 @@ class TestRZSetTranspile:
                 U1(1, lam),
                 U2(2, phi, lam),
                 U3(0, theta, phi, lam),
+                SWAP(0, 1),
                 Pauli((0, 1, 2), (1, 2, 3)),
                 PauliRotation((0, 1, 2), (1, 2, 3), theta),
             ]
@@ -391,6 +392,10 @@ class TestRZSetTranspile:
                 RZ(0, theta + np.pi),
                 SqrtX(0),
                 RZ(0, phi + 3.0 * np.pi),
+                # Swap
+                CNOT(0, 1),
+                CNOT(1, 0),
+                CNOT(0, 1),
                 # Pauli
                 X(0),  # X
                 RZ(1, -np.pi),  # Y
