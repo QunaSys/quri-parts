@@ -8,20 +8,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .clifford_data_regression import (
+from .cdr import (
     cdr,
     create_cdr_estimator,
     create_exp_regression,
     create_exp_regression_with_const,
     create_exp_regression_with_const_log,
     create_polynomial_regression,
+    make_training_circuits,
 )
 
 __all__ = [
-    "create_polynomial_regression",
+    "cdr",
+    "create_cdr_estimator",
     "create_exp_regression",
     "create_exp_regression_with_const",
     "create_exp_regression_with_const_log",
-    "cdr",
-    "create_cdr_estimator",
+    "create_polynomial_regression",
+    "make_training_circuits",
 ]

@@ -45,7 +45,7 @@ class _Estimate(NamedTuple):
 RegressionMethod: TypeAlias = Callable[[float, Iterable[float], Iterable[float]], float]
 
 
-def make_training_circuit(
+def make_training_circuits(
     circuit: NonParametricQuantumCircuit,
     num_clifford_untouched: int,
     num_training_circuits: int = 10,
@@ -57,7 +57,7 @@ def make_training_circuit(
 
     Args:
         circuit: Original circuit from which the near Clifford circuit is constructed.
-        num_clifford_untouched: A number of non-Clifford gates that remain untouched
+        num_non_clifford_untouched: A number of non-Clifford gates that remain untouched
             in the replacing.
         num_training_circuits: Number of circuits to be returned.
         seed: Seed to choose which gates to replace with Clifford ones.
@@ -246,7 +246,7 @@ def cdr(
 
     num_to_replace = max(int(round(num_non_clifford * fraction_of_replacement)), 1)
     num_clifford_untouched = num_non_clifford - num_to_replace
-    training_circuits = make_training_circuit(
+    training_circuits = make_training_circuits(
         circuit, num_clifford_untouched, num_training_circuits, seed
     )
 

@@ -11,14 +11,14 @@
 import numpy as np
 import pytest
 
-from quri_parts.algo.mitigation.clifford_data_regression.clifford_data_regression import (  # noqa: E501
+from quri_parts.algo.mitigation.cdr import (  # noqa: E501
     cdr,
     create_cdr_estimator,
     create_exp_regression,
     create_exp_regression_with_const,
     create_exp_regression_with_const_log,
     create_polynomial_regression,
-    make_training_circuit,
+    make_training_circuits,
 )
 from quri_parts.circuit import (
     CZ,
@@ -56,16 +56,16 @@ cdr_gate_list = [
 test_cdr_circuit = QuantumCircuit(qubit_count, gates=cdr_gate_list)
 
 
-def test_make_training_circuit() -> None:
+def test_make_training_circuis() -> None:
     with pytest.raises(ValueError):
-        make_training_circuit(
+        make_training_circuits(
             circuit=test_cdr_circuit,
             num_clifford_untouched=10,
             num_training_circuits=15,
             seed=10,
         )
 
-    training_circuits = make_training_circuit(
+    training_circuits = make_training_circuits(
         circuit=test_cdr_circuit,
         num_clifford_untouched=3,
         num_training_circuits=15,
@@ -82,7 +82,7 @@ def test_make_training_circuit() -> None:
     ]
     clifford_cdr_circuit = QuantumCircuit(qubit_count, clifford_gate_list)
     with pytest.raises(ValueError):
-        make_training_circuit(
+        make_training_circuits(
             circuit=clifford_cdr_circuit,
             num_clifford_untouched=3,
             num_training_circuits=15,
