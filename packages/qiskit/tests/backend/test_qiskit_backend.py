@@ -11,13 +11,13 @@
 from typing import Optional
 
 import pytest
-from quri_parts.backend import CompositeSamplingJob
-from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
-from quri_parts.circuit.transpile import CircuitTranspiler
-
 from qiskit.circuit import QuantumCircuit as QiskitCircuit
 from qiskit.providers.fake_provider import FakeMelbourneV2
 from qiskit.test import QiskitTestCase
+
+from quri_parts.backend import CompositeSamplingJob
+from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
+from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.qiskit.backend import QiskitSamplingBackend
 
 

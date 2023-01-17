@@ -12,8 +12,6 @@ from collections.abc import Mapping
 from typing import Callable, Type, cast
 
 import numpy as np
-from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
-
 import qiskit.circuit.library as qgate
 import qiskit.quantum_info as qi
 
@@ -22,6 +20,8 @@ from qiskit.circuit import QuantumCircuit as QiskitQuantumCircuit
 from qiskit.circuit.gate import Gate
 from qiskit.extensions import UnitaryGate
 from qiskit.opflow import X, Y, Z
+
+from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
 from quri_parts.qiskit.circuit import convert_circuit, convert_gate
 
 
