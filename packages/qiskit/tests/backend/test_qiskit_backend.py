@@ -41,8 +41,8 @@ def circuit_transpiler(_: NonParametricQuantumCircuit) -> NonParametricQuantumCi
     return circuit
 
 
-class TestSamplingResult(QiskitTestCase):
-    def setUp(self):
+class TestSamplingResult(QiskitTestCase):  # type: ignore
+    def setUp(self) -> None:
         self.base_result_args = dict(
             backend_name="test_backend",
             backend_version="1.0.0",
@@ -55,8 +55,8 @@ class TestSamplingResult(QiskitTestCase):
         super().setUp()
 
 
-class TestSamplingBackend(QiskitTestCase):
-    def setUp(self):
+class TestSamplingBackend(QiskitTestCase):  # type: ignore
+    def setUp(self) -> None:
         self.backend = FakeMelbourneV2()
         super().setUp()
 

@@ -27,11 +27,8 @@ from qiskit.providers import Job
 from qiskit.providers.backend import Backend, BackendV1, BackendV2
 from qiskit.providers.ibmq import IBMQBackend
 from qiskit.result import Result
-from quri_parts.qiskit.circuit import (
-    NonParametricQuantumCircuit,
-    QiskitTranspiler,
-    convert_circuit,
-)
+from quri_parts.qiskit.circuit import NonParametricQuantumCircuit  # type: ignore
+from quri_parts.qiskit.circuit import QiskitTranspiler, convert_circuit
 
 
 class QiskitSamplingResult(SamplingResult):
@@ -50,7 +47,7 @@ class QiskitSamplingResult(SamplingResult):
         if qiskit_counts is None:
             raise BackendError("No valid measurement results retrieved.")
         for result in qiskit_counts:
-            measurements[int(result, 2)] = qiskit_counts[result]
+            measurements[int(result, 2)] = qiskit_counts[result]  # type: ignore
         return measurements
 
 
@@ -61,7 +58,7 @@ class QiskitSamplingJob(SamplingJob):
         self._qiskit_job = qiskit_job
 
     def result(self) -> SamplingResult:
-        qiskit_result: Result = self._qiskit_job.result()  # type: ignore
+        qiskit_result: Result = self._qiskit_job.result()
         return QiskitSamplingResult(qiskit_result)
 
 
