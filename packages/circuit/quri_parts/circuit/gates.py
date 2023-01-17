@@ -14,7 +14,6 @@ from typing import Literal
 import numpy as np
 
 from quri_parts.circuit import gate_names
-from quri_parts.core.utils.array import readonly_array
 
 from .gate import ParametricQuantumGate, QuantumGate
 
@@ -331,6 +330,60 @@ SWAP = SWAPFactory()
 """SWAP gate."""
 
 
+class UnitaryMatrixFactory:
+    name: Literal["UnitaryMatrix"] = gate_names.UnitaryMatrix
+
+    def __call__(
+        self, target_indices: Sequence[int], unitary_matrix: Sequence[Sequence[complex]]
+    ) -> QuantumGate:
+        n = 2 ** len(target_indices)
+        arr = np.array(unitary_matrix)
+        if arr.shape != (n, n):
+            raise ValueError(
+                "The number of qubits does not match the size of the unitary matrix."
+            )
+        if not np.allclose(np.matmul(arr, np.conj(arr.T)), np.identity(n)):
+            raise ValueError("The given matrix is not unitary.")
+        return QuantumGate(
+            name=self.name,
+            target_indices=target_indices,
+            unitary_matrix=arr,
+        )
+
+
+UnitaryMatrix = UnitaryMatrixFactory()
+"""UnitaryMatrix gate represented by an arbitrary unitary matrix."""
+
+
+class SingleQubitUnitaryMatrixFactory:
+    name: Literal["UnitaryMatrix"] = gate_names.UnitaryMatrix
+
+    def __call__(
+        self, target_index: int, unitary_matrix: Sequence[Sequence[complex]]
+    ) -> QuantumGate:
+        return UnitaryMatrix((target_index,), unitary_matrix)
+
+
+SingleQubitUnitaryMatrix = SingleQubitUnitaryMatrixFactory()
+"""Single qubit UnitaryMatrix gate."""
+
+
+class TwoQubitUnitaryMatrixFactory:
+    name: Literal["UnitaryMatrix"] = gate_names.UnitaryMatrix
+
+    def __call__(
+        self,
+        target_index1: int,
+        target_index2: int,
+        unitary_matrix: Sequence[Sequence[complex]],
+    ) -> QuantumGate:
+        return UnitaryMatrix((target_index1, target_index2), unitary_matrix)
+
+
+TwoQubitUnitaryMatrix = TwoQubitUnitaryMatrixFactory()
+"""Two qubit UnitaryMatrix gate."""
+
+
 class PauliFactory:
     name: Literal["Pauli"] = gate_names.Pauli
 
@@ -364,31 +417,6 @@ class PauliRotationFactory:
 
 PauliRotation = PauliRotationFactory()
 """Multi-qubit Pauli rotation gate such as :math:`e^{-iX_0Y_1 \\phi / 2}`."""
-
-
-class UnitaryMatrixFactory:
-    name: Literal["UnitaryMatrix"] = gate_names.UnitaryMatrix
-
-    def __call__(
-        self, target_indices: Sequence[int], unitary_matrix: Sequence[Sequence[complex]]
-    ) -> QuantumGate:
-        n = 2 ** len(target_indices)
-        arr = readonly_array(unitary_matrix)
-        if arr.shape != (n, n):
-            raise ValueError(
-                "The number of qubits does not match the size of the unitary matrix."
-            )
-        if not np.allclose(np.matmul(arr, np.conj(arr.T)), np.identity(n)):
-            raise ValueError("The given matrix is not unitary.")
-        return QuantumGate(
-            name=self.name,
-            target_indices=target_indices,
-            unitary_matrix=arr,
-        )
-
-
-UnitaryMatrix = UnitaryMatrixFactory()
-"""UnitaryMatrix gate represented by an arbitrary unitary matrix."""
 
 
 class ParametricRXFactory:
