@@ -26,6 +26,18 @@ class GPiFactory:
 
 
 GPi = GPiFactory()
+r"""IonQ native gate GPi defined as follows.
+
+.. math::
+    GPi(\phi) =
+    \begin{pmatrix}
+        0 & e^{-i\phi} \\
+        e^{i\phi} & 0
+    \end{pmatrix}
+
+Ref:
+    [1]: https://ionq.com/docs/getting-started-with-native-gates#introducing-the-native-gates
+"""
 
 
 class GPi2Factory:
@@ -40,6 +52,18 @@ class GPi2Factory:
 
 
 GPi2 = GPi2Factory()
+r"""IonQ native gate GPi2 defined as follows.
+
+.. math::
+    GPi2(\phi) = \frac{1}{\sqrt{2}}
+    \begin{pmatrix}
+        1 & -ie^{-i\phi} \\
+        -ie^{i\phi} & 1
+    \end{pmatrix}
+
+Ref:
+    [1]: https://ionq.com/docs/getting-started-with-native-gates#introducing-the-native-gates
+"""
 
 
 class XXFactory:
@@ -56,6 +80,23 @@ class XXFactory:
 
 
 XX = XXFactory()
+r"""IonQ native gate XX defined as follows.
+
+.. math::
+    XX(\phi) =
+    \begin{pmatrix}
+        \cos{\phi} & 0 & 0 & -i\sin{\phi} \\
+        0 & \cos{\phi} & -i\sin{\phi} & 0 \\
+        0 & -i\sin{\phi} & \cos{\phi} & 0 \\
+        -i\sin{\phi} & 0 & 0 & \cos{\phi}
+    \end{pmatrix}
+
+Ref:
+    [1]: Dmitri Maslov,
+        Basic circuit compilation techniques for an ion-trap quantum machine,
+        New J. Phys. 19, 023035 (2017).
+    [2]: https://ionq.com/docs/getting-started-with-native-gates#introducing-the-native-gates
+"""
 
 
 class MSFactory:
@@ -72,3 +113,17 @@ class MSFactory:
 
 
 MS = MSFactory()
+r"""IonQ native gate MS defined as follows.
+
+.. math::
+    MS(\phi_0, \phi_1) = \frac{1}{\sqrt{2}}
+    \begin{pmatrix}
+        1 & 0 & 0 & -ie^{-i(\phi_0 + \phi_1)} \\
+        0 & 1 & -ie^{-i(\phi_0 - \phi_1)} & 0 \\
+        0 & -ie^{i(\phi_0 - \phi_1)} & 1 & 0 \\
+        -ie^{i(\phi_0 + \phi_1)} & 0 & 0 & 1
+    \end{pmatrix}
+
+Ref:
+    [1]: https://ionq.com/docs/getting-started-with-native-gates#introducing-the-native-gates
+"""

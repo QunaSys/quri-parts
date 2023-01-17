@@ -35,7 +35,7 @@ class IonQNativeTranspiler(CircuitTranspilerProtocol):
     to be executed after conversion.
 
     Ref:
-        https://ionq.com/docs/getting-started-with-native-gates#introducing-the-native-gates
+        [1]: https://ionq.com/docs/getting-started-with-native-gates#introducing-the-native-gates
     """
 
     def __init__(self, epsilon: float = 1.0e-6):
@@ -117,12 +117,16 @@ class IonQNativeTranspiler(CircuitTranspilerProtocol):
 
 
 class CNOT2RXRYXXTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decomposes CNOT gates into sequences of
-    RX, RY, and XX gates.
+    """CircuitTranspiler, which decomposes CNOT gates into sequences of RX, RY,
+    and XX gates.
 
     Ref:
-        https://ionq.com/docs/getting-started-with-native-gates#introducing-the-native-gates
+        [1]: Dmitri Maslov,
+            Basic circuit compilation techniques for an ion-trap quantum machine,
+            New J. Phys. 19, 023035 (2017).
+        [2]: https://ionq.com/docs/getting-started-with-native-gates#introducing-the-native-gates
     """
+
     @property
     def target_gate_names(self) -> Sequence[str]:
         return [gate_names.CNOT]
