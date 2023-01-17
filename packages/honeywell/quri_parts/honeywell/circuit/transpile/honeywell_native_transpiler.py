@@ -18,7 +18,7 @@ from quri_parts.honeywell.circuit import ZZ, U1q
 
 
 class RX2U1qTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decompose RX gates into U1q gates.
+    """CircuitTranspiler, which decomposes RX gates into U1q gates.
 
     Ref:
         [1]: https://www.quantinuum.com/hardware/h1
@@ -33,7 +33,7 @@ class RX2U1qTranspiler(GateKindDecomposer):
 
 
 class RY2U1qTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decompose RY gates into U1q gates.
+    """CircuitTranspiler, which decomposes RY gates into U1q gates.
 
     Ref:
         [1]: https://www.quantinuum.com/hardware/h1
@@ -48,7 +48,7 @@ class RY2U1qTranspiler(GateKindDecomposer):
 
 
 class H2U1qRZTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decompose H gates into sequences of U1q and RZ
+    """CircuitTranspiler, which decomposes H gates into sequences of U1q and RZ
     gates.
 
     Ref:
@@ -68,7 +68,7 @@ class H2U1qRZTranspiler(GateKindDecomposer):
 
 
 class CNOT2U1qZZRZTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decompose CNOT gates into sequences of U1q, RZ,
+    """CircuitTranspiler, which decomposes CNOT gates into sequences of U1q, RZ,
     and ZZ gates.
 
     Ref:
