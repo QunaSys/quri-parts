@@ -18,6 +18,12 @@ from quri_parts.honeywell.circuit import ZZ, U1q
 
 
 class RX2U1qTranspiler(GateKindDecomposer):
+    """CircuitTranspiler, which decompose RX gates into U1q gates.
+
+    Ref:
+        [1]: https://www.quantinuum.com/hardware/h1
+    """
+
     @property
     def target_gate_names(self) -> Sequence[str]:
         return [gate_names.RX]
@@ -27,6 +33,12 @@ class RX2U1qTranspiler(GateKindDecomposer):
 
 
 class RY2U1qTranspiler(GateKindDecomposer):
+    """CircuitTranspiler, which decompose RY gates into U1q gates.
+
+    Ref:
+        [1]: https://www.quantinuum.com/hardware/h1
+    """
+
     @property
     def target_gate_names(self) -> Sequence[str]:
         return [gate_names.RY]
@@ -36,6 +48,13 @@ class RY2U1qTranspiler(GateKindDecomposer):
 
 
 class H2U1qRZTranspiler(GateKindDecomposer):
+    """CircuitTranspiler, which decompose H gates into sequences of U1q and RZ
+    gates.
+
+    Ref:
+        [1]: https://www.quantinuum.com/hardware/h1
+    """
+
     @property
     def target_gate_names(self) -> Sequence[str]:
         return [gate_names.H]
@@ -49,6 +68,13 @@ class H2U1qRZTranspiler(GateKindDecomposer):
 
 
 class CNOT2U1qZZRZTranspiler(GateKindDecomposer):
+    """CircuitTranspiler, which decompose CNOT gates into sequences of U1q, RZ,
+    and ZZ gates.
+
+    Ref:
+        [1]: https://www.quantinuum.com/hardware/h1
+    """
+
     @property
     def target_gate_names(self) -> Sequence[str]:
         return [gate_names.CNOT]

@@ -380,7 +380,6 @@ class TestRZSetTranspile:
         assert transpiled.gates == expect.gates
 
     def test_cliffordapproximation_transpiler(self) -> None:
-
         gate_list = [
             H(0),
             T(1),

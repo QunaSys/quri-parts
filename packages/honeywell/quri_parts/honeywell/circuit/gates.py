@@ -26,6 +26,19 @@ class U1qFactory:
 
 
 U1q = U1qFactory()
+r"""Honeywell native gate U1q defined as follows.
+
+.. math::
+    U_{1q}(\theta, \phi) =
+    e^{-i(\cos{\phi \hat{X}} + \sin{\phi \hat{Y}}) \theta / 2} =
+    \begin{pmatrix}
+        \cos{\frac{\theta}{2}} & -ie^{-i\phi} \sin{\frac{\theta}{2}} \\
+        -ie^{i\phi} \sin{\frac{\theta}{2}} & \cos{\frac{\theta}{2}}
+    \end{pmatrix}
+
+Ref:
+    [1]: https://www.quantinuum.com/hardware/h1
+"""
 
 
 class ZZFactory:
@@ -39,6 +52,20 @@ class ZZFactory:
 
 
 ZZ = ZZFactory()
+r"""Honeywell native gate ZZ defined as follows.
+
+.. math::
+    ZZ = e^{-i\frac{\pi}{4} \hat{Z} \otimes \hat{Z}} = e^{-\frac{i\pi}{4}}
+    \begin{pmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & i & 0 & 0 \\
+        0 & 0 & i & 0 \\
+        0 & 0 & 0 & 1
+    \end{pmatrix}
+
+Ref:
+    [1]: https://www.quantinuum.com/hardware/h1
+"""
 
 
 class RZZFactory:
@@ -55,3 +82,17 @@ class RZZFactory:
 
 
 RZZ = RZZFactory()
+r"""Honeywell native gate RZZ defined as follows.
+
+.. math::
+    RZZ = e^{-i\frac{\pi}{2} \hat{Z} \otimes \hat{Z}} = e^{-\frac{i\pi}{2}}
+    \begin{pmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & e^{i\theta} & 0 & 0 \\
+        0 & 0 & e^{i\theta} & 0 \\
+        0 & 0 & 0 & 1
+    \end{pmatrix}
+
+Ref:
+    [1]: https://www.quantinuum.com/hardware/h1
+"""
