@@ -11,6 +11,9 @@
 from collections.abc import Sequence
 from typing import NamedTuple
 
+import numpy as np
+import numpy.typing as npt
+
 
 class QuantumGate(NamedTuple):
     """Non-parametric quantum gate.
@@ -25,7 +28,7 @@ class QuantumGate(NamedTuple):
     control_indices: Sequence[int] = ()
     params: Sequence[float] = ()
     pauli_ids: Sequence[int] = ()
-    unitary_matrix: Sequence[Sequence[float]] = ()
+    unitary_matrix: npt.NDArray[np.complex128] = ()
 
 
 class ParametricQuantumGate(NamedTuple):

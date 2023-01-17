@@ -11,7 +11,10 @@
 from collections.abc import Sequence
 from typing import Literal
 
+import numpy as np
+
 from quri_parts.circuit import gate_names
+from quri_parts.core.utils.array import readonly_array
 
 from .gate import ParametricQuantumGate, QuantumGate
 
@@ -367,12 +370,20 @@ class UnitaryMatrixFactory:
     name: Literal["UnitaryMatrix"] = gate_names.UnitaryMatrix
 
     def __call__(
-        self, target_indices: Sequence[int], unitary_matrix: Sequence[Sequence[int]]
+        self, target_indices: Sequence[int], unitary_matrix: Sequence[Sequence[complex]]
     ) -> QuantumGate:
+        n = 2 ** len(target_indices)
+        arr = readonly_array(unitary_matrix)
+        if arr.shape != (n, n):
+            raise ValueError(
+                "The number of qubits does not match the size of the unitary matrix."
+            )
+        if not np.allclose(np.matmul(arr, np.conj(arr.T)), np.identity(n)):
+            raise ValueError("The given matrix is not unitary.")
         return QuantumGate(
             name=self.name,
             target_indices=target_indices,
-            unitary_matrix=unitary_matrix,
+            unitary_matrix=arr,
         )
 
 
