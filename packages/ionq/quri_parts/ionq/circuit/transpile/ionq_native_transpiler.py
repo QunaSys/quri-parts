@@ -117,6 +117,12 @@ class IonQNativeTranspiler(CircuitTranspilerProtocol):
 
 
 class CNOT2RXRYXXTranspiler(GateKindDecomposer):
+    """CircuitTranspiler, which decomposes CNOT gates into sequences of
+    RX, RY, and XX gates.
+
+    Ref:
+        https://ionq.com/docs/getting-started-with-native-gates#introducing-the-native-gates
+    """
     @property
     def target_gate_names(self) -> Sequence[str]:
         return [gate_names.CNOT]
