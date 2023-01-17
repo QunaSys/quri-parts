@@ -68,8 +68,8 @@ class H2U1qRZTranspiler(GateKindDecomposer):
 
 
 class CNOT2U1qZZRZTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decomposes CNOT gates into sequences of U1q, RZ,
-    and ZZ gates.
+    """CircuitTranspiler, which decomposes CNOT gates into sequences of U1q,
+    RZ, and ZZ gates.
 
     Ref:
         [1]: https://www.quantinuum.com/hardware/h1
