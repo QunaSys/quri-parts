@@ -124,17 +124,15 @@ def qulacs_circuit_state(circuit: QuantumCircuit) -> npt.NDArray[np.complex128]:
     return cast(npt.NDArray[np.complex128], state.get_vector())
 
 
-def assert_state_equal(
-    xs: npt.NDArray[np.complex128], ys: npt.NDArray[np.complex128]
-) -> None:
-    i = np.absolute(xs).argmax()
-    zs = ys * (xs[i] / ys[i])
-    assert np.allclose(xs, zs)
-
-
 def assert_state_elem_equal(
     xs: npt.NDArray[np.complex128], ys: npt.NDArray[np.complex128]
 ) -> None:
+    """Only the norm of each element is compared between given two state
+    vectors.
+
+    Even if pass the test, the value of each element may not be
+    identical, but the measurement results will be identical.
+    """
     assert np.allclose(np.absolute(xs), np.absolute(ys))
 
 
@@ -146,7 +144,6 @@ class TestIonQNativeTranspile:
 
         state = qulacs_circuit_state(circuit)
         transpiled_state = ionq_circuit_state(transpiled)
-        # assert_state_equal(state, transpiled_state)
         assert_state_elem_equal(state, transpiled_state)
 
     def test_ionqnative_transpile_phase(self) -> None:
@@ -174,7 +171,6 @@ class TestIonQNativeTranspile:
 
         state = ionq_circuit_state(circuit)
         transpiled_state = ionq_circuit_state(transpiled)
-        # assert_state_equal(state, transpiled_state)
         assert_state_elem_equal(state, transpiled_state)
 
     def test_ionqnative_transpile_no_phase(self) -> None:
@@ -221,7 +217,7 @@ class TestIonQNativeTranspile:
 
         state = ionq_circuit_state(circuit)
         transpiled_state = ionq_circuit_state(transpiled)
-        assert_state_equal(state, transpiled_state)
+        assert_state_elem_equal(state, transpiled_state)
 
     def test_cnot2rxryxx_transpile(self) -> None:
         circuit = QuantumCircuit(2)
@@ -243,4 +239,4 @@ class TestIonQNativeTranspile:
 
         state = qulacs_circuit_state(circuit)
         transpiled_state = ionq_circuit_state(transpiled)
-        assert_state_equal(state, transpiled_state)
+        assert_state_elem_equal(state, transpiled_state)
