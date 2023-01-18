@@ -27,6 +27,8 @@ You are also encouraged to propose or author new components as necessary.
       - `quri-parts-braket`: [Amazon Braket SDK](https://github.com/aws/amazon-braket-sdk-python)
       - `quri-parts-cirq`: [Cirq](https://quantumai.google/cirq) (Only circuit conversion is supported yet)
       - `quri-parts-qiskit`: [Qiskit](https://qiskit.org/) (Circuit conversion and execution are not supported yet)
+- Intermediate representation support
+  - `quri-parts-openqasm`: [OpenQASM 3.0](https://openqasm.com/)
 - `quri-parts-algo`: Algorithms
   - Ansatz, optimizer, error mitigation etc.
 - Chemistry
