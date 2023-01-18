@@ -85,6 +85,7 @@ def convert_to_qasm(
 
     Args:
         circuit: Circuit to be converted
+        text_io: Stream where output will be written
     """
     text_io.write(_HEADER + "\n")
     text_io.write(f"qubit[{int(circuit.qubit_count)}] {_QUBIT_VAR_NAME};\n")
