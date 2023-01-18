@@ -108,30 +108,29 @@ def test_gate_creation() -> None:
     assert SWAP(5, 7) == QuantumGate(gate_names.SWAP, target_indices=(5, 7))
 
     # Unitary matrix gates
-    single_umat = np.identity(2, dtype=np.complex128)
-    assert SingleQubitUnitaryMatrix(5, tuple(map(tuple, single_umat))) == QuantumGate(
+    single_umat = ((1, 0), (0, 1))
+    two_umat = ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))
+    assert SingleQubitUnitaryMatrix(5, single_umat) == QuantumGate(
         gate_names.UnitaryMatrix,
         target_indices=(5,),
         unitary_matrix=single_umat,
     )
-    two_umat = np.identity(4, dtype=np.complex128)
-    assert TwoQubitUnitaryMatrix(5, 7, tuple(map(tuple, two_umat))) == QuantumGate(
+    assert TwoQubitUnitaryMatrix(5, 7, two_umat) == QuantumGate(
         gate_names.UnitaryMatrix,
         target_indices=(5, 7),
         unitary_matrix=two_umat,
     )
-    three_umat = np.identity(8, dtype=np.complex128)
-    assert UnitaryMatrix((5, 7, 11), tuple(map(tuple, three_umat))) == QuantumGate(
+    assert UnitaryMatrix((7, 11), two_umat) == QuantumGate(
         gate_names.UnitaryMatrix,
-        target_indices=(5, 7, 11),
-        unitary_matrix=three_umat,
+        target_indices=(7, 11),
+        unitary_matrix=two_umat,
     )
     with pytest.raises(ValueError):
-        SingleQubitUnitaryMatrix(5, tuple(map(tuple, two_umat)))  # Wrong shape
+        SingleQubitUnitaryMatrix(5, two_umat)  # Wrong shape
     with pytest.raises(ValueError):
-        TwoQubitUnitaryMatrix(5, 7, tuple(map(tuple, single_umat)))  # Wrong shape
+        TwoQubitUnitaryMatrix(5, 7, single_umat)  # Wrong shape
     with pytest.raises(ValueError):
-        UnitaryMatrix((5, 7, 11), tuple(map(tuple, np.zeros((8, 8)))))  # Non unitary
+        UnitaryMatrix((5, 7, 11), ((0,) * 8,) * 8)  # Non unitary
 
     # Pauli gates
     target_indices = (1, 3, 5)
@@ -161,9 +160,9 @@ def test_gate_addition() -> None:
     theta, phi, lmd = np.random.rand(3)
     target_indices = (2, 0, 1)
     pauli_ids = (3, 1, 2)
-    single_umat = np.identity(2, dtype=np.complex128)
-    two_umat = np.identity(4, dtype=np.complex128)
-    three_umat = np.identity(8, dtype=np.complex128)
+    single_umat = tuple(map(tuple, np.identity(2, dtype=np.complex128)))
+    two_umat = tuple(map(tuple, np.identity(4, dtype=np.complex128)))
+    three_umat = tuple(map(tuple, np.identity(8, dtype=np.complex128)))
 
     lc = QuantumCircuit(3)
     gates = [

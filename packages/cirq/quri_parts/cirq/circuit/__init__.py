@@ -185,7 +185,7 @@ def convert_gate(
             )
 
     elif is_unitary_matrix_gate_name(gate.name):
-        return MatrixGate(gate.unitary_matrix).on(
+        return MatrixGate(np.array(gate.unitary_matrix)).on(
             *[LineQubit(i) for i in gate.target_indices]
         )
 

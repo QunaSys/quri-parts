@@ -347,7 +347,7 @@ class UnitaryMatrixFactory:
         return QuantumGate(
             name=self.name,
             target_indices=target_indices,
-            unitary_matrix=arr,
+            unitary_matrix=unitary_matrix,
         )
 
 
