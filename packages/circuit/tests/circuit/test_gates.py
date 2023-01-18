@@ -2,6 +2,7 @@ from collections.abc import Mapping
 from typing import Callable
 
 import numpy as np
+import pytest
 
 from quri_parts.circuit import (
     CNOT,
@@ -25,12 +26,15 @@ from quri_parts.circuit import (
     QuantumGate,
     S,
     Sdag,
+    SingleQubitUnitaryMatrix,
     SqrtX,
     SqrtXdag,
     SqrtY,
     SqrtYdag,
     T,
     Tdag,
+    TwoQubitUnitaryMatrix,
+    UnitaryMatrix,
     X,
     Y,
     Z,
@@ -65,6 +69,15 @@ _parametric_factory_name_map: Mapping[Callable[[int], ParametricQuantumGate], st
 }
 
 
+def _unitary_matrix_gates_equal(x: QuantumGate, y: QuantumGate) -> None:
+    assert x.name == y.name
+    assert x.target_indices == y.target_indices
+    assert x.control_indices == y.control_indices
+    assert x.params == y.params
+    assert x.pauli_ids == y.pauli_ids
+    assert np.array_equal(x.unitary_matrix, y.unitary_matrix)
+
+
 def test_gate_creation() -> None:
     # Single qubit gate
     for f, name in _factory_name_map.items():
@@ -94,6 +107,32 @@ def test_gate_creation() -> None:
     )
     assert SWAP(5, 7) == QuantumGate(gate_names.SWAP, target_indices=(5, 7))
 
+    # Unitary matrix gates
+    single_umat = np.identity(2, dtype=np.complex128)
+    assert SingleQubitUnitaryMatrix(5, tuple(map(tuple, single_umat))) == QuantumGate(
+        gate_names.UnitaryMatrix,
+        target_indices=(5,),
+        unitary_matrix=single_umat,
+    )
+    two_umat = np.identity(4, dtype=np.complex128)
+    assert TwoQubitUnitaryMatrix(5, 7, tuple(map(tuple, two_umat))) == QuantumGate(
+        gate_names.UnitaryMatrix,
+        target_indices=(5, 7),
+        unitary_matrix=two_umat,
+    )
+    three_umat = np.identity(8, dtype=np.complex128)
+    assert UnitaryMatrix((5, 7, 11), tuple(map(tuple, three_umat))) == QuantumGate(
+        gate_names.UnitaryMatrix,
+        target_indices=(5, 7, 11),
+        unitary_matrix=three_umat,
+    )
+    with pytest.raises(ValueError):
+        SingleQubitUnitaryMatrix(5, tuple(map(tuple, two_umat)))  # Wrong shape
+    with pytest.raises(ValueError):
+        TwoQubitUnitaryMatrix(5, 7, tuple(map(tuple, single_umat)))  # Wrong shape
+    with pytest.raises(ValueError):
+        UnitaryMatrix((5, 7, 11), tuple(map(tuple, np.zeros((8, 8)))))  # Non unitary
+
     # Pauli gates
     target_indices = (1, 3, 5)
     pauli_ids = (3, 1, 2)
@@ -122,6 +161,9 @@ def test_gate_addition() -> None:
     theta, phi, lmd = np.random.rand(3)
     target_indices = (2, 0, 1)
     pauli_ids = (3, 1, 2)
+    single_umat = np.identity(2, dtype=np.complex128)
+    two_umat = np.identity(4, dtype=np.complex128)
+    three_umat = np.identity(8, dtype=np.complex128)
 
     lc = QuantumCircuit(3)
     gates = [
@@ -146,6 +188,9 @@ def test_gate_addition() -> None:
         CNOT(0, 1),
         CZ(0, 1),
         SWAP(0, 1),
+        SingleQubitUnitaryMatrix(0, single_umat),
+        TwoQubitUnitaryMatrix(0, 1, two_umat),
+        UnitaryMatrix(target_indices, three_umat),
         Pauli(target_indices, pauli_ids),
         PauliRotation(target_indices, pauli_ids, theta),
     ]
@@ -173,6 +218,9 @@ def test_gate_addition() -> None:
     mc.add_CNOT_gate(0, 1)
     mc.add_CZ_gate(0, 1)
     mc.add_SWAP_gate(0, 1)
+    mc.add_SingleQubitUnitaryMatrix_gate(0, single_umat),
+    mc.add_TwoQubitUnitaryMatrix_gate(0, 1, two_umat),
+    mc.add_UnitaryMatrix_gate(target_indices, three_umat),
     mc.add_Pauli_gate(target_indices, pauli_ids)
     mc.add_PauliRotation_gate(target_indices, pauli_ids, theta)
 

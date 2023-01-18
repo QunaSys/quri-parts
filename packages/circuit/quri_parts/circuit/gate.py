@@ -30,6 +30,17 @@ class QuantumGate(NamedTuple):
     pauli_ids: Sequence[int] = ()
     unitary_matrix: npt.NDArray[np.complex128] = ()
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, QuantumGate):
+            return False
+        return (
+            self.target_indices == other.target_indices
+            and self.control_indices == other.control_indices
+            and self.params == other.params
+            and self.pauli_ids == other.pauli_ids
+            and np.array_equal(self.unitary_matrix, other.unitary_matrix)
+        )
+
 
 class ParametricQuantumGate(NamedTuple):
     """Parametric quantum gate.
