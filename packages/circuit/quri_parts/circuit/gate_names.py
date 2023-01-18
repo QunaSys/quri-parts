@@ -218,6 +218,7 @@ GateNameType: TypeAlias = Literal[
     SingleQubitGateNameType,
     TwoQubitGateNameType,
     MultiQubitGateNameType,
+    UnitaryMatrixGateNameType,
     ParametricGateNameType,
 ]
 
@@ -225,6 +226,7 @@ GATE_NAMES: set[GateNameType] = (
     SINGLE_QUBIT_GATE_NAMES
     | TWO_QUBIT_GATE_NAMES
     | MULTI_QUBIT_GATE_NAMES
+    | UNITARY_MATRIX_GATE_NAMES
     | PARAMETRIC_GATE_NAMES
 )
 
