@@ -68,6 +68,7 @@ Currently available extras are as follows:
 - `cirq`
 - `openfermion`
 - `stim`
+- `openqasm`
 
 You can also install individual components (`quri-parts-*`) directly.
 In fact, `quri-parts` is a meta package, a convenience method to install those individual components.
