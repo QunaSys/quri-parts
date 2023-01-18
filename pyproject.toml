@@ -39,7 +39,6 @@ quri-parts-cirq = { version = "*", optional = true }
 quri-parts-openfermion = { version = "*", optional = true }
 quri-parts-stim = { version = "*", optional = true }
 
-
 [tool.poetry.extras]
 qulacs = ["quri-parts-qulacs"]
 braket = ["quri-parts-braket"]
