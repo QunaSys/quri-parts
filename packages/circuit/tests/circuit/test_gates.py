@@ -160,9 +160,8 @@ def test_gate_addition() -> None:
     theta, phi, lmd = np.random.rand(3)
     target_indices = (2, 0, 1)
     pauli_ids = (3, 1, 2)
-    single_umat = tuple(map(tuple, np.identity(2, dtype=np.complex128)))
-    two_umat = tuple(map(tuple, np.identity(4, dtype=np.complex128)))
-    three_umat = tuple(map(tuple, np.identity(8, dtype=np.complex128)))
+    single_umat = ((1, 0), (0, 1))
+    two_umat = ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))
 
     lc = QuantumCircuit(3)
     gates = [
@@ -189,7 +188,7 @@ def test_gate_addition() -> None:
         SWAP(0, 1),
         SingleQubitUnitaryMatrix(0, single_umat),
         TwoQubitUnitaryMatrix(0, 1, two_umat),
-        UnitaryMatrix(target_indices, three_umat),
+        UnitaryMatrix((0, 1), two_umat),
         Pauli(target_indices, pauli_ids),
         PauliRotation(target_indices, pauli_ids, theta),
     ]
@@ -219,7 +218,7 @@ def test_gate_addition() -> None:
     mc.add_SWAP_gate(0, 1)
     mc.add_SingleQubitUnitaryMatrix_gate(0, single_umat),
     mc.add_TwoQubitUnitaryMatrix_gate(0, 1, two_umat),
-    mc.add_UnitaryMatrix_gate(target_indices, three_umat),
+    mc.add_UnitaryMatrix_gate((0, 1), two_umat),
     mc.add_Pauli_gate(target_indices, pauli_ids)
     mc.add_PauliRotation_gate(target_indices, pauli_ids, theta)
 
