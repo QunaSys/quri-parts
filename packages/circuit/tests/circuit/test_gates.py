@@ -216,9 +216,9 @@ def test_gate_addition() -> None:
     mc.add_CNOT_gate(0, 1)
     mc.add_CZ_gate(0, 1)
     mc.add_SWAP_gate(0, 1)
-    mc.add_SingleQubitUnitaryMatrix_gate(0, single_umat),
-    mc.add_TwoQubitUnitaryMatrix_gate(0, 1, two_umat),
-    mc.add_UnitaryMatrix_gate((0, 1), two_umat),
+    mc.add_SingleQubitUnitaryMatrix_gate(0, single_umat)
+    mc.add_TwoQubitUnitaryMatrix_gate(0, 1, two_umat)
+    mc.add_UnitaryMatrix_gate((0, 1), two_umat)
     mc.add_Pauli_gate(target_indices, pauli_ids)
     mc.add_PauliRotation_gate(target_indices, pauli_ids, theta)
 
