@@ -26,11 +26,17 @@ from quri_parts.qiskit.circuit import convert_circuit, convert_gate
 
 
 def gate_equal(i1: Gate, i2: Gate) -> bool:
+    # the use of cast here is to assure that the
+    # result is a bool
     return cast(bool, i1 == i2)
 
 
 def circuit_equal(c1: QiskitQuantumCircuit, c2: QiskitQuantumCircuit) -> bool:
-    # Analyze whether circuits are equivalent
+    # Analyze whether circuits are equivalent.
+    # Instead of compare the gates directly,
+    # which cannot detect equivalent circuits,
+    # we use `qi.Operator` to convert the circuit to an operator
+    # and use `.equiv` method to see if two operators are equivalent.
     return cast(bool, qi.Operator(c1).equiv(qi.Operator(c2)))
 
 
@@ -45,6 +51,16 @@ single_qubit_gate_mapping: Mapping[Callable[[int], QuantumGate], Gate] = {
     gates.T: qgate.TGate(),
     gates.Tdag: qgate.TdgGate(),
 }
+
+
+def test_convert_single_qubit_gate() -> None:
+    for qp_factory, qiskit_gate in single_qubit_gate_mapping.items():
+        qp_gate = qp_factory(7)
+        converted = convert_gate(qp_gate)
+        expected = qiskit_gate
+        assert gate_equal(converted, expected)
+
+
 single_qubit_sgate_mapping: Mapping[Callable[[int], QuantumGate], Gate] = {
     gates.SqrtX: UnitaryGate(
         np.array([[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]])
@@ -69,11 +85,18 @@ def test_convert_single_qubit_sgate() -> None:
         assert (converted == expected).all()
 
 
-def test_convert_single_qubit_gate() -> None:
-    for qp_factory, qiskit_gate in single_qubit_gate_mapping.items():
-        qp_gate = qp_factory(7)
+rotation_gate_mapping: Mapping[Callable[[int, float], QuantumGate], Type[Gate]] = {
+    gates.RX: qgate.RXGate,
+    gates.RY: qgate.RYGate,
+    gates.RZ: qgate.RZGate,
+}
+
+
+def test_convert_rotation_gate() -> None:
+    for qp_factory, qiskit_type in rotation_gate_mapping.items():
+        qp_gate = qp_factory(7, 0.125)
         converted = convert_gate(qp_gate)
-        expected = qiskit_gate
+        expected = qiskit_type(0.125)
         assert gate_equal(converted, expected)
 
 
@@ -89,21 +112,6 @@ def test_convert_two_qubit_gate() -> None:
         qp_gate = qp_factory(11, 7)
         converted = convert_gate(qp_gate)
         expected = qiskit_gate
-        assert gate_equal(converted, expected)
-
-
-rotation_gate_mapping: Mapping[Callable[[int, float], QuantumGate], Type[Gate]] = {
-    gates.RX: qgate.RXGate,
-    gates.RY: qgate.RYGate,
-    gates.RZ: qgate.RZGate,
-}
-
-
-def test_convert_rotation_gate() -> None:
-    for qp_factory, qiskit_type in rotation_gate_mapping.items():
-        qp_gate = qp_factory(7, 0.125)
-        converted = convert_gate(qp_gate)
-        expected = qiskit_type(0.125)
         assert gate_equal(converted, expected)
 
 

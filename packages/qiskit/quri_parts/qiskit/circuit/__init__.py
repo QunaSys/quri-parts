@@ -16,8 +16,6 @@ import qiskit.circuit.library as qgate
 from qiskit.circuit import QuantumCircuit
 from qiskit.circuit.gate import Gate
 from qiskit.extensions import UnitaryGate
-
-# from qiskit.providers import Backend
 from qiskit.opflow import X, Y, Z
 
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate, gate_names
@@ -121,32 +119,22 @@ def convert_gate(gate: QuantumGate) -> Gate:
         if gate.name == gate_names.Pauli:
             q_gate = qgate.PauliGate(label=None)
             pauli_str = ""
+            gate_map_str = {1: "X", 2: "Y", 3: "Z"}
             for p in reversed(gate.pauli_ids):
-                if p == 1:
-                    pauli_str += "X"
-                elif p == 2:
-                    pauli_str += "Y"
-                elif p == 3:
-                    pauli_str += "Z"
-                q_gate.params = [pauli_str]
+                pauli_str += gate_map_str[p]
+            q_gate.params = [pauli_str]
             return q_gate
         elif gate.name == gate_names.PauliRotation:
             operator = 1
+            gate_map_op = {1: X, 2: Y, 3: Z}
             for p in reversed(gate.pauli_ids):
-                if p == 1:
-                    operator ^= X
-                elif p == 2:
-                    operator ^= Y
-                elif p == 3:
-                    operator ^= Z
-                else:
-                    raise ValueError("Invalid Pauli index.")
+                operator ^= gate_map_op[p]
             return qgate.PauliEvolutionGate(operator, time=float(gate.params[0] / 2))
 
     elif is_parametric_gate_name(gate.name):
-        raise ValueError("Unreachable.")
+        raise ValueError("Parametric gates are not supported.")
     else:
-        raise ValueError("Unreachable.")
+        assert False, "Unreachable"
 
     raise NotImplementedError(
         f"Conversion of {gate.name} to qiskit has not been implemented."

@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, MutableMapping
 from typing import Any, Optional
 
 from qiskit.circuit import QuantumCircuit
@@ -30,6 +30,13 @@ from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.qiskit.circuit import NonParametricQuantumCircuit  # type: ignore
 from quri_parts.qiskit.circuit import QiskitTranspiler, convert_circuit
 
+# "type: ignore" is added for tehe following error:
+# """
+# Module "quri_parts.qiskit.circuit" does not\
+# explicitly export attribute "NonParametricQuantumCircuit";\
+# implicit reexport disabled
+# """
+
 
 class QiskitSamplingResult(SamplingResult):
     """A result of a Qiskit sampling job."""
@@ -37,18 +44,15 @@ class QiskitSamplingResult(SamplingResult):
     def __init__(self, qiskit_result: Result):
         if not isinstance(qiskit_result, Result):
             raise ValueError("Only qiskit.result.Result is supported")
-
         self._qiskit_result = qiskit_result
 
     @property
     def counts(self) -> SamplingCounts:
         qiskit_counts = self._qiskit_result.get_counts()
-        measurements: Mapping[int, int] = {}
-        if qiskit_counts is None:
-            raise BackendError("No valid measurement results retrieved.")
+        measurements: MutableMapping[int, int] = {}
         for result in qiskit_counts:
-            measurements[int(result, 2)] = qiskit_counts[result]  # type: ignore
-        return measurements
+            measurements[int(result, 2)] = qiskit_counts[result]
+        return dict(measurements)
 
 
 class QiskitSamplingJob(SamplingJob):

@@ -41,21 +41,12 @@ def circuit_transpiler(_: NonParametricQuantumCircuit) -> NonParametricQuantumCi
     return circuit
 
 
-class TestSamplingResult(QiskitTestCase):  # type: ignore
-    def setUp(self) -> None:
-        self.base_result_args = dict(
-            backend_name="test_backend",
-            backend_version="1.0.0",
-            qobj_id="id-137",
-            job_id="job-137",
-            success=True,
-            status="Successed",
-        )
-
-        super().setUp()
-
-
-class TestSamplingBackend(QiskitTestCase):  # type: ignore
+class TestQiskitSamplingBackend(QiskitTestCase):  # type: ignore
+    # "type: ignore" is added because we have to use `QiskitTestCase`
+    # which leads the following error message:
+    # """
+    # Class cannot subclass "QiskitTestCase" (has type "Any")
+    # """
     def setUp(self) -> None:
         self.backend = FakeMelbourneV2()
         super().setUp()
@@ -65,7 +56,6 @@ class TestSamplingBackend(QiskitTestCase):  # type: ignore
         backend = QiskitSamplingBackend(device, circuit_converter)
         job = backend.sample(QuantumCircuit(4), 1000)
         counts = job.result().counts
-
         assert sum(counts.values()) == 1000
 
     def test_default_circuit_converter(self) -> None:
