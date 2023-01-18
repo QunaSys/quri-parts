@@ -346,8 +346,8 @@ class UnitaryMatrixFactory:
             raise ValueError("The given matrix is not unitary.")
         return QuantumGate(
             name=self.name,
-            target_indices=target_indices,
-            unitary_matrix=unitary_matrix,
+            target_indices=tuple(target_indices),
+            unitary_matrix=tuple(map(tuple, unitary_matrix)),
         )
 
 
