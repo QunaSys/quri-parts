@@ -11,5 +11,6 @@
 # -e ./packages/cirq
 # -e ./packages/openfermion
 # -e ./packages/stim
+# -e ./packages/openqasm
 # -e ./packages/honeywell
 # -e ./packages/ionq

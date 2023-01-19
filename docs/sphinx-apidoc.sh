@@ -13,6 +13,7 @@ pkgs="
     chem
     openfermion
     stim
+    openqasm
     honeywell
     ionq
 "
