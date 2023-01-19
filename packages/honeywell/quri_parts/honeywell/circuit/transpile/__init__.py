@@ -25,7 +25,7 @@ from .honeywell_native_transpiler import (
 )
 
 #: CircuitTranspiler to transpile a QuantumCircuit into another
-#: QuantumCircuit contaiing only U1q, RZ, ZZ, and RZZ gates.
+#: QuantumCircuit containing only U1q, RZ, ZZ, and RZZ gates.
 #: Note that the converted circuit contains Honeywell native gates.
 HoneywellSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
     [

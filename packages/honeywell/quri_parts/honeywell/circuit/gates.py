@@ -38,6 +38,7 @@ r"""Honeywell native gate U1q defined as follows.
 
 Ref:
     [1]: https://www.quantinuum.com/hardware/h1
+        System Model H1 Product Data Sheet (P4 Native Gate Set)
 """
 
 
@@ -65,6 +66,7 @@ r"""Honeywell native gate ZZ defined as follows.
 
 Ref:
     [1]: https://www.quantinuum.com/hardware/h1
+        System Model H1 Product Data Sheet (P4 Native Gate Set)
 """
 
 
@@ -95,4 +97,5 @@ r"""Honeywell native gate RZZ defined as follows.
 
 Ref:
     [1]: https://www.quantinuum.com/hardware/h1
+        System Model H1 Product Data Sheet (P4 Native Gate Set)
 """

@@ -22,6 +22,7 @@ class RX2U1qTranspiler(GateKindDecomposer):
 
     Ref:
         [1]: https://www.quantinuum.com/hardware/h1
+            System Model H1 Product Data Sheet (P4 Native Gate Set)
     """
 
     @property
@@ -37,6 +38,7 @@ class RY2U1qTranspiler(GateKindDecomposer):
 
     Ref:
         [1]: https://www.quantinuum.com/hardware/h1
+            System Model H1 Product Data Sheet (P4 Native Gate Set)
     """
 
     @property
@@ -53,6 +55,8 @@ class H2U1qRZTranspiler(GateKindDecomposer):
 
     Ref:
         [1]: https://www.quantinuum.com/hardware/h1
+            System Model H1 Product Data Sheet
+            (P5 Constructed gate examples using QASM notation)
     """
 
     @property
@@ -73,6 +77,8 @@ class CNOT2U1qZZRZTranspiler(GateKindDecomposer):
 
     Ref:
         [1]: https://www.quantinuum.com/hardware/h1
+            System Model H1 Product Data Sheet
+            (P5 Constructed gate examples using QASM notation)
     """
 
     @property
