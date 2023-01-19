@@ -173,11 +173,11 @@ class MutableQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
 
     def add_UnitaryMatrix_gate(
         self,
-        target_index_list: Sequence[int],
+        target_indices: Sequence[int],
         unitary_matrix: Sequence[Sequence[complex]],
     ) -> None:
         """Add a UnitaryMatrix gate to the circuit."""
-        self.add_gate(UnitaryMatrix(target_index_list, unitary_matrix))
+        self.add_gate(UnitaryMatrix(target_indices, unitary_matrix))
 
     def add_SingleQubitUnitaryMatrix_gate(
         self,
