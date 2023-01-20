@@ -31,8 +31,9 @@ class IonQNativeTranspiler(CircuitTranspilerProtocol):
 
     The conversion process to the native gates is a direct porting of the process of
     the code in IonQ's introductory article. Due to the nature of the conversion
-    process, each qubit may have a different phase, and the circuit is only assumed
-    to be executed after conversion.
+    process, the phases of each qubit may not be aligned. Therefore, only the
+    measurement in the computational basis is guaranteed to match, and the circuit
+    is only assumed to be executed after this conversion path is applied.
 
     Ref:
         [1]: https://ionq.com/docs/getting-started-with-native-gates
