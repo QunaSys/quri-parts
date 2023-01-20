@@ -33,8 +33,8 @@ class IonQNativeTranspiler(CircuitTranspilerProtocol):
     the code in IonQ's introductory article. Due to the nature of the conversion
     process, the phases of each qubit may not be aligned. Therefore, only the
     measurement in the computational basis is guaranteed to match between before and
-    after conversion. The circuit is only assumed to be executed after this conversion
-    path is applied.
+    after conversion. After this path is applied, the circuit is assumed to only
+    be executed.
 
     Ref:
         [1]: https://ionq.com/docs/getting-started-with-native-gates
