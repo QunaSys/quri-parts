@@ -15,6 +15,7 @@ from quri_parts.circuit import (
     U2,
     U3,
     H,
+    Identity,
     ParametricPauliRotation,
     ParametricQuantumGate,
     ParametricRX,
@@ -42,6 +43,7 @@ from quri_parts.circuit import (
 )
 
 _factory_name_map: Mapping[Callable[[int], QuantumGate], str] = {
+    Identity: gate_names.Identity,
     X: gate_names.X,
     Y: gate_names.Y,
     Z: gate_names.Z,
@@ -165,6 +167,7 @@ def test_gate_addition() -> None:
 
     lc = QuantumCircuit(3)
     gates = [
+        Identity(0),
         X(0),
         Y(0),
         Z(0),
@@ -195,6 +198,7 @@ def test_gate_addition() -> None:
     lc.extend(gates)
 
     mc = QuantumCircuit(3)
+    mc.add_Identity_gate(0)
     mc.add_X_gate(0)
     mc.add_Y_gate(0)
     mc.add_Z_gate(0)
