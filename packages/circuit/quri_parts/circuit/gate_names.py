@@ -32,7 +32,6 @@ SingleQubitGateNameType: TypeAlias = Literal[
     "U1",
     "U2",
     "U3",
-    "UnitaryMatrix",
 ]
 
 Identity: Literal["Identity"] = "Identity"
