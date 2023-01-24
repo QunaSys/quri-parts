@@ -19,7 +19,7 @@ from quri_parts.circuit.transpile import (
 from .ionq_native_transpiler import CNOT2RXRYXXTranspiler, IonQNativeTranspiler
 
 #: CircuitTranspiler to transpile a QuantumCircuit into another
-#: QuantumCircuit contaiing only GPi, GPi2, and MS gates.
+#: QuantumCircuit containing only GPi, GPi2, and MS gates.
 #: Note that the converted circuit contains IonQ native gates and only the
 #: measurement in the computational basis is guaranteed to match between
 #: before and after conversion.
