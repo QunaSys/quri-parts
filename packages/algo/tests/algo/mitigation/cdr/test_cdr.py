@@ -60,14 +60,14 @@ def test_make_training_circuis() -> None:
     with pytest.raises(ValueError):
         make_training_circuits(
             circuit=test_cdr_circuit,
-            num_clifford_untouched=10,
+            num_non_clifford_untouched=10,
             num_training_circuits=15,
             seed=10,
         )
 
     training_circuits = make_training_circuits(
         circuit=test_cdr_circuit,
-        num_clifford_untouched=3,
+        num_non_clifford_untouched=3,
         num_training_circuits=15,
         seed=10,
     )
@@ -84,7 +84,7 @@ def test_make_training_circuis() -> None:
     with pytest.raises(ValueError):
         make_training_circuits(
             circuit=clifford_cdr_circuit,
-            num_clifford_untouched=3,
+            num_non_clifford_untouched=3,
             num_training_circuits=15,
             seed=10,
         )
