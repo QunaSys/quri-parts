@@ -47,7 +47,7 @@ RegressionMethod: TypeAlias = Callable[[float, Iterable[float], Iterable[float]]
 
 def make_training_circuits(
     circuit: NonParametricQuantumCircuit,
-    num_clifford_untouched: int,
+    num_non_clifford_untouched: int,
     num_training_circuits: int = 10,
     seed: Optional[int] = None,
 ) -> list[NonParametricQuantumCircuit]:
@@ -70,11 +70,11 @@ def make_training_circuits(
     if len(indices_non_clifford) == 0:
         raise ValueError("No non-clifford gate in the input circuit.")
 
-    num_to_replace = len(indices_non_clifford) - num_clifford_untouched
+    num_to_replace = len(indices_non_clifford) - num_non_clifford_untouched
 
     if num_to_replace < 0:
         raise ValueError(
-            "num_clifford_untouched must be less than the number of the\
+            "num_non_clifford_untouched must be less than the number of the\
             non-clifford gate in the circuit."
         )
 
