@@ -36,25 +36,25 @@ def f(params: Sequence[float]) -> float:
     )
 
 
-def test_forward_differene_gradient_formula() -> None:
+def test_forward_difference_gradient_formula() -> None:
     params = [1, 2, 3]
     expected = [-6.4, 3.2, 6.3]
     assert np.allclose(forward_difference_gradient_formula(f, params), expected)
 
 
-def test_backward_differene_gradient_formula() -> None:
+def test_backward_difference_gradient_formula() -> None:
     params = [1, 2, 3]
     expected = [-6.4, 3.2, 6.3]
     assert np.allclose(backward_difference_gradient_formula(f, params), expected)
 
 
-def test_central_differene_gradient_formula() -> None:
+def test_central_difference_gradient_formula() -> None:
     params = [1, 2, 3]
     expected = [-6.4, 3.2, 6.3]
     assert np.allclose(central_difference_gradient_formula(f, params), expected)
 
 
-def test_forward_differene_hessian_formula() -> None:
+def test_forward_difference_hessian_formula() -> None:
     params = [1, 2, 3]
     expected = [[2.2, -1.2, -4.2], [-1.2, 0.2, 2.4], [-4.2, 2.4, 4.0]]
     assert np.allclose(
@@ -62,7 +62,7 @@ def test_forward_differene_hessian_formula() -> None:
     )
 
 
-def test_backward_differene_hessian_formula() -> None:
+def test_backward_difference_hessian_formula() -> None:
     params = [1, 2, 3]
     expected = [[2.2, -1.2, -4.2], [-1.2, 0.2, 2.4], [-4.2, 2.4, 4.0]]
     assert np.allclose(
@@ -70,7 +70,7 @@ def test_backward_differene_hessian_formula() -> None:
     )
 
 
-def test_central_differene_hessian_formula() -> None:
+def test_central_difference_hessian_formula() -> None:
     params = [1, 2, 3]
     expected = [[2.2, -1.2, -4.2], [-1.2, 0.2, 2.4], [-4.2, 2.4, 4.0]]
     assert np.allclose(
