@@ -24,6 +24,8 @@ from quri_parts.core.state import (
 
 EstimateValue = TypeVar("EstimateValue", float, complex, covariant=True)
 
+WeightValue = TypeVar("WeightValue", float, complex, covariant=True)
+
 
 class Estimate(Protocol[EstimateValue]):
     """Estimate is an interface for classes representing an estimate for a
@@ -193,4 +195,46 @@ def create_parametric_estimator(
 GradientEstimator: TypeAlias = Callable[
     [Estimatable, _ParametricStateT, Sequence[float]],
     Estimates[complex],
+]
+
+#: OverlapEstimator represents a function that estimates the overlaps of two sets of
+#: of states. It must be passed three :class:`~Sequence` with the same length. It should
+#: be symmetric in the input arguments.
+OverlapEstimator: TypeAlias = Callable[
+    [Sequence[_StateT], Sequence[_StateT], Sequence[WeightValue]], Estimate[complex]
+]
+
+#: ConcurrentOverlapEstimator represents a function that estimates the overlaps of two
+#: sets of of states grouped in sequences, which must be concurrently evaluated. It must
+#: be passed three :class:`~Sequence`.
+ConcurrentOverlapEstimator: TypeAlias = Callable[
+    [
+        Sequence[Sequence[_StateT]],
+        Sequence[Sequence[_StateT]],
+        Sequence[Sequence[WeightValue]],
+    ],
+    Iterable[Estimate[complex]],
+]
+
+
+#: ParametricOverlapEstimator represents a function that estimates the overlap of a set
+#: of states. It must be passed two tuples representing parametric states with the same
+#: length.
+ParametricOverlapEstimator: TypeAlias = Callable[
+    [
+        tuple[_ParametricStateT, Sequence[Sequence[float]]],
+        tuple[_ParametricStateT, Sequence[Sequence[float]]],
+        Sequence[WeightValue],
+    ],
+    Estimate[complex],
+]
+
+
+ConcurrentParametricOverlapEstimator: TypeAlias = Callable[
+    [
+        tuple[_ParametricStateT, Sequence[Sequence[float]]],
+        tuple[_ParametricStateT, Sequence[Sequence[float]]],
+        Sequence[WeightValue],
+    ],
+    Estimate[complex],
 ]

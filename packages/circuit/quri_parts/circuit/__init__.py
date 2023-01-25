@@ -63,7 +63,7 @@ from .gates import (
     Y,
     Z,
 )
-from .inverse_gate import inverse_gate
+from .inverse_gate import inverse_gate, inverse_circuit
 from .parameter_mapping import (
     LinearParameterFunction,
     LinearParameterMapping,
@@ -133,5 +133,6 @@ __all__ = [
     "LinearMappedUnboundParametricQuantumCircuit",
     "ImmutableLinearMappedUnboundParametricQuantumCircuit",
     "inverse_gate",
+    "inverse_circuit",
     "is_clifford",
 ]

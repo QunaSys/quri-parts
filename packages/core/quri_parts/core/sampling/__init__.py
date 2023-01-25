@@ -8,12 +8,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Collection, Iterable, Mapping, NamedTuple, Union
+from typing import Callable, Collection, Iterable, Mapping, NamedTuple, Sequence, Union
 
 from typing_extensions import TypeAlias
 
 from quri_parts.backend import SamplingBackend
 from quri_parts.circuit import NonParametricQuantumCircuit
+from quri_parts.core.estimator import WeightValue
 from quri_parts.core.operator import CommutablePauliSet, Operator
 
 #: MeasurementCounts represents count statistics of repeated measurements of a quantum
@@ -82,6 +83,13 @@ PauliSamplingShotsAllocator: TypeAlias = Callable[
 ]
 
 
+#: WeightedSamplingShotsAllocator represents a function that distributes
+#: a given number of sampling shots based on a set of weights.
+WeightedSamplingShotsAllocator: TypeAlias = Callable[
+    [Sequence[WeightValue], int], Sequence[int]
+]
+
+
 __all__ = [
     "MeasurementCounts",
     "Sampler",
@@ -91,4 +99,5 @@ __all__ = [
     "create_sampler_from_concurrent_sampler",
     "PauliSamplingSetting",
     "PauliSamplingShotsAllocator",
+    "WeightedSamplingShotsAllocator",
 ]
