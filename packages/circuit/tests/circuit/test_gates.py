@@ -71,15 +71,6 @@ _parametric_factory_name_map: Mapping[Callable[[int], ParametricQuantumGate], st
 }
 
 
-def _unitary_matrix_gates_equal(x: QuantumGate, y: QuantumGate) -> None:
-    assert x.name == y.name
-    assert x.target_indices == y.target_indices
-    assert x.control_indices == y.control_indices
-    assert x.params == y.params
-    assert x.pauli_ids == y.pauli_ids
-    assert np.array_equal(x.unitary_matrix, y.unitary_matrix)
-
-
 def test_gate_creation() -> None:
     # Single qubit gate
     for f, name in _factory_name_map.items():
