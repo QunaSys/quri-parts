@@ -108,3 +108,15 @@ class SingleQubitUnitaryMatrix2RYRZTranspiler(GateDecomposer):
             theta += np.pi / 2 * m
 
             return tuple(theta)
+
+
+class TwoQubitUnitaryMatrixKAKTranspiler(GateDecomposer):
+    """CircuitTranspiler, which decomposes two qubit UnitaryMatrix gates
+    into gate sequences containing H, S, RX, RY, RZ, and CNOT gates.
+    """
+
+    def is_target_gate(self, gate: QuantumGate) -> bool:
+        return gate.name == gate_names.UnitaryMatrix and len(gate.target_indices) == 2
+
+    def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
+        ...
