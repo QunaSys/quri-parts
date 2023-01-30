@@ -8,17 +8,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import cmath
+import math
 from collections.abc import Sequence
 
 import numpy as np
-import math
-import cmath
 
 from quri_parts.circuit import QuantumGate, gate_names, gates
+
 from .transpiler import GateDecomposer
 
 
-class SingleQubitUnitaryMatrixTranspiler(GateDecomposer):
+class SingleQubitUnitaryMatrix2RYRZ(GateDecomposer):
     def is_target_gate(self, gate: QuantumGate) -> bool:
         return gate.name == gate_names.UnitaryMatrix and len(gate.target_indices) == 1
 
@@ -33,9 +34,9 @@ class SingleQubitUnitaryMatrixTranspiler(GateDecomposer):
             gates.RZ(target, theta[3]),
         ]
 
-    def _su2_decompose(v: Sequence[Sequence[complex]]) -> Sequence[complex]:
-        eps = 1.0e-15
-
+    def _su2_decompose(
+        self, v: Sequence[Sequence[complex]], eps: float = 1.0e-15
+    ) -> Sequence[float]:
         # if abs(v[0][1]) < eps and abs(v[1][0]) < eps and abs(v[0][0] * v[1][1]) > 0:
         if abs(v[0][1]) < eps or abs(v[1][0]) < eps:
             theta = np.zeros(4)
@@ -52,7 +53,7 @@ class SingleQubitUnitaryMatrixTranspiler(GateDecomposer):
             m[1] = (a - b) / 2
             theta += np.pi * m
 
-            return tuple(map(tuple, theta))
+            return tuple(theta)
         # elif abs(v[0][0]) < eps and abs(v[1][1]) < eps and abs(v[0][1] * v[1][0]) > 0:
         elif abs(v[0][0]) < eps or abs(v[1][1]) < eps:
             theta = np.zeros(4)
@@ -68,7 +69,7 @@ class SingleQubitUnitaryMatrixTranspiler(GateDecomposer):
             m[1] = (a - b) / 2
             theta += np.pi * m
 
-            return tuple(map(tuple, theta))
+            return tuple(theta)
         else:
             theta = np.zeros(4)
             theta[0] = (1j * cmath.log(v[0][0] * v[1][1] - v[1][0] * v[0][1])).real
@@ -104,4 +105,4 @@ class SingleQubitUnitaryMatrixTranspiler(GateDecomposer):
             m[3] = (a - b) / 2
             theta += np.pi / 2 * m
 
-            return tuple(map(tuple, theta))
+            return tuple(theta)
