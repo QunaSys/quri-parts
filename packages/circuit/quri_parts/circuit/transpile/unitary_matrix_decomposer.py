@@ -46,7 +46,7 @@ class SingleQubitUnitaryMatrix2RYRZTranspiler(GateDecomposer):
         self, v: Sequence[Sequence[complex]], eps: float = 1.0e-15
     ) -> Sequence[float]:
 
-        if abs(v[0][1]) < eps or abs(v[1][0]) < eps:
+        if abs(v[0][1]) < eps and abs(v[1][0]) < eps:
             theta = np.zeros(4)
             theta[0] = (1j * cmath.log(v[0][0] * v[1][1])).real
             theta[1] = (1j * cmath.log(v[0][0] / v[1][1])).real
@@ -62,7 +62,7 @@ class SingleQubitUnitaryMatrix2RYRZTranspiler(GateDecomposer):
 
             return tuple(theta)
 
-        elif abs(v[0][0]) < eps or abs(v[1][1]) < eps:
+        elif abs(v[0][0]) < eps and abs(v[1][1]) < eps:
             theta = np.zeros(4)
             theta[0] = (1j * cmath.log(-v[1][0] * v[0][1])).real
             theta[1] = (1j * cmath.log(-v[1][0] / v[0][1])).real
