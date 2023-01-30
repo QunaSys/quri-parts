@@ -50,8 +50,6 @@ class SingleQubitUnitaryMatrix2RYRZTranspiler(GateDecomposer):
             theta = np.zeros(4)
             theta[0] = (1j * cmath.log(v[0][0] * v[1][1])).real
             theta[1] = (1j * cmath.log(v[0][0] / v[1][1])).real
-            theta[2] = 0
-            theta[3] = 0
 
             m = np.zeros(4)
             a = (cmath.phase(v[0][0]) + (theta[0] + theta[1]) / 2) / (-np.pi / 2)
@@ -67,7 +65,6 @@ class SingleQubitUnitaryMatrix2RYRZTranspiler(GateDecomposer):
             theta[0] = (1j * cmath.log(-v[1][0] * v[0][1])).real
             theta[1] = (1j * cmath.log(-v[1][0] / v[0][1])).real
             theta[2] = np.pi
-            theta[3] = 0
 
             m = np.zeros(4)
             a = (cmath.phase(v[1][0]) + (theta[0] + theta[1]) / 2) / (-np.pi / 2)
@@ -82,9 +79,7 @@ class SingleQubitUnitaryMatrix2RYRZTranspiler(GateDecomposer):
             theta = np.zeros(4)
             theta[0] = (1j * cmath.log(v[0][0] * v[1][1] - v[1][0] * v[0][1])).real
             theta[1] = (0.5j * cmath.log(-v[0][0] * v[1][0] / (v[1][1] * v[0][1]))).real
-            if abs(v[0][0] * v[1][1] + v[1][0] * v[0][1]) > 1:
-                theta[2] = 0
-            else:
+            if abs(v[0][0] * v[1][1] + v[1][0] * v[0][1]) <= 1:
                 theta[2] = math.acos(abs(v[0][0] * v[1][1] + v[1][0] * v[0][1]))
             theta[3] = (0.5j * cmath.log(-v[0][0] * v[0][1] / (v[1][1] * v[1][0]))).real
 
