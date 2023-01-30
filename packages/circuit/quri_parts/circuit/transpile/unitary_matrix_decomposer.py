@@ -25,7 +25,6 @@ class SingleQubitUnitaryMatrix2RYRZ(GateDecomposer):
 
     def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
         theta = self._su2_decompose(gate.unitary_matrix)
-        # phase = math.cos(theta[0] / 2) - 1j * math.sin(theta[0] / 2)
 
         target = gate.target_indices[0]
         return [
@@ -37,12 +36,11 @@ class SingleQubitUnitaryMatrix2RYRZ(GateDecomposer):
     def _su2_decompose(
         self, v: Sequence[Sequence[complex]], eps: float = 1.0e-15
     ) -> Sequence[float]:
-        # if abs(v[0][1]) < eps and abs(v[1][0]) < eps and abs(v[0][0] * v[1][1]) > 0:
+
         if abs(v[0][1]) < eps or abs(v[1][0]) < eps:
             theta = np.zeros(4)
             theta[0] = (1j * cmath.log(v[0][0] * v[1][1])).real
             theta[1] = (1j * cmath.log(v[0][0] / v[1][1])).real
-            # theta[1] = (2j * cmath.log(v[0][0] / v[1][1])).real
             theta[2] = 0
             theta[3] = 0
 
@@ -54,7 +52,7 @@ class SingleQubitUnitaryMatrix2RYRZ(GateDecomposer):
             theta += np.pi * m
 
             return tuple(theta)
-        # elif abs(v[0][0]) < eps and abs(v[1][1]) < eps and abs(v[0][1] * v[1][0]) > 0:
+
         elif abs(v[0][0]) < eps or abs(v[1][1]) < eps:
             theta = np.zeros(4)
             theta[0] = (1j * cmath.log(-v[1][0] * v[0][1])).real
@@ -70,6 +68,7 @@ class SingleQubitUnitaryMatrix2RYRZ(GateDecomposer):
             theta += np.pi * m
 
             return tuple(theta)
+
         else:
             theta = np.zeros(4)
             theta[0] = (1j * cmath.log(v[0][0] * v[1][1] - v[1][0] * v[0][1])).real
@@ -79,9 +78,6 @@ class SingleQubitUnitaryMatrix2RYRZ(GateDecomposer):
             else:
                 theta[2] = math.acos(abs(v[0][0] * v[1][1] + v[1][0] * v[0][1]))
             theta[3] = (0.5j * cmath.log(-v[0][0] * v[0][1] / (v[1][1] * v[1][0]))).real
-            # theta[1] = (1j * cmath.log(-v[0][0] * v[1][0] / (v[1][1] * v[0][1]))).real
-            # theta[2] = math.acos(0.5j * abs(v[0][0] * v[1][1] + v[1][0] * v[0][1]))
-            # theta[3] = (1j * cmath.log(-v[0][0] * v[0][1] / (v[1][1] * v[1][0]))).real
 
             m = np.zeros(4)
             if abs(abs(v[0][0]) - math.cos(theta[2] / 2)) > abs(
@@ -97,9 +93,6 @@ class SingleQubitUnitaryMatrix2RYRZ(GateDecomposer):
             c = (cmath.phase(-v[0][1]) + (theta[0] + theta[3] - theta[1]) / 2) / (
                 -np.pi / 4
             )
-            # d = (cmath.phase(v[1][1]) + (theta[0] - theta[3] - theta[1]) / 2) / (
-            #     -np.pi / 4
-            # )
             m[0] = (b + c) / 2
             m[1] = (a - c) / 2
             m[3] = (a - b) / 2
