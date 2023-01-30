@@ -19,7 +19,16 @@ from quri_parts.circuit import QuantumGate, gate_names, gates
 from .transpiler import GateDecomposer
 
 
-class SingleQubitUnitaryMatrix2RYRZ(GateDecomposer):
+class SingleQubitUnitaryMatrix2RYRZTranspiler(GateDecomposer):
+    """CircuitTranspiler, which decomposes single qubit UnitaryMatrix gates
+    into gate sequences containing RY and RZ gates.
+
+    Ref:
+        [1]: Tomonori Shirakawa, Hiroshi Ueda, and Seiji Yunoki,
+            Automatic quantum circuit encoding of a given arbitrary quantum state,
+            arXiv:2112.14524, (2021).
+    """
+
     def is_target_gate(self, gate: QuantumGate) -> bool:
         return gate.name == gate_names.UnitaryMatrix and len(gate.target_indices) == 1
 

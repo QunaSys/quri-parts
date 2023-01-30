@@ -11,7 +11,7 @@
 import numpy as np
 
 from quri_parts.circuit import RY, RZ, QuantumCircuit, QuantumGate
-from quri_parts.circuit.transpile import SingleQubitUnitaryMatrix2RYRZ
+from quri_parts.circuit.transpile import SingleQubitUnitaryMatrix2RYRZTranspiler
 
 
 def _assert_params_close(x: QuantumGate, y: QuantumGate) -> None:
@@ -29,7 +29,7 @@ class TestSingleQubitDecompose:
     def test_id_decompose(self) -> None:
         circuit = QuantumCircuit(1)
         circuit.add_SingleQubitUnitaryMatrix_gate(0, [[1, 0], [0, 1]])
-        transpiled = SingleQubitUnitaryMatrix2RYRZ()(circuit)
+        transpiled = SingleQubitUnitaryMatrix2RYRZTranspiler()(circuit)
 
         expect = QuantumCircuit(1)
         expect.extend(
@@ -45,7 +45,7 @@ class TestSingleQubitDecompose:
     def test_x_decompose(self) -> None:
         circuit = QuantumCircuit(1)
         circuit.add_SingleQubitUnitaryMatrix_gate(0, [[0, 1], [1, 0]])
-        transpiled = SingleQubitUnitaryMatrix2RYRZ()(circuit)
+        transpiled = SingleQubitUnitaryMatrix2RYRZTranspiler()(circuit)
 
         expect = QuantumCircuit(1)
         expect.extend(
@@ -64,7 +64,7 @@ class TestSingleQubitDecompose:
         circuit.add_SingleQubitUnitaryMatrix_gate(
             0, 1 / np.sqrt(2) * np.array([[1, 1], [1, -1]])
         )
-        transpiled = SingleQubitUnitaryMatrix2RYRZ()(circuit)
+        transpiled = SingleQubitUnitaryMatrix2RYRZTranspiler()(circuit)
 
         expect = QuantumCircuit(1)
         expect.extend(
@@ -87,7 +87,7 @@ class TestSingleQubitDecompose:
                 [-0.14825031 - 0.29270369j, -0.88922216 - 0.31879516j],
             ],
         )
-        transpiled = SingleQubitUnitaryMatrix2RYRZ()(circuit)
+        transpiled = SingleQubitUnitaryMatrix2RYRZTranspiler()(circuit)
 
         expect = QuantumCircuit(1)
         expect.extend(
