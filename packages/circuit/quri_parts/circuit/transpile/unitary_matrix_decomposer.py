@@ -13,19 +13,23 @@ import math
 from collections.abc import Sequence
 
 import numpy as np
-from typing_extensions import TypeAlias
+import numpy.typing as npt
+
+# from typing_extensions import TypeAlias
 
 from quri_parts.circuit import QuantumGate, gate_names, gates
 
 from .transpiler import GateDecomposer
 
-CVector: TypeAlias = Sequence[complex]
-CMatrix: TypeAlias = Sequence[Sequence[complex]]
-FVector: TypeAlias = Sequence[float]
-FMatrix: TypeAlias = Sequence[Sequence[float]]
+# CVector: TypeAlias = Sequence[complex]
+# CMatrix: TypeAlias = Sequence[Sequence[complex]]
+# FVector: TypeAlias = Sequence[float]
+# FMatrix: TypeAlias = Sequence[Sequence[float]]
 
 
-def _su2_decompose(v: CMatrix, eps: float = 1.0e-15) -> FVector:
+def _su2_decompose(
+    v: Sequence[Sequence[complex]], eps: float = 1e-15
+) -> npt.NDArray[np.float64]:
     if abs(v[0][1]) < eps and abs(v[1][0]) < eps:
         theta = np.zeros(4)
         theta[0] = (1j * cmath.log(v[0][0] * v[1][1])).real
@@ -38,7 +42,7 @@ def _su2_decompose(v: CMatrix, eps: float = 1.0e-15) -> FVector:
         m[1] = (a - b) / 2
         theta += np.pi * m
 
-        return tuple(theta)
+        return theta
 
     elif abs(v[0][0]) < eps and abs(v[1][1]) < eps:
         theta = np.zeros(4)
@@ -53,7 +57,7 @@ def _su2_decompose(v: CMatrix, eps: float = 1.0e-15) -> FVector:
         m[1] = (a - b) / 2
         theta += np.pi * m
 
-        return tuple(theta)
+        return theta
 
     else:
         theta = np.zeros(4)
@@ -78,19 +82,147 @@ def _su2_decompose(v: CMatrix, eps: float = 1.0e-15) -> FVector:
         m[3] = (a - b) / 2
         theta += np.pi / 2 * m
 
-        return tuple(theta)
+        return theta
 
 
-def _decompose_product_state(product_state: CVector) -> tuple[CVector, CVector]:
-    ...
+def _decompose_product_state(
+    product_state: npt.NDArray[np.complex128], eps: float = 1e-10
+) -> tuple[npt.NDArray[np.complex128], npt.NDArray[np.complex128]]:
+    argmax = np.argmax(np.abs(product_state))
+    a, b = np.zeros(2, dtype=np.complex128), np.zeros(2, dtype=np.complex128)
+
+    if abs(product_state[0]) < eps and abs(product_state[1]) < eps:
+        a[:] = 0, 1
+    else:
+        if argmax == 0 or argmax == 2:
+            c = product_state[2] / product_state[0]
+        else:
+            c = product_state[3] / product_state[1]
+        a[0] = np.sqrt(1 / 1 + abs(c) ** 2)
+
+    if abs(product_state[2]) < eps and abs(product_state[3]) < eps:
+        a[:] = 1, 0
+    else:
+        if argmax == 0 or argmax == 2:
+            c = product_state[0] / product_state[2]
+        else:
+            c = product_state[1] / product_state[3]
+        ca = -cmath.phase(c)
+        a[1] = np.sqrt(1 / (1 + ca**2)) * (math.cos(ca) + 1j * math.sin(ca))
+
+    if abs(product_state[0]) < eps and abs(product_state[2]) < eps:
+        b[:] = 0, 1
+    else:
+        if argmax == 0 or argmax == 1:
+            c = product_state[1] / product_state[0]
+        else:
+            c = product_state[3] / product_state[2]
+        b[0] = np.sqrt(1 / (1 + abs(c) ** 2))
+
+    if abs(product_state[1]) < eps and abs(product_state[3]) < eps:
+        b[:] = 1, 0
+    else:
+        if argmax == 0 or argmax == 1:
+            c = product_state[0] / product_state[1]
+        else:
+            c = product_state[2] / product_state[3]
+        ca = -cmath.phase(c)
+        b[1] = np.sqrt(1 / (1 + abs(c) ** 2)) * (math.cos(ca) + 1j * math.sin(ca))
+
+    ab = np.kron(a, b)
+    nonzero_idx = np.argmax(np.abs(ab))
+    a *= product_state[nonzero_idx] / ab[nonzero_idx]
+    a /= np.linalg.norm(a)
+    b /= np.linalg.norm(b)
+
+    return a, b
 
 
-def _psi_ext(psi: float, psi_flag: bool) -> tuple[float, float, float]:
-    ...
+def _psi_ext(
+    psi: npt.NDArray[np.complex128], prime_flag: bool
+) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+    mu = (psi.T[0] + 1j * psi.T[1]) / np.sqrt(2)
+    nu = (psi.T[0] - 1j * psi.T[1]) / np.sqrt(2)
+    a, b = _decompose_product_state(mu)
+    a_bar, b_bar = _decompose_product_state(nu)
+
+    nonzero_idx = np.argmax(np.abs(np.kron(a, b_bar)))
+    nonzero_idx2 = np.argmax(np.abs(np.kron(a_bar, b)))
+    exp_delta = (psi.T[2][nonzero_idx] + 1j * psi.T[3][nonzero_idx]) / (
+        np.sqrt(2) * np.kron(a, b_bar)[nonzero_idx]
+    )
+    exp_delta2 = (psi.T[2][nonzero_idx2] + 1j * psi.T[3][nonzero_idx2]) / (
+        np.sqrt(2) * np.kron(a_bar, b)[nonzero_idx2]
+    )
+    if abs(1 - abs(exp_delta)) > abs(1 - abs(exp_delta2)):
+        a, a_bar = a_bar, a
+        b, b_bar = b_bar, b
+        exp_delta = exp_delta2
+    exp_delta /= abs(exp_delta)
+
+    zero_ket, one_ket = np.array([[1], [0]]), np.array([[0], [1]])
+    r_i = np.kron(zero_ket, np.conj(a)) + exp_delta * np.kron(one_ket, np.conj(a_bar))
+    r_j = np.kron(zero_ket, np.conj(b)) + np.conj(exp_delta) * np.kron(
+        one_ket, np.conj(b_bar)
+    )
+
+    xi = np.zeros(4)
+    r_ij = np.kron(r_i, r_j)
+    xi[0] = -cmath.phase(np.inner(r_ij[0], psi.T[0]))
+    xi[1] = -cmath.phase(np.inner(r_ij[0], psi.T[1]) / -1j)
+    xi[2] = -cmath.phase(np.inner(r_ij[1], psi.T[2]) / -1)
+    xi[3] = -cmath.phase(np.inner(r_ij[1], psi.T[3]) / -1j)
+
+    if prime_flag:
+        r_i, r_j = np.conj(r_i.T), np.conj(r_j.T)
+
+    theta_i, theta_j = _su2_decompose(r_i), _su2_decompose(r_j)
+
+    return theta_i, theta_j, xi
 
 
-def _su4_decompose(u: CMatrix) -> tuple[FVector, FMatrix, FMatrix]:
-    ...
+def _su4_decompose(
+    u: Sequence[Sequence[complex]],
+) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+    m = np.array(
+        [[1, -1j, 0, 0], [0, 0, -1, -1j], [0, 0, 1, -1j], [1, 1j, 0, 0]]
+    ) / np.sqrt(2)
+    m_inv = np.conj(m.T)
+    u_prime = m_inv @ u @ m
+    w = u_prime.T @ u_prime
+    if abs(np.sum(np.abs(np.diag(w))) - 4) < 1e-10:
+        eigvalue, eigvec = np.diag(w), np.identity(4, dtype=np.complex128)
+    else:
+        eigvalue, eigvec = np.linalg.eig(w)
+        eigvec_t = np.zeros((4, 4), dtype=np.complex128)
+        for i in range(4):
+            u = eigvec.T[i]
+            for j in range(i):
+                u -= np.vdot(eigvec_t[j], u) * eigvec_t[j]
+            nonzero_idx = np.argmax(np.abs(u))
+            eigvec_t[i] = u / (u[nonzero_idx] / abs(u[nonzero_idx])) / np.linalg.norm(u)
+        eigvec = eigvec_t.T
+
+    eps = [cmath.phase(eigvalue[i]) / 2 for i in range(4)]
+    psi = m @ eigvec
+    theta_i, theta_j, xi = _psi_ext(psi, False)
+    psi_prime = (
+        u @ psi @ np.diag([math.cos(eps[i]) - 1j * math.sin(eps[i]) for i in range(4)])
+    )
+    theta_prime_i, theta_prime_j, xi_prime = _psi_ext(psi_prime, True)
+
+    b = xi_prime - xi - eps
+    alpha = np.zeros(4)
+    alpha[0] = -(b[0] + b[1] + b[2] + b[3]) / 4
+    alpha[1] = -(b[0] - b[1] - b[2] + b[3]) / 4
+    alpha[2] = -(-b[0] + b[1] - b[2] + b[3]) / 4
+    alpha[3] = -(b[0] + b[1] - b[2] - b[3]) / 4
+
+    return (
+        alpha[1:],
+        np.append(theta_i[1:], theta_j[1:]).reshape(2, 3),
+        np.append(theta_prime_i[1:], theta_prime_j[1:]).reshape(2, 3),
+    )
 
 
 class SingleQubitUnitaryMatrix2RYRZTranspiler(GateDecomposer):
