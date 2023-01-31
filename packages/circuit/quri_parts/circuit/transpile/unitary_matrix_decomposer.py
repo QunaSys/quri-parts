@@ -15,6 +15,8 @@ from collections.abc import Sequence
 import numpy as np
 import numpy.typing as npt
 
+from typing import cast
+
 # from typing_extensions import TypeAlias
 
 from quri_parts.circuit import QuantumGate, gate_names, gates
@@ -199,8 +201,10 @@ def _su4_decompose(
             u = eigvec.T[i]
             for j in range(i):
                 u -= np.vdot(eigvec_t[j], u) * eigvec_t[j]
-            nonzero_idx = np.argmax(np.abs(u))
-            eigvec_t[i] = u / (u[nonzero_idx] / abs(u[nonzero_idx])) / np.linalg.norm(u)
+            nonzero_idx = cast(int, np.argmax(np.abs(u)))
+            eigvec_t[i] = (
+                u / (u[nonzero_idx] / np.abs(u[nonzero_idx])) / np.linalg.norm(u)
+            )
         eigvec = eigvec_t.T
 
     eps = [cmath.phase(eigvalue[i]) / 2 for i in range(4)]
