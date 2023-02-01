@@ -36,7 +36,7 @@ def su2_decompose(
         m[1] = (a - b) / 2
         theta += np.pi * m
 
-        return tuple(theta)
+        return theta
 
     elif abs(ut[0][0]) < eps and abs(ut[1][1]) < eps:
         theta = np.zeros(4)
@@ -51,7 +51,7 @@ def su2_decompose(
         m[1] = (a - b) / 2
         theta += np.pi * m
 
-        return tuple(theta)
+        return theta
 
     else:
         theta = np.zeros(4)
@@ -80,7 +80,7 @@ def su2_decompose(
         m[3] = (a - b) / 2
         theta += np.pi / 2 * m
 
-        return tuple(theta)
+        return theta
 
 
 class SingleQubitUnitaryMatrix2RYRZTranspiler(GateDecomposer):
