@@ -13,6 +13,7 @@ import math
 from collections.abc import Sequence
 
 import numpy as np
+import numpy.typing as npt
 
 from quri_parts.circuit import QuantumGate, gate_names, gates
 
@@ -20,32 +21,32 @@ from .transpiler import GateDecomposer
 
 
 def su2_decompose(
-    v: Sequence[Sequence[complex]], eps: float = 1.0e-15
-) -> Sequence[float]:
+    ut: Sequence[Sequence[complex]], eps: float = 1e-15
+) -> npt.NDArray[np.float64]:
 
-    if abs(v[0][1]) < eps and abs(v[1][0]) < eps:
+    if abs(ut[0][1]) < eps and abs(ut[1][0]) < eps:
         theta = np.zeros(4)
-        theta[0] = (1j * cmath.log(v[0][0] * v[1][1])).real
-        theta[1] = (1j * cmath.log(v[0][0] / v[1][1])).real
+        theta[0] = (1j * cmath.log(ut[0][0] * ut[1][1])).real
+        theta[1] = (1j * cmath.log(ut[0][0] / ut[1][1])).real
 
         m = np.zeros(4)
-        a = (cmath.phase(v[0][0]) + (theta[0] + theta[1]) / 2) / (-np.pi / 2)
-        b = (cmath.phase(v[1][1]) + (theta[0] - theta[1]) / 2) / (-np.pi / 2)
+        a = (cmath.phase(ut[0][0]) + (theta[0] + theta[1]) / 2) / (-np.pi / 2)
+        b = (cmath.phase(ut[1][1]) + (theta[0] - theta[1]) / 2) / (-np.pi / 2)
         m[0] = (a + b) / 2
         m[1] = (a - b) / 2
         theta += np.pi * m
 
         return tuple(theta)
 
-    elif abs(v[0][0]) < eps and abs(v[1][1]) < eps:
+    elif abs(ut[0][0]) < eps and abs(ut[1][1]) < eps:
         theta = np.zeros(4)
-        theta[0] = (1j * cmath.log(-v[1][0] * v[0][1])).real
-        theta[1] = (1j * cmath.log(-v[1][0] / v[0][1])).real
+        theta[0] = (1j * cmath.log(-ut[1][0] * ut[0][1])).real
+        theta[1] = (1j * cmath.log(-ut[1][0] / ut[0][1])).real
         theta[2] = np.pi
 
         m = np.zeros(4)
-        a = (cmath.phase(v[1][0]) + (theta[0] + theta[1]) / 2) / (-np.pi / 2)
-        b = (cmath.phase(-v[0][1]) + (theta[0] - theta[1]) / 2) / (-np.pi / 2)
+        a = (cmath.phase(ut[1][0]) + (theta[0] + theta[1]) / 2) / (-np.pi / 2)
+        b = (cmath.phase(-ut[0][1]) + (theta[0] - theta[1]) / 2) / (-np.pi / 2)
         m[0] = (a + b) / 2
         m[1] = (a - b) / 2
         theta += np.pi * m
@@ -54,20 +55,24 @@ def su2_decompose(
 
     else:
         theta = np.zeros(4)
-        theta[0] = (1j * cmath.log(v[0][0] * v[1][1] - v[1][0] * v[0][1])).real
-        theta[1] = (0.5j * cmath.log(-v[0][0] * v[1][0] / (v[1][1] * v[0][1]))).real
-        if abs(v[0][0] * v[1][1] + v[1][0] * v[0][1]) <= 1:
-            theta[2] = math.acos(abs(v[0][0] * v[1][1] + v[1][0] * v[0][1]))
-        theta[3] = (0.5j * cmath.log(-v[0][0] * v[0][1] / (v[1][1] * v[1][0]))).real
+        theta[0] = (1j * cmath.log(ut[0][0] * ut[1][1] - ut[1][0] * ut[0][1])).real
+        theta[1] = (0.5j * cmath.log(-ut[0][0] * ut[1][0] / (ut[1][1] * ut[0][1]))).real
+        if abs(ut[0][0] * ut[1][1] + ut[1][0] * ut[0][1]) <= 1:
+            theta[2] = math.acos(abs(ut[0][0] * ut[1][1] + ut[1][0] * ut[0][1]))
+        theta[3] = (0.5j * cmath.log(-ut[0][0] * ut[0][1] / (ut[1][1] * ut[1][0]))).real
 
         m = np.zeros(4)
-        if abs(abs(v[0][0]) - math.cos(theta[2] / 2)) > abs(
-            abs(v[0][0]) - math.sin(theta[2] / 2)
+        if abs(abs(ut[0][0]) - math.cos(theta[2] / 2)) > abs(
+            abs(ut[0][0]) - math.sin(theta[2] / 2)
         ):
             theta[2] = np.pi - theta[2]
-        a = (cmath.phase(v[0][0]) + (theta[0] + theta[3] + theta[1]) / 2) / (-np.pi / 4)
-        b = (cmath.phase(v[1][0]) + (theta[0] - theta[3] + theta[1]) / 2) / (-np.pi / 4)
-        c = (cmath.phase(-v[0][1]) + (theta[0] + theta[3] - theta[1]) / 2) / (
+        a = (cmath.phase(ut[0][0]) + (theta[0] + theta[3] + theta[1]) / 2) / (
+            -np.pi / 4
+        )
+        b = (cmath.phase(ut[1][0]) + (theta[0] - theta[3] + theta[1]) / 2) / (
+            -np.pi / 4
+        )
+        c = (cmath.phase(-ut[0][1]) + (theta[0] + theta[3] - theta[1]) / 2) / (
             -np.pi / 4
         )
         m[0] = (b + c) / 2
