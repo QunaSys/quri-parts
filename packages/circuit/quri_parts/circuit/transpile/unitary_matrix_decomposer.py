@@ -25,7 +25,7 @@ def su2_decompose(
     ut: Sequence[Sequence[complex]], eps: float = 1e-15
 ) -> npt.NDArray[np.float64]:
 
-    if abs(ut[0][1]) < eps and abs(ut[1][0]) < eps:
+    if abs(ut[0][1]) < eps or abs(ut[1][0]) < eps:
         theta = np.zeros(4)
         theta[0] = (1j * cmath.log(ut[0][0] * ut[1][1])).real
         theta[1] = (1j * cmath.log(ut[0][0] / ut[1][1])).real
@@ -39,7 +39,7 @@ def su2_decompose(
 
         return theta
 
-    elif abs(ut[0][0]) < eps and abs(ut[1][1]) < eps:
+    elif abs(ut[0][0]) < eps or abs(ut[1][1]) < eps:
         theta = np.zeros(4)
         theta[0] = (1j * cmath.log(-ut[1][0] * ut[0][1])).real
         theta[1] = (1j * cmath.log(-ut[1][0] / ut[0][1])).real
