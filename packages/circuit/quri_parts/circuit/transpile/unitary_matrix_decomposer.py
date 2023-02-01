@@ -174,7 +174,7 @@ def _psi_ext(
     if prime_flag:
         r_i, r_j = np.conj(r_i.T), np.conj(r_j.T)
 
-    theta_i, theta_j = _su2_decompose(r_i), _su2_decompose(r_j)
+    theta_i, theta_j = su2_decompose(r_i), su2_decompose(r_j)
 
     return theta_i, theta_j, xi
 
