@@ -20,16 +20,8 @@ from quri_parts.circuit import QuantumGate, gate_names, gates
 
 from .transpiler import GateDecomposer
 
-# from typing_extensions import TypeAlias
 
-
-# CVector: TypeAlias = Sequence[complex]
-# CMatrix: TypeAlias = Sequence[Sequence[complex]]
-# FVector: TypeAlias = Sequence[float]
-# FMatrix: TypeAlias = Sequence[Sequence[float]]
-
-
-def _su2_decompose(
+def su2_decompose(
     ut: Sequence[Sequence[complex]], eps: float = 1e-15
 ) -> npt.NDArray[np.float64]:
     if abs(ut[0][1]) < eps and abs(ut[1][0]) < eps:
@@ -187,7 +179,7 @@ def _psi_ext(
     return theta_i, theta_j, xi
 
 
-def _su4_decompose(
+def su4_decompose(
     ut: Sequence[Sequence[complex]],
     eiglim: float = 1e-10,
 ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64]]:
@@ -241,14 +233,14 @@ class SingleQubitUnitaryMatrix2RYRZTranspiler(GateDecomposer):
     Ref:
         [1]: Tomonori Shirakawa, Hiroshi Ueda, and Seiji Yunoki,
             Automatic quantum circuit encoding of a given arbitrary quantum state,
-            arXiv:2112.14524, (2021).
+            arXiv:2112.14524, p.22, (2021).
     """
 
     def is_target_gate(self, gate: QuantumGate) -> bool:
         return gate.name == gate_names.UnitaryMatrix and len(gate.target_indices) == 1
 
     def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
-        theta = _su2_decompose(gate.unitary_matrix)
+        theta = su2_decompose(gate.unitary_matrix)
 
         target = gate.target_indices[0]
         return [
@@ -272,7 +264,7 @@ class TwoQubitUnitaryMatrixKAKTranspiler(GateDecomposer):
         return gate.name == gate_names.UnitaryMatrix and len(gate.target_indices) == 2
 
     def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
-        alpha, xi, xi_prime = _su4_decompose(gate.unitary_matrix)
+        alpha, xi, xi_prime = su4_decompose(gate.unitary_matrix)
 
         return [
             gates.RZ(0, xi[0][0]),
