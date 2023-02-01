@@ -62,6 +62,8 @@ from .transpiler import (
 from .unitary_matrix_decomposer import (
     SingleQubitUnitaryMatrix2RYRZTranspiler,
     TwoQubitUnitaryMatrixKAKTranspiler,
+    su2_decompose,
+    su4_decompose,
 )
 
 #: CircuitTranspiler to transpile a QuntumCircuit into another
@@ -182,4 +184,6 @@ __all__ = [
     "Y2RZXTranspiler",
     "Z2HXTranspiler",
     "Z2RZTranspiler",
+    "su2_decompose",
+    "su4_decompose",
 ]
