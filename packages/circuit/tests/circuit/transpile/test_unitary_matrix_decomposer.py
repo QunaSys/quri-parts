@@ -62,6 +62,23 @@ class TestSingleQubitDecompose:
         for t, e in zip(transpiled.gates, expect.gates):
             _assert_params_close(t, e)
 
+    def test_y_decompose(self) -> None:
+        circuit = QuantumCircuit(1)
+        circuit.add_SingleQubitUnitaryMatrix_gate(0, [[0, -1j], [1j, 0]])
+        transpiled = SingleQubitUnitaryMatrix2RYRZTranspiler()(circuit)
+
+        expect = QuantumCircuit(1)
+        expect.extend(
+            [
+                RZ(0, 0),
+                RY(0, np.pi),
+                RZ(0, 0),
+            ]
+        )
+
+        for t, e in zip(transpiled.gates, expect.gates):
+            _assert_params_close(t, e)
+
     def test_h_decompose(self) -> None:
         circuit = QuantumCircuit(1)
         circuit.add_SingleQubitUnitaryMatrix_gate(
@@ -74,6 +91,25 @@ class TestSingleQubitDecompose:
             [
                 RZ(0, np.pi),
                 RY(0, np.pi / 2),
+                RZ(0, 0),
+            ]
+        )
+
+        for t, e in zip(transpiled.gates, expect.gates):
+            _assert_params_close(t, e)
+
+    def test_t_decompose(self) -> None:
+        circuit = QuantumCircuit(1)
+        circuit.add_SingleQubitUnitaryMatrix_gate(
+            0, [[1, 0], [0, np.cos(np.pi / 4) + 1j * np.sin(np.pi / 4)]]
+        )
+        transpiled = SingleQubitUnitaryMatrix2RYRZTranspiler()(circuit)
+
+        expect = QuantumCircuit(1)
+        expect.extend(
+            [
+                RZ(0, np.pi / 4),
+                RY(0, 0),
                 RZ(0, 0),
             ]
         )
