@@ -21,8 +21,8 @@ from .circuit_parametric import (
     UnboundParametricQuantumCircuitBase,
     UnboundParametricQuantumCircuitProtocol,
 )
-from .parameter import CONST, Parameter
 from .gate import ParametricQuantumGate, QuantumGate
+from .parameter import CONST, Parameter
 from .parameter_mapping import LinearParameterMapping, ParameterOrLinearFunction
 
 

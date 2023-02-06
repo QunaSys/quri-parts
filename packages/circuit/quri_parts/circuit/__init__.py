@@ -64,8 +64,8 @@ from .gates import (
     Y,
     Z,
 )
-from .parameter import CONST, Parameter
 from .inverse_gate import inverse_gate
+from .parameter import CONST, Parameter
 from .parameter_mapping import (
     LinearParameterFunction,
     LinearParameterMapping,

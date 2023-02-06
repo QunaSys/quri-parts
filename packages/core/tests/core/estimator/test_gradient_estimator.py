@@ -14,7 +14,6 @@ from unittest.mock import Mock
 import numpy as np
 import pytest
 
-
 from quri_parts.circuit import (
     LinearMappedUnboundParametricQuantumCircuit,
     UnboundParametricQuantumCircuit,
@@ -110,6 +109,7 @@ class TestGradientEstimator:
         estimator.assert_called_once()
         assert estimates.values == [0.0]
         assert estimates.error_matrix is None
+
 
 class TestNumericalGradientEstimate:
     def test_zero_op(self) -> None:
