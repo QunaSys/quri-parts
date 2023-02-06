@@ -14,15 +14,14 @@ from typing import Optional, Union
 
 from .circuit import GateSequence, NonParametricQuantumCircuit
 from .circuit_parametric import (
-    CONST,
     ImmutableBoundParametricQuantumCircuit,
     ImmutableUnboundParametricQuantumCircuit,
     MutableUnboundParametricQuantumCircuitProtocol,
-    Parameter,
     UnboundParametricQuantumCircuit,
     UnboundParametricQuantumCircuitBase,
     UnboundParametricQuantumCircuitProtocol,
 )
+from .parameter import CONST, Parameter
 from .gate import ParametricQuantumGate, QuantumGate
 from .parameter_mapping import LinearParameterMapping, ParameterOrLinearFunction
 
@@ -61,6 +60,14 @@ class LinearMappedUnboundParametricQuantumCircuitBase(
         self,
     ) -> tuple[LinearParameterMapping, ImmutableUnboundParametricQuantumCircuit]:
         return (self._param_mapping, self._circuit.freeze())
+
+    @property
+    def primitive_circuit(self) -> ImmutableUnboundParametricQuantumCircuit:
+        return self._circuit.freeze()
+
+    @property
+    def param_mapping(self) -> LinearParameterMapping:
+        return self._param_mapping
 
     def get_mutable_copy(self) -> "LinearMappedUnboundParametricQuantumCircuit":
         circuit = LinearMappedUnboundParametricQuantumCircuit(self.qubit_count)

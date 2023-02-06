@@ -34,7 +34,8 @@ from .gates import (
     ParametricRZ,
     PauliRotation,
 )
-
+from .parameter import Parameter
+from .parameter_mapping import LinearParameterMapping, ParameterMappingBase
 
 class Parameter:
     """A class representing parameters in parametric quantum circuits.
@@ -115,6 +116,14 @@ class UnboundParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
         """
         ...
 
+    @abstractproperty
+    def param_mapping(self) -> ParameterMappingBase:
+        ...
+
+    @abstractproperty
+    def primitive_circuit(self) -> "UnboundParametricQuantumCircuitProtocol":
+        ...
+
 
 class MutableUnboundParametricQuantumCircuitProtocol(
     UnboundParametricQuantumCircuitProtocol, MutableQuantumCircuitProtocol, Protocol
@@ -162,6 +171,16 @@ class UnboundParametricQuantumCircuitBase(UnboundParametricQuantumCircuitProtoco
     @property
     def has_trivial_parameter_mapping(self) -> bool:
         return True
+
+    @property
+    def primitive_circuit(self) -> "UnboundParametricQuantumCircuitProtocol":
+        return self.freeze()
+
+    @property
+    def param_mapping(self) -> LinearParameterMapping:
+        return LinearParameterMapping(
+            self._params, self._params, dict(zip(self._params, self._params))
+        )
 
     def get_mutable_copy(self) -> "UnboundParametricQuantumCircuit":
         circuit = UnboundParametricQuantumCircuit(self.qubit_count)

@@ -53,6 +53,12 @@ class ParametricQuantumStateVector(
     def qubit_count(self) -> int:
         return self._n_qubits
 
+    @property
+    def primitive_state(self) -> "ParametricQuantumStateVector":
+        return ParametricQuantumStateVector(
+            self._n_qubits, self._circuit.primitive_circuit, self.vector
+        )
+
     def with_gates_applied(self, gates: GateSequence) -> "ParametricQuantumStateVector":
         """Returns a new state with the gates applied.
 
