@@ -90,7 +90,7 @@ class SingleQubitUnitaryMatrix2RYRZTranspiler(GateDecomposer):
     Ref:
         [1]: Tomonori Shirakawa, Hiroshi Ueda, and Seiji Yunoki,
             Automatic quantum circuit encoding of a given arbitrary quantum state,
-            arXiv:2112.14524, p.22, (2021).
+            arXiv:2112.14524v1, p.22, (2021).
     """
 
     def is_target_gate(self, gate: QuantumGate) -> bool:
