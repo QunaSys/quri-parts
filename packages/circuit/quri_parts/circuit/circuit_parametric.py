@@ -35,7 +35,7 @@ from .gates import (
     PauliRotation,
 )
 from .parameter import Parameter
-from .parameter_mapping import LinearParameterMapping, ParameterMappingBase
+from .parameter_mapping import LinearParameterMapping, ParameterMapping
 
 
 class UnboundParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
@@ -96,7 +96,7 @@ class UnboundParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
         ...
 
     @abstractproperty
-    def param_mapping(self) -> ParameterMappingBase:
+    def param_mapping(self) -> ParameterMapping:
         ...
 
     @abstractproperty
