@@ -97,10 +97,19 @@ class UnboundParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
 
     @abstractproperty
     def param_mapping(self) -> ParameterMapping:
+        """Returns the parameter mapping of the circuit."""
         ...
 
     @abstractproperty
     def primitive_circuit(self) -> "UnboundParametricQuantumCircuitProtocol":
+        """Returns the parametric circuit where each gate has an independent
+        parameter.
+
+        Note that some parametric circuit,
+        e.g. :class:`LinearMappedUnboundParametricQuantumCircuit`, can have non-trivial
+        mapping of the parameters. Gate parameters are treated as independent,
+        even if they depend on the same parameters.
+        """
         ...
 
 
