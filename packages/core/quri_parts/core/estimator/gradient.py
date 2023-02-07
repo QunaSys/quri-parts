@@ -12,7 +12,6 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Optional, TypeVar, Union, cast
 
-from quri_parts.circuit.parameter_mapping import LinearParameterMapping
 from quri_parts.circuit.parameter_shift import ShiftedParameters
 from quri_parts.core.estimator import (
     ConcurrentParametricQuantumEstimator,
@@ -138,13 +137,6 @@ def parameter_shift_gradient_estimates(
         :attr:`.error_matrix` returns `None`.
     """
     param_mapping = state.parametric_circuit.param_mapping
-    if not isinstance(param_mapping, LinearParameterMapping):
-        raise NotImplementedError(
-            """
-            Only the case that ParameterMapping is LinearParameterMapping
-            has been implemented.
-            """
-        )
     parameter_shift = ShiftedParameters(param_mapping)
     derivatives = parameter_shift.get_derivatives()
     shifted_params_and_coefs = [

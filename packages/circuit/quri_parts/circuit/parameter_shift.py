@@ -16,7 +16,11 @@ from typing import NamedTuple, cast
 from typing_extensions import TypeAlias
 
 from .parameter import CONST, Parameter
-from .parameter_mapping import LinearParameterFunction, LinearParameterMapping
+from .parameter_mapping import (
+    LinearParameterFunction,
+    LinearParameterMapping,
+    ParameterMapping,
+)
 
 #: Represents a set of parameter shifts appearing in the parameter shift rule.
 #: The shift for each parameter is stored as an integer. The actual shift is calculated
@@ -65,6 +69,21 @@ class ShiftedParameters:
 
     param_mapping: LinearParameterMapping
     shifts_with_coef: Collection[ParameterShiftsAndCoef] = (NO_SHIFT,)
+
+    def __init__(
+        self,
+        param_mapping: ParameterMapping,
+        shifts_with_coef: Collection[ParameterShiftsAndCoef] = (NO_SHIFT,),
+    ) -> None:
+        if not isinstance(param_mapping, LinearParameterMapping):
+            raise NotImplementedError(
+                """
+                Only the case that ParameterMapping is LinearParameterMapping
+                has been implemented.
+                """
+            )
+        object.__setattr__(self, "param_mapping", param_mapping)
+        object.__setattr__(self, "shifts_with_coef", shifts_with_coef)
 
     def _get_derivative(
         self, deriv_mapping: LinearParameterMapping
