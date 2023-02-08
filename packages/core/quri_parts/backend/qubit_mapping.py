@@ -14,7 +14,7 @@ from functools import cached_property
 
 from quri_parts.circuit.transpile import QubitRemappingTranspiler
 
-from . import SamplingCounts, SamplingJob, SamplingResult
+from . import SamplingCounts, SamplingJob, SamplingJobState, SamplingResult
 
 
 def _create_reverse_map(qubit_mapping: Mapping[int, int]) -> Mapping[int, int]:
@@ -91,3 +91,10 @@ class QubitMappedSamplingJob(SamplingJob):
 
     def result(self) -> QubitMappedSamplingResult:
         return QubitMappedSamplingResult(self.sampling_job.result(), self.qubit_mapping)
+
+    async def async_final_state(
+        self, raise_failure: bool = False, raise_cancel: bool = False
+    ) -> SamplingJobState:
+        return await self.sampling_job.async_final_state(
+            raise_failure=raise_failure, raise_cancel=raise_cancel
+        )

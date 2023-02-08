@@ -9,9 +9,11 @@
 # limitations under the License.
 
 from abc import abstractmethod, abstractproperty
+import asyncio
 from collections import Counter
 from collections.abc import Collection, Mapping
 from dataclasses import dataclass
+from enum import Enum, auto
 from typing import Protocol
 
 from typing_extensions import TypeAlias
@@ -47,6 +49,47 @@ class CompositeSamplingResult(SamplingResult):
         return total
 
 
+class SamplingJobState(Enum):
+    """Represents state of a sampling job."""
+
+    RUNNING = auto()
+    COMPLETED = auto()
+    FAILED = auto()
+    CANCELLED = auto()
+
+
+#: A set of terminal states, i.e. those that will not change to any other state.
+TERMINAL_STATES = frozenset(
+    {SamplingJobState.COMPLETED, SamplingJobState.FAILED, SamplingJobState.CANCELLED}
+)
+
+
+class SamplingJobCancelledError(Exception):
+    """An error representing that a sampling job has been cancelled."""
+
+
+class SamplingJobFailedError(Exception):
+    """An error representing that a sampling job has failed."""
+
+
+async def async_state(
+    state: SamplingJobState, raise_failure: bool = False, raise_cancel: bool = False
+) -> SamplingJobState:
+    """A utility that returns a sampling job state asynchronously.
+
+    If raise_failure is True, a :class:`~SamplingJobFailedError` is raised when the
+    state is FAILED.
+    If raise_cancel is True, a :class:`~SamplingJobCancelledError` is raised when the
+    state is CANCELLED.
+    """
+    if raise_failure and state == SamplingJobState.FAILED:
+        raise SamplingJobFailedError()
+    elif raise_cancel and state == SamplingJobState.CANCELLED:
+        raise SamplingJobCancelledError()
+    else:
+        return state
+
+
 class SamplingJob(Protocol):
     """A job for a sampling measurement."""
 
@@ -59,6 +102,17 @@ class SamplingJob(Protocol):
         """
         ...
 
+    @abstractmethod
+    async def async_final_state(
+        self, raise_failure: bool = False, raise_cancel: bool = False
+    ) -> SamplingJobState:
+        """Returns final state of the sampling job.
+
+        The job is in its final state when the state is one of the terminal states
+        (see :class:`~TERMINAL_STATES`).
+        """
+        ...
+
 
 @dataclass(frozen=True)
 class CompositeSamplingJob(SamplingJob):
@@ -68,6 +122,46 @@ class CompositeSamplingJob(SamplingJob):
 
     def result(self) -> SamplingResult:
         return CompositeSamplingResult(results=[job.result() for job in self.jobs])
+
+    async def async_final_state(
+        self, raise_failure: bool = False, raise_cancel: bool = False
+    ) -> SamplingJobState:
+        """Returns final state of the sampling job.
+
+        The job is in its final state when the state is one of the terminal states
+        (see :class:`~TERMINAL_STATES`).
+
+        If any one of contained jobs fails, the composite job is also regarded as
+        failed.
+        If any one of contained jobs is cancelled, the composite job is also regarded
+        as cancelled.
+        """
+        async_states = asyncio.gather(
+            *(
+                j.async_final_state(raise_failure=True, raise_cancel=True)
+                for j in self.jobs
+            )
+        )
+        try:
+            states = await async_states
+            if all([s == SamplingJobState.COMPLETED for s in states]):
+                return SamplingJobState.COMPLETED
+            else:
+                assert False, "Unreachable"
+        except SamplingJobFailedError:
+            return await async_state(
+                SamplingJobState.FAILED,
+                raise_failure=raise_failure,
+                raise_cancel=raise_cancel,
+            )
+        except SamplingJobCancelledError:
+            return await async_state(
+                SamplingJobState.CANCELLED,
+                raise_failure=raise_failure,
+                raise_cancel=raise_cancel,
+            )
+        finally:
+            async_states.cancel()
 
 
 class SamplingBackend(Protocol):
