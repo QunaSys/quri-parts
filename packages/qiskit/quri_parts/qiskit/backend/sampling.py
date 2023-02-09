@@ -8,10 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Callable, Mapping, MutableMapping
+from collections.abc import Mapping, MutableMapping
 from typing import Any, Optional
 
-from qiskit.circuit import QuantumCircuit
 from qiskit.providers import Job
 from qiskit.providers.backend import Backend, BackendV1, BackendV2
 from qiskit.providers.ibmq import IBMQBackend
@@ -26,16 +25,14 @@ from quri_parts.backend import (
     SamplingJob,
     SamplingResult,
 )
-from quri_parts.circuit.transpile import CircuitTranspiler
-from quri_parts.qiskit.circuit import NonParametricQuantumCircuit  # type: ignore
-from quri_parts.qiskit.circuit import QiskitTranspiler, convert_circuit
-
-# "type: ignore" is added for tehe following error:
-# """
-# Module "quri_parts.qiskit.circuit" does not\
-# explicitly export attribute "NonParametricQuantumCircuit";\
-# implicit reexport disabled
-# """
+from quri_parts.backend.qubit_mapping import BackendQubitMapping, QubitMappedSamplingJob
+from quri_parts.circuit import NonParametricQuantumCircuit
+from quri_parts.circuit.transpile import CircuitTranspiler, SequentialTranspiler
+from quri_parts.qiskit.circuit import (
+    QiskitCircuitConverter,
+    QiskitTranspiler,
+    convert_circuit,
+)
 
 
 class QiskitSamplingResult(SamplingResult):
@@ -80,6 +77,14 @@ class QiskitSamplingBackend(SamplingBackend):
             the device, it is rounded up to the minimum. In this case, it is possible \
             that shots more than specified are used. If it is strictly not allowed to \
             exceed the specified shot count, set this argument to False.
+        qubit_mapping: If specified, indices of qubits in the circuit are remapped \
+            before running it on the backend. It can be used when you want to use \
+            specific backend qubits, e.g. those with high fidelity. \
+            The mapping should be specified with "from" qubit \
+            indices as keys and "to" qubit indices as values. For example, if \
+            you want to map qubits 0, 1, 2, 3 to backend qubits as 0 → 4, 1 → 2, \
+            2 → 5, 3 → 0, then the ``qubit_mapping`` should be \
+            ``{0: 4, 1: 2, 2: 5, 3: 0}``.
         run_kwargs: Additional keyword arguments for \
             :meth:`braket.devices.Device.run` method.
     """
@@ -87,24 +92,32 @@ class QiskitSamplingBackend(SamplingBackend):
     def __init__(
         self,
         backend: Backend,
-        circuit_converter: Callable[
-            [NonParametricQuantumCircuit, Optional[CircuitTranspiler]], QuantumCircuit
-        ] = convert_circuit,
+        circuit_converter: QiskitCircuitConverter = convert_circuit,
         circuit_transpiler: Optional[CircuitTranspiler] = None,
         enable_shots_roundup: bool = True,
+        qubit_mapping: Optional[Mapping[int, int]] = None,
         run_kwargs: Mapping[str, Any] = {},
     ):
         self._backend = backend
         self._circuit_converter = circuit_converter
+
+        self._qubit_mapping = None
+        if qubit_mapping is not None:
+            self._qubit_mapping = BackendQubitMapping(qubit_mapping)
+
         if circuit_transpiler is None:
             circuit_transpiler = QiskitTranspiler()
+        if self._qubit_mapping:
+            circuit_transpiler = SequentialTranspiler(
+                [circuit_transpiler, self._qubit_mapping.circuit_transpiler]
+            )
         self._circuit_transpiler = circuit_transpiler
+
         self._enable_shots_roundup = enable_shots_roundup
         self._run_kwargs = run_kwargs
 
         self._min_shots = 1
         self._max_shots: Optional[int] = None
-
         if isinstance(backend, IBMQBackend) or isinstance(backend, AerBackend):
             max_shots = backend.configuration().max_shots
             if max_shots > 0:
@@ -148,7 +161,10 @@ class QiskitSamplingBackend(SamplingBackend):
                     pass
             raise BackendError("Qiskit Device.run failed.") from e
 
+        jobs: list[SamplingJob] = [QiskitSamplingJob(t) for t in tasks]
+        if self._qubit_mapping is not None:
+            jobs = [QubitMappedSamplingJob(job, self._qubit_mapping) for job in jobs]
         if len(tasks) == 1:
-            return QiskitSamplingJob(tasks[0])
+            return jobs[0]
         else:
-            return CompositeSamplingJob(tuple(QiskitSamplingJob(t) for t in tasks))
+            return CompositeSamplingJob(jobs)

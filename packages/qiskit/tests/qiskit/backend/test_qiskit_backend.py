@@ -150,3 +150,38 @@ class TestQiskitSamplingBackend(QiskitTestCase):  # type: ignore
         assert sum(counts.values()) == 2000
         assert isinstance(job, CompositeSamplingJob)
         assert sorted(sum(j.result().counts.values()) for j in job.jobs) == [1000, 1000]
+
+    def test_qubit_mapping(self) -> None:
+        # Original circuit
+        circuit = QuantumCircuit(3)
+        circuit.add_X_gate(0)
+        circuit.add_H_gate(1)
+        circuit.add_Z_gate(2)
+
+        def circuit_converter(
+            _: NonParametricQuantumCircuit,
+            transpiler: Optional[CircuitTranspiler] = None,
+        ) -> qiskit.QuantumCircuit:
+            circuit = qiskit.QuantumCircuit(3)
+            circuit.x(1)
+            circuit.h(0)
+            circuit.z(2)
+            return circuit
+
+        qubit_mapping = {
+            0: 1,
+            1: 0,
+            2: 2,
+        }
+
+        backend = QiskitSamplingBackend(
+            self.backend,
+            circuit_converter=circuit_converter,
+            qubit_mapping=qubit_mapping,
+        )
+        job = backend.sample(circuit, 1000)
+        counts = job.result().counts
+
+        assert set(counts.keys()) == {0b001, 0b011}
+        assert all(c >= 0 for c in counts.values())
+        assert sum(counts.values()) == 1000

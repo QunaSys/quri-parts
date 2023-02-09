@@ -17,6 +17,7 @@ from qiskit.circuit import QuantumCircuit
 from qiskit.circuit.gate import Gate
 from qiskit.extensions import UnitaryGate
 from qiskit.opflow import X, Y, Z
+from typing_extensions import TypeAlias
 
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate, gate_names
 from quri_parts.circuit.gate_names import (
@@ -36,6 +37,10 @@ from quri_parts.circuit.transpile import (
     PauliRotationDecomposeTranspiler,
     SequentialTranspiler,
 )
+
+QiskitCircuitConverter: TypeAlias = Callable[
+    [NonParametricQuantumCircuit, Optional[CircuitTranspiler]], QuantumCircuit
+]
 
 #: CircuitTranspiler to convert a circuit configuration suitable for Qiskit.
 QiskitTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
@@ -155,4 +160,9 @@ def convert_circuit(
     return qiskit_circuit
 
 
-__all__ = ["QiskitTranspiler", "convert_gate", "convert_circuit"]
+__all__ = [
+    "QiskitCircuitConverter",
+    "QiskitTranspiler",
+    "convert_gate",
+    "convert_circuit",
+]
