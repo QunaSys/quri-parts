@@ -11,10 +11,7 @@
 from typing import Optional
 
 import pytest
-from qiskit import Aer
-from qiskit.circuit import QuantumCircuit as QiskitCircuit
-
-# from qiskit.providers.fake_provider import FakeMelbourneV2
+import qiskit
 from qiskit.test import QiskitTestCase
 
 from quri_parts.backend import CompositeSamplingJob
@@ -25,8 +22,8 @@ from quri_parts.qiskit.backend import QiskitSamplingBackend
 
 def circuit_converter(
     _: NonParametricQuantumCircuit, transpiler: Optional[CircuitTranspiler] = None
-) -> QiskitCircuit:
-    circuit = QiskitCircuit(4)
+) -> qiskit.circuit.QuantumCircuit:
+    circuit = qiskit.circuit.QuantumCircuit(4)
     circuit.h(0)
     circuit.i(1)
     circuit.h(2)
@@ -50,8 +47,8 @@ class TestQiskitSamplingBackend(QiskitTestCase):  # type: ignore
     # Class cannot subclass "QiskitTestCase" (has type "Any")
     # """
     def setUp(self) -> None:
-        # self.backend = FakeMelbourneV2()
-        self.backend = Aer.get_backend("aer_simulator")
+        # self.backend = qiskit.providers.fake_provider.FakeMelbourneV2()
+        self.backend = qiskit.Aer.get_backend("aer_simulator")
         super().setUp()
 
     def test_sample(self) -> None:
