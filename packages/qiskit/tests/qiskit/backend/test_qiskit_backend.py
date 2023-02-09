@@ -12,7 +12,6 @@ from typing import Optional
 
 import pytest
 import qiskit
-from qiskit.test import QiskitTestCase
 from qiskit_aer import AerSimulator
 
 from quri_parts.backend import CompositeSamplingJob
@@ -41,15 +40,9 @@ def circuit_transpiler(_: NonParametricQuantumCircuit) -> NonParametricQuantumCi
     return circuit
 
 
-class TestQiskitSamplingBackend(QiskitTestCase):  # type: ignore
-    def setUp(self) -> None:
-        # self.backend = qiskit.providers.fake_provider.FakeMelbourneV2()
-        # self.backend = Aer.get_backend("aer_simulator")
-        self.backend = AerSimulator()
-        super().setUp()
-
+class TestQiskitSamplingBackend:
     def test_sample(self) -> None:
-        device = self.backend
+        device = AerSimulator()
         backend = QiskitSamplingBackend(device, circuit_converter)
         job = backend.sample(QuantumCircuit(4), 1000)
         counts = job.result().counts
@@ -64,7 +57,7 @@ class TestQiskitSamplingBackend(QiskitTestCase):  # type: ignore
         circuit.add_H_gate(1)
         circuit.add_Z_gate(2)
 
-        device = self.backend
+        device = AerSimulator()
         backend = QiskitSamplingBackend(device)
         job = backend.sample(circuit, 1000)
         counts = job.result().counts
@@ -75,8 +68,9 @@ class TestQiskitSamplingBackend(QiskitTestCase):  # type: ignore
 
     def test_circuit_transpiler(self) -> None:
         circuit = QuantumCircuit(3)
+        device = AerSimulator()
         backend = QiskitSamplingBackend(
-            self.backend, circuit_transpiler=circuit_transpiler
+            device, circuit_transpiler=circuit_transpiler
         )  # With default circuit_converter.
         job = backend.sample(circuit, 1000)
         counts = job.result().counts
@@ -86,7 +80,9 @@ class TestQiskitSamplingBackend(QiskitTestCase):  # type: ignore
         assert sum(counts.values()) == 1000
 
     def test_min_shots(self) -> None:
-        backend = QiskitSamplingBackend(self.backend, circuit_converter)
+        device = AerSimulator()
+
+        backend = QiskitSamplingBackend(device, circuit_converter)
         backend._min_shots = 1000
         job = backend.sample(QuantumCircuit(4), 50)
         counts = job.result().counts
@@ -96,14 +92,16 @@ class TestQiskitSamplingBackend(QiskitTestCase):  # type: ignore
         assert sum(counts.values()) == 1000
 
         backend = QiskitSamplingBackend(
-            self.backend, circuit_converter, enable_shots_roundup=False
+            device, circuit_converter, enable_shots_roundup=False
         )
         backend._min_shots = 1000
         with pytest.raises(ValueError):
             job = backend.sample(QuantumCircuit(4), 50)
 
     def test_max_shots(self) -> None:
-        backend = QiskitSamplingBackend(self.backend, circuit_converter)
+        device = AerSimulator()
+
+        backend = QiskitSamplingBackend(device, circuit_converter)
         backend._max_shots = 1000
         job = backend.sample(QuantumCircuit(4), 2100)
         counts = job.result().counts
@@ -118,7 +116,7 @@ class TestQiskitSamplingBackend(QiskitTestCase):  # type: ignore
             1000,
         ]
 
-        backend = QiskitSamplingBackend(self.backend, circuit_converter)
+        backend = QiskitSamplingBackend(device, circuit_converter)
         backend._max_shots = 1000
         backend._min_shots = 200
         job = backend.sample(QuantumCircuit(4), 2100)
@@ -135,7 +133,7 @@ class TestQiskitSamplingBackend(QiskitTestCase):  # type: ignore
         ]
 
         backend = QiskitSamplingBackend(
-            self.backend, circuit_converter, enable_shots_roundup=False
+            device, circuit_converter, enable_shots_roundup=False
         )
         backend._max_shots = 1000
         backend._min_shots = 200
@@ -171,8 +169,9 @@ class TestQiskitSamplingBackend(QiskitTestCase):  # type: ignore
             2: 2,
         }
 
+        device = AerSimulator()
         backend = QiskitSamplingBackend(
-            self.backend,
+            device,
             circuit_converter=circuit_converter,
             qubit_mapping=qubit_mapping,
         )
