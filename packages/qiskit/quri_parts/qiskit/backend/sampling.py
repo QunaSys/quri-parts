@@ -13,9 +13,7 @@ from typing import Any, Optional
 
 from qiskit.providers import Job
 from qiskit.providers.backend import Backend, BackendV1, BackendV2
-from qiskit.providers.ibmq import IBMQBackend
 from qiskit.result import Result
-from qiskit_aer.backends.aerbackend import AerBackend
 
 from quri_parts.backend import (
     BackendError,
@@ -118,7 +116,7 @@ class QiskitSamplingBackend(SamplingBackend):
 
         self._min_shots = 1
         self._max_shots: Optional[int] = None
-        if isinstance(backend, IBMQBackend) or isinstance(backend, AerBackend):
+        if isinstance(backend, BackendV1):
             max_shots = backend.configuration().max_shots
             if max_shots > 0:
                 self._max_shots = max_shots

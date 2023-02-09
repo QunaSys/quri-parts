@@ -13,6 +13,7 @@ from typing import Optional
 import pytest
 import qiskit
 from qiskit.test import QiskitTestCase
+from qiskit_aer import AerSimulator
 
 from quri_parts.backend import CompositeSamplingJob
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
@@ -41,14 +42,10 @@ def circuit_transpiler(_: NonParametricQuantumCircuit) -> NonParametricQuantumCi
 
 
 class TestQiskitSamplingBackend(QiskitTestCase):  # type: ignore
-    # "type: ignore" is added because we have to use `QiskitTestCase`
-    # which leads the following error message:
-    # """
-    # Class cannot subclass "QiskitTestCase" (has type "Any")
-    # """
     def setUp(self) -> None:
         # self.backend = qiskit.providers.fake_provider.FakeMelbourneV2()
-        self.backend = qiskit.Aer.get_backend("aer_simulator")
+        # self.backend = Aer.get_backend("aer_simulator")
+        self.backend = AerSimulator()
         super().setUp()
 
     def test_sample(self) -> None:
