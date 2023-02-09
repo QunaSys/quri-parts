@@ -104,23 +104,14 @@ class QiskitSamplingBackend(SamplingBackend):
 
         self._min_shots = 1
         self._max_shots: Optional[int] = None
-        # if isinstance(backend, IBMQBackend) or isinstance(backend, AerBackend):
-        #     max_shots = backend.configuration().max_shots
-        #     if max_shots > 0:
-        #         self._max_shots = max_shots
-        # else:
-        #     pass
 
-        # if isinstance(backend, BackendV1) or isinstance(backend, BackendV2):
         if isinstance(backend, IBMQBackend) or isinstance(backend, AerBackend):
             max_shots = backend.configuration().max_shots
             if max_shots > 0:
                 self._max_shots = max_shots
-        else:
-            pass
 
         if not (isinstance(backend, BackendV1) or isinstance(backend, BackendV2)):
-            raise BackendError("Backend not supported")
+            raise BackendError("Backend not supported.")
 
     def sample(self, circuit: NonParametricQuantumCircuit, n_shots: int) -> SamplingJob:
         if not n_shots >= 1:
@@ -142,13 +133,12 @@ class QiskitSamplingBackend(SamplingBackend):
 
         qiskit_circuit = self._circuit_converter(circuit, self._circuit_transpiler)
         qiskit_circuit.measure_all()
-
+        tasks = []
         try:
-            tasks = [
-                self._backend.run(qiskit_circuit, shots=s, **self._run_kwargs)
-                for s in shot_dist
-            ]
-
+            for s in shot_dist:
+                tasks.append(
+                    self._backend.run(qiskit_circuit, shots=s, **self._run_kwargs)
+                )
         except Exception as e:
             for t in tasks:
                 try:
@@ -156,7 +146,7 @@ class QiskitSamplingBackend(SamplingBackend):
                 except Exception:
                     # Ignore cancel errors
                     pass
-            raise BackendError("Qiskit Device.run failed") from e
+            raise BackendError("Qiskit Device.run failed.") from e
 
         if len(tasks) == 1:
             return QiskitSamplingJob(tasks[0])
