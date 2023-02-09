@@ -11,8 +11,10 @@
 from typing import Optional
 
 import pytest
+from qiskit import Aer
 from qiskit.circuit import QuantumCircuit as QiskitCircuit
-from qiskit.providers.fake_provider import FakeMelbourneV2
+
+# from qiskit.providers.fake_provider import FakeMelbourneV2
 from qiskit.test import QiskitTestCase
 
 from quri_parts.backend import CompositeSamplingJob
@@ -48,7 +50,8 @@ class TestQiskitSamplingBackend(QiskitTestCase):  # type: ignore
     # Class cannot subclass "QiskitTestCase" (has type "Any")
     # """
     def setUp(self) -> None:
-        self.backend = FakeMelbourneV2()
+        # self.backend = FakeMelbourneV2()
+        self.backend = Aer.get_backend("aer_simulator")
         super().setUp()
 
     def test_sample(self) -> None:
@@ -56,6 +59,9 @@ class TestQiskitSamplingBackend(QiskitTestCase):  # type: ignore
         backend = QiskitSamplingBackend(device, circuit_converter)
         job = backend.sample(QuantumCircuit(4), 1000)
         counts = job.result().counts
+
+        assert set(counts.keys()) == {0b0000, 0b0001, 0b0100, 0b0101}
+        assert all(c >= 0 for c in counts.values())
         assert sum(counts.values()) == 1000
 
     def test_default_circuit_converter(self) -> None:
@@ -69,17 +75,19 @@ class TestQiskitSamplingBackend(QiskitTestCase):  # type: ignore
         job = backend.sample(circuit, 1000)
         counts = job.result().counts
 
+        assert set(counts.keys()) == {0b001, 0b011}
         assert all(c >= 0 for c in counts.values())
         assert sum(counts.values()) == 1000
 
     def test_circuit_transpiler(self) -> None:
-        circuit = QuantumCircuit(4)
+        circuit = QuantumCircuit(3)
         backend = QiskitSamplingBackend(
             self.backend, circuit_transpiler=circuit_transpiler
         )  # With default circuit_converter.
         job = backend.sample(circuit, 1000)
         counts = job.result().counts
 
+        assert set(counts.keys()) == {0b1001, 0b1011}
         assert all(c >= 0 for c in counts.values())
         assert sum(counts.values()) == 1000
 
@@ -89,6 +97,7 @@ class TestQiskitSamplingBackend(QiskitTestCase):  # type: ignore
         job = backend.sample(QuantumCircuit(4), 50)
         counts = job.result().counts
 
+        assert set(counts.keys()) == {0b0000, 0b0001, 0b0100, 0b0101}
         assert all(c >= 0 for c in counts.values())
         assert sum(counts.values()) == 1000
 
@@ -105,6 +114,7 @@ class TestQiskitSamplingBackend(QiskitTestCase):  # type: ignore
         job = backend.sample(QuantumCircuit(4), 2100)
         counts = job.result().counts
 
+        assert set(counts.keys()) == {0b0000, 0b0001, 0b0100, 0b0101}
         assert all(c >= 0 for c in counts.values())
         assert sum(counts.values()) == 2100
         assert isinstance(job, CompositeSamplingJob)
@@ -120,6 +130,7 @@ class TestQiskitSamplingBackend(QiskitTestCase):  # type: ignore
         job = backend.sample(QuantumCircuit(4), 2100)
         counts = job.result().counts
 
+        assert set(counts.keys()) == {0b0000, 0b0001, 0b0100, 0b0101}
         assert all(c >= 0 for c in counts.values())
         assert sum(counts.values()) == 2200
         assert isinstance(job, CompositeSamplingJob)
@@ -137,6 +148,7 @@ class TestQiskitSamplingBackend(QiskitTestCase):  # type: ignore
         job = backend.sample(QuantumCircuit(4), 2100)
         counts = job.result().counts
 
+        assert set(counts.keys()) == {0b0000, 0b0001, 0b0100, 0b0101}
         assert all(c >= 0 for c in counts.values())
         assert sum(counts.values()) == 2000
         assert isinstance(job, CompositeSamplingJob)

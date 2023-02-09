@@ -14,8 +14,6 @@ from typing import Callable, Type, cast
 import numpy as np
 import qiskit.circuit.library as qgate
 import qiskit.quantum_info as qi
-
-# from qiskit.circuit import Instruction
 from qiskit.circuit import QuantumCircuit as QiskitQuantumCircuit
 from qiskit.circuit.gate import Gate
 from qiskit.extensions import UnitaryGate
@@ -26,8 +24,6 @@ from quri_parts.qiskit.circuit import convert_circuit, convert_gate
 
 
 def gate_equal(i1: Gate, i2: Gate) -> bool:
-    # the use of cast here is to assure that the
-    # result is a bool
     return cast(bool, i1 == i2)
 
 
@@ -156,9 +152,6 @@ def test_convert_circuit() -> None:
     expected.cnot(0, 2)
     expected.rx(0.125, 0)
 
-    print(converted)
-    print(expected)
-
     assert circuit_equal(converted, expected)
 
 
@@ -180,8 +173,5 @@ def test_convert_pauli() -> None:
 
     evo = qgate.PauliEvolutionGate(Y ^ Z ^ Y ^ X, time=0.133)
     expected.append(evo, [0, 1, 2, 3])
-
-    print(converted)
-    print(expected)
 
     assert circuit_equal(converted, expected)
