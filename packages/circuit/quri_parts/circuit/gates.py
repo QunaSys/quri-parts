@@ -333,7 +333,9 @@ SWAP = SWAPFactory()
 class TOFFOLIFactory:
     name: Literal["TOFFOLI"] = gate_names.TOFFOLI
 
-    def __call__(self, control_index1: int, control_index2: int, target_index: int) -> QuantumGate:
+    def __call__(
+        self, control_index1: int, control_index2: int, target_index: int
+    ) -> QuantumGate:
         return QuantumGate(
             name=self.name,
             target_indices=(target_index,),

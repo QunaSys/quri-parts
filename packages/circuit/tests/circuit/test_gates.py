@@ -102,7 +102,9 @@ def test_gate_creation() -> None:
     assert SWAP(5, 7) == QuantumGate(gate_names.SWAP, target_indices=(5, 7))
 
     # 3 qubit gates
-    assert TOFFOLI(2, 5, 7) == QuantumGate(gate_names.TOFFOLI, control_indices=(2, 5), target_indices=(7,))
+    assert TOFFOLI(2, 5, 7) == QuantumGate(
+        gate_names.TOFFOLI, control_indices=(2, 5), target_indices=(7,)
+    )
 
     # Unitary matrix gates
     single_umat = ((1, 0), (0, 1))

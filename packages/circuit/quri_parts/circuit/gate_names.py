@@ -97,6 +97,7 @@ TWO_QUBIT_GATE_NAMES: set[TwoQubitGateNameType] = {CNOT, CZ, SWAP}
 def is_two_qubit_gate_name(gate_name: str) -> TypeGuard[TwoQubitGateNameType]:
     return gate_name in TWO_QUBIT_GATE_NAMES
 
+
 ThreeQubitGateNameType: TypeAlias = Literal[
     "TOFFOLI",
 ]
@@ -104,6 +105,7 @@ ThreeQubitGateNameType: TypeAlias = Literal[
 TOFFOLI: Literal["TOFFOLI"] = "TOFFOLI"
 
 THREE_QUBIT_GATE_NAMES: set[ThreeQubitGateNameType] = {TOFFOLI}
+
 
 def is_three_qubit_gate_name(gate_name: str) -> TypeGuard[ThreeQubitGateNameType]:
     return gate_name in THREE_QUBIT_GATE_NAMES

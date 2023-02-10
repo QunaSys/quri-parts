@@ -71,7 +71,9 @@ _two_qubit_gate_qulacs: Mapping[TwoQubitGateNameType, Type[qulacs.QuantumGateBas
     gate_names.SWAP: qulacs.gate.SWAP,
 }
 
-_three_qubit_gate_qulacs: Mapping[ThreeQubitGateNameType, Type[qulacs.QuantumGateBase]] = {
+_three_qubit_gate_qulacs: Mapping[
+    ThreeQubitGateNameType, Type[qulacs.QuantumGateBase]
+] = {
     gate_names.TOFFOLI: qulacs.gate.TOFFOLI,
 }
 
