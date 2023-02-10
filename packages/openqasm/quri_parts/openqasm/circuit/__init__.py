@@ -17,8 +17,8 @@ from quri_parts.circuit.gate_names import (
     is_multi_qubit_gate_name,
     is_parametric_gate_name,
     is_single_qubit_gate_name,
-    is_two_qubit_gate_name,
     is_three_qubit_gate_name,
+    is_two_qubit_gate_name,
 )
 
 if TYPE_CHECKING:
@@ -26,8 +26,8 @@ if TYPE_CHECKING:
     from quri_parts.circuit.gate_names import (
         ParametricGateNameType,
         SingleQubitGateNameType,
-        TwoQubitGateNameType,
         ThreeQubitGateNameType,
+        TwoQubitGateNameType,
     )
 
 _HEADER = """OPENQASM 3;

@@ -25,12 +25,12 @@ from cirq.ops.three_qubit_gates import TOFFOLI
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate, gate_names
 from quri_parts.circuit.gate_names import (
     SingleQubitGateNameType,
-    TwoQubitGateNameType,
     ThreeQubitGateNameType,
+    TwoQubitGateNameType,
     is_parametric_gate_name,
     is_single_qubit_gate_name,
-    is_two_qubit_gate_name,
     is_three_qubit_gate_name,
+    is_two_qubit_gate_name,
     is_unitary_matrix_gate_name,
 )
 from quri_parts.circuit.transpile import (
