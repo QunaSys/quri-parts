@@ -34,6 +34,7 @@ from quri_parts.circuit import (
     SqrtYdag,
     T,
     Tdag,
+    TOFFOLI,
     TwoQubitUnitaryMatrix,
     UnitaryMatrix,
     X,
@@ -99,6 +100,9 @@ def test_gate_creation() -> None:
         gate_names.CZ, control_indices=(5,), target_indices=(7,)
     )
     assert SWAP(5, 7) == QuantumGate(gate_names.SWAP, target_indices=(5, 7))
+
+    # 3 qubit gates
+    assert TOFFOLI(2, 5, 7) == QuantumGate(gate_names.TOFFOLI, control_indices=(2, 5), target_indices=(7,))
 
     # Unitary matrix gates
     single_umat = ((1, 0), (0, 1))
@@ -180,6 +184,7 @@ def test_gate_addition() -> None:
         CNOT(0, 1),
         CZ(0, 1),
         SWAP(0, 1),
+        TOFFOLI(0, 1, 2),
         SingleQubitUnitaryMatrix(0, single_umat),
         TwoQubitUnitaryMatrix(0, 1, two_umat),
         UnitaryMatrix((0, 1), two_umat),
@@ -211,6 +216,7 @@ def test_gate_addition() -> None:
     mc.add_CNOT_gate(0, 1)
     mc.add_CZ_gate(0, 1)
     mc.add_SWAP_gate(0, 1)
+    mc.add_TOFFOLI_gate(0, 1, 2)
     mc.add_SingleQubitUnitaryMatrix_gate(0, single_umat)
     mc.add_TwoQubitUnitaryMatrix_gate(0, 1, two_umat)
     mc.add_UnitaryMatrix_gate((0, 1), two_umat)
