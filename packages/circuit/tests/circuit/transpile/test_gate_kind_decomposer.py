@@ -57,6 +57,7 @@ from quri_parts.circuit.transpile import (
     SWAP2CNOTTranspiler,
     T2RZTranspiler,
     Tdag2RZTranspiler,
+    # TOFFOLI2HTTdagCNOTTranspiler,
     U1ToRZTranspiler,
     U2ToRXRZTranspiler,
     U2ToRZSqrtXTranspiler,
@@ -234,6 +235,33 @@ class TestRZSetTranspile:
         expect.extend([RZ(0, -np.pi / 4.0)])
 
         assert transpiled.gates == expect.gates
+
+    #     def test_toffoli2httdagcnot_transpile(self) -> None:
+    #         circuit = QuantumCircuit(3)
+    #         circuit.add_gate(TOFFOLI(0, 1, 2))  # TODO enable after definition
+    #         transpiled = TOFFOLI2HTTdagCNOTTranspiler()(circuit)
+
+    #         expect = QuantumCircuit(3)
+    #         expect.extend([
+    #                 H(2),
+    #                 CNOT(1, 2),
+    #                 Tdag(2),
+    #                 CNOT(0, 2),
+    #                 T(2),
+    #                 CNOT(1, 2),
+    #                 Tdag(2),
+    #                 CNOT(0, 2),
+    #                 T(1),
+    #                 T(2),
+    #                 H(2),
+    #                 CNOT(0, 1),
+    #                 T(0),
+    #                 Tdag(1),
+    #                 CNOT(0, 1),
+    #             ]
+    #         )
+
+    #         assert transpiled.gates == expect.gates
 
     def test_rx2rzsqrtx_transpile(self) -> None:
         theta = np.random.rand() * 2.0 * np.pi
