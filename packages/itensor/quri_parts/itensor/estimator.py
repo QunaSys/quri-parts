@@ -3,8 +3,6 @@ from typing import TYPE_CHECKING, Any, Callable, NamedTuple, Optional, Union
 
 import juliacall
 from juliacall import Main as jl
-from typing_extensions import TypeAlias
-
 from quri_parts.core.estimator import Estimatable, Estimate, QuantumEstimator
 from quri_parts.core.operator import Operator, PauliLabel, pauli_name, zero
 from quri_parts.core.state import (
@@ -13,9 +11,16 @@ from quri_parts.core.state import (
     ParametricQuantumStateVector,
     QuantumStateVector,
 )
+from typing_extensions import TypeAlias
+import os
+
+path = os.getcwd()
+library_path = os.path.join(path, "packages/itensor/quri_parts/itensor/library.jl")
 
 jl.seval("using ITensors")
-jl.seval('include("library.jl")')
+include_statement = 'include("' + library_path + '")'
+print(include_statement)
+jl.seval(include_statement)
 
 
 class _Estimate(NamedTuple):
@@ -40,7 +45,7 @@ def _estimate(operator: Estimatable, state: QulacsStateT) -> Estimate[complex]:
     qubits = state.qubit_count
     s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
     psi: juliacall.AnyValue = jl.initState(s, qubits)
-    gate_list: Iterable = jl.gate_list()
+    gate_list: juliacall.VectorValue = jl.gate_list()
     for gate in state.circuit.gates:
         gate_list = jl.add_gate(gate_list, gate.name, gate.target_indices[0] + 1)
     circuit = jl.ops(gate_list, s)
@@ -52,7 +57,7 @@ def _estimate(operator: Estimatable, state: QulacsStateT) -> Estimate[complex]:
         paulis = [(operator, 1)]
     os: juliacall.AnyValue = jl.OpSum()
     for pauli, coef in paulis:
-        pauli_gates: Iterable = jl.gate_list()
+        pauli_gates: juliacall.VectorValue = jl.gate_list()
         for i, p in pauli:
             pauli_gates = jl.add_pauli(pauli_gates, pauli_name(p), i + 1)
         os = jl.add_coef_pauli(os, coef, pauli_gates)

@@ -41,6 +41,7 @@ quri-parts-stim = { version = "*", optional = true }
 quri-parts-openqasm = { version = "*", optional = true }
 quri-parts-honeywell = { version = "*", optional = true }
 quri-parts-ionq = { version = "*", optional = true }
+quri-parts-itensor = { version = "*", optional = true }
 
 [tool.poetry.extras]
 qulacs = ["quri-parts-qulacs"]
@@ -67,6 +68,7 @@ quri-parts-stim = {path = "packages/stim", develop = true}
 quri-parts-openqasm = {path = "packages/openqasm", develop = true}
 quri-parts-honeywell = {path = "packages/honeywell", develop = true}
 quri-parts-ionq = {path = "packages/ionq", develop = true}
+quri-parts-itensor = {path = "packages/itensor", develop = true}
 
 pytest = "^7.0.1"
 black = "^22.1.0"

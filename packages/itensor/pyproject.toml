@@ -1,26 +1,24 @@
 [tool.poetry]
-name = "itensor"
+name = "quri-parts-itensor"
 version = "0.1.0"
-description = ""
+description = "A plugin to use ITensor with QURI Parts"
 authors = ["speed1313 <speedtry13@icloud.com>"]
 readme = "README.md"
+packages = [
+    { include = "quri_parts" }
+]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "3.10"
 typing-extensions = "^4.4.0"
-quri-parts-core = "^0.5.0"
+quri-parts-core = "^0.6.0"
 juliacall = "^0.9.10"
+
 
 [tool.poetry.group.dev.dependencies]
 quri-parts-circuit = {path = "../circuit", develop = true}
 quri-parts-core = {path = "../core", develop = true}
 
-pytest = "^7.0.1"
-black = "^22.1.0"
-flake8 = "^4.0.1"
-mypy = ">=0.950"
-docformatter = "^1.4"
-isort = "^5.10.1"
 [tool.black]
 line-length = 88
 
