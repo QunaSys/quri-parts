@@ -327,7 +327,7 @@ class TOFFOLI2HTTdagCNOTTranspiler(GateKindDecomposer):
 
     @property
     def target_gate_names(self) -> Sequence[str]:
-        return ["TOFFOLI"]  # TODO use gate_names.TOFFOLI after definition
+        return [gate_names.TOFFOLI]
 
     def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
         control1, control2 = gate.control_indices

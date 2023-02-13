@@ -74,6 +74,7 @@ RZSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
                 CZ2CNOTHTranspiler(),
                 PauliDecomposeTranspiler(),
                 PauliRotationDecomposeTranspiler(),
+                TOFFOLI2HTTdagCNOTTranspiler(),
             ]
         ),
         ParallelDecomposer(
@@ -108,6 +109,7 @@ RotationSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTrans
             [
                 PauliDecomposeTranspiler(),
                 PauliRotationDecomposeTranspiler(),
+                TOFFOLI2HTTdagCNOTTranspiler(),
             ]
         ),
         ParallelDecomposer(
