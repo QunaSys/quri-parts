@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Any, Callable, NamedTuple, Optional, Union
 
 import juliacall
 from juliacall import Main as jl
+from quri_parts.circuit.circuit import NonParametricQuantumCircuit
 from quri_parts.core.estimator import Estimatable, Estimate, QuantumEstimator
 from quri_parts.core.operator import Operator, PauliLabel, pauli_name, zero
 from quri_parts.core.state import (
@@ -38,18 +39,16 @@ QulacsParametricStateT: TypeAlias = Union[
     ParametricCircuitQuantumState, ParametricQuantumStateVector
 ]
 
-
-def _estimate(operator: Estimatable, state: QulacsStateT) -> Estimate[complex]:
-    if operator == zero():
-        return _Estimate(value=0.0)
-    qubits = state.qubit_count
-    s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
-    psi: juliacall.AnyValue = jl.initState(s, qubits)
+def convert_circuit(circuit: NonParametricQuantumCircuit, s: juliacall.VectorValue):
     gate_list: juliacall.VectorValue = jl.gate_list()
-    for gate in state.circuit.gates:
+    for gate in circuit.gates:
         gate_list = jl.add_gate(gate_list, gate.name, gate.target_indices[0] + 1)
     circuit = jl.ops(gate_list, s)
+    return circuit
 
+
+def convert_operator(
+    operator: Union[Operator, PauliLabel], s: juliacall.VectorValue):
     paulis: Iterable[tuple[PauliLabel, complex]]
     if isinstance(operator, Operator):
         paulis = operator.items()
@@ -61,11 +60,27 @@ def _estimate(operator: Estimatable, state: QulacsStateT) -> Estimate[complex]:
         for i, p in pauli:
             pauli_gates = jl.add_pauli(pauli_gates, pauli_name(p), i + 1)
         os = jl.add_coef_pauli(os, coef, pauli_gates)
-
     op = jl.MPO(os, s)
+    return op
 
+
+def _estimate(operator: Estimatable, state: QulacsStateT) -> Estimate[complex]:
+    if operator == zero():
+        return _Estimate(value=0.0)
+    qubits = state.qubit_count
+    s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
+    psi: juliacall.AnyValue = jl.initState(s, qubits)
+
+    # create ITensor circuit
+    circuit = convert_circuit(state.circuit, s)
+
+    # create ITensor operator
+    op = convert_operator(operator, s)
+
+    # calculate expectation value
     psi = jl.apply(circuit, psi)
     exp: float = jl.expectation(psi, op)
+
     return _Estimate(value=exp)
 
 
