@@ -15,7 +15,7 @@ def circuit() -> QuantumCircuit:
     return circuit
 
 
-class TestITensorVectorSampler:
+class TestITensorMPSSampler:
     @pytest.mark.parametrize("qubits", [4, 12])
     @pytest.mark.parametrize("shots", [800, 1200, 2**12 + 100])
     def test_sampler(self, qubits: int, shots: int) -> None:
