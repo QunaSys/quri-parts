@@ -2,12 +2,12 @@ using ITensors
 
 
 function initState(s, qubits::Integer)
-    psi = productMPS(s,["0" for i in 1:qubits])
+    psi = productMPS(s, ["0" for i in 1:qubits])
     return psi
 end
 
 function expectation(psi, op)
-    exp =  inner(psi', op, psi)
+    exp = inner(psi', op, psi)
     return exp
 end
 
@@ -29,4 +29,19 @@ end
 function add_coef_pauli(os, coefficient, pauli_gates)
     os += (coefficient, pauli_gates...)
     return os
+end
+
+
+function sampling(psi, shots)
+    orthogonalize!(psi, 1)
+    result = []
+    for i in 1:shots
+        sampling = sample(psi)
+        count = 0
+        for i in 1:length(sampling)
+            count += (sampling[i] - 1) * 2^(i - 1)
+        end
+        push!(result, count)
+    end
+    return result
 end

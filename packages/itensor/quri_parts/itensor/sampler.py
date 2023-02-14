@@ -6,9 +6,10 @@ from numpy.random import default_rng
 
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.core.sampling import MeasurementCounts, Sampler
-from estimator import convert_circuit
+from quri_parts.itensor.estimator import convert_circuit
 import juliacall
 from juliacall import Main as jl
+import os
 
 path = os.getcwd()
 library_path = os.path.join(path, "packages/itensor/quri_parts/itensor/library.jl")
@@ -25,10 +26,9 @@ def _sample(circuit: NonParametricQuantumCircuit, shots: int) -> MeasurementCoun
     psi: juliacall.AnyValue = jl.initState(s, qubits)
     qs_circuit = convert_circuit(circuit, s)
     psi = jl.apply(qs_circuit, psi)
-
-
-    # sampling = jl.sample(psi)
-    #    return Counter(qs_state.sampling(shots))
+    result = []
+    result = jl.sampling(psi, shots)
+    return Counter(result)
 
 
 def create_itensor_mps_sampler() -> Sampler:
