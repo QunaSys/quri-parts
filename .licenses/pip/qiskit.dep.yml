@@ -6,7 +6,7 @@ summary: Software for developing quantum computing programs
 homepage: https://github.com/Qiskit/qiskit
 license: apache-2.0
 licenses:
-- sources: LICENSE.txt
+- sources: LICENSE
   text: |
                     Copyright 2018 IBM and its contributors
 
