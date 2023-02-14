@@ -1,6 +1,6 @@
 ---
 name: qiskit
-version: 0.39.4
+version: 0.39.5
 type: pip
 summary: Software for developing quantum computing programs
 homepage: https://github.com/Qiskit/qiskit
