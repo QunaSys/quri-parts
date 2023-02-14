@@ -1,9 +1,7 @@
 import pytest
-
 from quri_parts.circuit import QuantumCircuit
-from quri_parts.itensor.sampler import (
-    create_itensor_mps_sampler,
-)
+
+from quri_parts.itensor.sampler import create_itensor_mps_sampler
 
 
 def circuit() -> QuantumCircuit:

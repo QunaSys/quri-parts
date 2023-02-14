@@ -1,5 +1,6 @@
-from collections.abc import Collection, Iterable, Sequence
-from typing import TYPE_CHECKING, Any, Callable, NamedTuple, Optional, Union
+import os
+from collections.abc import Iterable
+from typing import NamedTuple, Union
 
 import juliacall
 from juliacall import Main as jl
@@ -13,7 +14,6 @@ from quri_parts.core.state import (
     QuantumStateVector,
 )
 from typing_extensions import TypeAlias
-import os
 
 path = os.getcwd()
 library_path = os.path.join(path, "packages/itensor/quri_parts/itensor/library.jl")
@@ -39,7 +39,10 @@ QulacsParametricStateT: TypeAlias = Union[
     ParametricCircuitQuantumState, ParametricQuantumStateVector
 ]
 
-def convert_circuit(circuit: NonParametricQuantumCircuit, s: juliacall.VectorValue):
+
+def convert_circuit(
+    circuit: NonParametricQuantumCircuit, s: juliacall.VectorValue
+) -> juliacall.VectorValue:
     gate_list: juliacall.VectorValue = jl.gate_list()
     for gate in circuit.gates:
         gate_list = jl.add_gate(gate_list, gate.name, gate.target_indices[0] + 1)
@@ -48,7 +51,8 @@ def convert_circuit(circuit: NonParametricQuantumCircuit, s: juliacall.VectorVal
 
 
 def convert_operator(
-    operator: Union[Operator, PauliLabel], s: juliacall.VectorValue):
+    operator: Union[Operator, PauliLabel], s: juliacall.VectorValue
+) -> juliacall.AnyValue:
     paulis: Iterable[tuple[PauliLabel, complex]]
     if isinstance(operator, Operator):
         paulis = operator.items()
@@ -60,7 +64,7 @@ def convert_operator(
         for i, p in pauli:
             pauli_gates = jl.add_pauli(pauli_gates, pauli_name(p), i + 1)
         os = jl.add_coef_pauli(os, coef, pauli_gates)
-    op = jl.MPO(os, s)
+    op: juliacall.AnyValue = jl.MPO(os, s)
     return op
 
 

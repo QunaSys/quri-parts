@@ -1,5 +1,4 @@
 import pytest
-
 from quri_parts.core.operator import pauli_label
 from quri_parts.core.state import ComputationalBasisState
 
