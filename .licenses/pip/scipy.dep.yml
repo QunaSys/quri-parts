@@ -4,7 +4,7 @@ version: 1.10.1
 type: pip
 summary: Fundamental algorithms for scientific computing in Python
 homepage: https://scipy.org/
-license: other
+license: bsd-3-clause
 licenses:
 - sources: LICENSE.txt
   text: "Copyright (c) 2001-2002 Enthought, Inc. 2003-2022, SciPy Developers.\nAll
