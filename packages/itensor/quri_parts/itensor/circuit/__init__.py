@@ -1,8 +1,15 @@
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 
 import juliacall
 from juliacall import Main as jl
-from quri_parts.circuit import NonParametricQuantumCircuit, gate_names
+from quri_parts.circuit import (
+    LinearMappedUnboundParametricQuantumCircuitBase,
+    NonParametricQuantumCircuit,
+    QuantumGate,
+    UnboundParametricQuantumCircuitBase,
+    UnboundParametricQuantumCircuitProtocol,
+    gate_names,
+)
 from quri_parts.circuit.gate_names import (
     SingleQubitGateNameType,
     TwoQubitGateNameType,
@@ -31,6 +38,12 @@ _two_qubit_gate_itensor: Mapping[TwoQubitGateNameType, str] = {
     gate_names.CNOT: "CNOT",
     gate_names.CZ: "CZ",
     gate_names.SWAP: "SWAP",
+}
+
+_parametric_gate_itensor = {
+    gate_names.ParametricRX: "Rx",
+    gate_names.ParametricRY: "Ry",
+    gate_names.ParametricRZ: "Rz",
 }
 
 
@@ -69,3 +82,64 @@ def convert_circuit(
             raise ValueError(f"Unknown gate name: {gate.name}")
     circuit = jl.ops(gate_list, s)
     return circuit
+
+
+def convert_parametric_circuit(
+    circuit: UnboundParametricQuantumCircuitProtocol,
+    s: juliacall.VectorValue,
+    params: Sequence[float],
+) -> juliacall.VectorValue:
+    param_circuit: UnboundParametricQuantumCircuitBase
+    if isinstance(circuit, UnboundParametricQuantumCircuitBase) | isinstance(
+        circuit, LinearMappedUnboundParametricQuantumCircuitBase
+    ):
+        param_circuit = circuit
+        param_index = 0
+        gate_list: juliacall.VectorValue = jl.gate_list()
+        for gate in param_circuit.gates:
+            if gate.name in _parametric_gate_itensor:
+                gate_list = jl.add_gate(
+                    gate_list,
+                    _parametric_gate_itensor[gate.name],
+                    gate.target_indices[0] + 1,
+                    params[param_index],
+                )
+                param_index += 1
+                continue
+            if not is_gate_name(gate.name):
+                raise ValueError(f"Unknown gate name: {gate.name}")
+
+            if is_single_qubit_gate_name(gate.name):
+                if gate.name in _single_qubit_gate_itensor:
+                    gate_list = jl.add_gate(
+                        gate_list,
+                        _single_qubit_gate_itensor[gate.name],
+                        gate.target_indices[0] + 1,
+                    )
+                elif gate.name in _single_qubit_rotation_gate_itensor:
+                    if isinstance(gate, QuantumGate):
+
+                        gate_list = jl.add_gate(
+                            gate_list,
+                            _single_qubit_rotation_gate_itensor[gate.name],
+                            gate.target_indices[0] + 1,
+                            gate.params[0],
+                        )
+                        param_index += 1
+                    else:
+                        raise ValueError(f"Unknown gate name: {gate.name}")
+                else:
+                    raise ValueError(f"Unknown single qubit gate name: {gate.name}")
+            elif is_two_qubit_gate_name(gate.name):
+                gate_list = jl.add_gate(
+                    gate_list,
+                    _two_qubit_gate_itensor[gate.name],
+                    gate.target_indices[0] + 1,
+                    gate.control_indices[0] + 1,
+                )
+            else:
+                raise ValueError(f"Unknown gate name: {gate.name}")
+        circuit = jl.ops(gate_list, s)
+        return circuit
+    else:
+        raise ValueError(f"Unknown circuit type: {type(circuit)}")

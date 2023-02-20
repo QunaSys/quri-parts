@@ -42,11 +42,15 @@ function add_pauli(pauli_gates::Vector, pauli_name::String, target_index::Intege
     return pauli_gates
 end
 
-function add_coef_pauli(os, coefficient, pauli_gates)
+function add_coef_pauli(os, coefficient::Number, pauli_gates)
     os += (coefficient, pauli_gates...)
     return os
 end
 
+function add_coef_identity(os, coefficient::Number, s)
+    os += (coefficient,[isodd(i) ? "I" : div(i,2) for i in 1:(2* length(s))]...)
+    return os
+end
 
 function sampling(psi, shots)
     orthogonalize!(psi, 1)
