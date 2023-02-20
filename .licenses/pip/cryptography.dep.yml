@@ -1,6 +1,6 @@
 ---
 name: cryptography
-version: 39.0.0
+version: 39.0.1
 type: pip
 summary: cryptography is a package which provides cryptographic recipes and primitives
   to Python developers.
