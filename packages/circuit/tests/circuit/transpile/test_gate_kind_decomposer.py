@@ -477,10 +477,6 @@ class TestRZSetTranspile:
             ]
         )
 
-        for i, (t, e) in enumerate(zip(transpiled.gates, expect.gates)):
-            print(f"{i} {t.name} {e.name}")
-            assert t == e
-
         assert transpiled.gates == expect.gates
 
 
