@@ -6,7 +6,7 @@ from juliacall import Main as jl
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.core.sampling import MeasurementCounts, Sampler
 
-from quri_parts.itensor.estimator import convert_circuit
+from quri_parts.itensor.circuit import convert_circuit
 
 path = os.getcwd()
 library_path = os.path.join(path, "packages/itensor/quri_parts/itensor/library.jl")
