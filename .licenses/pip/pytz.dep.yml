@@ -1,20 +1,14 @@
 ---
-name: mypy-extensions
-version: 1.0.0
+name: pytz
+version: 2022.7.1
 type: pip
-summary: Type system extensions for programs checked with the mypy type checker.
-homepage: https://github.com/python/mypy_extensions
+summary: World timezone definitions, modern and historical
+homepage: http://pythonhosted.org/pytz
 license: mit
 licenses:
-- sources: LICENSE
+- sources: LICENSE.txt
   text: |
-    Mypy extensions are licensed under the terms of the MIT license, reproduced below.
-
-    = = = = =
-
-    The MIT License
-
-    Copyright (c) 2016-2017 Jukka Lehtosalo and contributors
+    Copyright (c) 2003-2019 Stuart Bishop <stuart@stuartbishop.net>
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -28,11 +22,9 @@ licenses:
 
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
     DEALINGS IN THE SOFTWARE.
-
-    = = = = =
 notices: []
