@@ -1,8 +1,8 @@
 ---
 name: mypy-extensions
-version: 1.0.0
+version: 0.4.3
 type: pip
-summary: Type system extensions for programs checked with the mypy type checker.
+summary: Experimental type system extensions for programs checked with the mypy typechecker.
 homepage: https://github.com/python/mypy_extensions
 license: mit
 licenses:
