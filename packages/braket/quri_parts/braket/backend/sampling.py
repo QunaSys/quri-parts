@@ -23,7 +23,9 @@ from quri_parts.backend import (
     SamplingBackend,
     SamplingCounts,
     SamplingJob,
+    SamplingJobState,
     SamplingResult,
+    async_state,
 )
 from quri_parts.backend.qubit_mapping import BackendQubitMapping, QubitMappedSamplingJob
 from quri_parts.braket.circuit import (
@@ -56,6 +58,13 @@ class BraketSamplingResult(SamplingResult):
         return Counter(int(np.dot(digits, m)) for m in measurements)
 
 
+_TERMINAL_STATE_MAPPING = {
+    "CANCELLED": SamplingJobState.CANCELLED,
+    "COMPLETED": SamplingJobState.COMPLETED,
+    "FAILED": SamplingJobState.FAILED,
+}
+
+
 class BraketSamplingJob(SamplingJob):
     """A job for a Braket sampling measurement."""
 
@@ -65,6 +74,21 @@ class BraketSamplingJob(SamplingJob):
     def result(self) -> SamplingResult:
         braket_result = self._braket_task.result()
         return BraketSamplingResult(braket_result)
+
+    async def async_final_state(
+        self, raise_failure: bool = False, raise_cancel: bool = False
+    ) -> SamplingJobState:
+        try:
+            await self._braket_task.async_result()
+        except NotImplementedError:
+            # LocalQuantumTask doesn't support async_result
+            ...
+
+        braket_state = self._braket_task.state()
+        state = _TERMINAL_STATE_MAPPING[braket_state]
+        return await async_state(
+            state, raise_failure=raise_failure, raise_cancel=raise_cancel
+        )
 
 
 class BraketSamplingBackend(SamplingBackend):

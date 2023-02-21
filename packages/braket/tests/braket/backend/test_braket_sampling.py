@@ -8,6 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from unittest import mock
 from typing import Optional
 
 import numpy as np
@@ -16,8 +17,12 @@ from braket.circuits import Circuit
 from braket.devices import LocalSimulator
 from braket.tasks import GateModelQuantumTaskResult
 
-from quri_parts.backend import CompositeSamplingJob
-from quri_parts.braket.backend import BraketSamplingBackend, BraketSamplingResult
+from quri_parts.backend import CompositeSamplingJob, SamplingJobState
+from quri_parts.braket.backend import (
+    BraketSamplingBackend,
+    BraketSamplingJob,
+    BraketSamplingResult,
+)
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
 
@@ -81,6 +86,44 @@ class TestBraketSamplingResult:
         result = BraketSamplingResult(braket_result)
         counts = result.counts
         assert counts == {0b00: 2, 0b10: 1, 2**128 + 0b10: 1}
+
+
+def mock_aws_task(state: str = "COMPLETED") -> mock.Mock:
+    m = mock.Mock()
+
+    async def async_result() -> None:
+        return None
+
+    m.async_result = async_result
+    m.state = mock.Mock(return_value=state)
+    return m
+
+
+class TestBraketSamplingJob:
+    @pytest.mark.asyncio
+    async def test_async_final_state_local_task(self) -> None:
+        device = LocalSimulator()
+        backend = BraketSamplingBackend(device)
+        job = backend.sample(QuantumCircuit(4), 1000)
+        state = await job.async_final_state()
+        assert state == SamplingJobState.COMPLETED
+
+    @pytest.mark.asyncio
+    async def test_async_final_state_aws_task(self) -> None:
+        braket_task = mock_aws_task(state="COMPLETED")
+        job = BraketSamplingJob(braket_task)
+        state = await job.async_final_state()
+        assert state == SamplingJobState.COMPLETED
+
+        braket_task = mock_aws_task(state="CANCELLED")
+        job = BraketSamplingJob(braket_task)
+        state = await job.async_final_state()
+        assert state == SamplingJobState.CANCELLED
+
+        braket_task = mock_aws_task(state="FAILED")
+        job = BraketSamplingJob(braket_task)
+        state = await job.async_final_state()
+        assert state == SamplingJobState.FAILED
 
 
 class TestBraketSamplingBackend:

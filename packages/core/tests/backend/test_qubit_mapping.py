@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from quri_parts.backend import SamplingCounts
+from quri_parts.backend import SamplingCounts, SamplingJobState, async_state
 from quri_parts.backend.qubit_mapping import (
     BackendQubitMapping,
     QubitMappedSamplingJob,
@@ -83,6 +83,11 @@ def test_qubit_mapped_sampling_result() -> None:
 class MockSamplingJob:
     def result(self) -> MockSamplingResult:
         return MockSamplingResult()
+
+    async def async_final_state(
+        self, raise_failure: bool = False, raise_cancel: bool = False
+    ) -> SamplingJobState:
+        return await async_state(SamplingJobState.COMPLETED)
 
 
 def test_qubit_mapped_sampling_job() -> None:
