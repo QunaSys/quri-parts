@@ -23,7 +23,7 @@ from quri_parts.core.state import (
 from quri_parts.core.utils.concurrent import execute_concurrently
 from typing_extensions import TypeAlias
 
-from .circuit import convert_circuit, convert_parametric_circuit
+from .circuit import convert_circuit
 from .operator import convert_operator
 
 if TYPE_CHECKING:
@@ -159,6 +159,52 @@ def create_itensor_mps_concurrent_estimator(
             _sequential_estimate_single_state,
             operators,
             states,
+            executor,
+            concurrency,
+        )
+
+    return estimator
+
+
+from quri_parts.core.estimator import create_parametric_estimator
+
+
+def _sequential_parametric_estimate(
+    op_state: tuple[Estimatable, QulacsParametricStateT],
+    params: Sequence[Sequence[float]],
+) -> Sequence[Estimate[complex]]:
+    operator, state = op_state
+    estimates = []
+    estimator = create_parametric_estimator(create_itensor_mps_estimator())
+    for param in params:
+        estimates.append(estimator(operator, state, param))
+    return estimates
+
+
+def create_itensor_mps_parametric_estimator() -> ParametricQuantumEstimator[
+    QulacsParametricStateT
+]:
+    def estimator(
+        operator: Estimatable, state: QulacsParametricStateT, param: Sequence[float]
+    ) -> Estimate[complex]:
+        ests = _sequential_parametric_estimate((operator, state), [param])
+        return ests[0]
+
+    return estimator
+
+
+def create_itensor_mps_concurrent_parametric_estimator(
+    executor: Optional["Executor"] = None, concurrency: int = 1
+) -> ConcurrentParametricQuantumEstimator[QulacsParametricStateT]:
+    def estimator(
+        operator: Estimatable,
+        state: QulacsParametricStateT,
+        params: Sequence[Sequence[float]],
+    ) -> Sequence[Estimate[complex]]:
+        return execute_concurrently(
+            _sequential_parametric_estimate,
+            (operator, state),
+            params,
             executor,
             concurrency,
         )
