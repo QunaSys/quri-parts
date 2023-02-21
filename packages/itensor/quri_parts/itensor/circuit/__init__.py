@@ -3,16 +3,13 @@ from collections.abc import Mapping, Sequence
 import juliacall
 from juliacall import Main as jl
 from quri_parts.circuit import (
-    LinearMappedUnboundParametricQuantumCircuitBase,
     NonParametricQuantumCircuit,
-    QuantumGate,
-    UnboundParametricQuantumCircuitBase,
-    UnboundParametricQuantumCircuitProtocol,
     gate_names,
 )
 from quri_parts.circuit.gate_names import (
     SingleQubitGateNameType,
     TwoQubitGateNameType,
+    ThreeQubitGateNameType,
     is_gate_name,
     is_single_qubit_gate_name,
     is_two_qubit_gate_name,
@@ -24,8 +21,11 @@ _single_qubit_gate_itensor: Mapping[SingleQubitGateNameType, str] = {
     gate_names.X: "X",
     gate_names.Y: "Y",
     gate_names.Z: "Z",
+    gate_names.SqrtX: "√X",
     gate_names.H: "H",
     gate_names.S: "S",
+    gate_names.T: "T",
+
 }
 
 _single_qubit_rotation_gate_itensor: Mapping[SingleQubitGateNameType, str] = {
@@ -40,6 +40,9 @@ _two_qubit_gate_itensor: Mapping[TwoQubitGateNameType, str] = {
     gate_names.SWAP: "SWAP",
 }
 
+_three_qubit_gate_itensor: Mapping[ThreeQubitGateNameType, str] = {
+    gate_names.
+}
 
 def convert_circuit(
     circuit: NonParametricQuantumCircuit, s: juliacall.VectorValue
