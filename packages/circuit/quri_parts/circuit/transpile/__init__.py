@@ -32,6 +32,7 @@ from .gate_kind_decomposer import (
     SWAP2CNOTTranspiler,
     T2RZTranspiler,
     Tdag2RZTranspiler,
+    TOFFOLI2HTTdagCNOTTranspiler,
     U1ToRZTranspiler,
     U2ToRXRZTranspiler,
     U2ToRZSqrtXTranspiler,
@@ -59,6 +60,10 @@ from .transpiler import (
     ParallelDecomposer,
     SequentialTranspiler,
 )
+from .unitary_matrix_decomposer import (
+    SingleQubitUnitaryMatrix2RYRZTranspiler,
+    su2_decompose,
+)
 
 #: CircuitTranspiler to transpile a QuntumCircuit into another
 #: QuantumCircuit containing only X, SqrtX, CNOT, and RZ.
@@ -69,6 +74,7 @@ RZSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
                 CZ2CNOTHTranspiler(),
                 PauliDecomposeTranspiler(),
                 PauliRotationDecomposeTranspiler(),
+                TOFFOLI2HTTdagCNOTTranspiler(),
             ]
         ),
         ParallelDecomposer(
@@ -103,6 +109,7 @@ RotationSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTrans
             [
                 PauliDecomposeTranspiler(),
                 PauliRotationDecomposeTranspiler(),
+                TOFFOLI2HTTdagCNOTTranspiler(),
             ]
         ),
         ParallelDecomposer(
@@ -153,6 +160,7 @@ __all__ = [
     "RY2RZSqrtXTranspiler",
     "S2RZTranspiler",
     "Sdag2RZTranspiler",
+    "SingleQubitUnitaryMatrix2RYRZTranspiler",
     "SqrtX2RXTranspiler",
     "SqrtX2RZHTranspiler",
     "SqrtXdag2RXTranspiler",
@@ -164,6 +172,7 @@ __all__ = [
     "SWAP2CNOTTranspiler",
     "T2RZTranspiler",
     "Tdag2RZTranspiler",
+    "TOFFOLI2HTTdagCNOTTranspiler",
     "U1ToRZTranspiler",
     "U2ToRXRZTranspiler",
     "U2ToRZSqrtXTranspiler",
@@ -176,4 +185,5 @@ __all__ = [
     "Y2RZXTranspiler",
     "Z2HXTranspiler",
     "Z2RZTranspiler",
+    "su2_decompose",
 ]
