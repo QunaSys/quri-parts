@@ -40,12 +40,6 @@ _two_qubit_gate_itensor: Mapping[TwoQubitGateNameType, str] = {
     gate_names.SWAP: "SWAP",
 }
 
-_parametric_gate_itensor = {
-    gate_names.ParametricRX: "Rx",
-    gate_names.ParametricRY: "Ry",
-    gate_names.ParametricRZ: "Rz",
-}
-
 
 def convert_circuit(
     circuit: NonParametricQuantumCircuit, s: juliacall.VectorValue
@@ -72,12 +66,20 @@ def convert_circuit(
             else:
                 raise ValueError(f"Unknown single qubit gate name: {gate.name}")
         elif is_two_qubit_gate_name(gate.name):
-            gate_list = jl.add_gate(
-                gate_list,
-                _two_qubit_gate_itensor[gate.name],
-                gate.target_indices[0] + 1,
-                gate.target_indices[1] + 1,
-            )
+            if gate.name == "SWAP":
+                gate_list = jl.add_gate(
+                    gate_list,
+                    _two_qubit_gate_itensor[gate.name],
+                    gate.target_indices[0] + 1,
+                    gate.target_indices[1] + 1,
+                )
+            else:
+                gate_list = jl.add_gate(
+                    gate_list,
+                    _two_qubit_gate_itensor[gate.name],
+                    gate.control_indices[0] + 1,
+                    gate.target_indices[0] + 1,
+                )
         else:
             raise ValueError(f"Unknown gate name: {gate.name}")
     circuit = jl.ops(gate_list, s)
