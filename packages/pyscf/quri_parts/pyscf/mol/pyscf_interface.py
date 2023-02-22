@@ -49,11 +49,11 @@ class PySCFMolecularOrbitals(MolecularOrbitals):
         return self._mo_coeff
 
 
-def get_nuc_energy(mol_set: PySCFMolecularOrbitals) -> float:
+def get_nuc_energy(mo: PySCFMolecularOrbitals) -> float:
     """Returns a nuclear repulsion energy of a given molecule.
 
     Args:
-        mol_set: :class:`PySCFMolecularOrbitals` of the molecule.
+        mo: :class:`PySCFMolecularOrbitals` of the molecule.
     """
 
-    return cast(float, mol_set.mol.energy_nuc())
+    return cast(float, mo.mol.energy_nuc())

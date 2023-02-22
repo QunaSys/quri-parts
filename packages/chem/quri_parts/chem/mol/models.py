@@ -62,40 +62,40 @@ class ActiveSpaceMolecularOrbitals(MolecularOrbitals):
     """Represents a data of the active space for the molecule.
 
     Args:
-        mol_set: :class:`MolecularOrbitals` for the molecule.
-        active_space_set: :class:`ActiveSpace` for the molecule.
+        mo: :class:`MolecularOrbitals` for the molecule.
+        active_space: :class:`ActiveSpace` for the molecule.
     """
 
     def __init__(
         self,
-        mol_set: MolecularOrbitals,
+        mo: MolecularOrbitals,
         active_space: ActiveSpace,
     ):
-        self._mol_set = mol_set
-        self._active_space_set = active_space
+        self._mo = mo
+        self._active_space = active_space
 
     @property
     def n_electron(self) -> int:
         """Returns a number of electrons."""
-        return self._mol_set.n_electron
+        return self._mo.n_electron
 
     @property
     def mo_coeff(self) -> "npt.NDArray[np.complex128]":
         """Returns molecular orbital coefficients."""
-        return self._mol_set.mo_coeff
+        return self._mo.mo_coeff
 
     def get_core_and_active_orb(self) -> tuple[Sequence[int], Sequence[int]]:
         """Returns a set of core and active orbitals.
 
         The output orbitals are represented as the spatial orbital.
         """
-        n_active_ele = self._active_space_set.n_active_ele
-        n_active_orb = self._active_space_set.n_active_orb
-        active_orbs_indices = self._active_space_set.active_orbs_indices
+        n_active_ele = self._active_space.n_active_ele
+        n_active_orb = self._active_space.n_active_orb
+        active_orbs_indices = self._active_space.active_orbs_indices
         core_orb_list, active_orb_list = get_core_and_active_orbital_indices(
             n_active_ele,
             n_active_orb,
-            self._mol_set.n_electron,
+            self._mo.n_electron,
             active_orbs_indices,
         )
         return core_orb_list, active_orb_list
