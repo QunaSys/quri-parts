@@ -17,8 +17,9 @@ def get_core_and_active_orbital_indices(
     n_electrons: int,
     active_orbs_indices: Optional[Sequence[int]] = None,
 ) -> tuple[Sequence[int], Sequence[int]]:
-    """Calculate core and active orbitals indices from number of active
-    electrons, number of active orbitals and number of total electrons.
+    """Returns sequences of spatial occupied orbital indices and active
+    orbitals indices obtained from the number of active electrons, number of
+    active orbitals, and number of total electrons.
 
     Args:
         n_active_ele:
@@ -29,14 +30,6 @@ def get_core_and_active_orbital_indices(
             total number of electrons.
         active_orbs_indices:
             sequence of spatial orbital indices of the active orbitals.
-
-    Returns:
-        occupied_indices:
-            A Sequence of spatial orbital indices indicating
-            which orbitals should be considered doubly occupied.
-        active_indices:
-            A Sequence of spatial orbital indices indicating which
-            orbitals should be considered active.
     """
     n_electrons_core = n_electrons - n_active_ele
     if n_electrons_core % 2 == 1:
@@ -67,19 +60,14 @@ def get_core_and_active_orbital_indices(
 def convert_to_spin_orbital_indices(
     occupied_indices: Sequence[int], active_indices: Sequence[int]
 ) -> tuple[Sequence[int], Sequence[int]]:
-    """Convert spatial core and active orbitals into the spin orbitals.
+    """Convert each spatial occupied orbital indices and active orbitals
+    indices into the spin occupied orbital indices and active spin indices.
 
     Args:
         occupied_indices:
             A Sequence of spatial occupied orbital indices.
         active_indices:
             A Sequence of spatial active orbital indices.
-
-    Returns:
-        occupied_spin_indices:
-            A Sequence of spin occupied orbital indices.
-        active_spin_indices:
-            A Sequence of spin active orbital indices.
     """
     occupied_spin_indices = []
     active_spin_indices = []
