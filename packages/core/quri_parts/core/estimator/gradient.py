@@ -152,6 +152,8 @@ def parameter_shift_gradient_estimates(
 
     raw_param_state = state.primitive_state()
 
+    # When using a bound TypeVar, mypy raises an incompatible types error.
+    # Therefore, after checking the instance type, cast to `_ParametricStateT`.
     if not (
         isinstance(raw_param_state, ParametricCircuitQuantumState)
         or isinstance(raw_param_state, ParametricQuantumStateVector)
