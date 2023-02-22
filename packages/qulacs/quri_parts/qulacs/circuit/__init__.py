@@ -135,7 +135,7 @@ def convert_parametric_circuit(
     param_mapper: Callable[[Sequence[float]], Sequence[float]]
     if isinstance(circuit, LinearMappedUnboundParametricQuantumCircuitBase):
         param_mapping = circuit.param_mapping
-        param_circuit = circuit.primitive_circuit
+        param_circuit = circuit.primitive_circuit()
         orig_param_mapper = param_mapping.seq_mapper
 
         def param_mapper(s: Sequence[float]) -> Sequence[float]:

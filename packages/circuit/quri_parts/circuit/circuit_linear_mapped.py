@@ -56,12 +56,11 @@ class LinearMappedUnboundParametricQuantumCircuitBase(
         return self._param_mapping.is_trivial_mapping
 
     @property
-    def primitive_circuit(self) -> ImmutableUnboundParametricQuantumCircuit:
-        return self._circuit.freeze()
-
-    @property
     def param_mapping(self) -> LinearParameterMapping:
         return self._param_mapping
+
+    def primitive_circuit(self) -> ImmutableUnboundParametricQuantumCircuit:
+        return self._circuit.freeze()
 
     def get_mutable_copy(self) -> "LinearMappedUnboundParametricQuantumCircuit":
         circuit = LinearMappedUnboundParametricQuantumCircuit(self.qubit_count)

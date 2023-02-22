@@ -64,7 +64,7 @@ class ParametricCircuitQuantumState(ParametricCircuitQuantumStateMixin, QuantumS
 
     def primitive_state(self) -> "ParametricCircuitQuantumState":
         return ParametricCircuitQuantumState(
-            self._n_qubits, self._circuit.primitive_circuit
+            self._n_qubits, self._circuit.primitive_circuit()
         )
 
     def with_gates_applied(
