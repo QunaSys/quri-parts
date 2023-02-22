@@ -24,12 +24,15 @@ from quri_parts.circuit.gate_names import (
     MultiQubitGateNameType,
     ParametricGateNameType,
     SingleQubitGateNameType,
+    ThreeQubitGateNameType,
     TwoQubitGateNameType,
     is_gate_name,
     is_multi_qubit_gate_name,
     is_parametric_gate_name,
     is_single_qubit_gate_name,
+    is_three_qubit_gate_name,
     is_two_qubit_gate_name,
+    is_unitary_matrix_gate_name,
 )
 from quri_parts.circuit.transpile import (
     CircuitTranspiler,
@@ -72,6 +75,10 @@ _two_qubit_gate_qiskit: Mapping[TwoQubitGateNameType, Type[Gate]] = {
     gate_names.CNOT: qgate.CXGate,
     gate_names.CZ: qgate.CZGate,
     gate_names.SWAP: qgate.SwapGate,
+}
+
+_three_qubits_gate_qiskit: Mapping[ThreeQubitGateNameType, Type[Gate]] = {
+    gate_names.TOFFOLI: qgate.CCXGate,
 }
 
 _multi_qubit_gate_qiskit: Mapping[MultiQubitGateNameType, Type[Gate]] = {
@@ -117,6 +124,12 @@ def convert_gate(gate: QuantumGate) -> Gate:
 
     elif is_two_qubit_gate_name(gate.name) and gate.name in _two_qubit_gate_qiskit:
         return _two_qubit_gate_qiskit[gate.name]()
+
+    elif is_three_qubit_gate_name(gate.name) and gate.name in _three_qubits_gate_qiskit:
+        return _three_qubits_gate_qiskit[gate.name]()
+
+    elif is_unitary_matrix_gate_name(gate.name):
+        return UnitaryGate(gate.unitary_matrix)
 
     elif is_multi_qubit_gate_name(gate.name) and gate.name in _multi_qubit_gate_qiskit:
         if gate.name == gate_names.Pauli:

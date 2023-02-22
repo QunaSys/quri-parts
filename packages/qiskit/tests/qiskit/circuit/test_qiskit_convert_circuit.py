@@ -15,7 +15,8 @@ import numpy as np
 import qiskit.circuit.library as qgate
 import qiskit.quantum_info as qi
 from qiskit.circuit import QuantumCircuit as QiskitQuantumCircuit
-from qiskit.circuit.gate import Gate
+from qiskit.circuit.gate import Gate as QiskitGate
+
 from qiskit.extensions import UnitaryGate
 from qiskit.opflow import X, Y, Z
 
@@ -23,7 +24,7 @@ from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
 from quri_parts.qiskit.circuit import convert_circuit, convert_gate
 
 
-def gate_equal(i1: Gate, i2: Gate) -> bool:
+def gate_equal(i1: QiskitGate, i2: QiskitGate) -> bool:
     return cast(bool, i1 == i2)
 
 
@@ -36,7 +37,7 @@ def circuit_equal(c1: QiskitQuantumCircuit, c2: QiskitQuantumCircuit) -> bool:
     return cast(bool, qi.Operator(c1).equiv(qi.Operator(c2)))
 
 
-single_qubit_gate_mapping: Mapping[Callable[[int], QuantumGate], Gate] = {
+single_qubit_gate_mapping: Mapping[Callable[[int], QuantumGate], QiskitGate] = {
     gates.Identity: qgate.IGate(),
     gates.X: qgate.XGate(),
     gates.Y: qgate.YGate(),
@@ -57,7 +58,7 @@ def test_convert_single_qubit_gate() -> None:
         assert gate_equal(converted, expected)
 
 
-single_qubit_sgate_mapping: Mapping[Callable[[int], QuantumGate], Gate] = {
+single_qubit_sgate_mapping: Mapping[Callable[[int], QuantumGate], QiskitGate] = {
     gates.SqrtX: UnitaryGate(
         np.array([[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]])
     ),
@@ -81,7 +82,9 @@ def test_convert_single_qubit_sgate() -> None:
         assert (converted == expected).all()
 
 
-rotation_gate_mapping: Mapping[Callable[[int, float], QuantumGate], Type[Gate]] = {
+rotation_gate_mapping: Mapping[
+    Callable[[int, float], QuantumGate], Type[QiskitGate]
+] = {
     gates.RX: qgate.RXGate,
     gates.RY: qgate.RYGate,
     gates.RZ: qgate.RZGate,
@@ -96,7 +99,7 @@ def test_convert_rotation_gate() -> None:
         assert gate_equal(converted, expected)
 
 
-two_qubit_gate_mapping: Mapping[Callable[[int, int], QuantumGate], Gate] = {
+two_qubit_gate_mapping: Mapping[Callable[[int, int], QuantumGate], QiskitGate] = {
     gates.CNOT: qgate.CXGate(),
     gates.CZ: qgate.CZGate(),
     gates.SWAP: qgate.SwapGate(),
@@ -109,6 +112,29 @@ def test_convert_two_qubit_gate() -> None:
         converted = convert_gate(qp_gate)
         expected = qiskit_gate
         assert gate_equal(converted, expected)
+
+
+three_qubit_gate_mapping: Mapping[
+    Callable[[int, int, int], QuantumGate], QiskitGate
+] = {
+    gates.TOFFOLI: qgate.CCXGate(),
+}
+
+
+def test_convert_three_qubit_gate() -> None:
+    for qp_factory, qiskit_gate in three_qubit_gate_mapping.items():
+        qp_gate = qp_factory(11, 7, 5)
+        converted = convert_gate(qp_gate)
+        expected = qiskit_gate
+        assert gate_equal(converted, expected)
+
+
+def test_convert_unitary_matrix_gate() -> None:
+    umat = ((1, 0), (0, np.cos(np.pi / 4) + 1j * np.sin(np.pi / 4)))
+    qp_gate = gates.UnitaryMatrix((7,), umat)
+    converted = convert_gate(qp_gate)
+    expected = UnitaryGate(np.array(umat))
+    assert gate_equal(converted, expected)
 
 
 def test_convert_u1_gate() -> None:
