@@ -19,7 +19,6 @@ from .parameter import CONST, Parameter
 from .parameter_mapping import (
     LinearParameterFunction,
     LinearParameterMapping,
-    ParameterMapping,
 )
 
 #: Represents a set of parameter shifts appearing in the parameter shift rule.
@@ -67,32 +66,12 @@ class ShiftedParameters:
     coefficient, and then sum up all terms.
     """
 
-    param_mapping: ParameterMapping
+    param_mapping: LinearParameterMapping
     shifts_with_coef: Collection[ParameterShiftsAndCoef] = (NO_SHIFT,)
 
-    def __init__(
-        self,
-        param_mapping: ParameterMapping,
-        shifts_with_coef: Collection[ParameterShiftsAndCoef] = (NO_SHIFT,),
-    ) -> None:
-        if not isinstance(param_mapping, LinearParameterMapping):
-            raise NotImplementedError(
-                """
-                Only the case that ParameterMapping is LinearParameterMapping
-                has been implemented.
-                """
-            )
-        object.__setattr__(self, "param_mapping", param_mapping)
-        object.__setattr__(self, "shifts_with_coef", shifts_with_coef)
-
-    def _get_derivative(self, deriv_mapping: ParameterMapping) -> "ShiftedParameters":
-        if not isinstance(deriv_mapping, LinearParameterMapping):
-            raise NotImplementedError(
-                """
-                Only the case that ParameterMapping is LinearParameterMapping
-                has been implemented.
-                """
-            )
+    def _get_derivative(
+        self, deriv_mapping: LinearParameterMapping
+    ) -> "ShiftedParameters":
         new_shifts_map: dict[ParameterShifts, float] = {}
         for shifts, coef in self.shifts_with_coef:
             for raw_p in self.param_mapping.out_params:

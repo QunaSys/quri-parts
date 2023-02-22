@@ -62,7 +62,6 @@ class ParametricCircuitQuantumState(ParametricCircuitQuantumStateMixin, QuantumS
     def qubit_count(self) -> int:
         return self._n_qubits
 
-    @property
     def primitive_state(self) -> "ParametricCircuitQuantumState":
         return ParametricCircuitQuantumState(
             self._n_qubits, self._circuit.primitive_circuit

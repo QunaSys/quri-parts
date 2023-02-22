@@ -107,8 +107,9 @@ class UnboundParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
 
         Note that some parametric circuit,
         e.g. :class:`LinearMappedUnboundParametricQuantumCircuit`, can have non-trivial
-        mapping of the parameters. Gate parameters are treated as independent,
-        even if they depend on the same parameters.
+        mapping of the parameters. In this "primitive circuit", however,
+        gate parameters are treated as independent,
+        even if those in the original circuit depend on the same parameters.
         """
         ...
 

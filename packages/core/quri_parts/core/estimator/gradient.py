@@ -12,6 +12,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Optional, TypeVar, Union, cast
 
+from quri_parts.circuit.parameter_mapping import LinearParameterMapping
 from quri_parts.circuit.parameter_shift import ShiftedParameters
 from quri_parts.core.estimator import (
     ConcurrentParametricQuantumEstimator,
@@ -136,7 +137,7 @@ def parameter_shift_gradient_estimates(
         of estimation (can be accessed with :attr:`.error_matrix`). Currently,
         :attr:`.error_matrix` returns `None`.
     """
-    param_mapping = state.parametric_circuit.param_mapping
+    param_mapping = cast(LinearParameterMapping, state.parametric_circuit.param_mapping)
     parameter_shift = ShiftedParameters(param_mapping)
     derivatives = parameter_shift.get_derivatives()
     shifted_params_and_coefs = [
@@ -149,7 +150,7 @@ def parameter_shift_gradient_estimates(
             gate_params.add(p)
     gate_params_list = list(gate_params)
 
-    raw_param_state = state.primitive_state
+    raw_param_state = state.primitive_state()
 
     if not (
         isinstance(raw_param_state, ParametricCircuitQuantumState)
