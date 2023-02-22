@@ -16,7 +16,6 @@ import qiskit.circuit.library as qgate
 import qiskit.quantum_info as qi
 from qiskit.circuit import QuantumCircuit as QiskitQuantumCircuit
 from qiskit.circuit.gate import Gate as QiskitGate
-
 from qiskit.extensions import UnitaryGate
 from qiskit.opflow import X, Y, Z
 
