@@ -16,10 +16,7 @@ from typing import NamedTuple, cast
 from typing_extensions import TypeAlias
 
 from .parameter import CONST, Parameter
-from .parameter_mapping import (
-    LinearParameterFunction,
-    LinearParameterMapping,
-)
+from .parameter_mapping import LinearParameterFunction, LinearParameterMapping
 
 #: Represents a set of parameter shifts appearing in the parameter shift rule.
 #: The shift for each parameter is stored as an integer. The actual shift is calculated
