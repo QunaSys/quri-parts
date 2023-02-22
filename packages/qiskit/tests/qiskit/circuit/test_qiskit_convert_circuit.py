@@ -114,21 +114,21 @@ def test_convert_two_qubit_gate() -> None:
 def test_convert_u1_gate() -> None:
     lmd1 = 0.125
     converted = convert_gate(gates.U1(lmd=lmd1, target_index=0))
-    expected = qgate.U1Gate(lmd1)
+    expected = qgate.PhaseGate(lmd1)
     assert gate_equal(converted, expected)
 
 
 def test_convert_u2_gate() -> None:
     phi2, lmd2 = 0.125, -0.125
     converted = convert_gate(gates.U2(phi=phi2, lmd=lmd2, target_index=0))
-    expected = qgate.U2Gate(phi2, lmd2)
+    expected = qgate.UGate(np.pi / 2, phi2, lmd2)
     assert gate_equal(converted, expected)
 
 
 def test_convert_u3_gate() -> None:
     theta3, phi3, lmd3 = 0.125, -0.125, 0.625
     converted = convert_gate(gates.U3(theta=theta3, phi=phi3, lmd=lmd3, target_index=0))
-    expected = qgate.U3Gate(theta3, phi3, lmd3)
+    expected = qgate.UGate(theta3, phi3, lmd3)
     assert gate_equal(converted, expected)
 
 

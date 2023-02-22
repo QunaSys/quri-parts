@@ -86,12 +86,6 @@ _parametric_gate_qiskit: Mapping[ParametricGateNameType, Type[Gate]] = {
     gate_names.ParametricRZ: qgate.RZGate,
 }
 
-_U_gate_qiskit: Mapping[SingleQubitGateNameType, Type[Gate]] = {
-    gate_names.U1: qgate.U1Gate,
-    gate_names.U2: qgate.U2Gate,
-    gate_names.U3: qgate.U3Gate,
-}
-
 _special_named_gate_matrix: Mapping[
     SingleQubitGateNameType, Sequence[Sequence[complex]]
 ] = {
@@ -109,8 +103,12 @@ def convert_gate(gate: QuantumGate) -> Gate:
             return _single_qubit_gate_qiskit[gate.name]()
         elif gate.name in _single_qubit_rotation_gate_qiskit:
             return _single_qubit_rotation_gate_qiskit[gate.name](gate.params[0])
-        elif gate.name in _U_gate_qiskit:
-            return _U_gate_qiskit[gate.name](*gate.params, label=None)
+        elif gate.name == gate_names.U1:
+            return qgate.PhaseGate(gate.params[0])
+        elif gate.name == gate_names.U2:
+            return qgate.UGate(np.pi / 2, gate.params[0], gate.params[1])
+        elif gate.name == gate_names.U3:
+            return qgate.UGate(*gate.params)
         elif gate.name in _special_named_gate_matrix:
             s_matrix = _special_named_gate_matrix[gate.name]
             return UnitaryGate(np.array(s_matrix))
