@@ -10,6 +10,8 @@
 
 from typing import Callable, Sequence
 
+from quri_parts.core.operator import Operator
+
 
 def forward_difference_gradient_formula(
     f: Callable[[Sequence[float]], float],
@@ -182,3 +184,37 @@ def central_difference_hessian_formula(
 
 gradient = central_difference_gradient_formula
 hessian = central_difference_hessian_formula
+
+
+def create_numerical_operator_gradient_calculator(
+    operator_generator: Callable[[Sequence[float]], Operator],
+    step: float = 1e-5,
+    tol: float = 1e-8,
+) -> Callable[[Sequence[float]], Sequence[Operator]]:
+    """Create a function that returns the numerical gradient of an
+    :class:`Operator` with respect to the operator parameters."""
+
+    def gradient_calculator(params: Sequence[float]) -> Sequence[Operator]:
+        params = tuple(params)
+        op_cache = {params: operator_generator(params)}
+
+        ops = [Operator() for _ in range(len(params))]
+        for pauli in op_cache[params]:
+
+            def coeff_generator(_params: Sequence[float]) -> float:
+                _params = tuple(_params)
+                if _params in op_cache:
+                    op = op_cache[_params]
+                else:
+                    op = operator_generator(_params)
+                    op_cache[_params] = op
+                return op[pauli].real
+
+            coeff_gradient = gradient(coeff_generator, params, step)
+            for i, val in enumerate(coeff_gradient):
+                if abs(val) < tol:
+                    continue
+                ops[i][pauli] = val
+        return ops
+
+    return gradient_calculator
