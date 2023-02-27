@@ -1,7 +1,18 @@
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
+from typing import TYPE_CHECKING, Optional
+
 import pytest
 from quri_parts.circuit import QuantumCircuit
+from quri_parts.core.sampling import ConcurrentSampler, Sampler
 
-from quri_parts.itensor.sampler import create_itensor_mps_sampler
+from quri_parts.itensor.sampler import (
+    create_itensor_mps_concurrent_sampler,
+    create_itensor_mps_sampler,
+)
+
+if TYPE_CHECKING:
+    from concurrent.futures import Executor
 
 
 def circuit() -> QuantumCircuit:
@@ -27,3 +38,19 @@ class TestITensorMPSSampler:
         assert set(counts.keys()).issubset(range(2**qubits))
         assert all(c >= 0 for c in counts.values())
         assert sum(counts.values()) == shots
+
+
+class TestITensorMPSConcurrentSampler:
+    def test_concurrent_sampler(self) -> None:
+        circuit1 = circuit()
+        circuit2 = circuit()
+        circuit2.add_X_gate(3)
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            sampler = create_itensor_mps_concurrent_sampler(executor, 2)
+            results = list(sampler([(circuit1, 1000), (circuit2, 2000)]))
+        assert set(results[0]) == {0b1001, 0b1011}
+        assert all(c >= 0 for c in results[0].values())
+        assert sum(results[0].values()) == 1000
+        assert set(results[1]) == {0b0001, 0b0011}
+        assert all(c >= 0 for c in results[1].values())
+        assert sum(results[1].values()) == 2000

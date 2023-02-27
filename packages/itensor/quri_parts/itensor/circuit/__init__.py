@@ -34,6 +34,9 @@ _single_qubit_rotation_gate_itensor: Mapping[SingleQubitGateNameType, str] = {
     gate_names.RX: "Rx",
     gate_names.RY: "Ry",
     gate_names.RZ: "Rz",
+    gate_names.U1: "U1",
+    gate_names.U2: "U2",
+    gate_names.U3: "U3",
 }
 
 _two_qubit_gate_itensor: Mapping[TwoQubitGateNameType, str] = {

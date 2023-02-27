@@ -5,15 +5,15 @@ ITensors.op(::OpName"I", ::SiteType"Qubit") = [
   0 1
 ]
 
-function ITensors.op(::OpName"U1", t::SiteType"Qubit"; λ::Real)
+function ITensors.op(::OpName"U1", t::SiteType"Qubit"; λ::Number)
     return op("Rn", t; θ=0, ϕ=0, λ=λ)
 end
 
-function ITensors.op(::OpName"U2", t::SiteType"Qubit"; ϕ::Real, λ::Real)
+function ITensors.op(::OpName"U2", t::SiteType"Qubit"; ϕ::Number, λ::Number)
     return op("Rn", t; θ=pi/2, ϕ=ϕ, λ=λ)
 end
 
-function ITensors.op(::OpName"U3", t::SiteType"Qubit"; θ::Real, ϕ::Real, λ::Real)
+function ITensors.op(::OpName"U3", t::SiteType"Qubit"; θ::Number, ϕ::Number, λ::Number)
     return op("Rn", t; θ=θ, ϕ=ϕ, λ=λ)
 end
 
@@ -87,7 +87,7 @@ function add_single_qubit_rotation_gate(gate_list::Vector, gate_name::String, ta
 end
 function add_single_qubit_rotation_gate(gate_list::Vector, gate_name::String, target_index::Integer, param1::Number, param2::Number)::Vector
     if gate_name == "U2"
-        push!(gate_list, (gate_name, target_index, (θ=param1, ϕ=param2)))
+        push!(gate_list, (gate_name, target_index, (ϕ=param1, λ=param2)))
     else
         raise("Invalid gate name")
     end

@@ -58,7 +58,7 @@ def cost_fn(param_values):
 
 
 itensor_concurrent_parametric_estimator = (
-    create_itensor_mps_concurrent_parametric_estimator()
+    create_itensor_mps_concurrent_parametric_estimator(concurrency=2)
 )
 gradient_estimator = create_numerical_gradient_estimator(
     itensor_concurrent_parametric_estimator,

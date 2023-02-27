@@ -1,6 +1,6 @@
 import os
 from collections.abc import Collection, Iterable, Sequence
-from typing import TYPE_CHECKING, Any, Callable, NamedTuple, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, NamedTuple, Optional
 
 import juliacall
 from juliacall import Main as jl
@@ -14,12 +14,7 @@ from quri_parts.core.estimator import (
     create_parametric_estimator,
 )
 from quri_parts.core.operator import Operator, zero
-from quri_parts.core.state import (
-    CircuitQuantumState,
-    ParametricCircuitQuantumState,
-    ParametricQuantumStateVector,
-    QuantumStateVector,
-)
+from quri_parts.core.state import CircuitQuantumState, ParametricCircuitQuantumState
 from quri_parts.core.utils.concurrent import execute_concurrently
 from typing_extensions import TypeAlias
 
@@ -42,18 +37,16 @@ class _Estimate(NamedTuple):
     error: float = 0.0
 
 
-#: A type alias for state classes supported by Qulacs estimators.
-#: Qulacs estimators support both of circuit states and state vectors.
-QulacsStateT: TypeAlias = Union[CircuitQuantumState, QuantumStateVector]
+#: A type alias for state classes supported by ITensor estimators.
+#: ITensor estimators support circuit states.
+ITensorStateT: TypeAlias = CircuitQuantumState
 
-#: A type alias for parametric state classes supported by Qulacs estimators.
-#: Qulacs estimators support both of circuit states and state vectors.
-QulacsParametricStateT: TypeAlias = Union[
-    ParametricCircuitQuantumState, ParametricQuantumStateVector
-]
+#: A type alias for parametric state classes supported by ITensor estimators.
+#: ITensor estimators support circuit states.
+ITensorParametricStateT: TypeAlias = ParametricCircuitQuantumState
 
 
-def _estimate(operator: Estimatable, state: QulacsStateT) -> Estimate[complex]:
+def _estimate(operator: Estimatable, state: ITensorStateT) -> Estimate[complex]:
     if operator == zero():
         return _Estimate(value=0.0)
     qubits = state.qubit_count
@@ -73,7 +66,7 @@ def _estimate(operator: Estimatable, state: QulacsStateT) -> Estimate[complex]:
     return _Estimate(value=exp)
 
 
-def create_itensor_mps_estimator() -> QuantumEstimator[QulacsStateT]:
+def create_itensor_mps_estimator() -> QuantumEstimator[ITensorStateT]:
     """Returns a :class:`~QuantumEstimator` that uses ITensor MPS simulator
     to calculate expectation values."""
 
@@ -81,13 +74,13 @@ def create_itensor_mps_estimator() -> QuantumEstimator[QulacsStateT]:
 
 
 def _sequential_estimate(
-    _: Any, op_state_tuples: Sequence[tuple[Estimatable, QulacsStateT]]
+    _: Any, op_state_tuples: Sequence[tuple[Estimatable, ITensorStateT]]
 ) -> Sequence[Estimate[complex]]:
     return [_estimate(operator, state) for operator, state in op_state_tuples]
 
 
 def _sequential_estimate_single_state(
-    state: QulacsStateT, operators: Sequence[Estimatable]
+    state: ITensorStateT, operators: Sequence[Estimatable]
 ) -> Sequence[Estimate[complex]]:
     qubits = state.qubit_count
     s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
@@ -103,13 +96,13 @@ def _sequential_estimate_single_state(
 
 def _concurrent_estimate(
     _sequential_estimate: Callable[
-        [Any, Sequence[tuple[Estimatable, QulacsStateT]]], Sequence[Estimate[complex]]
+        [Any, Sequence[tuple[Estimatable, ITensorStateT]]], Sequence[Estimate[complex]]
     ],
     _sequential_estimate_single_state: Callable[
-        [QulacsStateT, Sequence[Estimatable]], Sequence[Estimate[complex]]
+        [ITensorStateT, Sequence[Estimatable]], Sequence[Estimate[complex]]
     ],
     operators: Collection[Estimatable],
-    states: Collection[QulacsStateT],
+    states: Collection[ITensorStateT],
     executor: Optional["Executor"],
     concurrency: int = 1,
 ) -> Sequence[Estimate[complex]]:
@@ -146,13 +139,13 @@ def _concurrent_estimate(
 
 def create_itensor_mps_concurrent_estimator(
     executor: Optional["Executor"] = None, concurrency: int = 1
-) -> ConcurrentQuantumEstimator[QulacsStateT]:
+) -> ConcurrentQuantumEstimator[ITensorStateT]:
     """Returns a :class:`~ConcurrentQuantumEstimator` that uses ITensor MPS
     simulator to calculate expectation values."""
 
     def estimator(
         operators: Collection[Estimatable],
-        states: Collection[QulacsStateT],
+        states: Collection[ITensorStateT],
     ) -> Iterable[Estimate[complex]]:
         return _concurrent_estimate(
             _sequential_estimate,
@@ -170,7 +163,7 @@ from quri_parts.core.estimator import create_parametric_estimator
 
 
 def _sequential_parametric_estimate(
-    op_state: tuple[Estimatable, QulacsParametricStateT],
+    op_state: tuple[Estimatable, ITensorParametricStateT],
     params: Sequence[Sequence[float]],
 ) -> Sequence[Estimate[complex]]:
     operator, state = op_state
@@ -182,10 +175,10 @@ def _sequential_parametric_estimate(
 
 
 def create_itensor_mps_parametric_estimator() -> ParametricQuantumEstimator[
-    QulacsParametricStateT
+    ITensorParametricStateT
 ]:
     def estimator(
-        operator: Estimatable, state: QulacsParametricStateT, param: Sequence[float]
+        operator: Estimatable, state: ITensorParametricStateT, param: Sequence[float]
     ) -> Estimate[complex]:
         ests = _sequential_parametric_estimate((operator, state), [param])
         return ests[0]
@@ -195,10 +188,10 @@ def create_itensor_mps_parametric_estimator() -> ParametricQuantumEstimator[
 
 def create_itensor_mps_concurrent_parametric_estimator(
     executor: Optional["Executor"] = None, concurrency: int = 1
-) -> ConcurrentParametricQuantumEstimator[QulacsParametricStateT]:
+) -> ConcurrentParametricQuantumEstimator[ITensorParametricStateT]:
     def estimator(
         operator: Estimatable,
-        state: QulacsParametricStateT,
+        state: ITensorParametricStateT,
         params: Sequence[Sequence[float]],
     ) -> Sequence[Estimate[complex]]:
         return execute_concurrently(
