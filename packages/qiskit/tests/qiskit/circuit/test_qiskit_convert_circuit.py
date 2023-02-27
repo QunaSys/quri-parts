@@ -193,9 +193,7 @@ def test_convert_pauli() -> None:
     assert converted.num_qubits == 4
 
     expected = QiskitQuantumCircuit(4)
-
     expected.pauli(pauli_string="XZYX", qubits=[0, 1, 2, 3])
-
     evo = qgate.PauliEvolutionGate(Y ^ Z ^ Y ^ X, time=0.133)
     expected.append(evo, [0, 1, 2, 3])
 
