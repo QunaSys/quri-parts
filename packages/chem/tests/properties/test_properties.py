@@ -1,0 +1,50 @@
+from typing import Sequence
+
+import numpy as np
+
+from quri_parts.chem.properties import create_energy_gradient_estimator
+from quri_parts.circuit import UnboundParametricQuantumCircuit
+from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
+from quri_parts.core.state import ComputationalBasisState
+from quri_parts.core.state.state_parametric import ParametricCircuitQuantumState
+from quri_parts.qulacs.estimator import (
+    create_qulacs_vector_concurrent_parametric_estimator,
+)
+
+
+def _h_generator(params: Sequence[float]) -> Operator:
+    return Operator(
+        {
+            PAULI_IDENTITY: 1.0 * params[0],
+            pauli_label("Z0"): 2.0 * params[0] * params[1],
+            pauli_label("Z1"): 3.0 * params[2] ** 2,
+            pauli_label("Z2"): 4.0 * params[3] ** 3,
+            pauli_label("Z0 Z1"): 5.0 * (params[4] - 1.0),
+            pauli_label("Z0 Z2"): 6.0 * (params[5] - params[4]),
+        }
+    )
+
+
+def test_energy_gradient_estimator() -> None:
+    qubit_count = 3
+    h_params = [1, 2, 3, 4, 5, 6]
+    param_estimator = create_qulacs_vector_concurrent_parametric_estimator()
+    energy_grad_estimator = create_energy_gradient_estimator(
+        param_estimator, h_params, _h_generator
+    )
+
+    # no circuit parameters
+    param_circuit = UnboundParametricQuantumCircuit(qubit_count)
+    param_circuit.extend(ComputationalBasisState(qubit_count, bits=0b111).circuit)
+    param_state = ParametricCircuitQuantumState(qubit_count, param_circuit)
+    expected = [-3.0, -2.0, -18.0, -192.0, -1.0, 6.0]
+    assert np.allclose(energy_grad_estimator(param_state, []), expected)
+
+    # add parametric gates
+    param_circuit.add_ParametricRX_gate(0)
+    param_circuit.add_H_gate(1)
+    param_circuit.add_ParametricRY_gate(2)
+    param_state = ParametricCircuitQuantumState(qubit_count, param_circuit)
+    circuit_params = [np.pi, np.pi]
+    expected = [5.0, 2.0, 0.0, 192.0, -6.0, 6.0]
+    assert np.allclose(energy_grad_estimator(param_state, circuit_params), expected)
