@@ -10,7 +10,13 @@
 
 import pytest
 
-from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
+from quri_parts.core.operator import (
+    PAULI_IDENTITY,
+    Operator,
+    is_ops_close,
+    pauli_label,
+    zero,
+)
 
 PAULI_LABELS = [
     pauli_label({(0, 1)}),
@@ -137,3 +143,30 @@ def test_hermitian_conjugated(operator: Operator) -> None:
     op_dag = operator.hermitian_conjugated()
     for p_label, coef in zip(PAULI_LABELS, COEFS):
         assert op_dag[p_label] == coef.conjugate()
+
+
+def test_is_ops_close() -> None:
+    operator_1 = Operator()
+    operator_2 = Operator()
+    assert is_ops_close(operator_1, zero())
+    assert is_ops_close(operator_1, operator_2)
+
+    operator_1.constant = 1.0
+    assert not is_ops_close(operator_1, operator_2)
+
+    operator_2[PAULI_IDENTITY] = 1.0
+    assert is_ops_close(operator_1, operator_2)
+
+    operator_1[pauli_label("Z0")] = 2.0
+    operator_2[pauli_label("Z0")] = 2.0
+    assert is_ops_close(operator_1, operator_2)
+
+    operator_1[pauli_label("X0 Y1")] = 3.0
+    operator_2[pauli_label("X0 Y1")] = 2.8
+    assert not is_ops_close(operator_1, operator_2)
+    assert is_ops_close(operator_1, operator_2, rtol=1e-1)
+    assert not is_ops_close(operator_1, operator_2, rtol=1e-2)
+
+    assert not is_ops_close(zero(), Operator({PAULI_IDENTITY: 1e-4}))
+    assert not is_ops_close(zero(), Operator({PAULI_IDENTITY: 1e-4}), rtol=1e-1)
+    assert is_ops_close(zero(), Operator({PAULI_IDENTITY: 1e-4}), atol=1e-3)

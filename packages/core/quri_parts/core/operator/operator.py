@@ -8,6 +8,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import math
+
 from .pauli import PAULI_IDENTITY, PauliLabel, pauli_product
 
 
@@ -163,3 +165,21 @@ def commutator(op1: Operator, op2: Operator) -> Operator:
     """
     op_res = op1 * op2 - op2 * op1
     return op_res
+
+
+def is_ops_close(
+    op1: Operator, op2: Operator, rtol: float = 1e-9, atol: float = 0.0
+) -> bool:
+    """Returns True if two operators are close to each other."""
+    uniq_p_labels = set(op1) | set(op2)
+
+    for pauli in uniq_p_labels:
+        op1_coeff = op1.get(pauli, 0.0)
+        op2_coeff = op2.get(pauli, 0.0)
+        if not math.isclose(
+            op1_coeff.real, op2_coeff.real, rel_tol=rtol, abs_tol=atol
+        ) or not math.isclose(
+            op1_coeff.imag, op2_coeff.imag, rel_tol=rtol, abs_tol=atol
+        ):
+            return False
+    return True
