@@ -31,8 +31,8 @@ _ParametricStateT = TypeVar(
     bound=Union[ParametricCircuitQuantumState, ParametricQuantumStateVector],
 )
 
-#: EnergyGradientEstimator represents a function that estimates a energy gradient
-#: of a given parametric state at given circuit parameters.
+#: EnergyGradientEstimator represents a function that estimates the energy gradient
+#: of a given parametric state w.r.t Hamiltonian parameters at given circuit parameters.
 #: This is a generic type and you need to specify what kind of state classes
 #: it is applicable to.
 EnergyGradientEstimator: TypeAlias = Callable[
