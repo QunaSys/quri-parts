@@ -63,6 +63,13 @@ class ParametricCircuitQuantumState(ParametricCircuitQuantumStateMixin, QuantumS
         return self._n_qubits
 
     def primitive_state(self) -> "ParametricCircuitQuantumState":
+        """Returns a new state with the primitive circuit applied. The
+        primitive circuit means that each gate in the circuit has an
+        independent parameter even if those in the original circuit depend on
+        the same parameters.
+
+        The original state is not changed.
+        """
         return ParametricCircuitQuantumState(
             self._n_qubits, self._circuit.primitive_circuit()
         )
