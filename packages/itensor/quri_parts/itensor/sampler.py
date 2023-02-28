@@ -57,7 +57,9 @@ def _sample_concurrently(
     )
 
 
-# Segmentation fault probably caused by juliacall
+# For now, this function works when the executor is defined like below
+# `with ProcessPoolExecutor(max_workers=2, mp_context=get_context("spawn"))
+# as executor:`
 def create_itensor_mps_concurrent_sampler(
     executor: Optional["Executor"] = None, concurrency: int = 1
 ) -> ConcurrentSampler:

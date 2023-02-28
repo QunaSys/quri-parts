@@ -1,5 +1,6 @@
 import math
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
+from multiprocessing import get_context
 from typing import Union
 
 import pytest
@@ -45,82 +46,88 @@ class TestITensorEstimator:
         assert estimate.error == 0
 
 
-# class TestITensorConcurrentEstimator:
-#     def test_invalid_arguments(self) -> None:
-#         pauli = pauli_label("Z0 Z2 Z5")
-#         state = ComputationalBasisState(6, bits=0b110010)
-#         estimator = create_itensor_mps_concurrent_estimator()
-#         with pytest.raises(ValueError):
-#             estimator([], [state])
-#         with pytest.raises(ValueError):
-#             estimator([pauli], [])
-#         with pytest.raises(ValueError):
-#             estimator([pauli] * 3, [state] * 2)
-#
-#     def test_concurrent_estimate(self) -> None:
-#         operators: list[Union[PauliLabel, Operator]] = [
-#             pauli_label("Z0 Z2 Z5"),
-#             Operator(
-#                 {
-#                     pauli_label("Z0 Z2 Z5"): 0.25,
-#                     pauli_label("Z1 Z2 Z4"): 0.5j,
-#                 }
-#             ),
-#         ]
-#         states = [
-#             ComputationalBasisState(6, bits=0b110000),
-#             ComputationalBasisState(6, bits=0b110010),
-#         ]
-#         with ThreadPoolExecutor(max_workers=2) as executor:
-#             estimator = create_itensor_mps_concurrent_estimator(executor, concurrency=2)
-#             result = estimator(operators, states)
-#         assert result == [
-#             _Estimate(value=-1, error=0),
-#             _Estimate(value=-0.25 + 0.5j, error=0),
-#         ]
-#
-#     def test_concurrent_estimate_single_state(self) -> None:
-#         operators: list[Union[PauliLabel, Operator]] = [
-#             pauli_label("Z0 Z2 Z5"),
-#             Operator(
-#                 {
-#                     pauli_label("Z0 Z2 Z5"): 0.25,
-#                     pauli_label("Z1 Z2 Z4"): 0.5j,
-#                 }
-#             ),
-#         ]
-#         states = [
-#             ComputationalBasisState(6, bits=0b110010),
-#         ]
-#         with ThreadPoolExecutor(max_workers=2) as executor:
-#             estimator = create_itensor_mps_concurrent_estimator(executor, concurrency=2)
-#             result = estimator(operators, states)
-#         assert result == [
-#             _Estimate(value=-1, error=0),
-#             _Estimate(value=-0.25 + 0.5j, error=0),
-#         ]
-#
-#     def test_concurrent_estimate_single_operator(self) -> None:
-#         operators: list[Union[PauliLabel, Operator]] = [
-#             Operator(
-#                 {
-#                     pauli_label("Z0 Z2 Z5"): 0.25,
-#                     pauli_label("Z1 Z2 Z4"): 0.5j,
-#                 }
-#             ),
-#         ]
-#         states = [
-#             ComputationalBasisState(6, bits=0b110010),
-#             ComputationalBasisState(6, bits=0b110011),
-#         ]
-#         with ThreadPoolExecutor(max_workers=2) as executor:
-#             estimator = create_itensor_mps_concurrent_estimator(executor, concurrency=2)
-#             result = estimator(operators, states)
-#         assert result == [
-#             _Estimate(value=-0.25 + 0.5j, error=0),
-#             _Estimate(value=0.25 + 0.5j, error=0),
-#         ]
-#
+class TestITensorConcurrentEstimator:
+    def test_invalid_arguments(self) -> None:
+        pauli = pauli_label("Z0 Z2 Z5")
+        state = ComputationalBasisState(6, bits=0b110010)
+        estimator = create_itensor_mps_concurrent_estimator()
+        with pytest.raises(ValueError):
+            estimator([], [state])
+        with pytest.raises(ValueError):
+            estimator([pauli], [])
+        with pytest.raises(ValueError):
+            estimator([pauli] * 3, [state] * 2)
+
+    def test_concurrent_estimate(self) -> None:
+        operators: list[Union[PauliLabel, Operator]] = [
+            pauli_label("Z0 Z2 Z5"),
+            Operator(
+                {
+                    pauli_label("Z0 Z2 Z5"): 0.25,
+                    pauli_label("Z1 Z2 Z4"): 0.5j,
+                }
+            ),
+        ]
+        states = [
+            ComputationalBasisState(6, bits=0b110000),
+            ComputationalBasisState(6, bits=0b110010),
+        ]
+        with ProcessPoolExecutor(
+            max_workers=2, mp_context=get_context("spawn")
+        ) as executor:
+            estimator = create_itensor_mps_concurrent_estimator(executor, concurrency=2)
+            result = estimator(operators, states)
+        assert result == [
+            _Estimate(value=-1, error=0),
+            _Estimate(value=-0.25 + 0.5j, error=0),
+        ]
+
+    def test_concurrent_estimate_single_state(self) -> None:
+        operators: list[Union[PauliLabel, Operator]] = [
+            pauli_label("Z0 Z2 Z5"),
+            Operator(
+                {
+                    pauli_label("Z0 Z2 Z5"): 0.25,
+                    pauli_label("Z1 Z2 Z4"): 0.5j,
+                }
+            ),
+        ]
+        states = [
+            ComputationalBasisState(6, bits=0b110010),
+        ]
+        with ProcessPoolExecutor(
+            max_workers=2, mp_context=get_context("spawn")
+        ) as executor:
+            estimator = create_itensor_mps_concurrent_estimator(executor, concurrency=2)
+            result = estimator(operators, states)
+        assert result == [
+            _Estimate(value=-1, error=0),
+            _Estimate(value=-0.25 + 0.5j, error=0),
+        ]
+
+    def test_concurrent_estimate_single_operator(self) -> None:
+        operators: list[Union[PauliLabel, Operator]] = [
+            Operator(
+                {
+                    pauli_label("Z0 Z2 Z5"): 0.25,
+                    pauli_label("Z1 Z2 Z4"): 0.5j,
+                }
+            ),
+        ]
+        states = [
+            ComputationalBasisState(6, bits=0b110010),
+            ComputationalBasisState(6, bits=0b110011),
+        ]
+        with ProcessPoolExecutor(
+            max_workers=2, mp_context=get_context("spawn")
+        ) as executor:
+            estimator = create_itensor_mps_concurrent_estimator(executor, concurrency=2)
+            result = estimator(operators, states)
+        assert result == [
+            _Estimate(value=-0.25 + 0.5j, error=0),
+            _Estimate(value=0.25 + 0.5j, error=0),
+        ]
+
 
 def parametric_circuit() -> UnboundParametricQuantumCircuitProtocol:
     circuit = UnboundParametricQuantumCircuit(6)
@@ -174,37 +181,3 @@ class TestITensorParametricEstimator:
             qulacs_estimate = qulacs_estimator(operator, state, params)
             assert estimate.value == pytest.approx(qulacs_estimate.value)
             assert estimate.error == 0
-        
-
-# class TestITensorConcurrentParametricEstimator:
-#     def test_concurrent_estimate(self) -> None:
-#         operator = Operator(
-#             {
-#                 pauli_label("Y0 X2 Y5"): 0.25,
-#                 pauli_label("Z1 X2 Z4"): 0.5j,
-#             }
-#         )
-#         state = ParametricCircuitQuantumState(6, parametric_circuit())
-#         params = [
-#             [0.0, 0.0, 0.0, 0.0],
-#             [-math.pi / 4, 0, 0, 0],
-#             [0, -math.pi / 4, 0, 0],
-#             [0, 0, -math.pi / 4, 0],
-#             [0, 0, 0, -math.pi / 4],
-#         ]
-#         with ThreadPoolExecutor(max_workers=2) as executor:
-#             estimator = create_itensor_mps_concurrent_parametric_estimator(
-#                 executor, concurrency=2
-#             )
-#             result = list(estimator(operator, state, params))
-#         assert len(result) == 5
-#         for r in result:
-#             assert r.error == 0
-#         assert result[0].value == pytest.approx(
-#             0.25 * ((1 / math.sqrt(2)) ** 3) + 0.5j * (-1 / math.sqrt(2))
-#         )
-#         assert result[1].value == pytest.approx(0.25 * 0.5 + 0.5j * (-1 / math.sqrt(2)))
-#         assert result[2].value == pytest.approx(0.25 * 0.5 + 0.5j * (-1))
-#         assert result[3].value == pytest.approx(0.25 * 0.5 + 0.5j * (-1 / math.sqrt(2)))
-#         assert result[4].value == pytest.approx(0 + 0.5j * (-0.5))
-#

@@ -1,8 +1,7 @@
-from concurrent.futures import ThreadPoolExecutor
-
+from concurrent.futures import ProcessPoolExecutor
+from multiprocessing import get_context
 import pytest
 from quri_parts.circuit import QuantumCircuit
-
 from quri_parts.itensor.sampler import (
     create_itensor_mps_concurrent_sampler,
     create_itensor_mps_sampler,
@@ -39,7 +38,9 @@ class TestITensorMPSConcurrentSampler:
         circuit1 = circuit()
         circuit2 = circuit()
         circuit2.add_X_gate(3)
-        with ThreadPoolExecutor(max_workers=2) as executor:
+        with ProcessPoolExecutor(
+            max_workers=2, mp_context=get_context("spawn")
+        ) as executor:
             sampler = create_itensor_mps_concurrent_sampler(executor, 2)
             results = list(sampler([(circuit1, 1000), (circuit2, 2000)]))
         assert set(results[0]) == {0b1001, 0b1011}

@@ -25,6 +25,10 @@ if TYPE_CHECKING:
     from concurrent.futures import Executor
 
 path = os.getcwd()
+start = "/quri-parts"
+
+relative_path = os.path.relpath(path, start)
+print(relative_path)
 library_path = os.path.join(path, "packages/itensor/quri_parts/itensor/library.jl")
 
 jl.seval("using ITensors")
@@ -137,6 +141,9 @@ def _concurrent_estimate(
         )
 
 
+# For now, this function works when the executor is defined like below
+# `with ProcessPoolExecutor(max_workers=2, mp_context=get_context("spawn"))
+# as executor:`
 def create_itensor_mps_concurrent_estimator(
     executor: Optional["Executor"] = None, concurrency: int = 1
 ) -> ConcurrentQuantumEstimator[ITensorStateT]:

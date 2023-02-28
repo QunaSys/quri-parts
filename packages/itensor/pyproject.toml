@@ -2,6 +2,8 @@
 name = "quri-parts-itensor"
 version = "0.0.0"
 description = "A plugin to use ITensor with QURI Parts"
+authors = ["hoge"]
+
 readme = "README.md"
 repository = "https://github.com/QunaSys/quri-parts"
 documentation = "https://quri-parts.qunasys.com"

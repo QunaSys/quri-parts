@@ -1,17 +1,14 @@
 import math
-from collections.abc import Mapping
-from typing import Callable, Type
+from typing import Callable
 import pytest
-import qulacs
 from quri_parts.circuit import QuantumGate, UnboundParametricQuantumCircuit, gates
 from quri_parts.core.operator.pauli import pauli_label
 from quri_parts.core.state import ParametricCircuitQuantumState
-
-from quri_parts.itensor.estimator import create_itensor_mps_parametric_estimator
 from quri_parts.qulacs.estimator import create_qulacs_vector_parametric_estimator
 
-single_qubit_gate_list: list[
-    Callable[[int], QuantumGate]] = [
+from quri_parts.itensor.estimator import create_itensor_mps_parametric_estimator
+
+single_qubit_gate_list: list[Callable[[int], QuantumGate]] = [
     gates.Identity,
     gates.X,
     gates.Y,
@@ -25,27 +22,24 @@ single_qubit_gate_list: list[
     gates.SqrtYdag,
     gates.T,
     gates.Tdag,
-    ]
+]
 
-two_qubit_gate_list: list[
-    Callable[[int, int], QuantumGate]] = [
+two_qubit_gate_list: list[Callable[[int, int], QuantumGate]] = [
     gates.CNOT,
     gates.CZ,
     gates.SWAP,
-    ]
+]
 
-three_qubit_gate_list: list[
-    Callable[[int, int, int], QuantumGate]] = [
+three_qubit_gate_list: list[Callable[[int, int, int], QuantumGate]] = [
     gates.TOFFOLI,
-    ]
+]
 
 
-rotation_gate_list: list[
-    Callable[[int, float], QuantumGate]] = [
+rotation_gate_list: list[Callable[[int, float], QuantumGate]] = [
     gates.RX,
     gates.RY,
     gates.RZ,
-    ]
+]
 
 
 def test_convert_single_qubit_gate() -> None:
@@ -118,6 +112,7 @@ def test_convert_rotation_gate() -> None:
         qulacs_estimate = qulacs_estimator(pauli, state, [0.5])
         assert estimate.value == pytest.approx(qulacs_estimate.value)
         assert estimate.error == qulacs_estimate.error
+
 
 def test_convert_u_gate() -> None:
     pauli = pauli_label("Z0 Z2 Z5")
