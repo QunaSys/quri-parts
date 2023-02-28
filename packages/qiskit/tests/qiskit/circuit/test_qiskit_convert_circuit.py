@@ -24,15 +24,12 @@ from quri_parts.qiskit.circuit import convert_circuit, convert_gate
 
 
 def gate_equal(i1: QiskitGate, i2: QiskitGate) -> bool:
-    return cast(bool, i1 == i2)
+    # Compare the matrix representation of the gates.
+    return cast(bool, qi.Operator(i1).equiv(qi.Operator(i2)))
 
 
 def circuit_equal(c1: QiskitQuantumCircuit, c2: QiskitQuantumCircuit) -> bool:
-    # Analyze whether circuits are equivalent.
-    # Instead of compare the gates directly,
-    # which cannot detect equivalent circuits,
-    # we use `qi.Operator` to convert the circuit to an operator
-    # and use `.equiv` method to see if two operators are equivalent.
+    # Compare the matrix representation of the circuits, including the global phase.
     return cast(bool, qi.Operator(c1).equiv(qi.Operator(c2)))
 
 
@@ -46,6 +43,8 @@ single_qubit_gate_mapping: Mapping[Callable[[int], QuantumGate], QiskitGate] = {
     gates.Sdag: qgate.SdgGate(),
     gates.T: qgate.TGate(),
     gates.Tdag: qgate.TdgGate(),
+    gates.SqrtX: qgate.SXGate(),
+    gates.SqrtXdag: qgate.SXdgGate(),
 }
 
 
@@ -58,12 +57,6 @@ def test_convert_single_qubit_gate() -> None:
 
 
 single_qubit_sgate_mapping: Mapping[Callable[[int], QuantumGate], QiskitGate] = {
-    gates.SqrtX: UnitaryGate(
-        np.array([[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]])
-    ),
-    gates.SqrtXdag: UnitaryGate(
-        np.array([[0.5 - 0.5j, 0.5 + 0.5j], [0.5 + 0.5j, 0.5 - 0.5j]])
-    ),
     gates.SqrtY: UnitaryGate(
         np.array([[0.5 + 0.5j, -0.5 - 0.5j], [0.5 + 0.5j, 0.5 + 0.5j]])
     ),
@@ -76,9 +69,9 @@ single_qubit_sgate_mapping: Mapping[Callable[[int], QuantumGate], QiskitGate] = 
 def test_convert_single_qubit_sgate() -> None:
     for qp_factory, qiskit_gate in single_qubit_sgate_mapping.items():
         qp_gate = qp_factory(7)
-        converted = qi.Operator(convert_gate(qp_gate)).data
-        expected = qi.Operator(qiskit_gate).data
-        assert (converted == expected).all()
+        converted = convert_gate(qp_gate)
+        expected = qiskit_gate
+        assert gate_equal(converted, expected)
 
 
 rotation_gate_mapping: Mapping[
