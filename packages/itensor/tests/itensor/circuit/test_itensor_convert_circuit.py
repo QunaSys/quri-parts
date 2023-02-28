@@ -1,78 +1,55 @@
 import math
 from collections.abc import Mapping
-from typing import Callable, Type, cast
-
-import numpy as np
+from typing import Callable, Type
 import pytest
 import qulacs
-from quri_parts.circuit import (
-    LinearMappedUnboundParametricQuantumCircuit,
-    QuantumCircuit,
-    QuantumGate,
-    UnboundParametricQuantumCircuit,
-    gates,
-)
-from quri_parts.core.operator.operator import Operator
-from quri_parts.core.operator.pauli import PAULI_IDENTITY, pauli_label
-from quri_parts.core.state import ComputationalBasisState, ParametricCircuitQuantumState
-from quri_parts.core.state.state import CircuitQuantumState
+from quri_parts.circuit import QuantumGate, UnboundParametricQuantumCircuit, gates
+from quri_parts.core.operator.pauli import pauli_label
+from quri_parts.core.state import ParametricCircuitQuantumState
 
-from quri_parts.itensor.estimator import (
-    create_itensor_mps_estimator,
-    create_itensor_mps_parametric_estimator,
-)
+from quri_parts.itensor.estimator import create_itensor_mps_parametric_estimator
+from quri_parts.qulacs.estimator import create_qulacs_vector_parametric_estimator
 
-single_qubit_gate_mapping: Mapping[
-    Callable[[int], QuantumGate], Type[qulacs.QuantumGateBase]
-] = {
-    gates.Identity: qulacs.gate.Identity,
-    gates.X: qulacs.gate.X,
-    gates.Y: qulacs.gate.Y,
-    gates.Z: qulacs.gate.Z,
-    gates.H: qulacs.gate.H,
-    gates.S: qulacs.gate.S,
-    gates.Sdag: qulacs.gate.Sdag,
-    gates.SqrtX: qulacs.gate.sqrtX,
-    gates.SqrtXdag: qulacs.gate.sqrtXdag,
-    gates.SqrtY: qulacs.gate.sqrtY,
-    gates.SqrtYdag: qulacs.gate.sqrtYdag,
-    gates.T: qulacs.gate.T,
-    gates.Tdag: qulacs.gate.Tdag,
-}
+single_qubit_gate_list: list[
+    Callable[[int], QuantumGate]] = [
+    gates.Identity,
+    gates.X,
+    gates.Y,
+    gates.Z,
+    gates.H,
+    gates.S,
+    gates.Sdag,
+    gates.SqrtX,
+    gates.SqrtXdag,
+    gates.SqrtY,
+    gates.SqrtYdag,
+    gates.T,
+    gates.Tdag,
+    ]
 
+two_qubit_gate_list: list[
+    Callable[[int, int], QuantumGate]] = [
+    gates.CNOT,
+    gates.CZ,
+    gates.SWAP,
+    ]
 
-two_qubit_gate_mapping: Mapping[
-    Callable[[int, int], QuantumGate], Type[qulacs.QuantumGateBase]
-] = {
-    gates.CNOT: qulacs.gate.CNOT,
-    gates.CZ: qulacs.gate.CZ,
-    gates.SWAP: qulacs.gate.SWAP,
-}
-
-three_qubit_gate_mapping: Mapping[
-    Callable[[int, int, int], QuantumGate], Type[qulacs.QuantumGateBase]
-] = {
-    gates.TOFFOLI: qulacs.gate.TOFFOLI,
-}
+three_qubit_gate_list: list[
+    Callable[[int, int, int], QuantumGate]] = [
+    gates.TOFFOLI,
+    ]
 
 
-rotation_gate_mapping: Mapping[
-    Callable[[int, float], QuantumGate], Type[qulacs.QuantumGateBase]
-] = {
-    gates.RX: qulacs.gate.RX,
-    gates.RY: qulacs.gate.RY,
-    gates.RZ: qulacs.gate.RZ,
-}
-
-
-from quri_parts.qulacs.estimator import (
-    create_qulacs_vector_estimator,
-    create_qulacs_vector_parametric_estimator,
-)
+rotation_gate_list: list[
+    Callable[[int, float], QuantumGate]] = [
+    gates.RX,
+    gates.RY,
+    gates.RZ,
+    ]
 
 
 def test_convert_single_qubit_gate() -> None:
-    for qp_fac, _ in single_qubit_gate_mapping.items():
+    for qp_fac in single_qubit_gate_list:
         pauli = pauli_label("Z0 Z2 Z5")
         estimator = create_itensor_mps_parametric_estimator()
         qulacs_estimator = create_qulacs_vector_parametric_estimator()
@@ -90,7 +67,7 @@ def test_convert_single_qubit_gate() -> None:
 
 
 def test_convert_two_qubit_gate() -> None:
-    for qp_fac, _ in two_qubit_gate_mapping.items():
+    for qp_fac in two_qubit_gate_list:
         pauli = pauli_label("Z0 Z2 Z5")
         estimator = create_itensor_mps_parametric_estimator()
         qulacs_estimator = create_qulacs_vector_parametric_estimator()
@@ -108,7 +85,7 @@ def test_convert_two_qubit_gate() -> None:
 
 
 def test_convert_three_qubit_gate() -> None:
-    for qp_fac, _ in three_qubit_gate_mapping.items():
+    for qp_fac in three_qubit_gate_list:
         pauli = pauli_label("Z0 Z2 Z5")
         estimator = create_itensor_mps_parametric_estimator()
         qulacs_estimator = create_qulacs_vector_parametric_estimator()
@@ -126,7 +103,7 @@ def test_convert_three_qubit_gate() -> None:
 
 
 def test_convert_rotation_gate() -> None:
-    for qp_fac, _ in rotation_gate_mapping.items():
+    for qp_fac in rotation_gate_list:
         pauli = pauli_label("Z0 Z2 Z5")
         estimator = create_itensor_mps_parametric_estimator()
         qulacs_estimator = create_qulacs_vector_parametric_estimator()
@@ -141,7 +118,6 @@ def test_convert_rotation_gate() -> None:
         qulacs_estimate = qulacs_estimator(pauli, state, [0.5])
         assert estimate.value == pytest.approx(qulacs_estimate.value)
         assert estimate.error == qulacs_estimate.error
-
 
 def test_convert_u_gate() -> None:
     pauli = pauli_label("Z0 Z2 Z5")

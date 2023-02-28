@@ -13,7 +13,7 @@ from quri_parts.core.estimator import (
     QuantumEstimator,
     create_parametric_estimator,
 )
-from quri_parts.core.operator import Operator, zero
+from quri_parts.core.operator import zero
 from quri_parts.core.state import CircuitQuantumState, ParametricCircuitQuantumState
 from quri_parts.core.utils.concurrent import execute_concurrently
 from typing_extensions import TypeAlias
@@ -157,9 +157,6 @@ def create_itensor_mps_concurrent_estimator(
         )
 
     return estimator
-
-
-from quri_parts.core.estimator import create_parametric_estimator
 
 
 def _sequential_parametric_estimate(

@@ -1,3 +1,4 @@
+# type: ignore
 import numpy as np
 from quri_parts.algo.ansatz import HardwareEfficient
 from quri_parts.algo.optimizer import Adam, OptimizerStatus
@@ -58,7 +59,7 @@ def cost_fn(param_values):
 
 
 itensor_concurrent_parametric_estimator = (
-    create_itensor_mps_concurrent_parametric_estimator(concurrency=2)
+    create_itensor_mps_concurrent_parametric_estimator(concurrency=4)
 )
 gradient_estimator = create_numerical_gradient_estimator(
     itensor_concurrent_parametric_estimator,

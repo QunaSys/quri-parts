@@ -1,18 +1,12 @@
-from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
-from typing import TYPE_CHECKING, Optional
 
 import pytest
 from quri_parts.circuit import QuantumCircuit
-from quri_parts.core.sampling import ConcurrentSampler, Sampler
 
 from quri_parts.itensor.sampler import (
     create_itensor_mps_concurrent_sampler,
     create_itensor_mps_sampler,
 )
-
-if TYPE_CHECKING:
-    from concurrent.futures import Executor
 
 
 def circuit() -> QuantumCircuit:

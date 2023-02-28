@@ -1,12 +1,10 @@
 import os
 from collections import Counter
-from collections.abc import Callable, Iterable
+from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, Optional
 
 import juliacall
-import numpy as np
 from juliacall import Main as jl
-from numpy.random import default_rng
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.core.sampling import ConcurrentSampler, MeasurementCounts, Sampler
 from quri_parts.core.utils.concurrent import execute_concurrently
@@ -59,7 +57,7 @@ def _sample_concurrently(
     )
 
 
-# Segmentation fault probably caused by pythoncall
+# Segmentation fault probably caused by juliacall
 def create_itensor_mps_concurrent_sampler(
     executor: Optional["Executor"] = None, concurrency: int = 1
 ) -> ConcurrentSampler:

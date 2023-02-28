@@ -1,4 +1,4 @@
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
 
 import juliacall
 from juliacall import Main as jl
