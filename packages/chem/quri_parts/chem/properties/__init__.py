@@ -46,16 +46,16 @@ def create_energy_gradient_estimator(
     estimator: ConcurrentParametricQuantumEstimator[_ParametricStateT],
     h_params: Sequence[float],
     h_generator: Callable[[Sequence[float]], Operator],
-    h_gradient_generator: Optional[NumericalOperatorGradientCalculator] = None,
+    h_gradient_calculator: Optional[NumericalOperatorGradientCalculator] = None,
 ) -> EnergyGradientEstimator[_ParametricStateT]:
     """Create a :class:`EnergyGradientEstimator` that calculates the energy
     gradients with respect to the hamiltonian parameters at the given circuit
     parameters."""
-    if h_gradient_generator is None:
-        h_gradient_generator = create_numerical_operator_gradient_calculator(
+    if h_gradient_calculator is None:
+        h_gradient_calculator = create_numerical_operator_gradient_calculator(
             h_generator
         )
-    h_grad = h_gradient_generator(h_params)
+    h_grad = h_gradient_calculator(h_params)
 
     # EnergyGradientEstimator
     def energy_gradient_estimator(
