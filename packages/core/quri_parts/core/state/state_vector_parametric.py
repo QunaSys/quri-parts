@@ -53,7 +53,7 @@ class ParametricQuantumStateVector(
     def qubit_count(self) -> int:
         return self._n_qubits
 
-    def primitive_state(self) -> "ParametricQuantumStateVector":
+    def with_primitive_state(self) -> "ParametricQuantumStateVector":
         """Returns a new state with the primitive circuit applied. The
         primitive circuit means that each gate in the circuit has an
         independent parameter even if those in the original circuit depend on
