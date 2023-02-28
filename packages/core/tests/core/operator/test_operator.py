@@ -13,6 +13,7 @@ import pytest
 from quri_parts.core.operator import (
     PAULI_IDENTITY,
     Operator,
+    compress,
     is_ops_close,
     pauli_label,
     zero,
@@ -66,6 +67,38 @@ def test_sub(operator: Operator) -> None:
     assert list(other.keys())[0] not in list(res.keys())
     for pauli, coef in res.items():
         assert coef == operator[pauli]
+
+
+def test_mul() -> None:
+    operator_1 = Operator({pauli_label("X0 Y1 Z2"): 0.1, pauli_label("Z0 X1 Y2"): 0.1j})
+    operator_1.constant = 1.0
+    operator_2 = Operator({pauli_label("X0 Y1 Z2"): 1.0j, pauli_label("Z0 X1 Y2"): 1.0})
+    operator_2.constant = 2.0
+
+    prod = operator_1 * operator_2
+
+    assert len(prod) == 4
+    assert prod[PAULI_IDENTITY] == 2.0 + 0.2j
+    assert prod[pauli_label("X0 Y1 Z2")] == 0.2 + 1.0j
+    assert prod[pauli_label("Z0 X1 Y2")] == 1.0 + 0.2j
+    assert prod[pauli_label("Y0 Z1 X2")] == 0.2j
+
+
+def test_truediv(operator: Operator) -> None:
+    with pytest.raises(TypeError):
+        operator / Operator({pauli_label("Z0"): 1.0})
+
+    quot = operator / 2
+    for p_label, coef in operator.items():
+        assert quot[p_label] == coef / 2
+
+    quot = operator / -2.0
+    for p_label, coef in operator.items():
+        assert quot[p_label] == coef / -2.0
+
+    quot = operator / (1.0 + 1.0j)
+    for p_label, coef in operator.items():
+        assert quot[p_label] == coef / (1.0 + 1.0j)
 
 
 def test_copy(operator: Operator) -> None:
@@ -124,21 +157,6 @@ def test_constant_setter(operator: Operator) -> None:
     assert operator.constant == new_const
 
 
-def test_mul() -> None:
-    operator_1 = Operator({pauli_label("X0 Y1 Z2"): 0.1, pauli_label("Z0 X1 Y2"): 0.1j})
-    operator_1.constant = 1.0
-    operator_2 = Operator({pauli_label("X0 Y1 Z2"): 1.0j, pauli_label("Z0 X1 Y2"): 1.0})
-    operator_2.constant = 2.0
-
-    prod = operator_1 * operator_2
-
-    assert len(prod) == 4
-    assert prod[PAULI_IDENTITY] == 2.0 + 0.2j
-    assert prod[pauli_label("X0 Y1 Z2")] == 0.2 + 1.0j
-    assert prod[pauli_label("Z0 X1 Y2")] == 1.0 + 0.2j
-    assert prod[pauli_label("Y0 Z1 X2")] == 0.2j
-
-
 def test_hermitian_conjugated(operator: Operator) -> None:
     op_dag = operator.hermitian_conjugated()
     for p_label, coef in zip(PAULI_LABELS, COEFS):
@@ -170,3 +188,26 @@ def test_is_ops_close() -> None:
     assert not is_ops_close(zero(), Operator({PAULI_IDENTITY: 1e-4}))
     assert not is_ops_close(zero(), Operator({PAULI_IDENTITY: 1e-4}), rtol=1e-1)
     assert is_ops_close(zero(), Operator({PAULI_IDENTITY: 1e-4}), atol=1e-3)
+
+
+def test_compress() -> None:
+    operator = Operator()
+    assert compress(operator) == zero()
+
+    operator.constant = 0.01
+    assert compress(operator) == operator
+    assert compress(operator, atol=0.1) == zero()
+
+    operator.constant = 0.01j
+    assert compress(operator) == operator
+    assert compress(operator, atol=0.1) == zero()
+
+    operator[pauli_label("Z0")] = 0.01
+    assert compress(operator) == operator
+    assert compress(operator, atol=0.1) == zero()
+
+    operator[pauli_label("Z1")] = 0.001j
+    assert compress(operator) == operator
+    assert compress(operator, atol=0.005) == Operator(
+        {PAULI_IDENTITY: 0.01j, pauli_label("Z0"): 0.01}
+    )

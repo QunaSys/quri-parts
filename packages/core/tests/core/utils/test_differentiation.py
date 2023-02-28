@@ -117,8 +117,8 @@ def _h_generator(params: Sequence[float]) -> Operator:
     )
 
 
-def test_numerical_operator_gradient_generator() -> None:
-    op_gradient_generator = create_numerical_operator_gradient_calculator(_h_generator)
+def test_numerical_operator_gradient_calculator() -> None:
+    op_gradient_calculator = create_numerical_operator_gradient_calculator(_h_generator)
 
     params = [1, 2, 3, 4, 5, 6]
     expected = [
@@ -132,7 +132,7 @@ def test_numerical_operator_gradient_generator() -> None:
     assert np.all(
         [
             is_ops_close(res, exp)
-            for res, exp in zip(op_gradient_generator(params), expected)
+            for res, exp in zip(op_gradient_calculator(params), expected)
         ]
     )
 
@@ -148,6 +148,6 @@ def test_numerical_operator_gradient_generator() -> None:
     assert np.all(
         [
             is_ops_close(res, exp)
-            for res, exp in zip(op_gradient_generator(params), expected)
+            for res, exp in zip(op_gradient_calculator(params), expected)
         ]
     )

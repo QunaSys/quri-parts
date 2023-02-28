@@ -110,6 +110,20 @@ PauliLabel({(1, <SinglePauli.X: 1>), (2, <SinglePauli.Y: 2>)}): 0.2, PauliLabel(
             return NotImplemented
         return self * other
 
+    def __truediv__(self, other: object) -> "Operator":
+        if not isinstance(other, (int, float, complex)):
+            return NotImplemented
+        copied = self.copy()
+        copied /= other
+        return copied
+
+    def __itruediv__(self, other: object) -> "Operator":
+        if not isinstance(other, (int, float, complex)):
+            return NotImplemented
+        for pauli, coef in self.items():
+            self[pauli] = coef / other
+        return self
+
     def add_term(self, pauli_label: PauliLabel, coef: complex) -> None:
         """Method for adding single-term operator."""
         if coef == 0:
@@ -183,3 +197,11 @@ def is_ops_close(
         ):
             return False
     return True
+
+
+def compress(op: Operator, atol: float = 1e-8) -> Operator:
+    _op = Operator()
+    for pauli, coef in op.items():
+        if abs(coef) >= atol:
+            _op[pauli] = coef
+    return _op
