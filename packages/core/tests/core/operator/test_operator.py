@@ -172,6 +172,9 @@ def test_is_ops_close() -> None:
     operator_1.constant = 1.0
     assert not is_ops_close(operator_1, operator_2)
 
+    operator_2.constant = 1.0j
+    assert not is_ops_close(operator_1, operator_2)
+
     operator_2[PAULI_IDENTITY] = 1.0
     assert is_ops_close(operator_1, operator_2)
 
@@ -179,10 +182,17 @@ def test_is_ops_close() -> None:
     operator_2[pauli_label("Z0")] = 2.0
     assert is_ops_close(operator_1, operator_2)
 
-    operator_1[pauli_label("X0 Y1")] = 3.0
-    operator_2[pauli_label("X0 Y1")] = 2.8
+    operator_1[pauli_label("X0")] = 1.0 + 0.1j
+    operator_2[pauli_label("X0")] = 1.0 - 0.1j
     assert not is_ops_close(operator_1, operator_2)
-    assert is_ops_close(operator_1, operator_2, rtol=1e-1)
+    operator_2[pauli_label("X0")] = 1.0 + 0.1j
+    assert is_ops_close(operator_1, operator_2)
+
+    operator_1[pauli_label("X0 Y1")] = 3.0 + 3.0j
+    operator_2[pauli_label("X0 Y1")] = 2.8 + 2.65j
+    assert not is_ops_close(operator_1, operator_2)
+    assert not is_ops_close(operator_1, operator_2, rtol=1e-1)
+    assert is_ops_close(operator_1, operator_2, rtol=2e-1)
     assert not is_ops_close(operator_1, operator_2, rtol=1e-2)
 
     assert not is_ops_close(zero(), Operator({PAULI_IDENTITY: 1e-4}))
