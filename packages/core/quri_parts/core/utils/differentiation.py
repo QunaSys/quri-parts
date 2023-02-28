@@ -11,7 +11,20 @@
 from abc import abstractmethod
 from typing import Callable, Protocol, Sequence, TypeVar, Union
 
+from typing_extensions import TypeAlias
+
 from quri_parts.core.operator import Operator, compress
+
+#: Represents a function that generates :class:`Operator` from given
+#: parameters, e.g. generates molecular Hamiltonian from coordinates
+#: of atoms.
+OperatorGenerator: TypeAlias = Callable[[Sequence[float]], Operator]
+
+#: Represents a function that calculates the gradients of an operator
+#: at given parameters.
+NumericalOperatorGradientCalculator: TypeAlias = Callable[
+    [Sequence[float]], Sequence[Operator]
+]
 
 _T = TypeVar("_T")
 
@@ -219,15 +232,16 @@ hessian = central_difference_hessian_formula
 
 
 def create_numerical_operator_gradient_calculator(
-    operator_generator: Callable[[Sequence[float]], Operator],
+    operator_generator: OperatorGenerator,
     difference_formula: Callable[
         [Callable[[Sequence[float]], Operator], Sequence[float], float],
         Sequence[Operator],
     ] = gradient,
     step: float = 1e-5,
-) -> Callable[[Sequence[float]], Sequence[Operator]]:
-    """Create a function that returns the numerical gradient of an
-    :class:`Operator` with respect to the operator parameters."""
+) -> NumericalOperatorGradientCalculator:
+    """Create a :class:`NumericalOperatorGradientCalculator` that returns the
+    numerical gradient of an :class:`Operator` with respect to the operator
+    parameters."""
 
     def gradient_calculator(params: Sequence[float]) -> Sequence[Operator]:
         ops = [
