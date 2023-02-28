@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from abc import abstractmethod
-from typing import Callable, Protocol, Sequence, TypeVar
+from typing import Callable, Protocol, Sequence, TypeVar, Union
 
 from quri_parts.core.operator import Operator, compress
 
@@ -35,7 +35,7 @@ class DifferentiableObjectProtocol(Protocol):
         ...
 
     @abstractmethod
-    def __truediv__(self: _T, other: float) -> _T:
+    def __truediv__(self: _T, other: Union[int, float, complex]) -> _T:
         ...
 
 
