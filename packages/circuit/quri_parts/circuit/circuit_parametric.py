@@ -85,6 +85,19 @@ class UnboundParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
         mapping of the parameters. In this "primitive circuit", however,
         gate parameters are treated as independent,
         even if those in the original circuit depend on the same parameters.
+        For example, if the parametric circuit is defined as:
+
+        .. math::
+        \begin{align}
+            U_{1}(f(\theta_{1}, \theta_{2})) U_{2}(g(\theta_{1}, \theta_{2}))
+        \end{align}
+
+        the primitive circuit should be as the following:
+
+        .. math::
+        \begin{align}
+            U_{1}(\psi_{1}) U_{2}(\psi_{2})
+        \end{align}
         """
         ...
 
