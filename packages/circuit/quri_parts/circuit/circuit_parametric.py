@@ -77,7 +77,7 @@ class UnboundParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
 
     @abstractmethod
     def primitive_circuit(self) -> "UnboundParametricQuantumCircuitProtocol":
-        """Returns the parametric circuit where each gate has an independent
+        r"""Returns the parametric circuit where each gate has an independent
         parameter.
 
         Note that some parametric circuit,

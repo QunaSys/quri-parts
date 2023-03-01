@@ -66,8 +66,8 @@ class ParametricCircuitQuantumState(ParametricCircuitQuantumStateMixin, QuantumS
         """Returns a new ParametricCircuitQuantumState whose circuit is
         replaced with the corresponding primitive circuit.
 
-        The original state is not changed.
-        For details about the primitive circuit, please refer to `.primitive_circuit()` in
+        The original state is not changed. For details about the
+        primitive circuit, please refer to `.primitive_circuit()` in
         :class:`UnboundParametricQuantumCircuitProtocol`.
         """
         return ParametricCircuitQuantumState(
