@@ -54,6 +54,7 @@ stim = ["quri-parts-stim"]
 openqasm = ["quri-parts-openqasm"]
 honeywell = ["quri-parts-honeywell"]
 ionq = ["quri-parts-ionq"]
+itensor = ["quri-parts-itensor"]
 pyscf = ["quri-parts-pyscf"]
 
 [tool.poetry.group.dev.dependencies]
