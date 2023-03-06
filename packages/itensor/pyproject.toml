@@ -26,7 +26,8 @@ python = "^3.9.8"
 typing-extensions = "^4.4.0"
 quri-parts-circuit = "*"
 quri-parts-core = "*"
-juliacall = "^0.9.10"
+juliacall = "^0.9.12"
+
 
 
 [tool.poetry.group.dev.dependencies]
