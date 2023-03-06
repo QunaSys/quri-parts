@@ -110,7 +110,7 @@ def test_convert_rotation_gate() -> None:
         circuit.add_gate(qp_fac(0, 0.5))
         state = ParametricCircuitQuantumState(6, circuit)
         estimate = estimator(pauli, state, [])
-        qulacs_estimate = qulacs_estimator(pauli, state, [0.5])
+        qulacs_estimate = qulacs_estimator(pauli, state, [])
         assert estimate.value == pytest.approx(qulacs_estimate.value)
         assert estimate.error == qulacs_estimate.error
 
