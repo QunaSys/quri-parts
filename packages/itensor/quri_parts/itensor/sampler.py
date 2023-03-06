@@ -15,12 +15,10 @@ if TYPE_CHECKING:
     from concurrent.futures import Executor
 
 
-path = os.getcwd()
-library_path = os.path.join(path, "packages/itensor/quri_parts/itensor/library.jl")
-
+abs_dir = os.path.dirname(os.path.abspath(__file__))
+library_path = os.path.join(abs_dir, "library.jl")
 jl.seval("using ITensors")
 include_statement = 'include("' + library_path + '")'
-print(include_statement)
 jl.seval(include_statement)
 
 
