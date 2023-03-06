@@ -13,7 +13,6 @@ from quri_parts.core.operator import Operator, PauliLabel, pauli_label
 from quri_parts.core.state import ComputationalBasisState, ParametricCircuitQuantumState
 from quri_parts.itensor.estimator import (
     create_itensor_mps_concurrent_estimator,
-    create_itensor_mps_concurrent_parametric_estimator,
     create_itensor_mps_estimator,
     create_itensor_mps_parametric_estimator,
 )

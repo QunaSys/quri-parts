@@ -17,7 +17,6 @@ if TYPE_CHECKING:
 
 abs_dir = os.path.dirname(os.path.abspath(__file__))
 library_path = os.path.join(abs_dir, "library.jl")
-jl.seval("using ITensors")
 include_statement = 'include("' + library_path + '")'
 jl.seval(include_statement)
 
