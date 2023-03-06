@@ -3,9 +3,9 @@ requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning", "setuptools"]
 build-backend = "poetry_dynamic_versioning.backend"
 
 [tool.poetry]
-name = "quri-parts-qiskit"
+name = "quri-parts-pyscf"
 version = "0.0.0"
-description = "A plugin to use Qiskit with QURI Parts"
+description = "A plugin to use PySCF with QURI Parts"
 license = "Apache-2.0"
 authors = ["QURI Parts Authors <opensource@qunasys.com>"]
 readme = "README.md"
@@ -27,12 +27,16 @@ style = "pep440"
 
 [tool.poetry.dependencies]
 python = "^3.9.8"
+typing-extensions = "^4.1.1"
 numpy = ">=1.22.0"
-quri-parts-circuit = "*"
-qiskit = "^0.39.4"
+pyscf = "^2.1.1"
+quri-parts-core = "*"
+quri-parts-chem = "*"
 
 [tool.poetry.group.dev.dependencies]
 quri-parts-circuit = {path = "../circuit", develop = true}
+quri-parts-core = {path = "../core", develop = true}
+quri-parts-chem = {path = "../chem", develop = true}
 
 pytest = "^7.0.1"
 black = "^22.1.0"
