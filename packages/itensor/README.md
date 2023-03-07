@@ -2,6 +2,8 @@
 
 QURI Parts ITensor is a support library for using ITensor with QURI Parts.
 
+This library calls ITensor's Julia library from Python using JuliaCall.
+
 ## Documentation
 
 [QURI Parts Documentation](https://quri-parts.qunasys.com)
