@@ -1,3 +1,7 @@
+[build-system]
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning", "setuptools"]
+build-backend = "poetry_dynamic_versioning.backend"
+
 [tool.poetry]
 name = "quri-parts-itensor"
 version = "0.0.0"
@@ -23,7 +27,6 @@ style = "pep440"
 
 [tool.poetry.dependencies]
 python = "^3.9.8"
-typing-extensions = "^4.4.0"
 quri-parts-circuit = "*"
 quri-parts-core = "*"
 juliacall = "^0.9.12"
@@ -34,7 +37,7 @@ juliacall = "^0.9.12"
 [tool.poetry.group.dev.dependencies]
 quri-parts-circuit = {path = "../circuit", develop = true}
 quri-parts-core = {path = "../core", develop = true}
-
+quri-parts-qulacs = {path = "../qulacs", develop = true}
 
 pytest = "^7.0.1"
 black = "^22.1.0"
@@ -42,6 +45,7 @@ flake8 = "^4.0.1"
 mypy = ">=0.950"
 docformatter = "^1.4"
 isort = "^5.10.1"
+qulacs = "^0.5.6"
 
 [tool.black]
 line-length = 88
@@ -49,7 +53,3 @@ line-length = 88
 [tool.isort]
 profile = "black"
 
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
