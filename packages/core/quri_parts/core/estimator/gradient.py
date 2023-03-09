@@ -150,7 +150,7 @@ def parameter_shift_gradient_estimates(
             gate_params.add(p)
     gate_params_list = list(gate_params)
 
-    raw_param_state = state.with_primitive_state()
+    raw_param_state = state.with_primitive_circuit()
 
     # When using a bound TypeVar, mypy raises an incompatible types error.
     # Therefore, after checking the instance type, cast to `_ParametricStateT`.

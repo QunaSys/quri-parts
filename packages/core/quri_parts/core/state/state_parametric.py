@@ -62,7 +62,7 @@ class ParametricCircuitQuantumState(ParametricCircuitQuantumStateMixin, QuantumS
     def qubit_count(self) -> int:
         return self._n_qubits
 
-    def with_primitive_state(self) -> "ParametricCircuitQuantumState":
+    def with_primitive_circuit(self) -> "ParametricCircuitQuantumState":
         """Returns a new ParametricCircuitQuantumState whose circuit is
         replaced with the corresponding primitive circuit.
 
