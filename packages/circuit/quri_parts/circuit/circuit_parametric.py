@@ -89,15 +89,17 @@ class UnboundParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
 
         .. math::
         \begin{align}
-            U_{1}(f(\theta_{1}, \theta_{2})) U_{2}(g(\theta_{1}, \theta_{2}))
+            U_1(f(\theta_1, \theta_2)) U_2(g(\theta_1, \theta_2))
         \end{align}
 
         the primitive circuit should be as the following:
 
         .. math::
         \begin{align}
-            U_{1}(\psi_{1}) U_{2}(\psi_{2})
+            U_1(\psi_1) U_2(\psi_2)
         \end{align}
+
+        where U1, U2 are rotation gates and f, g are parameter mappings.
         """
         ...
 
