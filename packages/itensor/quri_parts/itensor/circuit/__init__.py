@@ -12,7 +12,6 @@ from quri_parts.circuit.gate_names import (
     is_single_qubit_gate_name,
     is_three_qubit_gate_name,
     is_two_qubit_gate_name,
-    is_unitary_matrix_gate_name,
 )
 
 _single_qubit_gate_itensor: Mapping[SingleQubitGateNameType, str] = {
@@ -117,10 +116,6 @@ def convert_circuit(
                 gate.control_indices[0] + 1,
                 gate.control_indices[1] + 1,
                 gate.target_indices[0] + 1,
-            )
-        elif is_unitary_matrix_gate_name(gate.name):
-            gate_list = jl.add_unitary_matrix_gate(
-                gate_list, gate.target_indices, gate.unitary_matrix
             )
         else:
             raise ValueError(f"Unknown gate name: {gate.name}")

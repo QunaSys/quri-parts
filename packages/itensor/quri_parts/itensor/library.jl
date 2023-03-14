@@ -20,6 +20,7 @@ function ITensors.op(::OpName"U3", t::SiteType"Qubit"; θ::Number, ϕ::Number, �
     return op("Rn", t; θ=θ, ϕ=ϕ, λ=λ)
 end
 
+
 function ITensors.op(::OpName"S", ::SiteType"Qubit")
     return [
         1 0
@@ -104,7 +105,6 @@ function add_single_qubit_rotation_gate(gate_list::Vector, gate_name::String, ta
     end
     return gate_list
 end
-
 
 
 function gate_list()
