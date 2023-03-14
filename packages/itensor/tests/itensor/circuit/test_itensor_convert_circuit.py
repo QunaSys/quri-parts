@@ -6,8 +6,8 @@ import juliacall
 import numpy
 import pytest
 from juliacall import Main as jl
-from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
 
+from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
 from quri_parts.itensor.circuit import convert_circuit
 
 abs_dir = os.path.dirname(os.path.abspath(__file__))
