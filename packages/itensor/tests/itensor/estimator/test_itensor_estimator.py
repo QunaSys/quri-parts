@@ -4,21 +4,18 @@ from multiprocessing import get_context
 from typing import Union
 
 import pytest
-
 from quri_parts.circuit import (
     UnboundParametricQuantumCircuit,
     UnboundParametricQuantumCircuitProtocol,
 )
 from quri_parts.core.operator import Operator, PauliLabel, pauli_label
 from quri_parts.core.state import ComputationalBasisState, ParametricCircuitQuantumState
+
 from quri_parts.itensor.estimator import (
+    _Estimate,
     create_itensor_mps_concurrent_estimator,
     create_itensor_mps_estimator,
     create_itensor_mps_parametric_estimator,
-)
-from quri_parts.qulacs.estimator import (
-    _Estimate,
-    create_qulacs_vector_parametric_estimator,
 )
 
 
@@ -148,16 +145,22 @@ class TestITensorParametricEstimator:
         pauli = pauli_label("Y0 X2 Y5")
         state = ParametricCircuitQuantumState(6, parametric_circuit())
         estimator = create_itensor_mps_parametric_estimator()
-        qulacs_estimator = create_qulacs_vector_parametric_estimator()
-        for params in [
-            [0.0, 0.0, 0.0],
-            [-math.pi / 4, 0.0, 0.0],
-            [0.0, -math.pi / 4, 0.0],
-            [0.0, 0.0, -math.pi / 4],
-        ]:
+        expected_list = [
+            0.35355339059327373 + 0j,
+            0.5 + 0j,
+            0.5 + 0j,
+            0.5 + 0j,
+        ]
+        for i, params in enumerate(
+            [
+                [0.0, 0.0, 0.0],
+                [-math.pi / 4, 0.0, 0.0],
+                [0.0, -math.pi / 4, 0.0],
+                [0.0, 0.0, -math.pi / 4],
+            ]
+        ):
             estimate = estimator(pauli, state, params)
-            qulacs_estimate = qulacs_estimator(pauli, state, params)
-            assert estimate.value == pytest.approx(qulacs_estimate.value)
+            assert estimate.value == pytest.approx(expected_list[i])
             assert estimate.error == 0
 
     def test_estimate_operator(self) -> None:
@@ -169,14 +172,20 @@ class TestITensorParametricEstimator:
         )
         state = ParametricCircuitQuantumState(6, parametric_circuit())
         estimator = create_itensor_mps_parametric_estimator()
-        qulacs_estimator = create_qulacs_vector_parametric_estimator()
-        for params in [
-            [0.0, 0.0, 0.0],
-            [-math.pi / 4, 0.0, 0.0],
-            [0.0, -math.pi / 4, 0.0],
-            [0.0, 0.0, -math.pi / 4],
-        ]:
+        expected_list = [
+            0.08838834764831843 - 0.35355339059327373j,
+            0.12499999999999997 - 0.3535533905932736j,
+            0.125 - 0.5j,
+            0.125 - 0.35355339059327373j,
+        ]
+        for i, params in enumerate(
+            [
+                [0.0, 0.0, 0.0],
+                [-math.pi / 4, 0.0, 0.0],
+                [0.0, -math.pi / 4, 0.0],
+                [0.0, 0.0, -math.pi / 4],
+            ]
+        ):
             estimate = estimator(operator, state, params)
-            qulacs_estimate = qulacs_estimator(operator, state, params)
-            assert estimate.value == pytest.approx(qulacs_estimate.value)
+            assert estimate.value == pytest.approx(expected_list[i])
             assert estimate.error == 0
