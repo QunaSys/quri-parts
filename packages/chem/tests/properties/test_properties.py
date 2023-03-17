@@ -8,6 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 from typing import Sequence
 
 import numpy as np
@@ -58,3 +59,24 @@ def test_energy_gradient_estimator() -> None:
     circuit_params = [np.pi, np.pi]
     expected = [5.0, 2.0, 0.0, 192.0, -6.0, 6.0]
     assert np.allclose(energy_grad_estimator(param_state, circuit_params), expected)
+
+
+def test_energy_gradient_estimator_non_hermitian_op() -> None:
+    def _non_hermitian_op_generator(params: Sequence[float]) -> Operator:
+        return Operator(
+            {
+                PAULI_IDENTITY: 1.0 * params[0],
+                pauli_label("Z0"): 2.0j * params[0] * params[1],
+                pauli_label("Z1"): 3.0 * params[2] ** 2,
+                pauli_label("Z2"): 4.0 * params[3] ** 3,
+                pauli_label("Z0 Z1"): 5.0 * (params[4] - 1.0),
+                pauli_label("Z0 Z2"): 6.0 * (params[5] - params[4]),
+            }
+        )
+
+    h_params = [1, 2, 3, 4, 5, 6]
+    param_estimator = create_qulacs_vector_concurrent_parametric_estimator()
+    with pytest.raises(ValueError):
+        create_energy_gradient_estimator(
+            param_estimator, h_params, _non_hermitian_op_generator
+        )

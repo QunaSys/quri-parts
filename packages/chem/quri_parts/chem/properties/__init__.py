@@ -13,7 +13,7 @@ from typing import Callable, Optional, Sequence, TypeVar, Union
 from typing_extensions import TypeAlias
 
 from quri_parts.core.estimator import ConcurrentParametricQuantumEstimator
-from quri_parts.core.operator import Operator
+from quri_parts.core.operator import Operator, is_ops_close
 from quri_parts.core.state import (
     ParametricCircuitQuantumState,
     ParametricQuantumStateVector,
@@ -51,6 +51,9 @@ def create_energy_gradient_estimator(
     """Create a :class:`EnergyGradientEstimator` that calculates the energy
     gradients with respect to the hamiltonian parameters at the given circuit
     parameters."""
+    hamiltonian = h_generator(h_params)
+    if not is_ops_close(hamiltonian, hamiltonian.hermitian_conjugated()):
+        raise ValueError("Hamiltonian must be hermitian.")
     if h_gradient_calculator is None:
         h_gradient_calculator = create_numerical_operator_gradient_calculator(
             h_generator
