@@ -98,7 +98,7 @@ def is_two_qubit_gate_name(gate_name: str) -> TypeGuard[TwoQubitGateNameType]:
     return gate_name in TWO_QUBIT_GATE_NAMES
 
 
-ThreeQubitGateNameType: TypeAlias = Literal["TOFFOLI",]  # noqa: E231
+ThreeQubitGateNameType: TypeAlias = Literal["TOFFOLI"]
 
 TOFFOLI: Literal["TOFFOLI"] = "TOFFOLI"
 
@@ -133,7 +133,7 @@ NonParametricGateNameType: TypeAlias = Union[
 ]
 
 
-UnitaryMatrixGateNameType: TypeAlias = Literal["UnitaryMatrix",]  # noqa: E231
+UnitaryMatrixGateNameType: TypeAlias = Literal["UnitaryMatrix"]
 
 UnitaryMatrix: Literal["UnitaryMatrix"] = "UnitaryMatrix"
 
