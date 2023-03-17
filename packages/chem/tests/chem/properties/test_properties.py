@@ -8,10 +8,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
 from typing import Sequence
 
 import numpy as np
+import pytest
 
 from quri_parts.chem.properties import create_energy_gradient_estimator
 from quri_parts.circuit import UnboundParametricQuantumCircuit
