@@ -52,7 +52,8 @@ class TestParameterMappingBase:
 
                 return m
 
-            def is_trivial_mapping(self) -> bool:  # type: ignore[override]
+            @property
+            def is_trivial_mapping(self) -> bool:
                 return False
 
         mapping = M()

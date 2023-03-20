@@ -1,11 +1,9 @@
 import os
 from collections.abc import Collection, Iterable, Sequence
-from typing import TYPE_CHECKING, Any, Callable, NamedTuple, Optional
+from typing import TYPE_CHECKING, Any, Callable, NamedTuple, Optional, Union
 
 import juliacall
 from juliacall import Main as jl
-from typing_extensions import TypeAlias
-
 from quri_parts.core.estimator import (
     ConcurrentParametricQuantumEstimator,
     ConcurrentQuantumEstimator,
@@ -18,6 +16,7 @@ from quri_parts.core.estimator import (
 from quri_parts.core.operator import zero
 from quri_parts.core.state import CircuitQuantumState, ParametricCircuitQuantumState
 from quri_parts.core.utils.concurrent import execute_concurrently
+from typing_extensions import TypeAlias
 
 from .circuit import convert_circuit
 from .operator import convert_operator
@@ -33,7 +32,7 @@ jl.seval(include_statement)
 
 class _Estimate(NamedTuple):
     value: complex
-    error: float = 0.0
+    error: Union[float, None] = None
 
 
 #: A type alias for state classes supported by ITensor estimators.

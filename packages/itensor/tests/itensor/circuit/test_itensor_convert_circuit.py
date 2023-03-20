@@ -6,8 +6,8 @@ import juliacall
 import numpy
 import pytest
 from juliacall import Main as jl
-
 from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
+
 from quri_parts.itensor.circuit import convert_circuit
 
 abs_dir = os.path.dirname(os.path.abspath(__file__))
@@ -85,12 +85,13 @@ def test_convert_two_qubit_gate() -> None:
     s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
     psi: juliacall.AnyValue = jl.initState(s, qubits)
     expected_list = [
-        [1.0, 0.0, 0.0, 0.0],
-        [1.0, 0.0, 0.0, 0.0],
-        [1.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0],
+        [0.0, 1.0, 0.0, 0.0],
+        [0.0, 0.0, 1.0, 0.0],
     ]
     for i, qp_fac in enumerate(two_qubit_gate_list):
         circuit = QuantumCircuit(qubits)
+        circuit.add_gate(gates.X(0))
         circuit.add_gate(qp_fac(0, 1))
         psiApplied = jl.apply(convert_circuit(circuit, s), psi)
         stateVector = jl.stateVector(psiApplied, s)
@@ -103,10 +104,12 @@ def test_convert_three_qubit_gate() -> None:
     s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
     psi: juliacall.AnyValue = jl.initState(s, qubits)
     expected_list = [
-        [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
     ]
     for i, qp_fac in enumerate(three_qubit_gate_list):
         circuit = QuantumCircuit(qubits)
+        circuit.add_gate(gates.X(0))
+        circuit.add_gate(gates.X(1))
         circuit.add_gate(qp_fac(0, 1, 2))
         psiApplied = jl.apply(convert_circuit(circuit, s), psi)
         stateVector = jl.stateVector(psiApplied, s)
