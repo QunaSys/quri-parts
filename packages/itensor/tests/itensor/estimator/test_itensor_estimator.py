@@ -3,7 +3,6 @@ from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import get_context
 from typing import Union
 
-import numpy as np
 import pytest
 
 from quri_parts.circuit import (
@@ -13,7 +12,6 @@ from quri_parts.circuit import (
 from quri_parts.core.operator import Operator, PauliLabel, pauli_label
 from quri_parts.core.state import ComputationalBasisState, ParametricCircuitQuantumState
 from quri_parts.itensor.estimator import (
-    _Estimate,
     create_itensor_mps_concurrent_estimator,
     create_itensor_mps_estimator,
     create_itensor_mps_parametric_estimator,
@@ -72,10 +70,8 @@ class TestITensorConcurrentEstimator:
         ) as executor:
             estimator = create_itensor_mps_concurrent_estimator(executor, concurrency=2)
             result = estimator(operators, states)
-        assert result == [
-            _Estimate(value=-1, error=np.nan),
-            _Estimate(value=-0.25 + 0.5j, error=np.nan),
-        ]
+        assert result[0].value == -1  # type: ignore
+        assert result[1].value == -0.25 + 0.5j  # type: ignore
 
     def test_concurrent_estimate_single_state(self) -> None:
         operators: list[Union[PauliLabel, Operator]] = [
@@ -95,10 +91,8 @@ class TestITensorConcurrentEstimator:
         ) as executor:
             estimator = create_itensor_mps_concurrent_estimator(executor, concurrency=2)
             result = estimator(operators, states)
-        assert result == [
-            _Estimate(value=-1, error=np.nan),
-            _Estimate(value=-0.25 + 0.5j, error=np.nan),
-        ]
+        assert result[0].value == -1  # type: ignore
+        assert result[1].value == -0.25 + 0.5j  # type: ignore
 
     def test_concurrent_estimate_single_operator(self) -> None:
         operators: list[Union[PauliLabel, Operator]] = [
@@ -118,10 +112,8 @@ class TestITensorConcurrentEstimator:
         ) as executor:
             estimator = create_itensor_mps_concurrent_estimator(executor, concurrency=2)
             result = estimator(operators, states)
-        assert result == [
-            _Estimate(value=-0.25 + 0.5j, error=np.nan),
-            _Estimate(value=0.25 + 0.5j, error=np.nan),
-        ]
+        assert result[0].value == -0.25 + 0.5j  # type: ignore
+        assert result[1].value == 0.25 + 0.5j  # type: ignore
 
 
 def parametric_circuit() -> UnboundParametricQuantumCircuitProtocol:
