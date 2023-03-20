@@ -2,8 +2,8 @@ import os
 
 import juliacall
 from juliacall import Main as jl
-from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
 
+from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
 from quri_parts.itensor.operator import convert_operator
 
 abs_dir = os.path.dirname(os.path.abspath(__file__))
