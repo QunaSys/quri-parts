@@ -26,7 +26,6 @@ class TestITensorEstimator:
         estimator = create_itensor_mps_estimator()
         estimate = estimator(pauli, state)
         assert estimate.value == -1
-        assert estimate.error == 0
 
     def test_estimate_operator(self) -> None:
         operator = Operator(
@@ -39,7 +38,6 @@ class TestITensorEstimator:
         estimator = create_itensor_mps_estimator()
         estimate = estimator(operator, state)
         assert estimate.value == -0.25 + 0.5j
-        assert estimate.error == 0
 
 
 class TestITensorConcurrentEstimator:
@@ -74,8 +72,8 @@ class TestITensorConcurrentEstimator:
             estimator = create_itensor_mps_concurrent_estimator(executor, concurrency=2)
             result = estimator(operators, states)
         assert result == [
-            _Estimate(value=-1, error=0),
-            _Estimate(value=-0.25 + 0.5j, error=0),
+            _Estimate(value=-1, error=None),
+            _Estimate(value=-0.25 + 0.5j, error=None),
         ]
 
     def test_concurrent_estimate_single_state(self) -> None:
@@ -97,8 +95,8 @@ class TestITensorConcurrentEstimator:
             estimator = create_itensor_mps_concurrent_estimator(executor, concurrency=2)
             result = estimator(operators, states)
         assert result == [
-            _Estimate(value=-1, error=0),
-            _Estimate(value=-0.25 + 0.5j, error=0),
+            _Estimate(value=-1, error=None),
+            _Estimate(value=-0.25 + 0.5j, error=None),
         ]
 
     def test_concurrent_estimate_single_operator(self) -> None:
@@ -120,8 +118,8 @@ class TestITensorConcurrentEstimator:
             estimator = create_itensor_mps_concurrent_estimator(executor, concurrency=2)
             result = estimator(operators, states)
         assert result == [
-            _Estimate(value=-0.25 + 0.5j, error=0),
-            _Estimate(value=0.25 + 0.5j, error=0),
+            _Estimate(value=-0.25 + 0.5j, error=None),
+            _Estimate(value=0.25 + 0.5j, error=None),
         ]
 
 
@@ -161,7 +159,6 @@ class TestITensorParametricEstimator:
         ):
             estimate = estimator(pauli, state, params)
             assert estimate.value == pytest.approx(expected_list[i])
-            assert estimate.error == 0
 
     def test_estimate_operator(self) -> None:
         operator = Operator(
@@ -188,4 +185,3 @@ class TestITensorParametricEstimator:
         ):
             estimate = estimator(operator, state, params)
             assert estimate.value == pytest.approx(expected_list[i])
-            assert estimate.error == 0
