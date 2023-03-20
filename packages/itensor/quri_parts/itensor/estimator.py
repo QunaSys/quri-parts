@@ -1,8 +1,9 @@
 import os
 from collections.abc import Collection, Iterable, Sequence
-from typing import TYPE_CHECKING, Any, Callable, NamedTuple, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, NamedTuple, Optional
 
 import juliacall
+import numpy as np
 from juliacall import Main as jl
 from typing_extensions import TypeAlias
 
@@ -33,7 +34,7 @@ jl.seval(include_statement)
 
 class _Estimate(NamedTuple):
     value: complex
-    error: Union[float, None] = None
+    error: float = np.nan
 
 
 #: A type alias for state classes supported by ITensor estimators.

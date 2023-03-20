@@ -3,6 +3,7 @@ from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import get_context
 from typing import Union
 
+import numpy as np
 import pytest
 
 from quri_parts.circuit import (
@@ -72,8 +73,8 @@ class TestITensorConcurrentEstimator:
             estimator = create_itensor_mps_concurrent_estimator(executor, concurrency=2)
             result = estimator(operators, states)
         assert result == [
-            _Estimate(value=-1, error=None),
-            _Estimate(value=-0.25 + 0.5j, error=None),
+            _Estimate(value=-1, error=np.nan),
+            _Estimate(value=-0.25 + 0.5j, error=np.nan),
         ]
 
     def test_concurrent_estimate_single_state(self) -> None:
@@ -95,8 +96,8 @@ class TestITensorConcurrentEstimator:
             estimator = create_itensor_mps_concurrent_estimator(executor, concurrency=2)
             result = estimator(operators, states)
         assert result == [
-            _Estimate(value=-1, error=None),
-            _Estimate(value=-0.25 + 0.5j, error=None),
+            _Estimate(value=-1, error=np.nan),
+            _Estimate(value=-0.25 + 0.5j, error=np.nan),
         ]
 
     def test_concurrent_estimate_single_operator(self) -> None:
@@ -118,8 +119,8 @@ class TestITensorConcurrentEstimator:
             estimator = create_itensor_mps_concurrent_estimator(executor, concurrency=2)
             result = estimator(operators, states)
         assert result == [
-            _Estimate(value=-0.25 + 0.5j, error=None),
-            _Estimate(value=0.25 + 0.5j, error=None),
+            _Estimate(value=-0.25 + 0.5j, error=np.nan),
+            _Estimate(value=0.25 + 0.5j, error=np.nan),
         ]
 
 

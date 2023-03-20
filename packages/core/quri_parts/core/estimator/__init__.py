@@ -39,7 +39,7 @@ class Estimate(Protocol[EstimateValue]):
         ...
 
     @abstractproperty
-    def error(self) -> Union[float, None]:
+    def error(self) -> float:
         """Represents the \"error\" of the estimate.
 
         The precise meaning of the \"error\" depends on what type the
