@@ -88,16 +88,16 @@ class UnboundParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
         For example, if the parametric circuit is defined as:
 
         .. math::
-        \begin{align}
-            U_1(f(\theta_1, \theta_2)) U_2(g(\theta_1, \theta_2))
-        \end{align}
+            \begin{align}
+                U_1(f(\theta_1, \theta_2)) U_2(g(\theta_1, \theta_2))
+            \end{align}
 
         the primitive circuit should be as the following:
 
         .. math::
-        \begin{align}
-            U_1(\psi_1) U_2(\psi_2)
-        \end{align}
+            \begin{align}
+                U_1(\psi_1) U_2(\psi_2)
+            \end{align}
 
         where U1, U2 are rotation gates and f, g are parameter mappings.
         """

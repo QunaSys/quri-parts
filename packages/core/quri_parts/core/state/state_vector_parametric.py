@@ -54,12 +54,12 @@ class ParametricQuantumStateVector(
         return self._n_qubits
 
     def with_primitive_circuit(self) -> "ParametricQuantumStateVector":
-        """Returns a new state with the primitive circuit applied. The
-        primitive circuit means that each gate in the circuit has an
-        independent parameter even if those in the original circuit depend on
-        the same parameters.
+        """Returns a new ParametricQuantumStateVector whose circuit is
+        replaced with the corresponding primitive circuit.
 
-        The original state is not changed.
+        The original state is not changed. For details about the
+        primitive circuit, please refer to `.primitive_circuit()` in
+        :class:`UnboundParametricQuantumCircuitProtocol`.
         """
         return ParametricQuantumStateVector(
             self._n_qubits, self._circuit.primitive_circuit(), self.vector
