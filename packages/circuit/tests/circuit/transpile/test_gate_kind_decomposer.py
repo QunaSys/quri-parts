@@ -13,7 +13,6 @@ import numpy as np
 from quri_parts.circuit import (
     CNOT,
     CZ,
-    Identity,
     RX,
     RY,
     RZ,
@@ -23,6 +22,7 @@ from quri_parts.circuit import (
     U2,
     U3,
     H,
+    Identity,
     Pauli,
     PauliRotation,
     QuantumCircuit,
