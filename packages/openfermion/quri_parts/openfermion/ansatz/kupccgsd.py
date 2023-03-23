@@ -31,6 +31,10 @@ class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
     two electrons from one spatial orbital to another.
 
     Ref:
+        Lee et al., Generalized Unitary Coupled Cluster Wave functions for Quantum
+        Computation, J. Chem. Theory Comput. 15, 311–324 (2019),
+        `arXiv:1810.02327 <https://arxiv.org/abs/1810.02327>`_.
+
         PennyLane's documentations,
         `qml.kUpCCGSD <https://docs.pennylane.ai/en/stable/
         code/api/pennylane.kUpCCGSD.html>`_
