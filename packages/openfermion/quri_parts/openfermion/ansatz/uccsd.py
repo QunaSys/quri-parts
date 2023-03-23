@@ -12,7 +12,6 @@ from typing import Sequence, Union, cast
 
 from openfermion.ops import FermionOperator
 
-
 from quri_parts.chem.utils.excitations import (
     DoubleExcitation,
     SingleExcitation,
