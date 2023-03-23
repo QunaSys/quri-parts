@@ -20,10 +20,9 @@ from quri_parts.circuit import (
 
 
 class ParticleConservingU2(ImmutableLinearMappedUnboundParametricQuantumCircuit):
-    """Parametric quantum circuit that conserves the number of particles.
-    Note that this circuit conserves the particle number and spins only
-    if the state applied to is represented based on the Jordan-Wigner
-    transformation.
+    """Parametric quantum circuit that conserves the number of particles. Note
+    that this circuit conserves the particle number and spins only if the state
+    applied to is represented based on the Jordan-Wigner transformation.
 
     Ref.
         P. Kl. Barkoutsos et al.,
