@@ -18,9 +18,7 @@ from quri_parts.openfermion.transforms import (
     jordan_wigner,
     symmetry_conserving_bravyi_kitaev,
 )
-from quri_parts.openfermion.utils.add_parametric_pauli_rotation import (
-    add_parametric_pauli_rotation_gate,
-)
+from quri_parts.openfermion.utils import add_exp_excitation_gates_trotter_decomposition
 
 
 class TestConstructCircuit:
@@ -42,11 +40,11 @@ class TestConstructCircuit:
         params = expected_circuit.add_parameters("param1", "param2", "param3")
         op_mapper = fermion_qubit_mapping.get_of_operator_mapper()
         s_excs, d_excs = excitations(n_spin_orbitals, n_electrons)
-        add_parametric_pauli_rotation_gate(
-            expected_circuit, d_excs, [params[-1]], op_mapper, trotter_number
+        add_exp_excitation_gates_trotter_decomposition(
+            expected_circuit, d_excs, [params[-1]], op_mapper, 1 / trotter_number
         )
-        add_parametric_pauli_rotation_gate(
-            expected_circuit, s_excs, params[:-1], op_mapper, trotter_number
+        add_exp_excitation_gates_trotter_decomposition(
+            expected_circuit, s_excs, params[:-1], op_mapper, 1 / trotter_number
         )
         assert circuit.parameter_count == expected_circuit.parameter_count
         assert circuit._circuit.gates == expected_circuit._circuit.gates
@@ -73,8 +71,8 @@ class TestConstructCircuit:
         param = expected_circuit.add_parameter("param")
         op_mapper = fermion_qubit_mapping.get_of_operator_mapper()
         _, d_excs = excitations(n_spin_orbitals, n_electrons)
-        add_parametric_pauli_rotation_gate(
-            expected_circuit, d_excs, [param], op_mapper, trotter_number
+        add_exp_excitation_gates_trotter_decomposition(
+            expected_circuit, d_excs, [param], op_mapper, 1 / trotter_number
         )
         assert circuit.parameter_count == expected_circuit.parameter_count
         assert circuit._circuit.gates == expected_circuit._circuit.gates
@@ -104,17 +102,17 @@ class TestConstructCircuit:
         expected_circuit = LinearMappedUnboundParametricQuantumCircuit(n_qubits)
         params = expected_circuit.add_parameters("param1", "param2", "param3")
         s_excs, d_excs = excitations(n_spin_orbitals, n_electrons)
-        add_parametric_pauli_rotation_gate(
-            expected_circuit, d_excs, [params[-1]], op_mapper, trotter_number
+        add_exp_excitation_gates_trotter_decomposition(
+            expected_circuit, d_excs, [params[-1]], op_mapper, 1 / trotter_number
         )
-        add_parametric_pauli_rotation_gate(
-            expected_circuit, s_excs, params[:-1], op_mapper, trotter_number
+        add_exp_excitation_gates_trotter_decomposition(
+            expected_circuit, s_excs, params[:-1], op_mapper, 1 / trotter_number
         )
-        add_parametric_pauli_rotation_gate(
-            expected_circuit, d_excs, [params[-1]], op_mapper, trotter_number
+        add_exp_excitation_gates_trotter_decomposition(
+            expected_circuit, d_excs, [params[-1]], op_mapper, 1 / trotter_number
         )
-        add_parametric_pauli_rotation_gate(
-            expected_circuit, s_excs, params[:-1], op_mapper, trotter_number
+        add_exp_excitation_gates_trotter_decomposition(
+            expected_circuit, s_excs, params[:-1], op_mapper, 1 / trotter_number
         )
         assert circuit.parameter_count == expected_circuit.parameter_count
         assert circuit._circuit.gates == expected_circuit._circuit.gates

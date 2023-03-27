@@ -16,9 +16,7 @@ from quri_parts.circuit import (
     LinearMappedUnboundParametricQuantumCircuit,
 )
 from quri_parts.openfermion.transforms import OpenFermionQubitMapping, jordan_wigner
-from quri_parts.openfermion.utils.add_parametric_pauli_rotation import (
-    add_parametric_pauli_rotation_gate,
-)
+from quri_parts.openfermion.utils import add_exp_excitation_gates_trotter_decomposition
 
 
 class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
@@ -76,11 +74,11 @@ class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
                 circuit.add_parameter(f"theta_d_{i}") for i in range(len(d_excs))
             ]
             for _ in range(trotter_number):
-                add_parametric_pauli_rotation_gate(
-                    circuit, d_excs, d_exc_params, op_mapper, trotter_number
+                add_exp_excitation_gates_trotter_decomposition(
+                    circuit, d_excs, d_exc_params, op_mapper, 1 / trotter_number
                 )
-                add_parametric_pauli_rotation_gate(
-                    circuit, s_excs, s_exc_params, op_mapper, trotter_number
+                add_exp_excitation_gates_trotter_decomposition(
+                    circuit, s_excs, s_exc_params, op_mapper, 1 / trotter_number
                 )
         super().__init__(circuit)
 

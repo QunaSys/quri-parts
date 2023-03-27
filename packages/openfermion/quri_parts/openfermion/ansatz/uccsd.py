@@ -15,7 +15,7 @@ from quri_parts.circuit import (
 )
 
 from ..transforms import OpenFermionQubitMapping, jordan_wigner
-from ..utils.add_parametric_pauli_rotation import add_parametric_pauli_rotation_gate
+from ..utils import add_exp_excitation_gates_trotter_decomposition
 
 
 class TrotterSingletUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
@@ -83,12 +83,12 @@ def _construct_circuit(
         n_spin_orbitals, n_fermions
     )
     for _ in range(trotter_number):
-        add_parametric_pauli_rotation_gate(
-            circuit, d_excs, d_exc_params, op_mapper, trotter_number
+        add_exp_excitation_gates_trotter_decomposition(
+            circuit, d_excs, d_exc_params, op_mapper, 1 / trotter_number
         )
         if use_singles:
-            add_parametric_pauli_rotation_gate(
-                circuit, s_excs, s_exc_params, op_mapper, trotter_number
+            add_exp_excitation_gates_trotter_decomposition(
+                circuit, s_excs, s_exc_params, op_mapper, 1 / trotter_number
             )
 
     return circuit
