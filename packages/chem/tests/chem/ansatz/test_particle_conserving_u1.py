@@ -84,10 +84,10 @@ def test_u1_ex_gate() -> None:
     phi, theta = expected_circuit.add_parameters("phi", "theta")
     _add_controlled_ua_gate(expected_circuit, qidx_1, qidx_2, phi)
     expected_circuit.add_CZ_gate(qidx_2, qidx_1)
+    expected_circuit.add_ParametricRY_gate(qidx_1, theta)
     expected_circuit.add_CNOT_gate(qidx_2, qidx_1)
     expected_circuit.add_ParametricRY_gate(qidx_1, {theta: -1.0})
     expected_circuit.add_CNOT_gate(qidx_2, qidx_1)
-    expected_circuit.add_ParametricRY_gate(qidx_1, theta)
     _add_controlled_ua_gate(expected_circuit, qidx_1, qidx_2, {phi: -1.0})
     assert circuit.parameter_count == expected_circuit.parameter_count
     assert circuit._circuit.gates == expected_circuit._circuit.gates
@@ -105,10 +105,10 @@ def test_u1_ex_gate() -> None:
     phi, theta = expected_circuit.add_parameters("phi", "theta")
     _add_controlled_ua_gate(expected_circuit, qidx_1, qidx_2, phi)
     expected_circuit.add_CZ_gate(qidx_2, qidx_1)
+    expected_circuit.add_ParametricRY_gate(qidx_1, theta)
     expected_circuit.add_CNOT_gate(qidx_2, qidx_1)
     expected_circuit.add_ParametricRY_gate(qidx_1, {theta: -1.0})
     expected_circuit.add_CNOT_gate(qidx_2, qidx_1)
-    expected_circuit.add_ParametricRY_gate(qidx_1, theta)
     _add_controlled_ua_gate(expected_circuit, qidx_1, qidx_2, {phi: -1.0})
 
     assert circuit.parameter_count == expected_circuit.parameter_count

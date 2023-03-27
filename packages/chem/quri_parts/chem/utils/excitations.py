@@ -14,19 +14,19 @@ from typing_extensions import TypeAlias
 
 from quri_parts.circuit import (
     LinearMappedUnboundParametricQuantumCircuit,
-    LinearParameterFunction,
     Parameter,
     ParameterOrLinearFunction,
 )
+from quri_parts.circuit.utils.controlled_rotations import add_controlled_RY_gate
 
-#: Represents the set of orbital indices involved in excitation. The first element is
-#: the index of an occupied orbital and the second element is the index of an
-#: unoccupied index.
+#: Alias of ``tuple[int, int]`` which represents the set of orbital indices involved in
+#: excitation. The first element is the index of an occupied orbital and the second
+#: element is the index of an unoccupied index.
 SingleExcitation: TypeAlias = tuple[int, int]
 
-#: Represents the set of orbital indices involved in excitation. The first and second
-#: element is the indices of occupied orbitals and the third and fourth element is the
-#: indices of unoccupied orbitals.
+#: Alias of ``tuple[int, int, int, int]`` which represents the set of orbital indices
+#: involved in excitation. The first and second element is the indices of occupied
+#: orbitals and the third and fourth element is the indices of unoccupied orbitals.
 DoubleExcitation: TypeAlias = tuple[int, int, int, int]
 
 
@@ -59,7 +59,7 @@ def add_single_excitation_circuit(
     param_fn: ParameterOrLinearFunction,
 ) -> LinearMappedUnboundParametricQuantumCircuit:
     r"""Add a particle-conserving single excitation circuit to the given
-    :attr:`circuit` implemented as a givens rotation :math:`G(\theta)`
+    :attr:`circuit` implemented as a Givens rotation :math:`G(\theta)`
 
     .. math::
         \begin{align}
@@ -71,13 +71,10 @@ def add_single_excitation_circuit(
 
     applied to the :attr:`excitation_indices`.
     """
-    if isinstance(param_fn, Parameter):
-        p_fn = {param_fn: 0.5}
-    else:
-        p_fn = {param: 0.5 * val for param, val in param_fn.items()}
-
     circuit.add_CNOT_gate(*excitation_indices)
-    _add_controlled_Y_gate(circuit, excitation_indices[1], excitation_indices[0], p_fn)
+    add_controlled_RY_gate(
+        circuit, excitation_indices[1], excitation_indices[0], param_fn
+    )
     circuit.add_CNOT_gate(*excitation_indices)
     return circuit
 
@@ -88,7 +85,7 @@ def add_double_excitation_circuit(
     param_fn: ParameterOrLinearFunction,
 ) -> LinearMappedUnboundParametricQuantumCircuit:
     r"""Add a particle-conserving double excitation circuit to the given
-    :attr:`circuit` implemented as a extended givens rotation :math:`G^2(\theta)` which
+    :attr:`circuit` implemented as a extended Givens rotation :math:`G^2(\theta)` which
     acts on the space of 4 qubits and performs the :math:`U(2)` rotation on the
     subspace spanned by two states, e.g. :math:`|0011\rangle` and :math:`|1100\rangle`
 
@@ -145,20 +142,5 @@ def add_double_excitation_circuit(
     circuit.add_H_gate(excitation_indices[3])
     circuit.add_CNOT_gate(excitation_indices[0], excitation_indices[2])
     circuit.add_CNOT_gate(excitation_indices[2], excitation_indices[3])
-
-    return circuit
-
-
-def _add_controlled_Y_gate(
-    circuit: LinearMappedUnboundParametricQuantumCircuit,
-    control_index: int,
-    target_index: int,
-    param_fn: LinearParameterFunction,
-) -> LinearMappedUnboundParametricQuantumCircuit:
-    inv_sign_param_fn = {param: -1.0 * val for param, val in param_fn.items()}
-    circuit.add_ParametricRY_gate(target_index, param_fn)
-    circuit.add_CNOT_gate(control_index, target_index)
-    circuit.add_ParametricRY_gate(target_index, inv_sign_param_fn)
-    circuit.add_CNOT_gate(control_index, target_index)
 
     return circuit
