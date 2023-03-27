@@ -1,15 +1,11 @@
 from numpy import allclose, array, pi
 
-from quri_parts.circuit import (
-    LinearMappedUnboundParametricQuantumCircuit,
-    QuantumCircuit,
-)
+from quri_parts.circuit import QuantumCircuit
 from quri_parts.core.state import GeneralCircuitQuantumState, QuantumStateVector
 from quri_parts.qulacs.simulator import evaluate_state_to_vector, run_circuit
 
 
 def test_evaluate_state_to_vector_general_circuit_state_to_vec() -> None:
-    
     n = 2
     # quri-parts operations
     quantum_circuit = QuantumCircuit(n)
@@ -36,7 +32,6 @@ def test_evaluate_state_to_vector_general_circuit_state_to_vec() -> None:
 
 
 def test_evaluate_state_to_vector_vec_to_vec() -> None:
-
     n = 2
     # quri-parts operations
     quantum_circuit = QuantumCircuit(n)
@@ -61,8 +56,8 @@ def test_evaluate_state_to_vector_vec_to_vec() -> None:
     assert len(quantum_state_vector.circuit.gates) == 0
     assert allclose(quantum_state_vector.vector, expect_output_vector)
 
+
 def test_run_circuit_simple() -> None:
-    
     n = 2
     theta_x = pi / 7
     theta_y = pi / 8
