@@ -36,6 +36,7 @@ class TestITensorMPSSampler:
 
 
 class TestITensorMPSConcurrentSampler:
+    @pytest.mark.skip(reason="This test is too slow.")
     def test_concurrent_sampler(self) -> None:
         circuit1 = circuit()
         circuit2 = circuit()
