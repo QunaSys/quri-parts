@@ -86,7 +86,7 @@ class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
 def _generalized_single_excitations(
     n_spin_orbitals: int, delta_sz: int
 ) -> Sequence[SingleExcitation]:
-    sz = [0.5 if (i % 2 == 0) else -0.5 for i in range(n_spin_orbitals)]
+    sz = [0.5 - (i % 2) for i in range(n_spin_orbitals)]
     s_excitations = []
     for r in range(n_spin_orbitals):
         for p in range(n_spin_orbitals):
