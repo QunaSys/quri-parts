@@ -77,7 +77,7 @@ def add_single_excitation_circuit(
         p_fn = {param: 0.5 * val for param, val in param_fn.items()}
 
     circuit.add_CNOT_gate(*excitation_indices)
-    _add_controlled_Y_gate(circuit, excitation_indices[1], excitation_indices[0], p_fn)
+    _add_controlled_RY_gate(circuit, excitation_indices[1], excitation_indices[0], p_fn)
     circuit.add_CNOT_gate(*excitation_indices)
     return circuit
 
@@ -149,7 +149,7 @@ def add_double_excitation_circuit(
     return circuit
 
 
-def _add_controlled_Y_gate(
+def _add_controlled_RY_gate(
     circuit: LinearMappedUnboundParametricQuantumCircuit,
     control_index: int,
     target_index: int,
