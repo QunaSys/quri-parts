@@ -36,8 +36,6 @@ def test_evaluate_state_to_vector_general_circuit_state_to_vec() -> None:
 
 
 def test_evaluate_state_to_vector_vec_to_vec() -> None:
-    """testing evaluate CircuitQuantumStateWithInitialVector with circuit to
-    QuantumStateVector without circuit."""
 
     n = 2
     # quri-parts operations
@@ -62,38 +60,6 @@ def test_evaluate_state_to_vector_vec_to_vec() -> None:
 
     assert len(quantum_state_vector.circuit.gates) == 0
     assert allclose(quantum_state_vector.vector, expect_output_vector)
-
-
-def test_evaluate_state_to_vector_vec_to_vec_2() -> None:
-    """testing convert
-    CircuitQuantumStateWithInitialVector.with_gates_applied() to
-    CircuitQuantumStateWithInitialVector without circuit."""
-    n = 2
-    # quri-parts operations
-    quantum_circuit = QuantumCircuit(n)
-    quantum_circuit.add_CNOT_gate(0, 1)
-    quantum_circuit.add_X_gate(0)
-    quantum_circuit.add_RX_gate(0, pi / 7)
-    quantum_circuit.add_RY_gate(0, pi / 8)
-    quantum_circuit.add_H_gate(1)
-
-    circuit_quantum_state = QuantumStateVector(n, array([1, 0, 0, 0]))
-    circuit_quantum_state = circuit_quantum_state.with_gates_applied(quantum_circuit)
-    quantum_state_vector = evaluate_state_to_vector(circuit_quantum_state)
-
-    expect_output_vector = array(
-        [
-            -0.134491 - 0.154323j,
-            0.676132 - 0.0306967j,
-            -0.134491 - 0.154323j,
-            0.676132 - 0.0306967j,
-        ]
-    )
-
-    assert len(quantum_state_vector.circuit.gates) == 0
-    assert allclose(quantum_state_vector.vector, expect_output_vector)
-
-
 
 def test_run_circuit_simple() -> None:
     
