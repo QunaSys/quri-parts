@@ -96,7 +96,7 @@ def test_evaluate_state_to_vector_vec_to_vec_2() -> None:
 
 
 def test_run_circuit_simple() -> None:
-    """testing run_circuit."""
+    
     n = 2
     theta_x = pi / 7
     theta_y = pi / 8
