@@ -88,7 +88,7 @@ def add_double_excitation_circuit(
     param_fn: ParameterOrLinearFunction,
 ) -> LinearMappedUnboundParametricQuantumCircuit:
     r"""Add a particle-conserving double excitation circuit to the given
-    :attr:`circuit` implemented as a extended givens rotation :math:`G^2(\theta)` which
+    :attr:`circuit` implemented as a extended Givens rotation :math:`G^2(\theta)` which
     acts on the space of 4 qubits and performs the :math:`U(2)` rotation on the
     subspace spanned by two states, e.g. :math:`|0011\rangle` and :math:`|1100\rangle`
 
