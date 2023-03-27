@@ -1,6 +1,7 @@
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning", "setuptools"]
 build-backend = "poetry_dynamic_versioning.backend"
+
 [tool.poetry]
 name = "quri-parts"
 version = "0.0.0"
@@ -19,15 +20,18 @@ packages = [
     { include = "quri_parts" }
 ]
 include = ["NOTICE"]
+
 [tool.poetry-dynamic-versioning]
 enable = true
 style = "pep440"
+
 [tool.poetry.dependencies]
 python = "^3.9.8,<3.12"
 quri-parts-core = "*"
 quri-parts-circuit = "*"
 quri-parts-algo = "*"
 quri-parts-chem = "*"
+
 quri-parts-qulacs = { version = "*", optional = true }
 quri-parts-braket = { version = "*", optional = true }
 quri-parts-qiskit = { version = "*", optional = true }
@@ -87,5 +91,6 @@ mypy = "^1.0.1"
 
 [tool.black]
 line-length = 88
+
 [tool.isort]
 profile = "black"
