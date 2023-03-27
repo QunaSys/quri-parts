@@ -1,9 +1,4 @@
 using ITensors
-function init_state(s, qubits::Integer)
-    psi = productMPS(s, ["0" for i in 1:qubits])
-    return psi
-end
-
 
 # return state Vector of the MPS. (<psi|0>, <psi|1>, ..., <psi|2^length(s)-1>)
 function stateVector(psi, s)
