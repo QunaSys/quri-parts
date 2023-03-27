@@ -27,6 +27,6 @@ jobs:
     - run: |
         poetry install -vvv
 
-    - run: poetry run julia -e 'using Pkg; Pkg.add("PythonCall"); Pkg.instantiate()'
-      
+    - run: poetry run julia -e 'using Pkg; Pkg.add("PythonCall")'
+
     - run: poetry run pytest
