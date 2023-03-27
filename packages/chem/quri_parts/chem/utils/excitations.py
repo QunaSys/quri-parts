@@ -59,7 +59,7 @@ def add_single_excitation_circuit(
     param_fn: ParameterOrLinearFunction,
 ) -> LinearMappedUnboundParametricQuantumCircuit:
     r"""Add a particle-conserving single excitation circuit to the given
-    :attr:`circuit` implemented as a givens rotation :math:`G(\theta)`
+    :attr:`circuit` implemented as a Givens rotation :math:`G(\theta)`
 
     .. math::
         \begin{align}
