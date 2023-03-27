@@ -1,4 +1,3 @@
-import os
 from collections.abc import Collection, Iterable, Sequence
 from typing import TYPE_CHECKING, Any, Callable, NamedTuple, Optional
 
@@ -19,17 +18,13 @@ from quri_parts.core.estimator import (
 from quri_parts.core.operator import zero
 from quri_parts.core.state import CircuitQuantumState, ParametricCircuitQuantumState
 from quri_parts.core.utils.concurrent import execute_concurrently
+from quri_parts.itensor.load_itensor import ensure_itensor_loaded
 
 from .circuit import convert_circuit
 from .operator import convert_operator
 
 if TYPE_CHECKING:
     from concurrent.futures import Executor
-
-abs_dir = os.path.dirname(os.path.abspath(__file__))
-library_path = os.path.join(abs_dir, "library.jl")
-include_statement = 'include("' + library_path + '")'
-jl.seval(include_statement)
 
 
 class _Estimate(NamedTuple):
@@ -47,6 +42,7 @@ ITensorParametricStateT: TypeAlias = ParametricCircuitQuantumState
 
 
 def _estimate(operator: Estimatable, state: ITensorStateT) -> Estimate[complex]:
+    ensure_itensor_loaded(__file__)
     if operator == zero():
         return _Estimate(value=0.0)
     qubits = state.qubit_count
@@ -82,6 +78,7 @@ def _sequential_estimate(
 def _sequential_estimate_single_state(
     state: ITensorStateT, operators: Sequence[Estimatable]
 ) -> Sequence[Estimate[complex]]:
+    ensure_itensor_loaded(__file__)
     qubits = state.qubit_count
     s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
     psi: juliacall.AnyValue = jl.init_state(s, qubits)
