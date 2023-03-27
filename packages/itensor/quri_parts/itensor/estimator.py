@@ -182,13 +182,7 @@ def _sequential_parametric_estimate(
 def create_itensor_mps_parametric_estimator() -> ParametricQuantumEstimator[
     ITensorParametricStateT
 ]:
-    def estimator(
-        operator: Estimatable, state: ITensorParametricStateT, param: Sequence[float]
-    ) -> Estimate[complex]:
-        ests = _sequential_parametric_estimate((operator, state), [param])
-        return ests[0]
-
-    return estimator
+    return create_parametric_estimator(create_itensor_mps_estimator())
 
 
 def create_itensor_mps_concurrent_parametric_estimator(
