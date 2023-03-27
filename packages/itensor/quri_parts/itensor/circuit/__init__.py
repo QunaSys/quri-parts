@@ -2,7 +2,6 @@ from collections.abc import Mapping
 
 import juliacall
 from juliacall import Main as jl
-
 from quri_parts.circuit import NonParametricQuantumCircuit, gate_names
 from quri_parts.circuit.gate_names import (
     SingleQubitGateNameType,
@@ -55,7 +54,10 @@ def convert_circuit(
 ) -> juliacall.VectorValue:
     """Convert an :class:`~NonParametricQuantumCircuit` to an ITensor
     ops.
-    qubit_sites: collection of N "Qubit" sites. please follow [the Itensor doc](https://itensor.github.io/ITensors.jl/stable/IncludedSiteTypes.html#%22Qubit%22-SiteType)"""
+    qubit_sites: collection of N "Qubit" sites. please follow
+    [the Itensor doc]
+    (https://itensor.github.io/ITensors.jl/stable/IncludedSiteTypes.html#%22Qubit%22-SiteType)
+    """
     gate_list: juliacall.VectorValue = jl.gate_list()
     for gate in circuit.gates:
         if not is_gate_name(gate.name):

@@ -5,10 +5,10 @@ from typing import TYPE_CHECKING, Any, Optional
 
 import juliacall
 from juliacall import Main as jl
-
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.core.sampling import ConcurrentSampler, MeasurementCounts, Sampler
 from quri_parts.core.utils.concurrent import execute_concurrently
+
 from quri_parts.itensor.circuit import convert_circuit
 
 if TYPE_CHECKING:
@@ -58,9 +58,10 @@ def create_itensor_mps_concurrent_sampler(
 ) -> ConcurrentSampler:
     """Returns a :class:`~ConcurrentSampler` that uses ITensor mps simulator
     for sampling.
+
     For now, this function works when the executor is defined like below
-    `with ProcessPoolExecutor(max_workers=2, mp_context=get_context("spawn"))
-    as executor:`
+    `with ProcessPoolExecutor(max_workers=2,
+    mp_context=get_context("spawn")) as executor:`
     """
 
     def sampler(

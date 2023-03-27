@@ -5,8 +5,6 @@ from typing import TYPE_CHECKING, Any, Callable, NamedTuple, Optional
 import juliacall
 import numpy as np
 from juliacall import Main as jl
-from typing_extensions import TypeAlias
-
 from quri_parts.core.estimator import (
     ConcurrentParametricQuantumEstimator,
     ConcurrentQuantumEstimator,
@@ -19,6 +17,7 @@ from quri_parts.core.estimator import (
 from quri_parts.core.operator import zero
 from quri_parts.core.state import CircuitQuantumState, ParametricCircuitQuantumState
 from quri_parts.core.utils.concurrent import execute_concurrently
+from typing_extensions import TypeAlias
 
 from .circuit import convert_circuit
 from .operator import convert_operator
@@ -63,7 +62,7 @@ def _estimate(operator: Estimatable, state: ITensorStateT) -> Estimate[complex]:
     psi = jl.apply(circuit, psi)
     exp: float = jl.expectation(psi, op)
 
-    return _Estimate(value=exp)
+    return _Estimate(value=exp, error=0.0)
 
 
 def create_itensor_mps_estimator() -> QuantumEstimator[ITensorStateT]:
@@ -140,15 +139,15 @@ def _concurrent_estimate(
         )
 
 
-
 def create_itensor_mps_concurrent_estimator(
     executor: Optional["Executor"] = None, concurrency: int = 1
 ) -> ConcurrentQuantumEstimator[ITensorStateT]:
     """Returns a :class:`~ConcurrentQuantumEstimator` that uses ITensor MPS
     simulator to calculate expectation values.
+
     For now, this function works when the executor is defined like below
-    `with ProcessPoolExecutor(max_workers=2, mp_context=get_context("spawn"))
-    as executor:`
+    `with ProcessPoolExecutor(max_workers=2,
+    mp_context=get_context("spawn")) as executor:`
     """
 
     def estimator(
