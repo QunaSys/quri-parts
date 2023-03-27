@@ -23,9 +23,9 @@ _single_qubit_gate_itensor: Mapping[SingleQubitGateNameType, str] = {
     gate_names.S: "S",
     gate_names.Sdag: "Sdag",
     gate_names.SqrtX: "√X",
-    gate_names.SqrtXdag: "SqrtXdag",
-    gate_names.SqrtY: "SqrtY",
-    gate_names.SqrtYdag: "SqrtYdag",
+    gate_names.SqrtXdag: "√Xdag",
+    gate_names.SqrtY: "√Y",
+    gate_names.SqrtYdag: "√Ydag",
     gate_names.T: "T",
     gate_names.Tdag: "Tdag",
 }

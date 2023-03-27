@@ -53,14 +53,15 @@ def _sample_concurrently(
     )
 
 
-# For now, this function works when the executor is defined like below
-# `with ProcessPoolExecutor(max_workers=2, mp_context=get_context("spawn"))
-# as executor:`
 def create_itensor_mps_concurrent_sampler(
     executor: Optional["Executor"] = None, concurrency: int = 1
 ) -> ConcurrentSampler:
     """Returns a :class:`~ConcurrentSampler` that uses ITensor mps simulator
-    for sampling."""
+    for sampling.
+    For now, this function works when the executor is defined like below
+    `with ProcessPoolExecutor(max_workers=2, mp_context=get_context("spawn"))
+    as executor:`
+    """
 
     def sampler(
         circuit_shots_tuples: Iterable[tuple[NonParametricQuantumCircuit, int]]

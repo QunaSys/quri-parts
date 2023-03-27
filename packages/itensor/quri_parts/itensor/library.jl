@@ -33,15 +33,15 @@ ITensors.op(::OpName"Sdag", ::SiteType"Qubit") = [
     0 -1im
 ]
 
-ITensors.op(::OpName"SqrtXdag", ::SiteType"Qubit") = [
+ITensors.op(::OpName"√Xdag", ::SiteType"Qubit") = [
     (1-im)/2 (1+im)/2
     (1+im)/2 (1-im)/2
 ]
-ITensors.op(::OpName"SqrtY", ::SiteType"Qubit") = [
+ITensors.op(::OpName"√Y", ::SiteType"Qubit") = [
     (1+im)/2 (-1-im)/2
     (1+im)/2 (1+im)/2
 ]
-ITensors.op(::OpName"SqrtYdag", ::SiteType"Qubit") = [
+ITensors.op(::OpName"√Ydag", ::SiteType"Qubit") = [
     (1-im)/2 (1-im)/2
     (-1+im)/2 (1-im)/2
 ]
