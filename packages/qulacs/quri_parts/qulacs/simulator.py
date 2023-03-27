@@ -9,16 +9,16 @@ from quri_parts.core.state import GeneralCircuitQuantumState, QuantumStateVector
 from quri_parts.qulacs.circuit import convert_circuit
 
 
-def evalutate_state_to_vector(
+def evaluate_state_to_vector(
     state: Union[GeneralCircuitQuantumState, QuantumStateVector]
 ) -> QuantumStateVector:
     """Convert GeneralCircuitQuantumState or QuantumStateVector to
     QuantumStateVector that only contains the state vector."""
     n_qubits = state.qubit_count
 
-    if type(state) is QuantumStateVector:
+    if isinstance(state, QuantumStateVector):
         init_state_vector = state.vector
-    elif type(state) is GeneralCircuitQuantumState:
+    elif isinstance(state, GeneralCircuitQuantumState):
         init_state_vector = zeros(2**n_qubits, dtype=complex)
         init_state_vector[0] = 1.0
     else:
