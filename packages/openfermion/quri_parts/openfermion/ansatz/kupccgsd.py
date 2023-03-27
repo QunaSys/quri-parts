@@ -20,7 +20,7 @@ from quri_parts.openfermion.utils import add_exp_excitation_gates_trotter_decomp
 
 
 class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
-    """k-unitary pair coupled luster generalized singles and doubles
+    """k-unitary pair coupled-cluster generalized singles and doubles
     (k-UpCCGSD) ansatz. The ansatz consists of the exponentials of generalized
     single excitation and pair double excitation operators decomposed by first-
     order Trotter product formula repeated k times. The term "generalized"
@@ -86,7 +86,7 @@ class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
 def _generalized_single_excitations(
     n_spin_orbitals: int, delta_sz: int
 ) -> Sequence[SingleExcitation]:
-    sz = [0.5 if (i % 2 == 0) else -0.5 for i in range(n_spin_orbitals)]
+    sz = [0.5 - (i % 2) for i in range(n_spin_orbitals)]
     s_excitations = []
     for r in range(n_spin_orbitals):
         for p in range(n_spin_orbitals):
