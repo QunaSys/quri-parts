@@ -23,148 +23,180 @@ from quri_parts.openfermion.utils.add_parametric_pauli_rotation import (
 )
 
 
-def test_construct_circuit() -> None:
-    n_spin_orbitals = 4
-    n_electrons = 2
-    fermion_qubit_mapping = jordan_wigner
-    trotter_number = 1
-    use_singles = True
+class TestConstructCircuit:
+    def test_construct_circuit_w_singles_trotter1(self) -> None:
+        n_spin_orbitals = 4
+        n_electrons = 2
+        fermion_qubit_mapping = jordan_wigner
+        trotter_number = 1
+        use_singles = True
 
-    circuit = _construct_circuit(
-        n_spin_orbitals, n_electrons, fermion_qubit_mapping, trotter_number, use_singles
-    )
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
-    params = expected_circuit.add_parameters("param1", "param2", "param3")
-    op_mapper = fermion_qubit_mapping.get_of_operator_mapper()
-    s_excs, d_excs = excitations(n_spin_orbitals, n_electrons)
-    add_parametric_pauli_rotation_gate(
-        expected_circuit, d_excs, [params[-1]], op_mapper, trotter_number
-    )
-    add_parametric_pauli_rotation_gate(
-        expected_circuit, s_excs, params[:-1], op_mapper, trotter_number
-    )
-    assert circuit.parameter_count == expected_circuit.parameter_count
-    assert circuit._circuit.gates == expected_circuit._circuit.gates
-    param_vals = [0.1 * (i + 1) for i in range(circuit.parameter_count)]
-    bound_circuit = circuit.bind_parameters(param_vals)
-    expected_bound_circuit = expected_circuit.bind_parameters(param_vals)
-    assert bound_circuit == expected_bound_circuit
+        circuit = _construct_circuit(
+            n_spin_orbitals,
+            n_electrons,
+            fermion_qubit_mapping,
+            trotter_number,
+            use_singles,
+        )
+        expected_circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
+        params = expected_circuit.add_parameters("param1", "param2", "param3")
+        op_mapper = fermion_qubit_mapping.get_of_operator_mapper()
+        s_excs, d_excs = excitations(n_spin_orbitals, n_electrons)
+        add_parametric_pauli_rotation_gate(
+            expected_circuit, d_excs, [params[-1]], op_mapper, trotter_number
+        )
+        add_parametric_pauli_rotation_gate(
+            expected_circuit, s_excs, params[:-1], op_mapper, trotter_number
+        )
+        assert circuit.parameter_count == expected_circuit.parameter_count
+        assert circuit._circuit.gates == expected_circuit._circuit.gates
+        param_vals = [0.1 * (i + 1) for i in range(circuit.parameter_count)]
+        bound_circuit = circuit.bind_parameters(param_vals)
+        expected_bound_circuit = expected_circuit.bind_parameters(param_vals)
+        assert bound_circuit == expected_bound_circuit
 
-    use_singles = False
-    circuit = _construct_circuit(
-        n_spin_orbitals, n_electrons, fermion_qubit_mapping, trotter_number, use_singles
-    )
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
-    param = expected_circuit.add_parameter("param")
-    op_mapper = fermion_qubit_mapping.get_of_operator_mapper()
-    s_excs, d_excs = excitations(n_spin_orbitals, n_electrons)
-    add_parametric_pauli_rotation_gate(
-        expected_circuit, d_excs, [param], op_mapper, trotter_number
-    )
+    def test_construct_circuit_wo_singles_trotter1(self) -> None:
+        n_spin_orbitals = 4
+        n_electrons = 2
+        fermion_qubit_mapping = jordan_wigner
+        trotter_number = 1
+        use_singles = False
 
-    assert circuit.parameter_count == expected_circuit.parameter_count
-    assert circuit._circuit.gates == expected_circuit._circuit.gates
-    param_vals = [0.1 * (i + 1) for i in range(circuit.parameter_count)]
-    bound_circuit = circuit.bind_parameters(param_vals)
-    expected_bound_circuit = expected_circuit.bind_parameters(param_vals)
-    assert bound_circuit == expected_bound_circuit
+        circuit = _construct_circuit(
+            n_spin_orbitals,
+            n_electrons,
+            fermion_qubit_mapping,
+            trotter_number,
+            use_singles,
+        )
+        expected_circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
+        param = expected_circuit.add_parameter("param")
+        op_mapper = fermion_qubit_mapping.get_of_operator_mapper()
+        _, d_excs = excitations(n_spin_orbitals, n_electrons)
+        add_parametric_pauli_rotation_gate(
+            expected_circuit, d_excs, [param], op_mapper, trotter_number
+        )
+        assert circuit.parameter_count == expected_circuit.parameter_count
+        assert circuit._circuit.gates == expected_circuit._circuit.gates
+        param_vals = [0.1 * (i + 1) for i in range(circuit.parameter_count)]
+        bound_circuit = circuit.bind_parameters(param_vals)
+        expected_bound_circuit = expected_circuit.bind_parameters(param_vals)
+        assert bound_circuit == expected_bound_circuit
 
-    use_singles = True
-    trotter_number = 2
-    scbk_mapping = symmetry_conserving_bravyi_kitaev
-    circuit = _construct_circuit(
-        n_spin_orbitals, n_electrons, scbk_mapping, trotter_number, use_singles
-    )
-    n_qubits = scbk_mapping.n_qubits_required(n_spin_orbitals)
-    op_mapper = scbk_mapping.get_of_operator_mapper(n_spin_orbitals, n_electrons)
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(n_qubits)
-    params = expected_circuit.add_parameters("param1", "param2", "param3")
-    s_excs, d_excs = excitations(n_spin_orbitals, n_electrons)
-    add_parametric_pauli_rotation_gate(
-        expected_circuit, d_excs, [params[-1]], op_mapper, trotter_number
-    )
-    add_parametric_pauli_rotation_gate(
-        expected_circuit, s_excs, params[:-1], op_mapper, trotter_number
-    )
-    add_parametric_pauli_rotation_gate(
-        expected_circuit, d_excs, [params[-1]], op_mapper, trotter_number
-    )
-    add_parametric_pauli_rotation_gate(
-        expected_circuit, s_excs, params[:-1], op_mapper, trotter_number
-    )
-    assert circuit.parameter_count == expected_circuit.parameter_count
-    assert circuit._circuit.gates == expected_circuit._circuit.gates
-    param_vals = [0.1 * (i + 1) for i in range(circuit.parameter_count)]
-    bound_circuit = circuit.bind_parameters(param_vals)
-    expected_bound_circuit = expected_circuit.bind_parameters(param_vals)
-    assert bound_circuit == expected_bound_circuit
+    def test_construct_circuit_w_singles_trotter2_scbk(self) -> None:
+        n_spin_orbitals = 4
+        n_electrons = 2
+        fermion_qubit_mapping = symmetry_conserving_bravyi_kitaev
+        use_singles = True
+        trotter_number = 2
 
-
-def test_trotter_singlet_uccsd() -> None:
-    n_spin_orbitals = 4
-    n_electrons = 2
-    trotter_number = 1
-    ansatz = TrotterSingletUCCSD(
-        n_spin_orbitals, n_electrons, trotter_number=trotter_number
-    )
-    expected_ansatz = _construct_circuit(
-        n_spin_orbitals,
-        n_electrons,
-        jordan_wigner,
-        trotter_number=trotter_number,
-        use_singles=True,
-    )
-    assert ansatz.parameter_count == expected_ansatz.parameter_count
-    assert ansatz._circuit.gates == expected_ansatz._circuit.gates
-    param_vals = [0.1 * (i + 1) for i in range(ansatz.parameter_count)]
-    bound_ansatz = ansatz.bind_parameters(param_vals)
-    expected_bound_ansatz = expected_ansatz.bind_parameters(param_vals)
-    assert bound_ansatz == expected_bound_ansatz
-
-    ansatz = TrotterSingletUCCSD(
-        n_spin_orbitals,
-        n_electrons,
-        symmetry_conserving_bravyi_kitaev,
-        trotter_number=trotter_number,
-    )
-    expected_ansatz = _construct_circuit(
-        n_spin_orbitals,
-        n_electrons,
-        symmetry_conserving_bravyi_kitaev,
-        trotter_number=trotter_number,
-        use_singles=True,
-    )
-    assert ansatz.parameter_count == expected_ansatz.parameter_count
-    assert ansatz._circuit.gates == expected_ansatz._circuit.gates
-    param_vals = [0.1 * (i + 1) for i in range(ansatz.parameter_count)]
-    bound_ansatz = ansatz.bind_parameters(param_vals)
-    expected_bound_ansatz = expected_ansatz.bind_parameters(param_vals)
-    assert bound_ansatz == expected_bound_ansatz
-
-    ansatz = TrotterSingletUCCSD(
-        n_spin_orbitals,
-        n_electrons,
-        bravyi_kitaev,
-        trotter_number=trotter_number,
-        use_singles=False,
-    )
-    expected_ansatz = _construct_circuit(
-        n_spin_orbitals,
-        n_electrons,
-        bravyi_kitaev,
-        trotter_number=trotter_number,
-        use_singles=False,
-    )
-    assert ansatz.parameter_count == expected_ansatz.parameter_count
-    assert ansatz._circuit.gates == expected_ansatz._circuit.gates
-    param_vals = [0.1 * (i + 1) for i in range(ansatz.parameter_count)]
-    bound_ansatz = ansatz.bind_parameters(param_vals)
-    expected_bound_ansatz = expected_ansatz.bind_parameters(param_vals)
-    assert bound_ansatz == expected_bound_ansatz
+        circuit = _construct_circuit(
+            n_spin_orbitals,
+            n_electrons,
+            fermion_qubit_mapping,
+            trotter_number,
+            use_singles,
+        )
+        n_qubits = fermion_qubit_mapping.n_qubits_required(n_spin_orbitals)
+        op_mapper = fermion_qubit_mapping.get_of_operator_mapper(
+            n_spin_orbitals, n_electrons
+        )
+        expected_circuit = LinearMappedUnboundParametricQuantumCircuit(n_qubits)
+        params = expected_circuit.add_parameters("param1", "param2", "param3")
+        s_excs, d_excs = excitations(n_spin_orbitals, n_electrons)
+        add_parametric_pauli_rotation_gate(
+            expected_circuit, d_excs, [params[-1]], op_mapper, trotter_number
+        )
+        add_parametric_pauli_rotation_gate(
+            expected_circuit, s_excs, params[:-1], op_mapper, trotter_number
+        )
+        add_parametric_pauli_rotation_gate(
+            expected_circuit, d_excs, [params[-1]], op_mapper, trotter_number
+        )
+        add_parametric_pauli_rotation_gate(
+            expected_circuit, s_excs, params[:-1], op_mapper, trotter_number
+        )
+        assert circuit.parameter_count == expected_circuit.parameter_count
+        assert circuit._circuit.gates == expected_circuit._circuit.gates
+        param_vals = [0.1 * (i + 1) for i in range(circuit.parameter_count)]
+        bound_circuit = circuit.bind_parameters(param_vals)
+        expected_bound_circuit = expected_circuit.bind_parameters(param_vals)
+        assert bound_circuit == expected_bound_circuit
 
 
-def test_singlet_uccsd_invalid_input() -> None:
-    with pytest.raises(ValueError):
-        TrotterSingletUCCSD(4, 3)
-    with pytest.raises(ValueError):
-        TrotterSingletUCCSD(4, 4)
+class TestTrotterSingletUCCSD:
+    def test_trotter_singlet_uccsd_w_singles_jw(self) -> None:
+        n_spin_orbitals = 4
+        n_electrons = 2
+        trotter_number = 1
+        ansatz = TrotterSingletUCCSD(
+            n_spin_orbitals, n_electrons, trotter_number=trotter_number
+        )
+        expected_ansatz = _construct_circuit(
+            n_spin_orbitals,
+            n_electrons,
+            jordan_wigner,
+            trotter_number=trotter_number,
+            use_singles=True,
+        )
+        assert ansatz.parameter_count == expected_ansatz.parameter_count
+        assert ansatz._circuit.gates == expected_ansatz._circuit.gates
+        param_vals = [0.1 * (i + 1) for i in range(ansatz.parameter_count)]
+        bound_ansatz = ansatz.bind_parameters(param_vals)
+        expected_bound_ansatz = expected_ansatz.bind_parameters(param_vals)
+        assert bound_ansatz == expected_bound_ansatz
+
+    def test_trotter_singlet_uccsd_wo_singles_bk(self) -> None:
+        n_spin_orbitals = 4
+        n_electrons = 2
+        trotter_number = 1
+        ansatz = TrotterSingletUCCSD(
+            n_spin_orbitals,
+            n_electrons,
+            bravyi_kitaev,
+            trotter_number=trotter_number,
+            use_singles=False,
+        )
+        expected_ansatz = _construct_circuit(
+            n_spin_orbitals,
+            n_electrons,
+            bravyi_kitaev,
+            trotter_number=trotter_number,
+            use_singles=False,
+        )
+        assert ansatz.parameter_count == expected_ansatz.parameter_count
+        assert ansatz._circuit.gates == expected_ansatz._circuit.gates
+        param_vals = [0.1 * (i + 1) for i in range(ansatz.parameter_count)]
+        bound_ansatz = ansatz.bind_parameters(param_vals)
+        expected_bound_ansatz = expected_ansatz.bind_parameters(param_vals)
+        assert bound_ansatz == expected_bound_ansatz
+
+    def test_trotter_singlet_uccsd_scbk_trotter2(self) -> None:
+        n_spin_orbitals = 4
+        n_electrons = 2
+        trotter_number = 2
+        ansatz = TrotterSingletUCCSD(
+            n_spin_orbitals,
+            n_electrons,
+            symmetry_conserving_bravyi_kitaev,
+            trotter_number=trotter_number,
+        )
+        expected_ansatz = _construct_circuit(
+            n_spin_orbitals,
+            n_electrons,
+            symmetry_conserving_bravyi_kitaev,
+            trotter_number=trotter_number,
+            use_singles=True,
+        )
+        assert ansatz.parameter_count == expected_ansatz.parameter_count
+        assert ansatz._circuit.gates == expected_ansatz._circuit.gates
+        param_vals = [0.1 * (i + 1) for i in range(ansatz.parameter_count)]
+        bound_ansatz = ansatz.bind_parameters(param_vals)
+        expected_bound_ansatz = expected_ansatz.bind_parameters(param_vals)
+        assert bound_ansatz == expected_bound_ansatz
+
+    def test_singlet_uccsd_invalid_input(self) -> None:
+        with pytest.raises(ValueError):
+            TrotterSingletUCCSD(4, 3)
+        with pytest.raises(ValueError):
+            TrotterSingletUCCSD(4, 4)
