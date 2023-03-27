@@ -75,11 +75,11 @@ quri-parts-itensor = {path = "packages/itensor", develop = true}
 quri-parts-pyscf = {path = "packages/pyscf", develop = true}
 
 pytest = "^7.0.1"
-black = "^22.1.0"
 flake8 = "^4.0.1"
-
+mypy = ">=0.950"
 docformatter = "^1.4"
 isort = "^5.10.1"
+
 Sphinx = "^4.4.0"
 furo = "^2022.2.23"
 sphinx-autobuild = "^2021.3.14"
@@ -87,7 +87,7 @@ nbsphinx = "^0.8.9"
 ipython = "^8.4.0"
 notebook = "^6.4.12"
 myst-parser = "^0.18.1"
-mypy = "^1.0.1"
+black = "^23.1.0"
 
 [tool.black]
 line-length = 88
