@@ -35,7 +35,8 @@ class TrotterSingletUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
     consists of the exponentials of single excitation and double excitation
     operator decomposed by first-order Trotter product formula. Note that the ansatz
     only supports singlet state and the occupied orbitals are the lowest
-    :attr:`n_fermions` spin orbitals.
+    :attr:`n_fermions` spin orbitals. The decomposition using Trotter product formula
+    is executed for each qubit operators obtained by mapping excitation operators.
 
     Args:
         n_spin_orbitals: Number of spin orbitals.
