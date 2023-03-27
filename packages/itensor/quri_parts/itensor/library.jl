@@ -122,8 +122,8 @@ function add_pauli_product_to_opsum(os, coefficient::Number, pauli_ops)
     return os
 end
 
-function add_coef_identity(os, coefficient::Number, s)
-    os += (coefficient, [isodd(i) ? "I" : div(i, 2) for i in 1:(2*length(s))]...)
+function add_coef_identity_to_opsum(os, coefficient::Number)
+    os += (coefficient, "I", 1)
     return os
 end
 
