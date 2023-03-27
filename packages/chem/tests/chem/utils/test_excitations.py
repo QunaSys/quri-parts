@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from quri_parts.chem.utils.excitations import (
-    _add_controlled_Y_gate,
+    _add_controlled_RY_gate,
     add_double_excitation_circuit,
     add_single_excitation_circuit,
     excitations,
@@ -42,7 +42,7 @@ def test_add_single_excitation_circuit() -> None:
     expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
     _theta = expected_circuit.add_parameter("theta")
     expected_circuit.add_CNOT_gate(*excitation)
-    _add_controlled_Y_gate(
+    _add_controlled_RY_gate(
         expected_circuit, excitation[1], excitation[0], {_theta: 0.5}
     )
     expected_circuit.add_CNOT_gate(*excitation)
@@ -61,7 +61,7 @@ def test_add_single_excitation_circuit() -> None:
     expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
     _theta = expected_circuit.add_parameter("theta")
     expected_circuit.add_CNOT_gate(*excitation)
-    _add_controlled_Y_gate(
+    _add_controlled_RY_gate(
         expected_circuit, excitation[1], excitation[0], {_theta: 0.5}
     )
     expected_circuit.add_CNOT_gate(*excitation)
@@ -164,7 +164,7 @@ def test_add_controlled_Y_gate() -> None:
     excitation = (0, 2)
     circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
     theta = circuit.add_parameter("theta")
-    _add_controlled_Y_gate(circuit, excitation[1], excitation[0], {theta: 0.5})
+    _add_controlled_RY_gate(circuit, excitation[1], excitation[0], {theta: 0.5})
     expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
     exp_theta = expected_circuit.add_parameter("theta")
     expected_circuit.add_ParametricRY_gate(excitation[0], {exp_theta: 0.5})
@@ -182,7 +182,7 @@ def test_add_controlled_Y_gate() -> None:
     excitation = (1, 3)
     circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
     theta = circuit.add_parameter("theta")
-    _add_controlled_Y_gate(circuit, excitation[1], excitation[0], {theta: 0.5})
+    _add_controlled_RY_gate(circuit, excitation[1], excitation[0], {theta: 0.5})
     expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
     exp_theta = expected_circuit.add_parameter("theta")
     expected_circuit.add_ParametricRY_gate(excitation[0], {exp_theta: 0.5})
