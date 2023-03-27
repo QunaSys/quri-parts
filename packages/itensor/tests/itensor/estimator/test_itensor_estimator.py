@@ -17,7 +17,6 @@ from quri_parts.itensor.estimator import (
     create_itensor_mps_parametric_estimator,
 )
 
-
 class TestITensorEstimator:
     def test_estimate_pauli_label(self) -> None:
         pauli = pauli_label("Z0 Z2 Z5")
@@ -65,13 +64,14 @@ class TestITensorConcurrentEstimator:
             ComputationalBasisState(6, bits=0b110000),
             ComputationalBasisState(6, bits=0b110010),
         ]
+
         with ProcessPoolExecutor(
             max_workers=2, mp_context=get_context("spawn")
         ) as executor:
             estimator = create_itensor_mps_concurrent_estimator(executor, concurrency=2)
-            result = estimator(operators, states)
-        assert result[0].value == -1  # type: ignore
-        assert result[1].value == -0.25 + 0.5j  # type: ignore
+            result = list(estimator(operators, states))
+        assert result[0].value == -1
+        assert result[1].value == -0.25 + 0.5j
 
     def test_concurrent_estimate_single_state(self) -> None:
         operators: list[Union[PauliLabel, Operator]] = [
@@ -90,9 +90,9 @@ class TestITensorConcurrentEstimator:
             max_workers=2, mp_context=get_context("spawn")
         ) as executor:
             estimator = create_itensor_mps_concurrent_estimator(executor, concurrency=2)
-            result = estimator(operators, states)
-        assert result[0].value == -1  # type: ignore
-        assert result[1].value == -0.25 + 0.5j  # type: ignore
+            result = list(estimator(operators, states))
+        assert result[0].value == -1
+        assert result[1].value == -0.25 + 0.5j
 
     def test_concurrent_estimate_single_operator(self) -> None:
         operators: list[Union[PauliLabel, Operator]] = [
@@ -111,9 +111,9 @@ class TestITensorConcurrentEstimator:
             max_workers=2, mp_context=get_context("spawn")
         ) as executor:
             estimator = create_itensor_mps_concurrent_estimator(executor, concurrency=2)
-            result = estimator(operators, states)
-        assert result[0].value == -0.25 + 0.5j  # type: ignore
-        assert result[1].value == 0.25 + 0.5j  # type: ignore
+            result = list(estimator(operators, states))
+        assert result[0].value == -0.25 + 0.5j
+        assert result[1].value == 0.25 + 0.5j
 
 
 def parametric_circuit() -> UnboundParametricQuantumCircuitProtocol:
