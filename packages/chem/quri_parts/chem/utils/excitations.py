@@ -71,13 +71,10 @@ def add_single_excitation_circuit(
 
     applied to the :attr:`excitation_indices`.
     """
-    if isinstance(param_fn, Parameter):
-        p_fn = {param_fn: 0.5}
-    else:
-        p_fn = {param: 0.5 * val for param, val in param_fn.items()}
-
     circuit.add_CNOT_gate(*excitation_indices)
-    add_controlled_RY_gate(circuit, excitation_indices[1], excitation_indices[0], p_fn)
+    add_controlled_RY_gate(
+        circuit, excitation_indices[1], excitation_indices[0], param_fn
+    )
     circuit.add_CNOT_gate(*excitation_indices)
     return circuit
 

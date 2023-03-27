@@ -42,9 +42,7 @@ def test_add_single_excitation_circuit() -> None:
     expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
     _theta = expected_circuit.add_parameter("theta")
     expected_circuit.add_CNOT_gate(*excitation)
-    add_controlled_RY_gate(
-        expected_circuit, excitation[1], excitation[0], {_theta: 0.5}
-    )
+    add_controlled_RY_gate(expected_circuit, excitation[1], excitation[0], _theta)
     expected_circuit.add_CNOT_gate(*excitation)
     assert circuit.parameter_count == expected_circuit.parameter_count
     assert circuit._circuit.gates == expected_circuit._circuit.gates
@@ -61,9 +59,7 @@ def test_add_single_excitation_circuit() -> None:
     expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
     _theta = expected_circuit.add_parameter("theta")
     expected_circuit.add_CNOT_gate(*excitation)
-    add_controlled_RY_gate(
-        expected_circuit, excitation[1], excitation[0], {_theta: 0.5}
-    )
+    add_controlled_RY_gate(expected_circuit, excitation[1], excitation[0], _theta)
     expected_circuit.add_CNOT_gate(*excitation)
     assert circuit.parameter_count == expected_circuit.parameter_count
     assert circuit._circuit.gates == expected_circuit._circuit.gates
