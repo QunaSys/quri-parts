@@ -19,14 +19,14 @@ from quri_parts.circuit import (
     ParameterOrLinearFunction,
 )
 
-#: Represents the set of orbital indices involved in excitation. The first element is
-#: the index of an occupied orbital and the second element is the index of an
-#: unoccupied index.
+#: Alias of ``tuple[int, int]`` which represents the set of orbital indices involved in
+#: excitation. The first element is the index of an occupied orbital and the second
+#: element is the index of an unoccupied index.
 SingleExcitation: TypeAlias = tuple[int, int]
 
-#: Represents the set of orbital indices involved in excitation. The first and second
-#: element is the indices of occupied orbitals and the third and fourth element is the
-#: indices of unoccupied orbitals.
+#: Alias of ``tuple[int, int, int, int]`` which represents the set of orbital indices
+#: involved in excitation. The first and second element is the indices of occupied
+#: orbitals and the third and fourth element is the indices of unoccupied orbitals.
 DoubleExcitation: TypeAlias = tuple[int, int, int, int]
 
 
