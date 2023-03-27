@@ -21,12 +21,12 @@ def convert_operator(
         paulis = [(operator, 1)]
     os: juliacall.AnyValue = jl.OpSum()
     for pauli, coef in paulis:
-        pauli_gates: juliacall.VectorValue = jl.gate_list()
+        pauli_ops: juliacall.VectorValue = jl.gate_list()
         if len(pauli) == 0:
             os = jl.add_coef_identity(os, coef, qubit_sites)
             continue
         for i, p in pauli:
-            pauli_gates = jl.add_pauli(pauli_gates, pauli_name(p), i + 1)
-        os = jl.add_coef_pauli(os, coef, pauli_gates)
+            pauli_ops = jl.add_pauli_to_pauli_product(pauli_ops, pauli_name(p), i + 1)
+        os = jl.add_pauli_product_to_opsum(os, coef, pauli_ops)
     op: juliacall.AnyValue = jl.MPO(os, qubit_sites)
     return op

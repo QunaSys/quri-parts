@@ -4,8 +4,8 @@ Pkg.add("ITensors")
 using ITensors
 
 ITensors.op(::OpName"I", ::SiteType"Qubit") = [
-  1 0
-  0 1
+    1 0
+    0 1
 ]
 
 function ITensors.op(::OpName"U1", t::SiteType"Qubit"; λ::Number)
@@ -13,7 +13,7 @@ function ITensors.op(::OpName"U1", t::SiteType"Qubit"; λ::Number)
 end
 
 function ITensors.op(::OpName"U2", t::SiteType"Qubit"; ϕ::Number, λ::Number)
-    return op("Rn", t; θ=pi/2, ϕ=ϕ, λ=λ)
+    return op("Rn", t; θ=pi / 2, ϕ=ϕ, λ=λ)
 end
 
 function ITensors.op(::OpName"U3", t::SiteType"Qubit"; θ::Number, ϕ::Number, λ::Number)
@@ -111,19 +111,19 @@ function gate_list()
     return []
 end
 
-function add_pauli(pauli_gates::Vector, pauli_name::String, target_index::Integer)::Vector
-    push!(pauli_gates, pauli_name)
-    push!(pauli_gates, target_index)
-    return pauli_gates
+function add_pauli_to_pauli_product(pauli_ops::Vector, pauli_name::String, target_index::Integer)::Vector
+    push!(pauli_ops, pauli_name)
+    push!(pauli_ops, target_index)
+    return pauli_ops
 end
 
-function add_coef_pauli(os, coefficient::Number, pauli_gates)
-    os += (coefficient, pauli_gates...)
+function add_pauli_product_to_opsum(os, coefficient::Number, pauli_ops)
+    os += (coefficient, pauli_ops...)
     return os
 end
 
 function add_coef_identity(os, coefficient::Number, s)
-    os += (coefficient,[isodd(i) ? "I" : div(i,2) for i in 1:(2* length(s))]...)
+    os += (coefficient, [isodd(i) ? "I" : div(i, 2) for i in 1:(2*length(s))]...)
     return os
 end
 
