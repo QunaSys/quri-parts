@@ -25,10 +25,9 @@ def _sample(circuit: NonParametricQuantumCircuit, shots: int) -> MeasurementCoun
     qubits = circuit.qubit_count
     s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
     psi: juliacall.AnyValue = jl.init_state(s, qubits)
-    qs_circuit = convert_circuit(circuit, s)
-    psi = jl.apply(qs_circuit, psi)
-    result: list[int] = []
-    result = jl.sampling(psi, shots)
+    circuit_ops = convert_circuit(circuit, s)
+    psi = jl.apply(circuit_ops, psi)
+    result: list[int] = jl.sampling(psi, shots)
     return Counter(result)
 
 
