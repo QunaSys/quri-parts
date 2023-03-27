@@ -12,54 +12,9 @@ import numpy as np
 
 from quri_parts.chem.ansatz.particle_conserving_u2 import (
     ParticleConservingU2,
-    _add_controlled_RX,
     _u2_ex_gate,
 )
 from quri_parts.circuit import LinearMappedUnboundParametricQuantumCircuit
-
-
-def test_add_controlled_RX() -> None:
-    qubit_count = 2
-    control_index = 0
-    target_index = 1
-    circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
-    phi = circuit.add_parameter("phi")
-    _add_controlled_RX(circuit, control_index, target_index, {phi: 1.0})
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
-    _phi = expected_circuit.add_parameter("phi")
-    expected_circuit.add_RZ_gate(target_index, 0.5 * np.pi)
-    expected_circuit.add_ParametricRY_gate(target_index, {_phi: 0.5})
-    expected_circuit.add_CNOT_gate(control_index, target_index)
-    expected_circuit.add_ParametricRY_gate(target_index, {_phi: -0.5})
-    expected_circuit.add_CNOT_gate(control_index, target_index)
-    expected_circuit.add_RZ_gate(target_index, -0.5 * np.pi)
-    assert circuit.parameter_count == expected_circuit.parameter_count
-    assert circuit._circuit.gates == expected_circuit._circuit.gates
-    params = [0.1 * (i + 1) for i in range(circuit.parameter_count)]
-    bound_circuit = circuit.bind_parameters(params)
-    expected_bound_circuit = expected_circuit.bind_parameters(params)
-    assert bound_circuit == expected_bound_circuit
-
-    qubit_count = 6
-    control_index = 0
-    target_index = 5
-    circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
-    phi = circuit.add_parameter("phi")
-    _add_controlled_RX(circuit, control_index, target_index, {phi: -2.0})
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
-    _phi = expected_circuit.add_parameter("phi")
-    expected_circuit.add_RZ_gate(target_index, 0.5 * np.pi)
-    expected_circuit.add_ParametricRY_gate(target_index, {_phi: -1.0})
-    expected_circuit.add_CNOT_gate(control_index, target_index)
-    expected_circuit.add_ParametricRY_gate(target_index, {_phi: 1.0})
-    expected_circuit.add_CNOT_gate(control_index, target_index)
-    expected_circuit.add_RZ_gate(target_index, -0.5 * np.pi)
-    assert circuit.parameter_count == expected_circuit.parameter_count
-    assert circuit._circuit.gates == expected_circuit._circuit.gates
-    params = [0.1 * (i + 1) for i in range(circuit.parameter_count)]
-    bound_circuit = circuit.bind_parameters(params)
-    expected_bound_circuit = expected_circuit.bind_parameters(params)
-    assert bound_circuit == expected_bound_circuit
 
 
 def test_u2_ex_gate() -> None:

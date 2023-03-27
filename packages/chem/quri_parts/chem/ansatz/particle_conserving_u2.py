@@ -10,13 +10,11 @@
 
 from typing import Sequence
 
-import numpy as np
-
 from quri_parts.circuit import (
     ImmutableLinearMappedUnboundParametricQuantumCircuit,
     LinearMappedUnboundParametricQuantumCircuit,
-    LinearParameterFunction,
 )
+from quri_parts.circuit.utils.controlled_rotations import add_controlled_RX_gate
 
 
 class ParticleConservingU2(ImmutableLinearMappedUnboundParametricQuantumCircuit):
@@ -62,27 +60,8 @@ def _u2_ex_gate(
     phi = circuit.add_parameter(f"phi_{layer_index}_{qubit_indices[0]}")
     circuit.add_CNOT_gate(qubit_indices[0], qubit_indices[1])
 
-    _add_controlled_RX(circuit, qubit_indices[1], qubit_indices[0], {phi: 2.0})
+    add_controlled_RX_gate(circuit, qubit_indices[1], qubit_indices[0], {phi: 2.0})
 
     circuit.add_CNOT_gate(qubit_indices[0], qubit_indices[1])
-
-    return circuit
-
-
-def _add_controlled_RX(
-    circuit: LinearMappedUnboundParametricQuantumCircuit,
-    control_index: int,
-    target_index: int,
-    param_fn: LinearParameterFunction,
-) -> LinearMappedUnboundParametricQuantumCircuit:
-    p_fn = {param: 0.5 * val for param, val in param_fn.items()}
-    inv_sign_p_fn = {param: -0.5 * val for param, val in param_fn.items()}
-
-    circuit.add_RZ_gate(target_index, 0.5 * np.pi)
-    circuit.add_ParametricRY_gate(target_index, p_fn)
-    circuit.add_CNOT_gate(control_index, target_index)
-    circuit.add_ParametricRY_gate(target_index, inv_sign_p_fn)
-    circuit.add_CNOT_gate(control_index, target_index)
-    circuit.add_RZ_gate(target_index, 0.5 * -np.pi)
 
     return circuit
