@@ -20,7 +20,7 @@ def test_convert_pauli_label() -> None:
     s: juliacall.VectorValue = jl.siteinds("Qubit", 6)
     pauli = pauli_label("Z0 Z2 Z5")
     itensor_op = convert_operator(pauli, s)
-    psi: juliacall.AnyValue = jl.initState(s)
+    psi: juliacall.AnyValue = jl.init_state(s)
     exp: float = jl.expectation(psi, itensor_op)
     assert exp == -1.0
 
@@ -34,6 +34,6 @@ def test_convert_operator() -> None:
         }
     )
     itensor_op = convert_operator(op, s)
-    psi: juliacall.AnyValue = jl.initState(s)
+    psi: juliacall.AnyValue = jl.init_state(s)
     exp: float = jl.expectation(psi, itensor_op)
     assert exp == -0.1 + 0.5j

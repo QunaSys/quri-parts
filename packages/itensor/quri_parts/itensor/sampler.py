@@ -24,7 +24,7 @@ jl.seval(include_statement)
 def _sample(circuit: NonParametricQuantumCircuit, shots: int) -> MeasurementCounts:
     qubits = circuit.qubit_count
     s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
-    psi: juliacall.AnyValue = jl.initState(s, qubits)
+    psi: juliacall.AnyValue = jl.init_state(s, qubits)
     qs_circuit = convert_circuit(circuit, s)
     psi = jl.apply(qs_circuit, psi)
     result: list[int] = []

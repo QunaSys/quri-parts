@@ -51,7 +51,7 @@ def _estimate(operator: Estimatable, state: ITensorStateT) -> Estimate[complex]:
         return _Estimate(value=0.0)
     qubits = state.qubit_count
     s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
-    psi: juliacall.AnyValue = jl.initState(s, qubits)
+    psi: juliacall.AnyValue = jl.init_state(s, qubits)
 
     # create ITensor circuit
     circuit = convert_circuit(state.circuit, s)
@@ -84,7 +84,7 @@ def _sequential_estimate_single_state(
 ) -> Sequence[Estimate[complex]]:
     qubits = state.qubit_count
     s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
-    psi: juliacall.AnyValue = jl.initState(s, qubits)
+    psi: juliacall.AnyValue = jl.init_state(s, qubits)
     circuit = convert_circuit(state.circuit, s)
     psi = jl.apply(circuit, psi)
     results = []

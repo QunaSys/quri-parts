@@ -1,5 +1,5 @@
 using ITensors
-function initState(s, qubits::Integer)
+function init_state(s, qubits::Integer)
     psi = productMPS(s, ["0" for i in 1:qubits])
     return psi
 end

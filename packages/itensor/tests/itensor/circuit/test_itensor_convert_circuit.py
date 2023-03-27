@@ -55,7 +55,7 @@ rotation_gate_list: list[Callable[[int, float], QuantumGate]] = [
 def test_convert_single_qubit_gate() -> None:
     qubits = 2
     s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
-    psi: juliacall.AnyValue = jl.initState(s, qubits)
+    psi: juliacall.AnyValue = jl.init_state(s, qubits)
     expected_list = [
         [1.0, 0.0, 0.0, 0.0],
         [0.0, 1.0, 0.0, 0.0],
@@ -83,7 +83,7 @@ def test_convert_single_qubit_gate() -> None:
 def test_convert_two_qubit_gate() -> None:
     qubits = 2
     s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
-    psi: juliacall.AnyValue = jl.initState(s, qubits)
+    psi: juliacall.AnyValue = jl.init_state(s, qubits)
     expected_list = [
         [0.0, 0.0, 0.0, 1.0],
         [0.0, 1.0, 0.0, 0.0],
@@ -102,7 +102,7 @@ def test_convert_two_qubit_gate() -> None:
 def test_convert_three_qubit_gate() -> None:
     qubits = 3
     s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
-    psi: juliacall.AnyValue = jl.initState(s, qubits)
+    psi: juliacall.AnyValue = jl.init_state(s, qubits)
     expected_list = [
         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
     ]
@@ -120,7 +120,7 @@ def test_convert_three_qubit_gate() -> None:
 def test_convert_rotation_gate() -> None:
     qubits = 2
     s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
-    psi: juliacall.AnyValue = jl.initState(s, qubits)
+    psi: juliacall.AnyValue = jl.init_state(s, qubits)
     expected_list = [
         [0.92387953, 0.0 - 0.38268343j, 0.0, 0.0],
         [0.92387953 + 0.0j, 0.38268343 + 0.0j, 0.0, 0.0],
@@ -138,7 +138,7 @@ def test_convert_rotation_gate() -> None:
 def test_convert_u_gate() -> None:
     qubits = 2
     s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
-    psi: juliacall.AnyValue = jl.initState(s, qubits)
+    psi: juliacall.AnyValue = jl.init_state(s, qubits)
     circuit = QuantumCircuit(qubits)
     circuit.add_gate(gates.U1(0, 0.5))
     psiApplied = jl.apply(convert_circuit(circuit, s), psi)

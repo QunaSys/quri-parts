@@ -52,7 +52,7 @@ ITensors.op(::OpName"Tdag", ::SiteType"Qubit") = [
 
 
 
-function initState(s, qubits::Integer)
+function init_state(s, qubits::Integer)
     psi = productMPS(s, ["0" for i in 1:qubits])
     return psi
 end
@@ -81,7 +81,7 @@ function add_single_qubit_rotation_gate(gate_list::Vector, gate_name::String, ta
     if gate_name == "Rx" || gate_name == "Ry"
         push!(gate_list, (gate_name, target_index, (θ=param,)))
     elseif gate_name == "Rz"
-        push!(gate_list, (gate_name, target_index, (ϕ=param,)))
+        push!(gate_list, (gate_name, target_index, (θ=param,)))
     elseif gate_name == "U1"
         push!(gate_list, (gate_name, target_index, (λ=param,)))
     else
