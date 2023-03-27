@@ -25,10 +25,10 @@ def convert_operator(
     for pauli, coef in paulis:
         pauli_ops: juliacall.VectorValue = jl.gate_list()
         if len(pauli) == 0:
-            os = jl.add_coef_identity_to_opsum(os, coef, qubit_sites)
+            os = jl.add_coef_identity_to_opsum(os, coef)
             continue
         for i, p in pauli:
             pauli_ops = jl.add_pauli_to_pauli_product(pauli_ops, pauli_name(p), i + 1)
-        os = jl.add_pauli_product_to_opsum(os, coef)
+        os = jl.add_pauli_product_to_opsum(os, coef, pauli_ops)
     op: juliacall.AnyValue = jl.MPO(os, qubit_sites)
     return op
