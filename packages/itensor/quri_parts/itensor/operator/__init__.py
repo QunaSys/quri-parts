@@ -3,6 +3,7 @@ from typing import Union
 
 import juliacall
 from juliacall import Main as jl
+
 from quri_parts.core.operator import Operator, PauliLabel, pauli_name
 
 
@@ -28,6 +29,6 @@ def convert_operator(
             continue
         for i, p in pauli:
             pauli_ops = jl.add_pauli_to_pauli_product(pauli_ops, pauli_name(p), i + 1)
-        os = jl.add_pauli_product_to_opsum(os, coef, pauli_ops)
+        os = jl.add_pauli_product_to_opsum(os, coef)
     op: juliacall.AnyValue = jl.MPO(os, qubit_sites)
     return op

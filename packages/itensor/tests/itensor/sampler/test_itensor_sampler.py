@@ -2,8 +2,8 @@ from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import get_context
 
 import pytest
-from quri_parts.circuit import QuantumCircuit
 
+from quri_parts.circuit import QuantumCircuit
 from quri_parts.itensor.sampler import (
     create_itensor_mps_concurrent_sampler,
     create_itensor_mps_sampler,
