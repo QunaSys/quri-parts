@@ -10,9 +10,9 @@
 
 from typing import Sequence
 
+from quri_parts.chem.utils.excitations import add_single_excitation_circuit
 from quri_parts.circuit import (
     LinearMappedUnboundParametricQuantumCircuit,
-    Parameter,
     ParameterOrLinearFunction,
 )
 
@@ -42,22 +42,11 @@ def add_orbital_rotation_gate(
         coeff: Parameter coefficient.
         const: Constant for :class:`out_params` of linear mapping.
     """
-    if isinstance(param_fn, Parameter):
-        param_fn = {param_fn: 0.5}
-    else:
-        param_fn = {param: 0.5 * val for param, val in param_fn.items()}
-
-    circuit.add_H_gate(qubit_indices[3])
-    circuit.add_H_gate(qubit_indices[2])
-    circuit.add_CNOT_gate(qubit_indices[3], qubit_indices[1])
-    circuit.add_CNOT_gate(qubit_indices[2], qubit_indices[0])
-    circuit.add_ParametricRY_gate(qubit_indices[3], param_fn)
-    circuit.add_ParametricRY_gate(qubit_indices[2], param_fn)
-    circuit.add_ParametricRY_gate(qubit_indices[1], param_fn)
-    circuit.add_ParametricRY_gate(qubit_indices[0], param_fn)
-    circuit.add_CNOT_gate(qubit_indices[3], qubit_indices[1])
-    circuit.add_CNOT_gate(qubit_indices[2], qubit_indices[0])
-    circuit.add_H_gate(qubit_indices[3])
-    circuit.add_H_gate(qubit_indices[2])
+    add_single_excitation_circuit(
+        circuit, (qubit_indices[0], qubit_indices[2]), param_fn
+    )
+    add_single_excitation_circuit(
+        circuit, (qubit_indices[1], qubit_indices[3]), param_fn
+    )
 
     return circuit
