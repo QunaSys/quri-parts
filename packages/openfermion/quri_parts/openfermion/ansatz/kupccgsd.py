@@ -22,7 +22,7 @@ from quri_parts.openfermion.utils.add_parametric_pauli_rotation import (
 
 
 class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
-    """k-unitary pair coupled luster generalized singles and doubles
+    """k-unitary pair coupled-cluster generalized singles and doubles
     (k-UpCCGSD) ansatz. The ansatz consists of the exponentials of generalized
     single excitation and pair double excitation operators decomposed by first-
     order Trotter product formula repeated k times. The term "generalized"
