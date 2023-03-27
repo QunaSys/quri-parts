@@ -89,6 +89,9 @@ def _sequential_estimate_single_state(
     psi = jl.apply(circuit, psi)
     results = []
     for op in operators:
+        if op == zero():
+            results.append(_Estimate(value=0.0))
+            continue
         itensor_op = convert_operator(op, s)
         results.append(_Estimate(value=jl.expectation(psi, itensor_op)))
     return results
