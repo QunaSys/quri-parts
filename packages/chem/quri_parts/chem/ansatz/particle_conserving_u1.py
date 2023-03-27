@@ -16,6 +16,7 @@ from quri_parts.circuit import (
     Parameter,
     ParameterOrLinearFunction,
 )
+from quri_parts.circuit.utils.controlled_rotations import add_controlled_RY_gate
 
 
 class ParticleConservingU1(ImmutableLinearMappedUnboundParametricQuantumCircuit):
@@ -62,12 +63,7 @@ def _u1_ex_gate(
     )
     _add_controlled_ua_gate(circuit, qubit_index_1, qubit_index_2, phi)
     circuit.add_CZ_gate(qubit_index_2, qubit_index_1)
-
-    circuit.add_CNOT_gate(qubit_index_2, qubit_index_1)
-    circuit.add_ParametricRY_gate(qubit_index_1, {theta: -1.0})
-    circuit.add_CNOT_gate(qubit_index_2, qubit_index_1)
-    circuit.add_ParametricRY_gate(qubit_index_1, {theta: 1.0})
-
+    add_controlled_RY_gate(circuit, qubit_index_2, qubit_index_1, {theta: 2.0})
     _add_controlled_ua_gate(circuit, qubit_index_1, qubit_index_2, {phi: -1.0})
 
     return circuit
