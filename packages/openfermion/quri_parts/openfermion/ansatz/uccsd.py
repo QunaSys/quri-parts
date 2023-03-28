@@ -8,26 +8,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence, Union, cast
-
-from openfermion.ops import FermionOperator
-
-from quri_parts.chem.utils.excitations import (
-    DoubleExcitation,
-    SingleExcitation,
-    excitations,
-)
+from quri_parts.chem.utils.excitations import excitations
 from quri_parts.circuit import (
     ImmutableLinearMappedUnboundParametricQuantumCircuit,
     LinearMappedUnboundParametricQuantumCircuit,
-    Parameter,
 )
 
-from ..transforms import (
-    OpenFermionQubitMapping,
-    OpenFermionQubitOperatorMapper,
-    jordan_wigner,
-)
+from ..transforms import OpenFermionQubitMapping, jordan_wigner
+from ..utils import add_exp_excitation_gates_trotter_decomposition
 
 
 class TrotterSingletUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
@@ -95,67 +83,12 @@ def _construct_circuit(
         n_spin_orbitals, n_fermions
     )
     for _ in range(trotter_number):
-        _add_excitation_circuit(
-            circuit, d_excs, d_exc_params, op_mapper, trotter_number
+        add_exp_excitation_gates_trotter_decomposition(
+            circuit, d_excs, d_exc_params, op_mapper, 1 / trotter_number
         )
         if use_singles:
-            _add_excitation_circuit(
-                circuit, s_excs, s_exc_params, op_mapper, trotter_number
+            add_exp_excitation_gates_trotter_decomposition(
+                circuit, s_excs, s_exc_params, op_mapper, 1 / trotter_number
             )
 
     return circuit
-
-
-def _add_excitation_circuit(
-    circuit: LinearMappedUnboundParametricQuantumCircuit,
-    excitation_indices: Sequence[Union[SingleExcitation, DoubleExcitation]],
-    params: Sequence[Parameter],
-    operator_mapper: OpenFermionQubitOperatorMapper,
-    trotter_number: int,
-) -> LinearMappedUnboundParametricQuantumCircuit:
-    for i, sorb_indices in enumerate(excitation_indices):
-        op = _create_operator(sorb_indices, operator_mapper)
-        for pauli, coeff in op.items():
-            pauli_index_list, pauli_id_list = zip(*pauli)
-            coeff = coeff.imag
-            circuit.add_ParametricPauliRotation_gate(
-                pauli_index_list,
-                pauli_id_list,
-                {params[i]: -2.0 * coeff / trotter_number},
-            )
-    return circuit
-
-
-def _create_operator(
-    excitation_indices: Union[SingleExcitation, DoubleExcitation],
-    operator_mapper: OpenFermionQubitOperatorMapper,
-) -> FermionOperator:
-    op = FermionOperator()
-    if len(excitation_indices) == 2:
-        op += FermionOperator(
-            ((excitation_indices[1], 1), (excitation_indices[0], 0)), 1.0
-        )
-        op += FermionOperator(
-            ((excitation_indices[0], 1), (excitation_indices[1], 0)), -1.0
-        )
-    elif len(excitation_indices) == 4:
-        excitation_indices = cast(DoubleExcitation, excitation_indices)
-        op += FermionOperator(
-            (
-                (excitation_indices[3], 1),
-                (excitation_indices[2], 1),
-                (excitation_indices[1], 0),
-                (excitation_indices[0], 0),
-            ),
-            1.0,
-        )
-        op += FermionOperator(
-            (
-                (excitation_indices[0], 1),
-                (excitation_indices[1], 1),
-                (excitation_indices[2], 0),
-                (excitation_indices[3], 0),
-            ),
-            -1.0,
-        )
-    return operator_mapper(op)

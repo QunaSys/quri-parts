@@ -8,7 +8,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .kupccgsd import KUpCCGSD
-from .uccsd import TrotterSingletUCCSD
+from .add_exp_excitation_gates_trotter_decomposition import (
+    add_exp_excitation_gates_trotter_decomposition,
+)
 
-__all__ = ["KUpCCGSD", "TrotterSingletUCCSD"]
+__all__ = ["add_exp_excitation_gates_trotter_decomposition"]
