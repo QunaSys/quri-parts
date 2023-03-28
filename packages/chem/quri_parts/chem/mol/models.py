@@ -115,7 +115,7 @@ class ActiveSpaceMolecularOrbitals(MolecularOrbitals):
             return OrbitalType.VIRTUAL
 
 
-class AO1eInt(Protocol):
+class AO1eIntBase(Protocol):
     """Interface protocol for an atomic orbital one-electron integral."""
 
     @abstractproperty
@@ -134,7 +134,7 @@ class AO1eInt(Protocol):
         ...
 
 
-class AO2eInt(Protocol):
+class AO2eIntBase(Protocol):
     """Interface protocol for an atomic orbital two-electron integral."""
 
     @abstractproperty
@@ -151,6 +151,15 @@ class AO2eInt(Protocol):
             mo_coeff: molecular orbital coefficients.
         """
         ...
+
+
+class AOeIntSetBase(NamedTuple):
+    #: constant.
+    constant: float
+    #: non-relativistic atomic  orbital one-electron integral :class:`NRAO1eInt`.
+    ao_1e_int: AO1eIntBase
+    #: non-relativistic atomic  orbital two-electron integral :class:`NRAO2eInt`.
+    ao_2e_int: AO2eIntBase
 
 
 class MO1eInt(Protocol):

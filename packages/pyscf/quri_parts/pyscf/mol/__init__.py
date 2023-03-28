@@ -8,9 +8,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from .factory import (
+    MolecularHamiltonian,
+    PySCFMolecularHamiltonian,
+    MolecularHamiltonianBase,
+    PySCFMoleculeFactory,
+    PySCFMoleculeFactoryInput,
+)
+from .non_relativistic import (
+    PySCFAO1eInt,
+    PySCFAO2eInt,
+    ao1int,
+    ao2int,
+    pyscf_ao1int,
+    pyscf_ao2int,
+)
 from .pyscf_interface import PySCFMolecularOrbitals, get_nuc_energy
 
 __all__ = [
     "PySCFMolecularOrbitals",
     "get_nuc_energy",
+    "PySCFMoleculeFactory",
+    "PySCFMoleculeFactoryInput",
+    "MolecularHamiltonianBase",
+    "MolecularHamiltonian",
+    "PySCFMolecularHamiltonian",
+    "PySCFAO1eInt",
+    "PySCFAO2eInt",
+    "ao1int",
+    "ao2int",
+    "pyscf_ao1int",
+    "pyscf_ao2int",
 ]
