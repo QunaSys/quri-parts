@@ -12,9 +12,10 @@ def convert_operator(
 ) -> juliacall.AnyValue:
     """Convert an :class:`~Operator` or a :class:`~PauliLabel` to an ITensor
     MPO operator.
+
     qubit_sites: collection of N "Qubit" sites. please follow
-    [the Itensor doc](https://itensor.github.io/ITensors.jl/stable/
-    IncludedSiteTypes.html#%22Qubit%22-SiteType)
+    `the Itensor doc <https://itensor.github.io/ITensors.jl/
+    stable/IncludedSiteTypes.html#%22Qubit%22-SiteType>`_
     """
     paulis: Iterable[tuple[PauliLabel, complex]]
     if isinstance(operator, Operator):

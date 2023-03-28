@@ -53,11 +53,11 @@ _three_qubit_gate_itensor: Mapping[ThreeQubitGateNameType, str] = {
 def convert_circuit(
     circuit: NonParametricQuantumCircuit, qubit_sites: juliacall.VectorValue
 ) -> juliacall.VectorValue:
-    """Convert an :class:`~NonParametricQuantumCircuit` to an ITensor
-    ops.
+    """Convert an :class:`~NonParametricQuantumCircuit` to an ITensor ops.
+
     qubit_sites: collection of N "Qubit" sites. please follow
-    [the Itensor doc]
-    (https://itensor.github.io/ITensors.jl/stable/IncludedSiteTypes.html#%22Qubit%22-SiteType)
+    `the Itensor doc <https://itensor.github.io/ITensors.jl/
+    stable/IncludedSiteTypes.html#%22Qubit%22-SiteType>`_
     """
     gate_list: juliacall.VectorValue = jl.gate_list()
     for gate in circuit.gates:
