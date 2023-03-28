@@ -231,11 +231,13 @@ class PySCFMolecularHamiltonian(MolecularHamiltonianBase):
             0, 2, 3, 1
         )
 
-        casscf_mo_1e_spin_int, casscf_mo_2e_spin_int = to_spin_orbital(2*casscf_mo_1e_int.shape[0] , casscf_mo_1e_int, casscf_mo_2e_int)
+        casscf_mo_1e_spin_int, casscf_mo_2e_spin_int = to_spin_orbital(
+            2 * casscf_mo_1e_int.shape[0], casscf_mo_1e_int, casscf_mo_2e_int
+        )
 
         hamiltonian_component = MOeIntSet(
             const=casscf_nuc,
             mo_1e_int=MO1eIntArray(casscf_mo_1e_spin_int),
-            mo_2e_int=MO1eIntArray(casscf_mo_2e_spin_int/2),
+            mo_2e_int=MO1eIntArray(casscf_mo_2e_spin_int / 2),
         )
         return hamiltonian_component

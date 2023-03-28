@@ -10,8 +10,8 @@
 
 from .factory import (
     MolecularHamiltonian,
-    PySCFMolecularHamiltonian,
     MolecularHamiltonianBase,
+    PySCFMolecularHamiltonian,
     PySCFMoleculeFactory,
     PySCFMoleculeFactoryInput,
 )
