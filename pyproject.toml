@@ -42,6 +42,7 @@ quri-parts-openqasm = { version = "*", optional = true }
 quri-parts-honeywell = { version = "*", optional = true }
 quri-parts-ionq = { version = "*", optional = true }
 quri-parts-pyscf = { version = "*", optional = true }
+openfermionpyscf = "^0.5"
 
 [tool.poetry.extras]
 qulacs = ["quri-parts-qulacs"]
