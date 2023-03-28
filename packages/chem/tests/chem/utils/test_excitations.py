@@ -9,12 +9,12 @@
 # limitations under the License.
 
 from quri_parts.chem.utils.excitations import (
-    _add_controlled_RY_gate,
     add_double_excitation_circuit,
     add_single_excitation_circuit,
     excitations,
 )
 from quri_parts.circuit import LinearMappedUnboundParametricQuantumCircuit
+from quri_parts.circuit.utils.controlled_rotations import add_controlled_RY_gate
 
 
 def test_excitations() -> None:
@@ -42,9 +42,7 @@ def test_add_single_excitation_circuit() -> None:
     expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
     _theta = expected_circuit.add_parameter("theta")
     expected_circuit.add_CNOT_gate(*excitation)
-    _add_controlled_RY_gate(
-        expected_circuit, excitation[1], excitation[0], {_theta: 0.5}
-    )
+    add_controlled_RY_gate(expected_circuit, excitation[1], excitation[0], _theta)
     expected_circuit.add_CNOT_gate(*excitation)
     assert circuit.parameter_count == expected_circuit.parameter_count
     assert circuit._circuit.gates == expected_circuit._circuit.gates
@@ -61,9 +59,7 @@ def test_add_single_excitation_circuit() -> None:
     expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
     _theta = expected_circuit.add_parameter("theta")
     expected_circuit.add_CNOT_gate(*excitation)
-    _add_controlled_RY_gate(
-        expected_circuit, excitation[1], excitation[0], {_theta: 0.5}
-    )
+    add_controlled_RY_gate(expected_circuit, excitation[1], excitation[0], _theta)
     expected_circuit.add_CNOT_gate(*excitation)
     assert circuit.parameter_count == expected_circuit.parameter_count
     assert circuit._circuit.gates == expected_circuit._circuit.gates
@@ -151,44 +147,6 @@ def test_add_double_excitation_circuit() -> None:
     expected_circuit.add_H_gate(excitation[3])
     expected_circuit.add_CNOT_gate(excitation[0], excitation[2])
     expected_circuit.add_CNOT_gate(excitation[2], excitation[3])
-    assert circuit.parameter_count == expected_circuit.parameter_count
-    assert circuit._circuit.gates == expected_circuit._circuit.gates
-    params = [0.1 * (i + 1) for i in range(circuit.parameter_count)]
-    bound_circuit = circuit.bind_parameters(params)
-    expected_bound_circuit = expected_circuit.bind_parameters(params)
-    assert bound_circuit == expected_bound_circuit
-
-
-def test_add_controlled_Y_gate() -> None:
-    qubit_count = 4
-    excitation = (0, 2)
-    circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
-    theta = circuit.add_parameter("theta")
-    _add_controlled_RY_gate(circuit, excitation[1], excitation[0], {theta: 0.5})
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
-    exp_theta = expected_circuit.add_parameter("theta")
-    expected_circuit.add_ParametricRY_gate(excitation[0], {exp_theta: 0.5})
-    expected_circuit.add_CNOT_gate(excitation[1], excitation[0])
-    expected_circuit.add_ParametricRY_gate(excitation[0], {exp_theta: -0.5})
-    expected_circuit.add_CNOT_gate(excitation[1], excitation[0])
-    assert circuit.parameter_count == expected_circuit.parameter_count
-    assert circuit._circuit.gates == expected_circuit._circuit.gates
-    params = [0.1 * (i + 1) for i in range(circuit.parameter_count)]
-    bound_circuit = circuit.bind_parameters(params)
-    expected_bound_circuit = expected_circuit.bind_parameters(params)
-    assert bound_circuit == expected_bound_circuit
-
-    qubit_count = 6
-    excitation = (1, 3)
-    circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
-    theta = circuit.add_parameter("theta")
-    _add_controlled_RY_gate(circuit, excitation[1], excitation[0], {theta: 0.5})
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
-    exp_theta = expected_circuit.add_parameter("theta")
-    expected_circuit.add_ParametricRY_gate(excitation[0], {exp_theta: 0.5})
-    expected_circuit.add_CNOT_gate(excitation[1], excitation[0])
-    expected_circuit.add_ParametricRY_gate(excitation[0], {exp_theta: -0.5})
-    expected_circuit.add_CNOT_gate(excitation[1], excitation[0])
     assert circuit.parameter_count == expected_circuit.parameter_count
     assert circuit._circuit.gates == expected_circuit._circuit.gates
     params = [0.1 * (i + 1) for i in range(circuit.parameter_count)]
