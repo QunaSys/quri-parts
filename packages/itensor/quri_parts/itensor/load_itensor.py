@@ -10,4 +10,5 @@ _INCLUDE_STATEMENT = 'include("' + _LIBRARY_PATH + '")'
 
 
 def ensure_itensor_loaded() -> None:
+    """Ensure that the ITensor library is loaded into Juliacall."""
     jl.seval(_INCLUDE_STATEMENT)
