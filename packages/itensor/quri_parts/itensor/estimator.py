@@ -143,9 +143,11 @@ def create_itensor_mps_concurrent_estimator(
     """Returns a :class:`~ConcurrentQuantumEstimator` that uses ITensor MPS
     simulator to calculate expectation values.
 
-    For now, this function works when the executor is defined like below
-    `with ProcessPoolExecutor(max_workers=2,
-    mp_context=get_context("spawn")) as executor:`
+    For now, this function works when the executor is defined like below::
+
+        with ProcessPoolExecutor(
+            max_workers=2, mp_context=get_context("spawn")
+        ) as executor:
     """
 
     def estimator(
