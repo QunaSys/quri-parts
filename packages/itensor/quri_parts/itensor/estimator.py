@@ -4,6 +4,8 @@ from typing import TYPE_CHECKING, Any, Callable, NamedTuple, Optional
 import juliacall
 import numpy as np
 from juliacall import Main as jl
+from typing_extensions import TypeAlias
+
 from quri_parts.core.estimator import (
     ConcurrentParametricQuantumEstimator,
     ConcurrentQuantumEstimator,
@@ -16,8 +18,6 @@ from quri_parts.core.estimator import (
 from quri_parts.core.operator import zero
 from quri_parts.core.state import CircuitQuantumState, ParametricCircuitQuantumState
 from quri_parts.core.utils.concurrent import execute_concurrently
-from typing_extensions import TypeAlias
-
 from quri_parts.itensor.load_itensor import ensure_itensor_loaded
 
 from .circuit import convert_circuit
