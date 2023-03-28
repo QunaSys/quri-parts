@@ -145,7 +145,8 @@ def create_itensor_mps_concurrent_estimator(
 
     For now, this function works when the executor is defined like below::
 
-        with ProcessPoolExecutor(max_workers=2, mp_context=get_context("spawn")) as executor:
+        with ProcessPoolExecutor(max_workers=2, mp_context=get_context("spawn"))
+        as executor:
     """
 
     def estimator(
