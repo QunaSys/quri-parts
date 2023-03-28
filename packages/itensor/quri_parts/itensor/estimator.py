@@ -4,8 +4,6 @@ from typing import TYPE_CHECKING, Any, Callable, NamedTuple, Optional
 import juliacall
 import numpy as np
 from juliacall import Main as jl
-from typing_extensions import TypeAlias
-
 from quri_parts.core.estimator import (
     ConcurrentParametricQuantumEstimator,
     ConcurrentQuantumEstimator,
@@ -18,6 +16,8 @@ from quri_parts.core.estimator import (
 from quri_parts.core.operator import zero
 from quri_parts.core.state import CircuitQuantumState, ParametricCircuitQuantumState
 from quri_parts.core.utils.concurrent import execute_concurrently
+from typing_extensions import TypeAlias
+
 from quri_parts.itensor.load_itensor import ensure_itensor_loaded
 
 from .circuit import convert_circuit
@@ -42,9 +42,9 @@ ITensorParametricStateT: TypeAlias = ParametricCircuitQuantumState
 
 
 def _estimate(operator: Estimatable, state: ITensorStateT) -> Estimate[complex]:
-    ensure_itensor_loaded(__file__)
+    ensure_itensor_loaded()
     if operator == zero():
-        return _Estimate(value=0.0)
+        return _Estimate(value=0.0, error=0.0)
     qubits = state.qubit_count
     s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
     psi: juliacall.AnyValue = jl.init_state(s, qubits)
@@ -78,7 +78,7 @@ def _sequential_estimate(
 def _sequential_estimate_single_state(
     state: ITensorStateT, operators: Sequence[Estimatable]
 ) -> Sequence[Estimate[complex]]:
-    ensure_itensor_loaded(__file__)
+    ensure_itensor_loaded()
     qubits = state.qubit_count
     s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
     psi: juliacall.AnyValue = jl.init_state(s, qubits)
@@ -87,10 +87,10 @@ def _sequential_estimate_single_state(
     results = []
     for op in operators:
         if op == zero():
-            results.append(_Estimate(value=0.0))
+            results.append(_Estimate(value=0.0, error=0.0))
             continue
         itensor_op = convert_operator(op, s)
-        results.append(_Estimate(value=jl.expectation(psi, itensor_op)))
+        results.append(_Estimate(value=jl.expectation(psi, itensor_op), error=0.0))
     return results
 
 

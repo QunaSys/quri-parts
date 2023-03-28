@@ -2,7 +2,6 @@ from collections.abc import Mapping
 
 import juliacall
 from juliacall import Main as jl
-
 from quri_parts.circuit import NonParametricQuantumCircuit, gate_names
 from quri_parts.circuit.gate_names import (
     SingleQubitGateNameType,

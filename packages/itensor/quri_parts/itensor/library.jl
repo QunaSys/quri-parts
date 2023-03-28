@@ -77,9 +77,7 @@ function add_three_qubit_gate(gate_list::Vector, gate_name::String, control_inde
 end
 
 function add_single_qubit_rotation_gate(gate_list::Vector, gate_name::String, target_index::Integer, param::Number)::Vector
-    if gate_name == "Rx" || gate_name == "Ry"
-        push!(gate_list, (gate_name, target_index, (θ=param,)))
-    elseif gate_name == "Rz"
+    if gate_name == "Rx" || gate_name == "Ry" || gate_name == "Rz"
         push!(gate_list, (gate_name, target_index, (θ=param,)))
     elseif gate_name == "U1"
         push!(gate_list, (gate_name, target_index, (λ=param,)))

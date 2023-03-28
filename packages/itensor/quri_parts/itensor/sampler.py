@@ -4,10 +4,10 @@ from typing import TYPE_CHECKING, Any, Optional
 
 import juliacall
 from juliacall import Main as jl
-
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.core.sampling import ConcurrentSampler, MeasurementCounts, Sampler
 from quri_parts.core.utils.concurrent import execute_concurrently
+
 from quri_parts.itensor.circuit import convert_circuit
 from quri_parts.itensor.load_itensor import ensure_itensor_loaded
 
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 def _sample(circuit: NonParametricQuantumCircuit, shots: int) -> MeasurementCounts:
-    ensure_itensor_loaded(__file__)
+    ensure_itensor_loaded()
     qubits = circuit.qubit_count
     s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
     psi: juliacall.AnyValue = jl.init_state(s, qubits)
