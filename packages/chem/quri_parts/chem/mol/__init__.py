@@ -14,6 +14,7 @@ from .active_space import (
 )
 from .models import (
     ActiveSpace,
+    ActiveSpaceInfo,
     ActiveSpaceMolecularOrbitals,
     AO1eIntBase,
     AO2eIntBase,
@@ -40,6 +41,7 @@ __all__ = [
     "get_core_and_active_orbital_indices",
     "ActiveSpace",
     "ActiveSpaceMolecularOrbitals",
+    "ActiveSpaceInfo",
     "AOeIntSetBase",
     "AO1eIntBase",
     "AO2eIntBase",

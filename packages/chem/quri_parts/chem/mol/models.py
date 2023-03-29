@@ -53,9 +53,41 @@ class MolecularOrbitals(Protocol):
         ...
 
     @abstractproperty
+    def spin(self) -> int:
+        """Returns the spin of the electron.
+
+        Note:
+            We follow the quantum chemistry convention where:
+
+            .. math::
+                N_{\\alpha} - N_{\\beta} = 2S
+
+            and spin = 2S.
+        """
+        ...
+
+    @abstractproperty
+    def n_orb(self) -> int:
+        """Returns the number of orbitals."""
+        ...
+
+    @abstractproperty
     def mo_coeff(self) -> "npt.NDArray[np.complex128]":
         """Returns molecular orbital coefficients."""
         ...
+
+
+@dataclass(frozen=True)
+class ActiveSpaceInfo:
+    n_electron: int
+    n_active_ele: int
+    n_core_ele: int
+    n_ele_alpha: int
+    n_ele_beta: int
+    n_orb: int
+    n_active_orb: int
+    n_core_orb: int
+    n_vir_orb: int
 
 
 class ActiveSpaceMolecularOrbitals(MolecularOrbitals):
@@ -78,6 +110,70 @@ class ActiveSpaceMolecularOrbitals(MolecularOrbitals):
     def n_electron(self) -> int:
         """Returns a number of electrons."""
         return self._mo.n_electron
+
+    @property
+    def spin(self) -> int:
+        return self._mo.spin
+
+    @property
+    def n_active_ele(self) -> int:
+        """Returns the number of active electrons."""
+        return self._active_space.n_active_ele
+
+    @property
+    def n_core_ele(self) -> int:
+        """Returns the number of core electrons."""
+        n_core_electron = self.n_electron - self.n_active_ele
+
+        if n_core_electron % 2 == 1:
+            raise ValueError("The number of electrons in core must be even.")
+
+        return n_core_electron
+
+    @property
+    def n_ele_alpha(self) -> int:
+        """Return the number of spin up electrons."""
+        return self.n_active_ele - self.n_ele_beta
+
+    @property
+    def n_ele_beta(self) -> int:
+        """Return the number of spin down electrons."""
+        return (self.n_active_ele - self.spin) // 2
+
+    @property
+    def n_orb(self) -> int:
+        """Returns the number of spatial orbitals."""
+        return self._mo.n_orb
+
+    @property
+    def n_active_orb(self) -> int:
+        """Returns the number of active orbitals."""
+        return self._active_space.n_active_orb
+
+    @property
+    def n_core_orb(self) -> int:
+        """Returns the number of core orbitals."""
+        return self.n_core_ele // 2
+
+    @property
+    def n_vir_orb(self) -> int:
+        """Returns the number of virtual orbitals."""
+        return self._mo.n_orb - self.n_active_orb - self.n_core_orb
+
+    @property
+    def info(self) -> ActiveSpaceInfo:
+        active_space_info = ActiveSpaceInfo(
+            n_electron=self.n_electron,
+            n_active_ele=self.n_active_ele,
+            n_core_ele=self.n_core_ele,
+            n_ele_alpha=self.n_ele_alpha,
+            n_ele_beta=self.n_ele_beta,
+            n_orb=self.n_orb,
+            n_active_orb=self.n_active_orb,
+            n_core_orb=self.n_core_orb,
+            n_vir_orb=self.n_vir_orb,
+        )
+        return active_space_info
 
     @property
     def mo_coeff(self) -> "npt.NDArray[np.complex128]":

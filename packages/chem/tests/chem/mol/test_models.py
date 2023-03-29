@@ -33,6 +33,14 @@ class TestMolecularOrbitals(MolecularOrbitals):
         return 8
 
     @property
+    def n_orb(self) -> int:
+        return 0
+
+    @property
+    def spin(self) -> int:
+        return 0
+
+    @property
     def mo_coeff(self) -> "npt.NDArray[np.complex128]":
         return test_mo_coeff
 

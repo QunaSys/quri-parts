@@ -105,22 +105,22 @@ def qp_of_comparison(
 
 def test_h2o() -> None:
     print("\n")
-    qp_of_comparison(qp_h2o, of_h2o, n_active_ele=6, n_active_orb=2)
+    qp_of_comparison(qp_h2o, of_h2o, n_active_ele=6, n_active_orb=4)
 
 
 def test_h2o_spin() -> None:
     print("\n")
-    qp_of_comparison(qp_h2o_spin, of_h2o_spin, n_active_ele=6, n_active_orb=2)
+    qp_of_comparison(qp_h2o_spin, of_h2o_spin, n_active_ele=6, n_active_orb=4)
 
 
 def test_hcl() -> None:
     print("\n")
-    qp_of_comparison(qp_hcl, of_hcl, n_active_ele=6, n_active_orb=2)
+    qp_of_comparison(qp_hcl, of_hcl, n_active_ele=6, n_active_orb=4)
 
 
 def test_ch3no() -> None:
     print("\n")
-    qp_of_comparison(qp_ch3no, of_ch3no, n_active_ele=6, n_active_orb=2)
+    qp_of_comparison(qp_ch3no, of_ch3no, n_active_ele=6, n_active_orb=4)
 
 
 def test_h2o_all_active() -> None:

@@ -7,6 +7,7 @@ from pyscf import ao2mo, scf
 
 from quri_parts.chem.mol import (
     ActiveSpace,
+    ActiveSpaceInfo,
     ActiveSpaceMolecularOrbitals,
     AO1eIntBase,
     AO2eIntBase,
@@ -193,7 +194,35 @@ class MolecularHamiltonian(MolecularHamiltonianBase):
             active_orbs_indices=active_orbs_indices,
         )
         active_orbitals = ActiveSpaceMolecularOrbitals(self.mol, active_space)
+
+        self.check(active_orbitals.info)
+
         return active_orbitals
+
+    @staticmethod
+    def check(active_orbitals: ActiveSpaceInfo) -> None:
+        assert active_orbitals.n_vir_orb >= 0, ValueError(
+            f"Number of virtual orbitals should be a positive integer.\n"
+            f" n_vir = {active_orbitals.n_vir_orb}"
+        )
+        assert active_orbitals.n_ele_alpha >= 0, ValueError(
+            f"Number of spin up electrons should be a positive integer.\n"
+            f" n_ele_alpha = {active_orbitals.n_ele_alpha}"
+        )
+        assert active_orbitals.n_ele_beta >= 0, ValueError(
+            f"Number of spin down electrons should be a positive integer.\n"
+            f" n_ele_beta = {active_orbitals.n_ele_beta}"
+        )
+        assert active_orbitals.n_ele_alpha <= active_orbitals.n_active_orb, ValueError(
+            f"Number of spin up electrons should not exceed the number of active orbitals.\n"  # noqa: E501
+            f" n_ele_alpha = {active_orbitals.n_ele_alpha},\n"
+            f" n_active_orb = {active_orbitals.n_active_orb}"
+        )
+        assert active_orbitals.n_ele_beta <= active_orbitals.n_active_orb, ValueError(
+            f"Number of spin down electrons should not exceed the number of active orbitals.\n"  # noqa: E501
+            f" n_ele_beta = {active_orbitals.n_ele_beta},\n"
+            f" n_active_orb = {active_orbitals.n_active_orb}"
+        )
 
     def get_active_space_molecular_integrals(
         self,
@@ -223,7 +252,8 @@ class PySCFMolecularHamiltonian(MolecularHamiltonianBase):
         n_active_orb: Optional[int] = None,
         active_orbs_indices: Optional[Sequence[int]] = None,
     ) -> MOeIntSet:
-        cas_mf = self.mol.mol.CASSCF(n_active_ele, n_active_orb).run()
+        cas_mf = self.mol.mol.CASSCF(n_active_orb, n_active_ele)
+        cas_mf.kernel()
 
         casscf_mo_1e_int, casscf_nuc = cas_mf.get_h1eff()
         casscf_mo_2e_int = cas_mf.get_h2eff()

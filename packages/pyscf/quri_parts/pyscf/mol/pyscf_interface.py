@@ -39,9 +39,18 @@ class PySCFMolecularOrbitals(MolecularOrbitals):
         return self._mol
 
     @property
+    def spin(self) -> int:
+        return int(self._mol.spin)
+
+    @property
     def n_electron(self) -> int:
         """Returns a number of electrons."""
         return cast(int, self._mol.nelectron)
+
+    @property
+    def n_orb(self) -> int:
+        """Returns the number of orbitals."""
+        return cast(int, self._mol.nao)
 
     @property
     def mo_coeff(self) -> "npt.NDArray[np.complex128]":
