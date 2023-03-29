@@ -251,8 +251,11 @@ class PySCFMolecularHamiltonian(MolecularHamiltonianBase):
         n_active_ele: Optional[int] = None,
         n_active_orb: Optional[int] = None,
         active_orbs_indices: Optional[Sequence[int]] = None,
+        fix_mo_coeff = True
     ) -> MOeIntSet:
         cas_mf = self.mol.mol.CASSCF(n_active_orb, n_active_ele)
+        if fix_mo_coeff:
+            cas_mf.frozen = self.mol.mol.nao
         cas_mf.kernel()
 
         casscf_mo_1e_int, casscf_nuc = cas_mf.get_h1eff()
@@ -271,3 +274,17 @@ class PySCFMolecularHamiltonian(MolecularHamiltonianBase):
             mo_2e_int=MO1eIntArray(casscf_mo_2e_spin_int / 2),
         )
         return hamiltonian_component
+    
+    def get_molecular_hamiltonian(
+            self, 
+            n_active_ele: Optional[int] = None, 
+            n_active_orb: Optional[int] = None, 
+            active_orbs_indices: Optional[Sequence[int]] = None,
+            fix_mo_coeff = True
+        ) -> MOeIntSet:
+        if not fix_mo_coeff and (n_active_ele and n_active_orb):
+            hamiltonian_component = self.get_active_space_molecular_integrals(
+                n_active_ele, n_active_orb, active_orbs_indices, fix_mo_coeff=False
+            )
+            return cast(MOeIntSet, hamiltonian_component)
+        return super().get_molecular_hamiltonian(n_active_ele, n_active_orb, active_orbs_indices)
