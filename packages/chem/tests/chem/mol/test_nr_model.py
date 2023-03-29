@@ -1,11 +1,51 @@
-from typing import Optional, Sequence, cast
+from dataclasses import dataclass
+from typing import Optional, Sequence, Union, cast
 
+import pyscf
 from numpy import complex128, isclose
 from numpy.typing import NDArray
 from openfermion.chem import MolecularData
 from openfermionpyscf import run_pyscf  # type: ignore
 
-from quri_parts.pyscf.mol.factory import MolecularHamiltonian, PySCFMoleculeFactoryInput
+from quri_parts.pyscf.mol import MolecularHamiltonian, PySCFMolecularOrbitals
+
+
+def PySCFMoleculeFactory(
+    atom: str,
+    spin: int = 0,
+    charge: int = 0,
+    basis: str = "sto-3g",
+    symmetry: Union[bool, str] = False,
+    verbose: int = 0,
+) -> PySCFMolecularOrbitals:
+    """A factory for generating a PySCFMolecularOrbitals instance."""
+
+    mol = pyscf.gto.Mole(
+        atom=atom,
+        basis=basis,
+        charge=charge,
+        spin=spin,
+        symmetry=symmetry,
+        verbose=verbose,
+    )
+    mol.build()
+
+    if spin:
+        mol_coeff = pyscf.scf.ROHF(mol).run().mo_coeff
+        return PySCFMolecularOrbitals(mol=mol, mo_coeff=mol_coeff)
+
+    mol_coeff = pyscf.scf.RHF(mol).run().mo_coeff
+    return PySCFMolecularOrbitals(mol=mol, mo_coeff=mol_coeff)
+
+
+@dataclass(frozen=True)
+class PySCFMoleculeFactoryInput:
+    atom: list[list[Sequence[object]]]
+    spin: int = 0
+    charge: int = 0
+    basis: str = "sto-3g"
+    symmetry: Union[bool, str] = False
+    verbose: int = 0
 
 
 class OpenFermionMolecularHamiltonian:
@@ -41,20 +81,26 @@ ch3no_atom_list = [
     ["H", (-1.921071, -0.362247, 0.000000)],
 ]
 
-h2o = PySCFMoleculeFactoryInput(atom=h2o_atom_list)
-h2o_spin = PySCFMoleculeFactoryInput(atom=h2o_atom_list, spin=2)
-hcl = PySCFMoleculeFactoryInput(atom=hcl_atom_list)
-ch3no = PySCFMoleculeFactoryInput(atom=ch3no_atom_list, basis="cc-pvdz")
+h2o_in = PySCFMoleculeFactoryInput(atom=h2o_atom_list)
+h2o_spin_in = PySCFMoleculeFactoryInput(atom=h2o_atom_list, spin=2)
+hcl_in = PySCFMoleculeFactoryInput(atom=hcl_atom_list)
+ch3no_in = PySCFMoleculeFactoryInput(atom=ch3no_atom_list, basis="cc-pvdz")
+
+h2o = PySCFMoleculeFactory(**h2o_in.__dict__)
+h2o_spin = PySCFMoleculeFactory(**h2o_spin_in.__dict__)
+hcl = PySCFMoleculeFactory(**hcl_in.__dict__)
+ch3no = PySCFMoleculeFactory(**ch3no_in.__dict__)
+
 
 qp_h2o = MolecularHamiltonian(h2o)
 qp_h2o_spin = MolecularHamiltonian(h2o_spin)
 qp_hcl = MolecularHamiltonian(hcl)
 qp_ch3no = MolecularHamiltonian(ch3no)
 
-of_h2o = OpenFermionMolecularHamiltonian(h2o)
-of_h2o_spin = OpenFermionMolecularHamiltonian(h2o_spin)
-of_hcl = OpenFermionMolecularHamiltonian(hcl)
-of_ch3no = OpenFermionMolecularHamiltonian(ch3no)
+of_h2o = OpenFermionMolecularHamiltonian(h2o_in)
+of_h2o_spin = OpenFermionMolecularHamiltonian(h2o_spin_in)
+of_hcl = OpenFermionMolecularHamiltonian(hcl_in)
+of_ch3no = OpenFermionMolecularHamiltonian(ch3no_in)
 
 
 def qp_of_comparison(

@@ -1,9 +1,7 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Callable, Optional, Sequence, Type, Union, cast
+from typing import Callable, Optional, Sequence, Type, cast
 
-import pyscf
-from pyscf import ao2mo, scf
+from pyscf import ao2mo
 
 from quri_parts.chem.mol import (
     ActiveSpace,
@@ -23,87 +21,16 @@ from quri_parts.chem.mol import (
 from .non_relativistic import ao1int, ao2int, pyscf_ao1int, pyscf_ao2int
 from .pyscf_interface import PySCFMolecularOrbitals, get_nuc_energy
 
-pyscf_constructor_dict = {
-    "HF": scf.HF,
-    "RHF": scf.RHF,
-    "ROHF": scf.ROHF,
-    "UHF": scf.UHF,
-    "GHF": scf.GHF,
-    "DHF": scf.DHF,
-    "X2C": scf.X2C,
-    "KS": scf.KS,
-    "RKS": scf.RKS,
-    "ROKS": scf.ROKS,
-    "UKS": scf.UKS,
-    "GKS": scf.GKS,
-    "DKS": scf.DKS,
-}
-
-
-def PySCFMoleculeFactory(
-    atom: str,
-    spin: int = 0,
-    charge: int = 0,
-    basis: str = "sto-3g",
-    symmetry: Union[bool, str] = False,
-    verbose: int = 0,
-    relativistic: bool = False,
-    manual: Optional[bool] = False,
-    construct_method: Optional[str] = None,
-) -> PySCFMolecularOrbitals:
-    """A factory for generating a PySCFMolecularOrbitals instance."""
-
-    mol = pyscf.gto.Mole(
-        atom=atom,
-        basis=basis,
-        charge=charge,
-        spin=spin,
-        symmetry=symmetry,
-        verbose=verbose,
-    )
-    mol.build()
-
-    if manual:
-        assert (
-            construct_method is not None
-        ), "construct_method cannot be None when manually assigning how the molecule is built"  # noqa: E501
-        mol_coeff = pyscf_constructor_dict[construct_method](mol).run().mo_coeff
-        return PySCFMolecularOrbitals(mol=mol, mo_coeff=mol_coeff)
-
-    if relativistic:
-        mol_coeff = pyscf.scf.DHF(mol).run().mo_coeff
-        return PySCFMolecularOrbitals(mol=mol, mo_coeff=mol_coeff)
-
-    if spin:
-        mol_coeff = pyscf.scf.ROHF(mol).run().mo_coeff
-        return PySCFMolecularOrbitals(mol=mol, mo_coeff=mol_coeff)
-
-    mol_coeff = pyscf.scf.RHF(mol).run().mo_coeff
-    return PySCFMolecularOrbitals(mol=mol, mo_coeff=mol_coeff)
-
-
-@dataclass(frozen=True)
-class PySCFMoleculeFactoryInput:
-    atom: list[list[Sequence[object]]]
-    spin: int = 0
-    charge: int = 0
-    basis: str = "sto-3g"
-    symmetry: Union[bool, str] = False
-    verbose: int = 0
-    relativistic: Optional[bool] = False
-    manual: Optional[bool] = False
-    construct_method: Optional[str] = None
-
 
 class MolecularHamiltonianBase(ABC):
     def __init__(
         self,
-        molecule: PySCFMoleculeFactoryInput,
+        molecule: PySCFMolecularOrbitals,
         ao1_int_computer: Callable[[PySCFMolecularOrbitals], AO1eIntBase],
         ao2_int_computer: Callable[[PySCFMolecularOrbitals], AO2eIntBase],
         ao_eint_set_type: Type[AOeIntSetBase],
     ) -> None:
-        self.mol = PySCFMoleculeFactory(**molecule.__dict__)
+        self.mol = molecule
         self.ao1_int_computer, self.ao2_int_computer = (
             ao1_int_computer,
             ao2_int_computer,
@@ -172,7 +99,7 @@ class MolecularHamiltonianBase(ABC):
 
 
 class MolecularHamiltonian(MolecularHamiltonianBase):
-    def __init__(self, molecule: PySCFMoleculeFactoryInput) -> None:
+    def __init__(self, molecule: PySCFMolecularOrbitals) -> None:
         ao1_int_computer = ao1int
         ao2_int_computer = ao2int
         ao_eint_set_type = AOeIntSet
@@ -240,7 +167,7 @@ class MolecularHamiltonian(MolecularHamiltonianBase):
 
 
 class PySCFMolecularHamiltonian(MolecularHamiltonianBase):
-    def __init__(self, molecule: PySCFMoleculeFactoryInput) -> None:
+    def __init__(self, molecule: PySCFMolecularOrbitals) -> None:
         ao1_int_computer = pyscf_ao1int
         ao2_int_computer = pyscf_ao2int
         ao_eint_set_type = AOeIntSet
