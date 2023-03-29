@@ -40,6 +40,11 @@ class TestConvertGate:
         qasm_expected = "s q[123];"
         assert convert_gate_to_qasm_line(g) == qasm_expected
 
+    def test_sqrtx_gate(self) -> None:
+        g = gates.SqrtX(123)
+        qasm_expected = "sx q[123];"
+        assert convert_gate_to_qasm_line(g) == qasm_expected
+
     def test_sdag_gate(self) -> None:
         g = gates.Sdag(123)
         qasm_expected = "sdg q[123];"
