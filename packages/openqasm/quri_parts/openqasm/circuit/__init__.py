@@ -43,9 +43,9 @@ _single_qubit_gate_stdgates_symbol: Mapping["SingleQubitGateNameType", str] = {
     gate_names.Z: "z",
     gate_names.H: "h",
     gate_names.S: "s",
-    gate_names.Sdag: "sdag",
+    gate_names.Sdag: "sdg",
     gate_names.T: "t",
-    gate_names.Tdag: "tdag",
+    gate_names.Tdag: "tdg",
 }
 
 _single_qubit_rotation_gate_stdgates_symbol: Mapping["SingleQubitGateNameType", str] = {
