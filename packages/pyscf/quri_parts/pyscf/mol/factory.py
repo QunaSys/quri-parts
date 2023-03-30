@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Callable, Optional, Sequence, Type, cast
 
-from pyscf import ao2mo
+from pyscf import ao2mo, mcscf
 
 from quri_parts.chem.mol import (
     ActiveSpace,
@@ -180,10 +180,16 @@ class PySCFMolecularHamiltonian(MolecularHamiltonianBase):
         active_orbs_indices: Optional[Sequence[int]] = None,
         fix_mo_coeff: bool = True,
     ) -> MOeIntSet:
-        cas_mf = self.mol.mol.CASSCF(n_active_orb, n_active_ele)
+        cas_mf = mcscf.CASSCF(self.mol.mol, n_active_orb, n_active_ele)
         if fix_mo_coeff:
             cas_mf.frozen = self.mol.mol.nao
-        cas_mf.kernel()
+
+        if active_orbs_indices:
+            mo = cas_mf.sort_mo(active_orbs_indices, mo_coeff=self.mol.mo_coeff, base=0)
+        else:
+            mo = self.mol.mo_coeff
+
+        cas_mf.kernel(mo)
 
         casscf_mo_1e_int, casscf_nuc = cas_mf.get_h1eff()
         casscf_mo_2e_int = cas_mf.get_h2eff()
