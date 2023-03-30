@@ -20,6 +20,11 @@ from quri_parts.circuit.gate_names import (
     is_three_qubit_gate_name,
     is_two_qubit_gate_name,
 )
+from quri_parts.circuit.transpile import (
+    PauliDecomposeTranspiler,
+    PauliRotationDecomposeTranspiler,
+    SequentialTranspiler,
+)
 
 if TYPE_CHECKING:
     from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate
@@ -29,6 +34,19 @@ if TYPE_CHECKING:
         ThreeQubitGateNameType,
         TwoQubitGateNameType,
     )
+
+
+class OpenQASMTranspiler(SequentialTranspiler):
+    """CircuitTranspiler which transpiles gates not supported by OpenQASM to
+    supported ones."""
+
+    def __init__(self) -> None:
+        transpilers = [
+            PauliDecomposeTranspiler(),
+            PauliRotationDecomposeTranspiler(),
+        ]
+        super().__init__(transpilers)
+
 
 _HEADER = """OPENQASM 3;
 include "stdgates.inc";"""
