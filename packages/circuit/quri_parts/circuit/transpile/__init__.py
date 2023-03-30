@@ -47,7 +47,7 @@ from .gate_kind_decomposer import (
     Z2HXTranspiler,
     Z2RZTranspiler,
 )
-from .identity_insertion import (
+from .identity_manipulation import (
     IdentityEliminationTranspiler,
     IdentityInsertionTranspiler,
 )
