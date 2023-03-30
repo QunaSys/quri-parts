@@ -192,7 +192,7 @@ def get_active_space_integrals(
     )
 
     active_sapce_1e_int = MO1eIntArray(spin_1e_integrals)
-    active_sapce_2e_int = MO2eIntArray(spin_2e_integrals / 2)
+    active_sapce_2e_int = MO2eIntArray(spin_2e_integrals)
 
     hamiltonian_component = MOeIntSet(
         effective_core_energy, active_sapce_1e_int, active_sapce_2e_int

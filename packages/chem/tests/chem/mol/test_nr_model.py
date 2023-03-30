@@ -146,7 +146,7 @@ def qp_of_comparison(
     # Assertions
     assert isclose(of_core_energy - core_energy, 0)
     assert isclose(of_spin_1e_int - spin_1e_int, 0).all()
-    assert isclose(of_spin_2e_int - spin_2e_int, 0).all()
+    assert isclose(of_spin_2e_int - spin_2e_int/2, 0).all()
 
 
 def test_h2o() -> None:

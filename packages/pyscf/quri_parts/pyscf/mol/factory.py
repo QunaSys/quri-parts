@@ -89,7 +89,7 @@ class MolecularHamiltonianBase(ABC):
         )
 
         active_space_1e_int = MO1eIntArray(spin_1e_integrals)
-        active_space_2e_int = MO2eIntArray(spin_2e_integrals / 2)
+        active_space_2e_int = MO2eIntArray(spin_2e_integrals)
 
         hamiltonian_component = MOeIntSet(
             nuc_energy, active_space_1e_int, active_space_2e_int
