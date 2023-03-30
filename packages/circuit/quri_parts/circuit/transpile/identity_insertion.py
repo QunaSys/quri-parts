@@ -44,8 +44,8 @@ class IdentityInsertionTranspiler(CircuitTranspilerProtocol):
 
 
 class IdentityEliminationTranspiler(CircuitTranspilerProtocol):
-    """Generate a new circuit from the given circuit, eliminating all Identity
-    gates."""
+    """Generate a new circuit by removing all Identity gates from the given
+    circuit."""
 
     def __call__(
         self, circuit: NonParametricQuantumCircuit
