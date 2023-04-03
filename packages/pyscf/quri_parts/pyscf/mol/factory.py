@@ -23,6 +23,8 @@ from .pyscf_interface import PySCFMolecularOrbitals, get_nuc_energy
 
 
 class MolecularHamiltonianBase(ABC):
+    """ Abstract base class for auto computation of molecular hamiltonians.
+    """
     def __init__(
         self,
         molecule: PySCFMolecularOrbitals,
@@ -30,6 +32,17 @@ class MolecularHamiltonianBase(ABC):
         ao2_int_computer: Callable[[PySCFMolecularOrbitals], AO2eIntBase],
         ao_eint_set_type: Type[AOeIntSetBase],
     ) -> None:
+        """
+        Args:
+            molecule:
+                Instance of PySCFMolecularOrbitals representing the molecule of interest.
+            ao1_int_computer:
+                A function specifying how to compute the 1-electron integrals.
+            ao2_int_computer:
+                A function specifying how to compute the 2-electron integrals.
+            ao_eint_set_type:
+                A subclass of AOeIntSetBase for storing the ao integrals.
+        """
         self.mol = molecule
         self.ao1_int_computer, self.ao2_int_computer = (
             ao1_int_computer,
@@ -39,6 +52,9 @@ class MolecularHamiltonianBase(ABC):
         self.ao_e_int_set, self.mo_e_int_set = self.get_ao_mo_e_int_set()
 
     def get_ao_mo_e_int_set(self) -> tuple[AOeIntSetBase, MOeIntSet]:
+        """Computes core energy, ao and mo electron integrals upon
+        initialization of the class.
+        """
         nuc_energy = get_nuc_energy(self.mol)
         ao_1e_int = self.ao1_int_computer(self.mol)
         ao_2e_int = self.ao2_int_computer(self.mol)
@@ -64,6 +80,9 @@ class MolecularHamiltonianBase(ABC):
         n_active_orb: Optional[int] = None,
         active_orbs_indices: Optional[Sequence[int]] = None,
     ) -> MOeIntSet:
+        """An abstract method determining how to compute the active space 
+        spin orbital molecular integrals.
+        """
         ...
 
     def get_molecular_hamiltonian(
@@ -72,6 +91,8 @@ class MolecularHamiltonianBase(ABC):
         n_active_orb: Optional[int] = None,
         active_orbs_indices: Optional[Sequence[int]] = None,
     ) -> MOeIntSet:
+        """Computes the spin orbital electron integrals for generating the molecular hamiltonian.
+        """
         if n_active_ele and n_active_orb:
             hamiltonian_component = self.get_active_space_molecular_integrals(
                 n_active_ele, n_active_orb, active_orbs_indices
@@ -111,6 +132,8 @@ class MolecularHamiltonian(MolecularHamiltonianBase):
         n_active_orb: Optional[int] = None,
         active_orbs_indices: Optional[Sequence[int]] = None,
     ) -> ActiveSpaceMolecularOrbitals:
+        """ Construct the active space configuration
+        """
         if n_active_ele is None or n_active_orb is None:
             n_active_ele = self.mol.n_electron
             n_active_orb = self.mol.mol.nao
@@ -128,6 +151,8 @@ class MolecularHamiltonian(MolecularHamiltonianBase):
 
     @staticmethod
     def check(active_orbitals: ActiveSpaceInfo) -> None:
+        """ Consistency check of the active space configuration.
+        """
         assert active_orbitals.n_vir_orb >= 0, ValueError(
             f"Number of virtual orbitals should be a positive integer.\n"
             f" n_vir = {active_orbitals.n_vir_orb}"
@@ -157,6 +182,8 @@ class MolecularHamiltonian(MolecularHamiltonianBase):
         n_active_orb: Optional[int] = None,
         active_orbs_indices: Optional[Sequence[int]] = None,
     ) -> MOeIntSet:
+        """Computes the active space spin orbital electron integrals
+        """
         active_orbitals = self.get_active_space_molecular_orbitals(
             n_active_ele, n_active_orb, active_orbs_indices
         )
@@ -180,6 +207,8 @@ class PySCFMolecularHamiltonian(MolecularHamiltonianBase):
         active_orbs_indices: Optional[Sequence[int]] = None,
         fix_mo_coeff: bool = True,
     ) -> MOeIntSet:
+        """Computes the active space spin orbital electron integrals with PySCF
+        """
         cas_mf = mcscf.CASSCF(self.mol.mol, n_active_orb, n_active_ele)
         if fix_mo_coeff:
             cas_mf.frozen = self.mol.mol.nao
@@ -216,6 +245,7 @@ class PySCFMolecularHamiltonian(MolecularHamiltonianBase):
         fix_mo_coeff: bool = True,
     ) -> MOeIntSet:
         if not fix_mo_coeff and (n_active_ele and n_active_orb):
+            # For releasing the mo coefficients.
             hamiltonian_component = self.get_active_space_molecular_integrals(
                 n_active_ele, n_active_orb, active_orbs_indices, fix_mo_coeff=False
             )
