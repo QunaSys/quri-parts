@@ -46,19 +46,19 @@ def gates_equal(g1: qulacs.QuantumGateBase, g2: qulacs.QuantumGateBase) -> bool:
 single_qubit_gate_mapping: Mapping[
     Callable[[int], QuantumGate], Type[qulacs.QuantumGateBase]
 ] = {
-    gates.Identity: qulacs.gate.Identity,
-    gates.X: qulacs.gate.X,
-    gates.Y: qulacs.gate.Y,
-    gates.Z: qulacs.gate.Z,
-    gates.H: qulacs.gate.H,
-    gates.S: qulacs.gate.S,
-    gates.Sdag: qulacs.gate.Sdag,
-    gates.SqrtX: qulacs.gate.sqrtX,
-    gates.SqrtXdag: qulacs.gate.sqrtXdag,
-    gates.SqrtY: qulacs.gate.sqrtY,
-    gates.SqrtYdag: qulacs.gate.sqrtYdag,
-    gates.T: qulacs.gate.T,
-    gates.Tdag: qulacs.gate.Tdag,
+    gates.Identity: qulacs.gate.Identity,  # type: ignore
+    gates.X: qulacs.gate.X,  # type: ignore
+    gates.Y: qulacs.gate.Y,  # type: ignore
+    gates.Z: qulacs.gate.Z,  # type: ignore
+    gates.H: qulacs.gate.H,  # type: ignore
+    gates.S: qulacs.gate.S,  # type: ignore
+    gates.Sdag: qulacs.gate.Sdag,  # type: ignore
+    gates.SqrtX: qulacs.gate.sqrtX,  # type: ignore
+    gates.SqrtXdag: qulacs.gate.sqrtXdag,  # type: ignore
+    gates.SqrtY: qulacs.gate.sqrtY,  # type: ignore
+    gates.SqrtYdag: qulacs.gate.sqrtYdag,  # type: ignore
+    gates.T: qulacs.gate.T,  # type: ignore
+    gates.Tdag: qulacs.gate.Tdag,  # type: ignore
 }
 
 
@@ -66,16 +66,16 @@ def test_convert_single_qubit_gate() -> None:
     for qp_fac, qs_gate in single_qubit_gate_mapping.items():
         g = qp_fac(7)
         converted = convert_gate(g)
-        expected = qs_gate(7)
+        expected = qs_gate(7)  # type: ignore
         assert gates_equal(converted, expected)
 
 
 two_qubit_gate_mapping: Mapping[
     Callable[[int, int], QuantumGate], Type[qulacs.QuantumGateBase]
 ] = {
-    gates.CNOT: qulacs.gate.CNOT,
-    gates.CZ: qulacs.gate.CZ,
-    gates.SWAP: qulacs.gate.SWAP,
+    gates.CNOT: qulacs.gate.CNOT,  # type: ignore
+    gates.CZ: qulacs.gate.CZ,  # type: ignore
+    gates.SWAP: qulacs.gate.SWAP,  # type: ignore
 }
 
 
@@ -83,14 +83,14 @@ def test_convert_two_qubit_gate() -> None:
     for qp_fac, qs_gate in two_qubit_gate_mapping.items():
         g = qp_fac(11, 7)
         converted = convert_gate(g)
-        expected = qs_gate(11, 7)
+        expected = qs_gate(11, 7)  # type: ignore
         assert gates_equal(converted, expected)
 
 
 three_qubit_gate_mapping: Mapping[
     Callable[[int, int, int], QuantumGate], Type[qulacs.QuantumGateBase]
 ] = {
-    gates.TOFFOLI: qulacs.gate.TOFFOLI,
+    gates.TOFFOLI: qulacs.gate.TOFFOLI,  # type: ignore
 }
 
 
@@ -98,16 +98,16 @@ def test_convert_three_qubit_gate() -> None:
     for qp_fac, qs_gate in three_qubit_gate_mapping.items():
         g = qp_fac(11, 7, 5)
         converted = convert_gate(g)
-        expected = qs_gate(11, 7, 5)
+        expected = qs_gate(11, 7, 5)  # type: ignore
         assert gates_equal(converted, expected)
 
 
 rotation_gate_mapping: Mapping[
     Callable[[int, float], QuantumGate], Type[qulacs.QuantumGateBase]
 ] = {
-    gates.RX: qulacs.gate.RX,
-    gates.RY: qulacs.gate.RY,
-    gates.RZ: qulacs.gate.RZ,
+    gates.RX: qulacs.gate.RX,  # type: ignore
+    gates.RY: qulacs.gate.RY,  # type: ignore
+    gates.RZ: qulacs.gate.RZ,  # type: ignore
 }
 
 
@@ -115,29 +115,29 @@ def test_convert_rotation_gate() -> None:
     for qp_fac, qs_gate in rotation_gate_mapping.items():
         g = qp_fac(7, 0.125)
         converted = convert_gate(g)
-        expected = qs_gate(7, -0.125)
+        expected = qs_gate(7, -0.125)  # type: ignore
         assert gates_equal(converted, expected)
 
     # Check rotation angle sign
     c = np.cos(np.pi / 4)
     s = np.sin(np.pi / 4)
     assert np.allclose(
-        convert_gate(gates.RX(0, np.pi / 2)).get_matrix(),
+        convert_gate(gates.RX(0, np.pi / 2)).get_matrix(),  # type: ignore
         [[c, -s * 1j], [-s * 1j, c]],
     )
     assert np.allclose(
-        convert_gate(gates.RY(0, np.pi / 2)).get_matrix(),
+        convert_gate(gates.RY(0, np.pi / 2)).get_matrix(),  # type: ignore
         [[c, -s], [s, c]],
     )
     assert np.allclose(
-        convert_gate(gates.RZ(0, np.pi / 2)).get_matrix(),
+        convert_gate(gates.RZ(0, np.pi / 2)).get_matrix(),  # type: ignore
         [[c - s * 1j, 0], [0, c + s * 1j]],
     )
 
 
 def test_convert_unitary_matrix_gate() -> None:
     umat = ((1, 0), (0, np.cos(np.pi / 4) + 1j * np.sin(np.pi / 4)))
-    expected = qulacs.gate.DenseMatrix(7, umat)
+    expected = qulacs.gate.DenseMatrix(7, umat)  # type: ignore
     converted = convert_gate(gates.UnitaryMatrix((7,), umat))
     assert gates_equal(converted, expected)
 
@@ -155,21 +155,21 @@ def test_convert_u_gate() -> None:
 def test_convert_pauli_gate() -> None:
     g = gates.Pauli((11, 7, 13), (2, 3, 1))
     converted = convert_gate(g)
-    expected = qulacs.gate.Pauli((11, 7, 13), (2, 3, 1))
+    expected = qulacs.gate.Pauli((11, 7, 13), (2, 3, 1))  # type: ignore
     assert gates_equal(converted, expected)
 
 
 def test_convert_pauli_rotation_gate() -> None:
     g = gates.PauliRotation((11, 7, 13), (2, 3, 1), 0.125)
     converted = convert_gate(g)
-    expected = qulacs.gate.PauliRotation((11, 7, 13), (2, 3, 1), -0.125)
+    expected = qulacs.gate.PauliRotation((11, 7, 13), (2, 3, 1), -0.125)  # type: ignore
     assert gates_equal(converted, expected)
 
     # Check rotation angle sign
     c = np.cos(np.pi / 4)
     s = np.sin(np.pi / 4)
     assert np.allclose(
-        convert_gate(gates.PauliRotation((0,), (1,), np.pi / 2)).get_matrix(),
+        convert_gate(gates.PauliRotation((0,), (1,), np.pi / 2)).get_matrix(),  # type: ignore  # noqa: E501
         [[c, -s * 1j], [-s * 1j, c]],
     )
 
@@ -222,7 +222,7 @@ def test_convert_parametric_circuit() -> None:
         qulacs.gate.CNOT(0, 2),
         qulacs.gate.ParametricRZ(2, 0.0),
         qulacs.gate.RX(0, -0.125),
-        qulacs.gate.ParametricPauliRotation((0, 1, 2), (1, 2, 3), 0.0),
+        qulacs.gate.ParametricPauliRotation((0, 1, 2), (1, 2, 3), 0.0),  # type: ignore
     ]
     assert converted.get_gate_count() == len(expected_gates)
     for i, expected in enumerate(expected_gates):
@@ -253,7 +253,7 @@ def test_convert_linear_mapped_parametric_circuit() -> None:
         qulacs.gate.CNOT(0, 2),
         qulacs.gate.ParametricRZ(2, 0.0),
         qulacs.gate.RX(0, -0.125),
-        qulacs.gate.ParametricPauliRotation((0, 1, 2), (1, 2, 3), 0.0),
+        qulacs.gate.ParametricPauliRotation((0, 1, 2), (1, 2, 3), 0.0),  # type: ignore
     ]
     assert converted.get_gate_count() == len(expected_gates)
     for i, expected in enumerate(expected_gates):

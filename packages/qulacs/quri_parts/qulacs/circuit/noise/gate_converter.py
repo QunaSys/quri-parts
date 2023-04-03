@@ -19,7 +19,7 @@ from quri_parts.circuit.noise import AbstractKrausNoise, PauliNoise, Probabilist
 def create_kraus_gate(
     qubits: Sequence[int], noise: AbstractKrausNoise
 ) -> QuantumGateBase:
-    return CPTP([DenseMatrix(qubits, kraus) for kraus in noise.kraus_operators])
+    return CPTP([DenseMatrix(qubits, kraus) for kraus in noise.kraus_operators])  # type: ignore  # noqa: E501
 
 
 def create_pauli_noise_gate(
@@ -28,17 +28,17 @@ def create_pauli_noise_gate(
     qubits = noise.qubit_indices
     pauli_list, prob_list = noise.pauli_list, list(noise.prob_list)
 
-    pauli_gates = [Pauli(qubits, pauli) for pauli in pauli_list]
+    pauli_gates = [Pauli(qubits, pauli) for pauli in pauli_list]  # type: ignore
     if sum(prob_list) < 1.0:
         pauli_gates.append(Identity(len(qubits)))
         prob_identity = 1.0 - sum(prob_list)
         prob_list.append(prob_identity)
 
-    return Probabilistic(prob_list, pauli_gates)
+    return Probabilistic(prob_list, pauli_gates)  # type: ignore
 
 
 def create_probabilistic_gate(
     qubits: Sequence[int], noise: ProbabilisticNoise
 ) -> QuantumGateBase:
-    dense_matrices = [DenseMatrix(qubits, matrix) for matrix in noise.gate_matrices]
-    return Probabilistic(noise.prob_list, dense_matrices)
+    dense_matrices = [DenseMatrix(qubits, matrix) for matrix in noise.gate_matrices]  # type: ignore  # noqa: E501
+    return Probabilistic(noise.prob_list, dense_matrices)  # type: ignore

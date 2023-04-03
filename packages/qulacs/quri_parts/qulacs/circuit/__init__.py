@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from collections.abc import Mapping, Sequence
-from typing import Callable, Type
+from typing import Callable, Type, cast
 
 import qulacs
 from typing_extensions import assert_never
@@ -39,49 +39,49 @@ from quri_parts.circuit.gate_names import (
 _single_qubit_gate_qulacs: Mapping[
     SingleQubitGateNameType, Type[qulacs.QuantumGateBase]
 ] = {
-    gate_names.Identity: qulacs.gate.Identity,
-    gate_names.X: qulacs.gate.X,
-    gate_names.Y: qulacs.gate.Y,
-    gate_names.Z: qulacs.gate.Z,
-    gate_names.H: qulacs.gate.H,
-    gate_names.S: qulacs.gate.S,
-    gate_names.Sdag: qulacs.gate.Sdag,
-    gate_names.SqrtX: qulacs.gate.sqrtX,
-    gate_names.SqrtXdag: qulacs.gate.sqrtXdag,
-    gate_names.SqrtY: qulacs.gate.sqrtY,
-    gate_names.SqrtYdag: qulacs.gate.sqrtYdag,
-    gate_names.T: qulacs.gate.T,
-    gate_names.Tdag: qulacs.gate.Tdag,
-    gate_names.U1: qulacs.gate.U1,
-    gate_names.U2: qulacs.gate.U2,
-    gate_names.U3: qulacs.gate.U3,
+    gate_names.Identity: qulacs.gate.Identity,  # type: ignore
+    gate_names.X: qulacs.gate.X,  # type: ignore
+    gate_names.Y: qulacs.gate.Y,  # type: ignore
+    gate_names.Z: qulacs.gate.Z,  # type: ignore
+    gate_names.H: qulacs.gate.H,  # type: ignore
+    gate_names.S: qulacs.gate.S,  # type: ignore
+    gate_names.Sdag: qulacs.gate.Sdag,  # type: ignore
+    gate_names.SqrtX: qulacs.gate.sqrtX,  # type: ignore
+    gate_names.SqrtXdag: qulacs.gate.sqrtXdag,  # type: ignore
+    gate_names.SqrtY: qulacs.gate.sqrtY,  # type: ignore
+    gate_names.SqrtYdag: qulacs.gate.sqrtYdag,  # type: ignore
+    gate_names.T: qulacs.gate.T,  # type: ignore
+    gate_names.Tdag: qulacs.gate.Tdag,  # type: ignore
+    gate_names.U1: qulacs.gate.U1,  # type: ignore
+    gate_names.U2: qulacs.gate.U2,  # type: ignore
+    gate_names.U3: qulacs.gate.U3,  # type: ignore
 }
 
 _single_qubit_reverse_rotation_gate_qulacs: Mapping[
     SingleQubitGateNameType, Type[qulacs.QuantumGateBase]
 ] = {
-    gate_names.RX: qulacs.gate.RX,
-    gate_names.RY: qulacs.gate.RY,
-    gate_names.RZ: qulacs.gate.RZ,
+    gate_names.RX: qulacs.gate.RX,  # type: ignore
+    gate_names.RY: qulacs.gate.RY,  # type: ignore
+    gate_names.RZ: qulacs.gate.RZ,  # type: ignore
 }
 
 _two_qubit_gate_qulacs: Mapping[TwoQubitGateNameType, Type[qulacs.QuantumGateBase]] = {
-    gate_names.CNOT: qulacs.gate.CNOT,
-    gate_names.CZ: qulacs.gate.CZ,
-    gate_names.SWAP: qulacs.gate.SWAP,
+    gate_names.CNOT: qulacs.gate.CNOT,  # type: ignore
+    gate_names.CZ: qulacs.gate.CZ,  # type: ignore
+    gate_names.SWAP: qulacs.gate.SWAP,  # type: ignore
 }
 
 _three_qubit_gate_qulacs: Mapping[
     ThreeQubitGateNameType, Type[qulacs.QuantumGateBase]
 ] = {
-    gate_names.TOFFOLI: qulacs.gate.TOFFOLI,
+    gate_names.TOFFOLI: qulacs.gate.TOFFOLI,  # type: ignore
 }
 
 _multi_pauli_gate_qulacs: Mapping[
     MultiQubitGateNameType, Type[qulacs.QuantumGateBase]
 ] = {
-    gate_names.Pauli: qulacs.gate.Pauli,
-    gate_names.PauliRotation: qulacs.gate.PauliRotation,
+    gate_names.Pauli: qulacs.gate.Pauli,  # type: ignore
+    gate_names.PauliRotation: qulacs.gate.PauliRotation,  # type: ignore
 }
 
 _parametric_gate_qulacs = {
@@ -119,16 +119,18 @@ def convert_gate(
     elif is_multi_qubit_gate_name(gate.name):
         neg_params = (-p for p in gate.params)
         return _multi_pauli_gate_qulacs[gate.name](
-            gate.target_indices, gate.pauli_ids, *neg_params
+            gate.target_indices, gate.pauli_ids, *neg_params  # type: ignore
         )
     elif is_unitary_matrix_gate_name(gate.name):
-        return qulacs.gate.DenseMatrix(gate.target_indices, gate.unitary_matrix)
+        return qulacs.gate.DenseMatrix(gate.target_indices, gate.unitary_matrix)  # type: ignore  # noqa: E501
     elif is_parametric_gate_name(gate.name):
         raise ValueError("Parametric gates are not supported")
     else:
         # It seems that currently assert_never does not work here
         # assert_never(gate.name)
         assert False, "Unreachable"
+
+    return cast(qulacs.QuantumGateBase, None)
 
 
 def convert_circuit(circuit: NonParametricQuantumCircuit) -> qulacs.QuantumCircuit:
@@ -173,7 +175,7 @@ def convert_parametric_circuit(
                 qulacs_circuit.add_parametric_RZ_gate(gate.target_indices[0], 0)
             elif gate.name == gate_names.ParametricPauliRotation:
                 qulacs_circuit.add_parametric_multi_Pauli_rotation_gate(
-                    gate.target_indices, gate.pauli_ids, 0
+                    gate.target_indices, gate.pauli_ids, 0  # type: ignore
                 )
             else:
                 assert_never(gate.name)

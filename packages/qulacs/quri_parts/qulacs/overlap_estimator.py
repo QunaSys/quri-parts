@@ -45,7 +45,7 @@ def _create_qulacs_initial_state(
 ) -> QuantumState:
     qs_state = QuantumState(state.qubit_count)
     if isinstance(state, (QuantumStateVector, ParametricQuantumStateVector)):
-        qs_state.load(state.vector)
+        qs_state.load(state.vector)  # type: ignore
     return qs_state
 
 
