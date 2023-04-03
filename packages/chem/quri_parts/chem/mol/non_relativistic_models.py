@@ -23,13 +23,11 @@ class AO1eInt(AO1eIntBase):
 
     @property
     def array(self) -> "npt.NDArray[np.complex128]":
-        """Returns the ao 1-electron integrals in physicist's notation.
-        """
+        """Returns the ao 1-electron integrals in physicist's notation."""
         return self._ao1eint_array
 
     def to_mo1int(self, mo_coeff: "npt.NDArray[np.complex128]") -> MO1eIntArray:
-        """Returns the mo 1-electron integrals in physicist's notation.
-        """
+        """Returns the mo 1-electron integrals in physicist's notation."""
         h1_mo = mo_coeff.conjugate().T @ self._ao1eint_array @ mo_coeff
         return MO1eIntArray(h1_mo)
 
@@ -40,13 +38,11 @@ class AO2eInt(AO2eIntBase):
 
     @property
     def array(self) -> "npt.NDArray[np.complex128]":
-        """Returns the ao 2-electron integrals in physicist's notation.
-        """
+        """Returns the ao 2-electron integrals in physicist's notation."""
         return self._ao2eint_array.transpose(0, 2, 3, 1)
 
     def to_mo2int(self, mo_coeff: "npt.NDArray[np.complex128]") -> MO2eIntArray:
-        """Compute the mo 2-electron integrals in physicist's notation.
-        """
+        """Compute the mo 2-electron integrals in physicist's notation."""
         # Note that `self._ao2eint_array` in the first line of code
         # is not transposed, which is what we want.
         tensor = tensordot(mo_coeff, self._ao2eint_array, axes=([0], [0]))
@@ -58,9 +54,7 @@ class AO2eInt(AO2eIntBase):
 
 
 class AOeIntSet(AOeIntSetBase):
-    """AOeIntSet holds a constant and the atomic orbital
-    electron integrals.
-    """
+    """AOeIntSet holds a constant and the atomic orbital electron integrals."""
 
     #: constant.
     constant: float
@@ -76,8 +70,8 @@ def get_effective_active_space_core_energy(
     mo_2e_int: npt.NDArray[np.complex128],
     core_spatial_orb_idx: Sequence[int],
 ) -> float:
-    """Compute the effective active space core energy for a given active space configuration.
-    (for spatial orbital.)
+    """Compute the effective active space core energy for a given active space
+    configuration. (for spatial orbital.)
 
     Args:
         original_core_energy:
@@ -111,8 +105,8 @@ def get_effective_active_space_1e_integrals(
     mo_2e_int: npt.NDArray[np.complex128],
     core_spatial_orb_idx: Sequence[int],
 ) -> npt.NDArray[np.complex128]:
-    """Compute the effective active space 1-electron integral for a given active space configuration.
-    (for spatial orbital.)
+    """Compute the effective active space 1-electron integral for a given
+    active space configuration. (for spatial orbital.)
 
     Args:
         original_core_energy:
@@ -154,8 +148,8 @@ def to_spin_orbital(
     spatial_1e_integrals: npt.NDArray[np.complex128],
     spatial_2e_integrals: npt.NDArray[np.complex128],
 ) -> tuple[npt.NDArray[np.complex128], npt.NDArray[np.complex128]]:
-    """Convert spatial orbital electron integrals to spin orbital electron integrals.
-    """
+    """Convert spatial orbital electron integrals to spin orbital electron
+    integrals."""
     spin_1e_integrals = cast(npt.NDArray[np.complex128], zeros((n_qubits, n_qubits)))
     spin_2e_integrals = cast(
         npt.NDArray[np.complex128], zeros((n_qubits, n_qubits, n_qubits, n_qubits))
@@ -185,9 +179,8 @@ def to_spin_orbital(
 def get_active_space_integrals(
     active_space_mo: ActiveSpaceMolecularOrbitals, electron_mo_ints: MOeIntSet
 ) -> MOeIntSet:
-    """Compute the active space effective core energy and all the 
-    spin space electron integrals in the physicist's convention.
-    """
+    """Compute the active space effective core energy and all the spin space
+    electron integrals in the physicist's convention."""
     mo_1e_int = electron_mo_ints.mo_1e_int.array
     mo_2e_int = electron_mo_ints.mo_2e_int.array
 

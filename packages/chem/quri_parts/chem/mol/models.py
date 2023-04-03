@@ -79,19 +79,21 @@ class MolecularOrbitals(Protocol):
 
 @dataclass(frozen=True)
 class ActiveSpaceInfo:
-    """Active space information containing
-        - Information related to the number of electrons:
-            - n_electrons: Number of electrons
-            - n_active_ele: Number of active electrons
-            - n_core_ele: Number of core electrons
-            - n_ele_alpha: Number of spin up electrons
-            - n_ele_beta: Number of spin down electrons
+    """Active space information containing.
 
-        - Information related to the number of orbitals:
-            - n_orb: Number of orbitals
-            - n_core_orb: Number of core orbitals
-            - n_vir_orb: Number of virtual orbitals
+    - Information related to the number of electrons:
+        - n_electrons: Number of electrons
+        - n_active_ele: Number of active electrons
+        - n_core_ele: Number of core electrons
+        - n_ele_alpha: Number of spin up electrons
+        - n_ele_beta: Number of spin down electrons
+
+    - Information related to the number of orbitals:
+        - n_orb: Number of orbitals
+        - n_core_orb: Number of core orbitals
+        - n_vir_orb: Number of virtual orbitals
     """
+
     n_electron: int
     n_active_ele: int
     n_core_ele: int
@@ -126,7 +128,7 @@ class ActiveSpaceMolecularOrbitals(MolecularOrbitals):
 
     @property
     def spin(self) -> int:
-        """Returns the spin of the molecule"""
+        """Returns the spin of the molecule."""
         return self._mo.spin
 
     @property
@@ -176,8 +178,7 @@ class ActiveSpaceMolecularOrbitals(MolecularOrbitals):
 
     @property
     def info(self) -> ActiveSpaceInfo:
-        """ Returns an instance of the `ActiveSpaceInfo` class
-        """
+        """Returns an instance of the `ActiveSpaceInfo` class."""
         active_space_info = ActiveSpaceInfo(
             n_electron=self.n_electron,
             n_active_ele=self.n_active_ele,
@@ -266,8 +267,9 @@ class AO2eIntBase(Protocol):
 
 
 class AOeIntSetBase(NamedTuple):
-    """NamedTuple holding a constant and instance of the ao electron integrals
-    """
+    """NamedTuple holding a constant and instance of the ao electron
+    integrals."""
+
     #: constant.
     constant: float
     #: non-relativistic atomic  orbital one-electron integral :class:`NRAO1eInt`.
