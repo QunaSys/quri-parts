@@ -7,10 +7,11 @@ from quri_parts.chem.mol import (
     ActiveSpace,
     ActiveSpaceInfo,
     ActiveSpaceMolecularOrbitals,
-    AO1eIntBase,
-    AO2eIntBase,
+    AO1eIntArray,
+    AO2eIntArray,
+    AO1eIntProtocol,
+    AO2eIntProtocol,
     AOeIntSet,
-    AOeIntSetBase,
     MO1eIntArray,
     MO2eIntArray,
     MOeIntSet,
@@ -28,9 +29,8 @@ class MolecularHamiltonianBase(ABC):
     def __init__(
         self,
         molecule: PySCFMolecularOrbitals,
-        ao1_int_computer: Callable[[PySCFMolecularOrbitals], AO1eIntBase],
-        ao2_int_computer: Callable[[PySCFMolecularOrbitals], AO2eIntBase],
-        ao_eint_set_type: Type[AOeIntSetBase],
+        ao1_int_computer: Callable[[PySCFMolecularOrbitals], AO1eIntProtocol],
+        ao2_int_computer: Callable[[PySCFMolecularOrbitals], AO2eIntProtocol],
     ) -> None:
         """
         Args:
@@ -48,10 +48,9 @@ class MolecularHamiltonianBase(ABC):
             ao1_int_computer,
             ao2_int_computer,
         )
-        self.ao_eint_set_type = ao_eint_set_type
         self.ao_e_int_set, self.mo_e_int_set = self.get_ao_mo_e_int_set()
 
-    def get_ao_mo_e_int_set(self) -> tuple[AOeIntSetBase, MOeIntSet]:
+    def get_ao_mo_e_int_set(self) -> tuple[AOeIntSet, MOeIntSet]:
         """Computes core energy, ao and mo electron integrals upon
         initialization of the class."""
         nuc_energy = get_nuc_energy(self.mol)
@@ -61,7 +60,7 @@ class MolecularHamiltonianBase(ABC):
         mo_1e_int = ao_1e_int.to_mo1int(self.mol.mo_coeff)
         mo_2e_int = ao_2e_int.to_mo2int(self.mol.mo_coeff)
 
-        ao_e_int_set = self.ao_eint_set_type(
+        ao_e_int_set = AOeIntSet(
             constant=nuc_energy,
             ao_1e_int=ao_1e_int,
             ao_2e_int=ao_2e_int,
@@ -121,8 +120,7 @@ class MolecularHamiltonian(MolecularHamiltonianBase):
     def __init__(self, molecule: PySCFMolecularOrbitals) -> None:
         ao1_int_computer = ao1int
         ao2_int_computer = ao2int
-        ao_eint_set_type = AOeIntSet
-        super().__init__(molecule, ao1_int_computer, ao2_int_computer, ao_eint_set_type)
+        super().__init__(molecule, ao1_int_computer, ao2_int_computer)
 
     def get_active_space_molecular_orbitals(
         self,
@@ -192,8 +190,7 @@ class PySCFMolecularHamiltonian(MolecularHamiltonianBase):
     def __init__(self, molecule: PySCFMolecularOrbitals) -> None:
         ao1_int_computer = pyscf_ao1int
         ao2_int_computer = pyscf_ao2int
-        ao_eint_set_type = AOeIntSet
-        super().__init__(molecule, ao1_int_computer, ao2_int_computer, ao_eint_set_type)
+        super().__init__(molecule, ao1_int_computer, ao2_int_computer)
 
     def get_active_space_molecular_integrals(
         self,

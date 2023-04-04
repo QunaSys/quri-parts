@@ -227,8 +227,25 @@ class ActiveSpaceMolecularOrbitals(MolecularOrbitals):
         else:
             return OrbitalType.VIRTUAL
 
+    def __repr__(self) -> str:
+        return self.__str__()
+    
+    def __str__(self) -> str:
+        info_dict = {
+            'n_electron': self.n_electron,
+            'n_active_ele': self.n_active_ele,
+            'n_core_ele': self.n_core_ele,
+            'n_ele_alpha': self.n_ele_alpha,
+            'n_ele_beta': self.n_ele_beta,
+            'n_orb': self.n_orb,
+            'n_active_orb': self.n_active_orb,
+            'n_core_orb': self.n_core_orb,
+            'n_vir_orb': self.n_vir_orb
+        }
+        return str(info_dict)
 
-class AO1eIntBase(Protocol):
+
+class AO1eIntProtocol(Protocol):
     """Interface protocol for an atomic orbital one-electron integral."""
 
     @abstractproperty
@@ -247,7 +264,7 @@ class AO1eIntBase(Protocol):
         ...
 
 
-class AO2eIntBase(Protocol):
+class AO2eIntProtocol(Protocol):
     """Interface protocol for an atomic orbital two-electron integral."""
 
     @abstractproperty
@@ -265,18 +282,7 @@ class AO2eIntBase(Protocol):
         """
         ...
 
-
-class AOeIntSetBase(NamedTuple):
-    """NamedTuple holding a constant and instance of the ao electron
-    integrals."""
-
-    #: constant.
-    constant: float
-    #: non-relativistic atomic  orbital one-electron integral :class:`NRAO1eInt`.
-    ao_1e_int: AO1eIntBase
-    #: non-relativistic atomic  orbital two-electron integral :class:`NRAO2eInt`.
-    ao_2e_int: AO2eIntBase
-
+        
 
 class MO1eInt(Protocol):
     """Interface protocol for a molecular orbital one-electron integral."""

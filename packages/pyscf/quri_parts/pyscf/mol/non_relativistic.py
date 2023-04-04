@@ -5,10 +5,10 @@ import numpy.typing as npt
 from pyscf import ao2mo, gto, scf
 
 from quri_parts.chem.mol import (
-    AO1eInt,
-    AO1eIntBase,
-    AO2eInt,
-    AO2eIntBase,
+    AO1eIntArray,
+    AO1eIntProtocol,
+    AO2eIntArray,
+    AO2eIntProtocol,
     MO1eInt,
     MO1eIntArray,
     MO2eInt,
@@ -18,19 +18,19 @@ from quri_parts.chem.mol import (
 from .pyscf_interface import PySCFMolecularOrbitals
 
 
-def ao1int(mo: PySCFMolecularOrbitals) -> AO1eInt:
+def ao1int(mo: PySCFMolecularOrbitals) -> AO1eIntArray:
     """Calculate the atomic orbital one-electron integral."""
     h1e = scf.hf.get_hcore(mo.mol)
-    return AO1eInt(ao1eint_array=h1e)
+    return AO1eIntArray(ao1eint_array=h1e)
 
 
-def ao2int(mo: PySCFMolecularOrbitals) -> AO2eInt:
+def ao2int(mo: PySCFMolecularOrbitals) -> AO2eIntArray:
     """Calculate the atomic orbital two-electron integral."""
-    a2e_int = mo.mol.intor("int2e")
-    return AO2eInt(ao2eint_array=a2e_int)
+    a2e_int = mo.mol.intor("int2e").transpose(0, 2, 3, 1)
+    return AO2eIntArray(ao2eint_array=a2e_int)
 
 
-class PySCFAO1eInt(AO1eIntBase):
+class PySCFAO1eInt(AO1eIntProtocol):
     def __init__(self, mol: gto.Mole) -> None:
         self._mol = mol
 
@@ -48,7 +48,7 @@ class PySCFAO1eInt(AO1eIntBase):
         return MO1eIntArray(h1_mo)
 
 
-class PySCFAO2eInt(AO2eIntBase):
+class PySCFAO2eInt(AO2eIntProtocol):
     def __init__(self, mol: gto.Mole) -> None:
         self._mol = mol
 

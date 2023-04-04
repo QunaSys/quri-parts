@@ -1,5 +1,5 @@
 from itertools import product
-from typing import Any, Sequence, cast
+from typing import Any, Sequence, NamedTuple, cast
 
 import numpy as np
 import numpy.typing as npt
@@ -7,9 +7,8 @@ from numpy import arange, tensordot, trace, zeros
 
 from quri_parts.chem.mol import (
     ActiveSpaceMolecularOrbitals,
-    AO1eIntBase,
-    AO2eIntBase,
-    AOeIntSetBase,
+    AO1eIntProtocol,
+    AO2eIntProtocol,
     MO1eIntArray,
     MO2eIntArray,
     MOeIntSet,
@@ -17,7 +16,7 @@ from quri_parts.chem.mol import (
 )
 
 
-class AO1eInt(AO1eIntBase):
+class AO1eIntArray(AO1eIntProtocol):
     def __init__(self, ao1eint_array: "npt.NDArray[np.complex128]") -> None:
         self._ao1eint_array = ao1eint_array
 
@@ -32,20 +31,21 @@ class AO1eInt(AO1eIntBase):
         return MO1eIntArray(h1_mo)
 
 
-class AO2eInt(AO2eIntBase):
+class AO2eIntArray(AO2eIntProtocol):
     def __init__(self, ao2eint_array: npt.NDArray[np.complex128]) -> None:
+        # The input should be in physicist's convention
         self._ao2eint_array = ao2eint_array
 
     @property
     def array(self) -> "npt.NDArray[np.complex128]":
-        """Returns the ao 2-electron integrals in physicist's notation."""
-        return self._ao2eint_array.transpose(0, 2, 3, 1)
+        """Returns the ao 2-electron integrals in physicist's convention."""
+        return self._ao2eint_array
 
     def to_mo2int(self, mo_coeff: "npt.NDArray[np.complex128]") -> MO2eIntArray:
-        """Compute the mo 2-electron integrals in physicist's notation."""
-        # Note that `self._ao2eint_array` in the first line of code
-        # is not transposed, which is what we want.
-        tensor = tensordot(mo_coeff, self._ao2eint_array, axes=([0], [0]))
+        """Compute the mo 2-electron integrals in physicist's convention."""
+        # Transpose back to chemist convention for computation.
+        ao2eint_chem_array = self._ao2eint_array.transpose(0, 3, 1, 2)
+        tensor = tensordot(mo_coeff, ao2eint_chem_array, axes=([0], [0]))
         tensor = tensordot(mo_coeff.conjugate(), tensor, axes=([0], [1]))
         tensor = tensordot(mo_coeff, tensor, axes=([0], [2]))
         tensor = tensordot(mo_coeff.conjugate(), tensor, axes=([0], [3]))
@@ -53,15 +53,15 @@ class AO2eInt(AO2eIntBase):
         return MO2eIntArray(tensor)
 
 
-class AOeIntSet(AOeIntSetBase):
+class AOeIntSet(NamedTuple):
     """AOeIntSet holds a constant and the atomic orbital electron integrals."""
 
     #: constant.
     constant: float
     #: non-relativistic atomic  orbital one-electron integral :class:`NRAO1eInt`.
-    ao_1e_int: AO1eInt
+    ao_1e_int: AO1eIntArray
     #: non-relativistic atomic  orbital two-electron integral :class:`NRAO2eInt`.
-    ao_2e_int: AO2eInt
+    ao_2e_int: AO2eIntArray
 
 
 def get_effective_active_space_core_energy(
