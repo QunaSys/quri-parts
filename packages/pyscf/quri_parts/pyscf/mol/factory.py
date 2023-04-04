@@ -5,7 +5,6 @@ from pyscf import ao2mo, mcscf
 
 from quri_parts.chem.mol import (
     ActiveSpace,
-    ActiveSpaceInfo,
     ActiveSpaceMolecularOrbitals,
     AO1eIntProtocol,
     AO2eIntProtocol,
@@ -138,12 +137,12 @@ class MolecularHamiltonian(MolecularHamiltonianBase):
         )
         active_orbitals = ActiveSpaceMolecularOrbitals(self.mol, active_space)
 
-        self.check(active_orbitals.info)
+        self.check(active_orbitals)
 
         return active_orbitals
 
     @staticmethod
-    def check(active_orbitals: ActiveSpaceInfo) -> None:
+    def check(active_orbitals: ActiveSpaceMolecularOrbitals) -> None:
         """Consistency check of the active space configuration."""
         assert active_orbitals.n_vir_orb >= 0, ValueError(
             f"Number of virtual orbitals should be a positive integer.\n"

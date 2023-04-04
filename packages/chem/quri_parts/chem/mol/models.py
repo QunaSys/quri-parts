@@ -77,34 +77,6 @@ class MolecularOrbitals(Protocol):
         ...
 
 
-@dataclass(frozen=True)
-class ActiveSpaceInfo:
-    """Active space information containing.
-
-    - Information related to the number of electrons:
-        - n_electrons: Number of electrons
-        - n_active_ele: Number of active electrons
-        - n_core_ele: Number of core electrons
-        - n_ele_alpha: Number of spin up electrons
-        - n_ele_beta: Number of spin down electrons
-
-    - Information related to the number of orbitals:
-        - n_orb: Number of orbitals
-        - n_core_orb: Number of core orbitals
-        - n_vir_orb: Number of virtual orbitals
-    """
-
-    n_electron: int
-    n_active_ele: int
-    n_core_ele: int
-    n_ele_alpha: int
-    n_ele_beta: int
-    n_orb: int
-    n_active_orb: int
-    n_core_orb: int
-    n_vir_orb: int
-
-
 class ActiveSpaceMolecularOrbitals(MolecularOrbitals):
     """Represents a data of the active space for the molecule.
 
@@ -177,22 +149,6 @@ class ActiveSpaceMolecularOrbitals(MolecularOrbitals):
         return self._mo.n_orb - self.n_active_orb - self.n_core_orb
 
     @property
-    def info(self) -> ActiveSpaceInfo:
-        """Returns an instance of the `ActiveSpaceInfo` class."""
-        active_space_info = ActiveSpaceInfo(
-            n_electron=self.n_electron,
-            n_active_ele=self.n_active_ele,
-            n_core_ele=self.n_core_ele,
-            n_ele_alpha=self.n_ele_alpha,
-            n_ele_beta=self.n_ele_beta,
-            n_orb=self.n_orb,
-            n_active_orb=self.n_active_orb,
-            n_core_orb=self.n_core_orb,
-            n_vir_orb=self.n_vir_orb,
-        )
-        return active_space_info
-
-    @property
     def mo_coeff(self) -> "npt.NDArray[np.complex128]":
         """Returns molecular orbital coefficients."""
         return self._mo.mo_coeff
@@ -242,7 +198,10 @@ class ActiveSpaceMolecularOrbitals(MolecularOrbitals):
             "n_core_orb": self.n_core_orb,
             "n_vir_orb": self.n_vir_orb,
         }
-        return str(info_dict)
+
+        info_str = "\n".join(f"{key}: {str(value)}" for key, value in info_dict.items())
+
+        return info_str
 
 
 class AO1eIntProtocol(Protocol):
