@@ -228,7 +228,7 @@ class PySCFMolecularHamiltonian(MolecularHamiltonianBase):
         hamiltonian_component = MOeIntSet(
             const=casscf_nuc,
             mo_1e_int=MO1eIntArray(casscf_mo_1e_spin_int),
-            mo_2e_int=MO1eIntArray(casscf_mo_2e_spin_int),
+            mo_2e_int=MO2eIntArray(casscf_mo_2e_spin_int),
         )
         return hamiltonian_component
 
