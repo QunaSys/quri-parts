@@ -1,5 +1,5 @@
 from itertools import product
-from typing import Any, Sequence, NamedTuple, cast
+from typing import Any, NamedTuple, Sequence, cast
 
 import numpy as np
 import numpy.typing as npt
@@ -59,9 +59,9 @@ class AOeIntSet(NamedTuple):
     #: constant.
     constant: float
     #: non-relativistic atomic  orbital one-electron integral :class:`NRAO1eInt`.
-    ao_1e_int: AO1eIntArray
+    ao_1e_int: AO1eIntProtocol
     #: non-relativistic atomic  orbital two-electron integral :class:`NRAO2eInt`.
-    ao_2e_int: AO2eIntArray
+    ao_2e_int: AO2eIntProtocol
 
 
 def get_effective_active_space_core_energy(

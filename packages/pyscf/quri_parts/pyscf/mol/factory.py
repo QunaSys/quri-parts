@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Optional, Sequence, Type, cast
+from typing import Callable, Optional, Sequence, cast
 
 from pyscf import ao2mo, mcscf
 
@@ -7,8 +7,6 @@ from quri_parts.chem.mol import (
     ActiveSpace,
     ActiveSpaceInfo,
     ActiveSpaceMolecularOrbitals,
-    AO1eIntArray,
-    AO2eIntArray,
     AO1eIntProtocol,
     AO2eIntProtocol,
     AOeIntSet,

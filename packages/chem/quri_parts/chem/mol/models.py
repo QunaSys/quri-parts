@@ -229,18 +229,18 @@ class ActiveSpaceMolecularOrbitals(MolecularOrbitals):
 
     def __repr__(self) -> str:
         return self.__str__()
-    
+
     def __str__(self) -> str:
         info_dict = {
-            'n_electron': self.n_electron,
-            'n_active_ele': self.n_active_ele,
-            'n_core_ele': self.n_core_ele,
-            'n_ele_alpha': self.n_ele_alpha,
-            'n_ele_beta': self.n_ele_beta,
-            'n_orb': self.n_orb,
-            'n_active_orb': self.n_active_orb,
-            'n_core_orb': self.n_core_orb,
-            'n_vir_orb': self.n_vir_orb
+            "n_electron": self.n_electron,
+            "n_active_ele": self.n_active_ele,
+            "n_core_ele": self.n_core_ele,
+            "n_ele_alpha": self.n_ele_alpha,
+            "n_ele_beta": self.n_ele_beta,
+            "n_orb": self.n_orb,
+            "n_active_orb": self.n_active_orb,
+            "n_core_orb": self.n_core_orb,
+            "n_vir_orb": self.n_vir_orb,
         }
         return str(info_dict)
 
@@ -282,7 +282,6 @@ class AO2eIntProtocol(Protocol):
         """
         ...
 
-        
 
 class MO1eInt(Protocol):
     """Interface protocol for a molecular orbital one-electron integral."""
