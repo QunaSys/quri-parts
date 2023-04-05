@@ -9,7 +9,7 @@
 # limitations under the License.
 
 import io
-from typing import TYPE_CHECKING, Mapping
+from typing import TYPE_CHECKING, Callable, Mapping
 
 from quri_parts.circuit import gate_names
 from quri_parts.circuit.gate_names import (
@@ -21,6 +21,7 @@ from quri_parts.circuit.gate_names import (
     is_two_qubit_gate_name,
 )
 from quri_parts.circuit.transpile import (
+    CircuitTranspiler,
     PauliDecomposeTranspiler,
     PauliRotationDecomposeTranspiler,
     SequentialTranspiler,
@@ -36,16 +37,9 @@ if TYPE_CHECKING:
     )
 
 
-class OpenQASMTranspiler(SequentialTranspiler):
-    """CircuitTranspiler which transpiles gates not supported by OpenQASM to
-    supported ones."""
-
-    def __init__(self) -> None:
-        transpilers = [
-            PauliDecomposeTranspiler(),
-            PauliRotationDecomposeTranspiler(),
-        ]
-        super().__init__(transpilers)
+OpenQASMTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
+    [PauliDecomposeTranspiler(), PauliRotationDecomposeTranspiler()]
+)
 
 
 _HEADER = """OPENQASM 3;
