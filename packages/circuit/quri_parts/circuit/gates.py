@@ -11,6 +11,8 @@
 from collections.abc import Sequence
 from typing import Literal
 
+import numpy as np
+
 from quri_parts.circuit import gate_names
 
 from .gate import ParametricQuantumGate, QuantumGate
@@ -236,6 +238,7 @@ class U1Factory:
 
 U1 = U1Factory()
 r"""U1 gate is a single-qubit rotation about the Z axis:
+
 :math:`U_1(\lambda) = e^{i\lambda/2} R_Z(\lambda)`.
 Represented by matrix :math:`\begin{pmatrix} 1 & 0 \\ 0 & e^{i\lambda} \end{pmatrix}`
 """
@@ -252,6 +255,7 @@ class U2Factory:
 
 U2 = U2Factory()
 r"""U2 gate is a single-qubit rotation about X + Z axis:
+
 :math:`U_2(\phi, \lambda) = R_Z(\phi)R_Y(\pi/2)R_Z(\lambda)`.
 Represented by matrix :math:`\frac{1}{\sqrt{2}}\begin{pmatrix} 1 & e^{-i\lambda} \\
 e^{i\phi} & e^{i(\phi+\lambda)} \end{pmatrix}`
@@ -326,6 +330,77 @@ SWAP = SWAPFactory()
 """SWAP gate."""
 
 
+class TOFFOLIFactory:
+    name: Literal["TOFFOLI"] = gate_names.TOFFOLI
+
+    def __call__(
+        self, control_index1: int, control_index2: int, target_index: int
+    ) -> QuantumGate:
+        return QuantumGate(
+            name=self.name,
+            target_indices=(target_index,),
+            control_indices=(control_index1, control_index2),
+        )
+
+
+TOFFOLI = TOFFOLIFactory()
+"""TOFFOLI gate."""
+
+
+class UnitaryMatrixFactory:
+    name: Literal["UnitaryMatrix"] = gate_names.UnitaryMatrix
+
+    def __call__(
+        self, target_indices: Sequence[int], unitary_matrix: Sequence[Sequence[complex]]
+    ) -> QuantumGate:
+        n = 2 ** len(target_indices)
+        arr = np.array(unitary_matrix)
+        if arr.shape != (n, n):
+            raise ValueError(
+                "The number of qubits does not match the size of the unitary matrix."
+            )
+        if not np.allclose(np.matmul(arr, np.conj(arr.T)), np.identity(n)):
+            raise ValueError("The given matrix is not unitary.")
+        return QuantumGate(
+            name=self.name,
+            target_indices=tuple(target_indices),
+            unitary_matrix=tuple(map(tuple, unitary_matrix)),
+        )
+
+
+UnitaryMatrix = UnitaryMatrixFactory()
+"""UnitaryMatrix gate represented by an arbitrary unitary matrix."""
+
+
+class SingleQubitUnitaryMatrixFactory:
+    name: Literal["UnitaryMatrix"] = gate_names.UnitaryMatrix
+
+    def __call__(
+        self, target_index: int, unitary_matrix: Sequence[Sequence[complex]]
+    ) -> QuantumGate:
+        return UnitaryMatrix((target_index,), unitary_matrix)
+
+
+SingleQubitUnitaryMatrix = SingleQubitUnitaryMatrixFactory()
+"""Single qubit UnitaryMatrix gate."""
+
+
+class TwoQubitUnitaryMatrixFactory:
+    name: Literal["UnitaryMatrix"] = gate_names.UnitaryMatrix
+
+    def __call__(
+        self,
+        target_index1: int,
+        target_index2: int,
+        unitary_matrix: Sequence[Sequence[complex]],
+    ) -> QuantumGate:
+        return UnitaryMatrix((target_index1, target_index2), unitary_matrix)
+
+
+TwoQubitUnitaryMatrix = TwoQubitUnitaryMatrixFactory()
+"""Two qubit UnitaryMatrix gate."""
+
+
 class PauliFactory:
     name: Literal["Pauli"] = gate_names.Pauli
 
@@ -370,9 +445,10 @@ class ParametricRXFactory:
 
 ParametricRX = ParametricRXFactory()
 """Parametric RX gate.
+
 Note that the instance of this class doesn't contain parameter values.
-Every parametric gate is carried with it's parameter (:class:`~Parameter`) such as
-(ParametricRX, Parameter).
+Every parametric gate is carried with it's parameter
+(:class:`~Parameter`) such as (ParametricRX, Parameter).
 """
 
 
@@ -385,9 +461,10 @@ class ParametricRYFactory:
 
 ParametricRY = ParametricRYFactory()
 """Parametric RY gate.
+
 Note that the instance of this class doesn't contain parameter values.
-Every parametric gate is carried with it's parameter (:class:`~Parameter`) such as
-(ParametricRY, Parameter).
+Every parametric gate is carried with it's parameter
+(:class:`~Parameter`) such as (ParametricRY, Parameter).
 """
 
 
@@ -400,9 +477,10 @@ class ParametricRZFactory:
 
 ParametricRZ = ParametricRZFactory()
 """Parametric RZ gate.
+
 Note that the instance of this class doesn't contain parameter values.
-Every parametric gate is carried with it's parameter (:class:`~Parameter`) such as
-(ParametricRZ, Parameter).
+Every parametric gate is carried with it's parameter
+(:class:`~Parameter`) such as (ParametricRZ, Parameter).
 """
 
 
@@ -421,7 +499,8 @@ class ParametricPauliRotationFactory:
 
 ParametricPauliRotation = ParametricPauliRotationFactory()
 """Parametric Pauli rotation gate.
+
 Note that the instance of this class doesn't contain parameter values.
-Every parametric gate is carried with it's parameter (:class:`~Parameter`) such as
-(ParametricPauliRotation, Parameter).
+Every parametric gate is carried with it's parameter
+(:class:`~Parameter`) such as (ParametricPauliRotation, Parameter).
 """

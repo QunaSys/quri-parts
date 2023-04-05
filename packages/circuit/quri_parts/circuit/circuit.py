@@ -22,20 +22,25 @@ from .gates import (
     RY,
     RZ,
     SWAP,
+    TOFFOLI,
     U1,
     U2,
     U3,
     H,
+    Identity,
     Pauli,
     PauliRotation,
     S,
     Sdag,
+    SingleQubitUnitaryMatrix,
     SqrtX,
     SqrtXdag,
     SqrtY,
     SqrtYdag,
     T,
     Tdag,
+    TwoQubitUnitaryMatrix,
+    UnitaryMatrix,
     X,
     Y,
     Z,
@@ -83,6 +88,10 @@ class MutableQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
     def extend(self, gates: GateSequence) -> None:
         """Extend the circuit with given gate sequence."""
         ...
+
+    def add_Identity_gate(self, qubit_index: int) -> None:
+        """Add an Identity gate to the circuit."""
+        self.add_gate(Identity(qubit_index))
 
     def add_X_gate(self, qubit_index: int) -> None:
         """Add an X gate to the circuit."""
@@ -132,17 +141,17 @@ class MutableQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
         """Add a Tdag gate to the circuit."""
         self.add_gate(Tdag(index))
 
-    def add_U1_gate(self, index: int, phi: float) -> None:
+    def add_U1_gate(self, index: int, lmd: float) -> None:
         """Add an U1 gate to the circuit."""
-        self.add_gate(U1(index, phi))
+        self.add_gate(U1(index, lmd))
 
-    def add_U2_gate(self, index: int, phi: float, psi: float) -> None:
+    def add_U2_gate(self, index: int, phi: float, lmd: float) -> None:
         """Add an U2 gate to the circuit."""
-        self.add_gate(U2(index, phi, psi))
+        self.add_gate(U2(index, phi, lmd))
 
-    def add_U3_gate(self, index: int, phi: float, psi: float, theta: float) -> None:
+    def add_U3_gate(self, index: int, theta: float, phi: float, lmd: float) -> None:
         """Add an U3 gate to the circuit."""
-        self.add_gate(U3(index, phi, psi, theta))
+        self.add_gate(U3(index, theta, phi, lmd))
 
     def add_RX_gate(self, index: int, angle: float) -> None:
         """Add a RX gate to the circuit."""
@@ -168,11 +177,44 @@ class MutableQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
         """Add a SWAP gate to the circuit."""
         self.add_gate(SWAP(target_index1, target_index2))
 
+    def add_TOFFOLI_gate(
+        self, control_index1: int, control_index2: int, target_index: int
+    ) -> None:
+        """Add a TOFFOLI gate to the circuit."""
+        self.add_gate(TOFFOLI(control_index1, control_index2, target_index))
+
+    def add_UnitaryMatrix_gate(
+        self,
+        target_indices: Sequence[int],
+        unitary_matrix: Sequence[Sequence[complex]],
+    ) -> None:
+        """Add a UnitaryMatrix gate to the circuit."""
+        self.add_gate(UnitaryMatrix(target_indices, unitary_matrix))
+
+    def add_SingleQubitUnitaryMatrix_gate(
+        self,
+        target_index: int,
+        unitary_matrix: Sequence[Sequence[complex]],
+    ) -> None:
+        """Add a single qubit UnitaryMatrix gate to the circuit."""
+        self.add_gate(SingleQubitUnitaryMatrix(target_index, unitary_matrix))
+
+    def add_TwoQubitUnitaryMatrix_gate(
+        self,
+        target_index1: int,
+        target_index2: int,
+        unitary_matrix: Sequence[Sequence[complex]],
+    ) -> None:
+        """Add a two qubit UnitaryMatrix gate to the circuit."""
+        self.add_gate(
+            TwoQubitUnitaryMatrix(target_index1, target_index2, unitary_matrix)
+        )
+
     def add_Pauli_gate(
-        self, target_index_list: Sequence[int], pauli_id_list: Sequence[int]
+        self, target_indices: Sequence[int], pauli_ids: Sequence[int]
     ) -> None:
         """Add a Pauli gate to the circuit."""
-        self.add_gate(Pauli(target_index_list, pauli_id_list))
+        self.add_gate(Pauli(target_indices, pauli_ids))
 
     def add_PauliRotation_gate(
         self,

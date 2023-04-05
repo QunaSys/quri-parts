@@ -30,9 +30,9 @@ _GATES: list[QuantumGate] = [
 _PARAM_VALS: list[float] = [1.0, 0.5]
 
 
-def mutable_circuit() -> tuple[
-    LinearMappedUnboundParametricQuantumCircuit, Sequence[Parameter]
-]:
+def mutable_circuit() -> (
+    tuple[LinearMappedUnboundParametricQuantumCircuit, Sequence[Parameter]]
+):
     circuit = LinearMappedUnboundParametricQuantumCircuit(2)
     for gate in _GATES:
         circuit.add_gate(gate)
@@ -42,9 +42,9 @@ def mutable_circuit() -> tuple[
     return circuit, params
 
 
-def immutable_circuit() -> tuple[
-    ImmutableLinearMappedUnboundParametricQuantumCircuit, Sequence[Parameter]
-]:
+def immutable_circuit() -> (
+    tuple[ImmutableLinearMappedUnboundParametricQuantumCircuit, Sequence[Parameter]]
+):
     q_circuit, params = mutable_circuit()
     return ImmutableLinearMappedUnboundParametricQuantumCircuit(q_circuit), params
 
@@ -58,6 +58,7 @@ class TestLinearMappedUnboundParametricQuantumCircuit:
         assert len(params) == 2
         assert params[0].name == "RX"
         assert params[1].name == "PauliRotation"
+        assert circuit.has_trivial_parameter_mapping
 
     def test_get_mutable_copy(self) -> None:
         circuit, _ = mutable_circuit()
@@ -116,6 +117,23 @@ class TestLinearMappedUnboundParametricQuantumCircuit:
         immutable_circuit_2 = circuit_2.freeze()
         assert immutable_circuit_2.depth == 2
 
+    def test_has_trivial_mapping(self) -> None:
+        circuit, _ = mutable_circuit()
+        params = circuit.add_parameters("RZ")
+        circuit.add_ParametricRZ_gate(0, {params[0]: 1.0})
+        assert circuit.has_trivial_parameter_mapping
+
+        circuit.add_ParametricRZ_gate(0, {params[0]: 0.5})
+        assert not circuit.has_trivial_parameter_mapping
+
+        circuit, _ = mutable_circuit()
+        params = circuit.add_parameters("RZ", "RY")
+        circuit.add_ParametricRZ_gate(0, {params[0]: 1.0})
+        assert not circuit.has_trivial_parameter_mapping
+
+        circuit.add_ParametricRY_gate(1, {params[0]: 1.0, params[1]: 1.0})
+        assert not circuit.has_trivial_parameter_mapping
+
 
 class TestImmutableLinearMappedUnboundParametricQuantumCircuit:
     def test_immutable_linear_mapped_unbound_parametric_quantum_circuit(self) -> None:
@@ -123,6 +141,7 @@ class TestImmutableLinearMappedUnboundParametricQuantumCircuit:
         assert circuit.qubit_count == 2
         assert len(circuit._circuit._gates) == 5
         assert circuit.parameter_count == 2
+        assert circuit.has_trivial_parameter_mapping
 
     def test_get_mutable_copy(self) -> None:
         circuit, _ = mutable_circuit()

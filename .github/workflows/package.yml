@@ -13,6 +13,8 @@ jobs:
 
     steps:
     - name: Install Poetry
+      env:
+        POETRY_VERSION: 1.4.0
       run: |
         curl -sSL https://install.python-poetry.org | python -
         echo "$HOME/.poetry/bin" >> $GITHUB_PATH
@@ -29,13 +31,16 @@ jobs:
 
     - run: |
         mkdir -p dist
+        cp -f NOTICE quri_parts/
         poetry build
-        for pkg in packages/*
+        cd packages
+        for pkg in *
         do
           cd $pkg
+          cp -f NOTICE quri_parts/$pkg/
           poetry build
           mv dist/* ../../dist
-          cd ../..
+          cd ..
         done
 
     - uses: actions/upload-artifact@v3

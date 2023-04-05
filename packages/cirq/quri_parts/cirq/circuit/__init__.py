@@ -16,17 +16,22 @@ from cirq.circuits.circuit import Circuit
 from cirq.devices.line_qubit import LineQubit
 from cirq.ops.common_gates import CNOT, CZ, H, Rx, Ry, Rz, S, T, rx, ry, rz
 from cirq.ops.identity import I
+from cirq.ops.matrix_gates import MatrixGate
 from cirq.ops.pauli_gates import X, Y, Z
 from cirq.ops.raw_types import Gate, Operation
 from cirq.ops.swap_gates import SWAP
+from cirq.ops.three_qubit_gates import TOFFOLI
 
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate, gate_names
 from quri_parts.circuit.gate_names import (
     SingleQubitGateNameType,
+    ThreeQubitGateNameType,
     TwoQubitGateNameType,
     is_parametric_gate_name,
     is_single_qubit_gate_name,
+    is_three_qubit_gate_name,
     is_two_qubit_gate_name,
+    is_unitary_matrix_gate_name,
 )
 from quri_parts.circuit.transpile import (
     CircuitTranspiler,
@@ -156,6 +161,10 @@ _two_qubit_gate_cirq: Mapping[TwoQubitGateNameType, Gate] = {
     gate_names.SWAP: SWAP,
 }
 
+_three_qubit_gate_cirq: Mapping[ThreeQubitGateNameType, Gate] = {
+    gate_names.TOFFOLI: TOFFOLI,
+}
+
 
 def convert_gate(
     gate: QuantumGate,
@@ -181,6 +190,16 @@ def convert_gate(
                 LineQubit(*gate.control_indices),
                 LineQubit(*gate.target_indices),
             )
+
+    elif is_three_qubit_gate_name(gate.name):
+        return _three_qubit_gate_cirq[gate.name].on(
+            *(LineQubit(q) for q in (*gate.control_indices, *gate.target_indices))
+        )
+
+    elif is_unitary_matrix_gate_name(gate.name):
+        return MatrixGate(np.array(gate.unitary_matrix)).on(
+            *[LineQubit(i) for i in gate.target_indices]
+        )
 
     elif is_parametric_gate_name(gate.name):
         raise ValueError("Parametric gates are not supported")

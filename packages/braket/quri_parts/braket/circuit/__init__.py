@@ -19,12 +19,15 @@ from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate, gate_na
 from quri_parts.circuit.gate_names import (
     ParametricGateNameType,
     SingleQubitGateNameType,
+    ThreeQubitGateNameType,
     TwoQubitGateNameType,
     is_gate_name,
     is_multi_qubit_gate_name,
     is_parametric_gate_name,
     is_single_qubit_gate_name,
+    is_three_qubit_gate_name,
     is_two_qubit_gate_name,
+    is_unitary_matrix_gate_name,
 )
 from quri_parts.circuit.transpile import (
     CircuitTranspiler,
@@ -74,6 +77,10 @@ _two_qubit_gate_braket: Mapping[TwoQubitGateNameType, Type[Gate]] = {
     gate_names.CNOT: Gate.CNot,
     gate_names.CZ: Gate.CZ,
     gate_names.SWAP: Gate.Swap,
+}
+
+_three_qubit_gate_braket: Mapping[ThreeQubitGateNameType, Type[Gate]] = {
+    gate_names.TOFFOLI: Gate.CCNot,
 }
 
 _parametric_gate_braket: Mapping[ParametricGateNameType, Type[Gate]] = {
@@ -138,6 +145,17 @@ def convert_gate(gate: QuantumGate) -> Instruction:
             return Instruction(
                 b_gate, tuple(gate.control_indices) + tuple(gate.target_indices)
             )
+
+    elif is_three_qubit_gate_name(gate.name):
+        if gate.name in _three_qubit_gate_braket:
+            b_gate = _three_qubit_gate_braket[gate.name](*gate.params)
+            return Instruction(
+                b_gate, tuple(gate.control_indices) + tuple(gate.target_indices)
+            )
+
+    elif is_unitary_matrix_gate_name(gate.name):
+        b_gate = Gate.Unitary(np.array(gate.unitary_matrix))
+        return Instruction(b_gate, gate.target_indices)
 
     elif is_parametric_gate_name(gate.name):
         raise ValueError("Parametric gates are not supported.")

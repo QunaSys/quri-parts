@@ -18,4 +18,9 @@ API Reference
     quri_parts/chem/quri_parts.chem
     quri_parts/openfermion/quri_parts.openfermion
     quri_parts/stim/quri_parts.stim
+    quri_parts/openqasm/quri_parts.openqasm
+    quri_parts/honeywell/quri_parts.honeywell
+    quri_parts/ionq/quri_parts.ionq
+    quri_parts/itensor/quri_parts.itensor
+    quri_parts/pyscf/quri_parts.pyscf
 

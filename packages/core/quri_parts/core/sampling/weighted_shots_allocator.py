@@ -26,10 +26,11 @@ def _calc_ratios(weights: Sequence[complex]) -> list[float]:
     return list(map(lambda w: abs(w) / weights_sum, weights))
 
 
-def create_equipartition_weighted_shots_allocator(
+def create_equipartition_generic_shots_allocator(
     shot_unit: int = 1,
-) -> WeightedSamplingShotsAllocator[complex]:
-    """Returns a list of equally distributed shots.
+) -> WeightedSamplingShotsAllocator:
+    """Returns a :class:`~PauliSamplingShotsAllocator` that distributes the
+    number of shots equally among the groups.
 
     Args:
         shot_unit: Unit of shot counts. Each distributed number of shots is
@@ -43,7 +44,6 @@ def create_equipartition_weighted_shots_allocator(
         weights: Sequence[complex],
         total_shots: int,
     ) -> Sequence[int]:
-
         n_terms = len(weights)
         shots_per_term = _rounddown_to_unit(total_shots / n_terms, shot_unit)
         return [shots_per_term for _ in range(n_terms)]
@@ -51,10 +51,11 @@ def create_equipartition_weighted_shots_allocator(
     return allocator
 
 
-def create_proportional_weighted_shots_allocator(
+def create_proportional_generic_shots_allocator(
     shot_unit: int = 1,
-) -> WeightedSamplingShotsAllocator[complex]:
-    r"""Returns a list of shots distributed proportionally to each weight.
+) -> WeightedSamplingShotsAllocator:
+    r"""Returns a :class:`~PauliSamplingShotsAllocator` that distributes the
+    number of shots proportionately to a set of weights.
 
     Args:
         shot_unit: Unit of shot counts. Each distributed number of shots is
@@ -68,7 +69,6 @@ def create_proportional_weighted_shots_allocator(
         weights: Sequence[complex],
         total_shots: int,
     ) -> Sequence[int]:
-
         ratios = _calc_ratios(weights)
         shots_list = [
             _rounddown_to_unit(total_shots * ratio, shot_unit) for ratio in ratios
@@ -78,14 +78,14 @@ def create_proportional_weighted_shots_allocator(
     return allocator
 
 
-def create_proportional_weighted_random_shots_allocator(
+def create_weighted_random_generic_shots_allocator(
     seed: int = 1,
     shot_unit: int = 1,
-) -> WeightedSamplingShotsAllocator[complex]:
-    r"""Returns a list of shot numbers which are distributed by sampling
-    from a multinomial probability distribution defined by the target
-    coefficients. The probability is determined by eq. (10) in the
-    reference below. Although here we substitute an arbitrary sequence of
+) -> WeightedSamplingShotsAllocator:
+    r"""Returns a :class:`~PauliSamplingShotsAllocator` that distributes the
+    number of shots according to a multinomial probability distribution defined
+    by the target coefficients. The probability is determined by eq. (10) in
+    the reference below. Although here we substitute an arbitrary sequence of
     weights for the coefficients mentioned in the paper.
 
     References:

@@ -12,29 +12,45 @@ from typing import Callable
 
 from .clifford_approximation import CliffordApproximationTranspiler
 from .gate_kind_decomposer import (
+    CNOT2CZHTranspiler,
     CZ2CNOTHTranspiler,
+    CZ2RXRYCNOTTranspiler,
+    H2RXRYTranspiler,
     H2RZSqrtXTranspiler,
+    Identity2RZTranspiler,
     RX2RZSqrtXTranspiler,
     RY2RZSqrtXTranspiler,
     S2RZTranspiler,
     Sdag2RZTranspiler,
+    SqrtX2RXTranspiler,
     SqrtX2RZHTranspiler,
+    SqrtXdag2RXTranspiler,
     SqrtXdag2RZSqrtXTranspiler,
+    SqrtY2RYTranspiler,
     SqrtY2RZSqrtXTranspiler,
+    SqrtYdag2RYTranspiler,
     SqrtYdag2RZSqrtXTranspiler,
     SWAP2CNOTTranspiler,
     T2RZTranspiler,
     Tdag2RZTranspiler,
+    TOFFOLI2HTTdagCNOTTranspiler,
     U1ToRZTranspiler,
+    U2ToRXRZTranspiler,
     U2ToRZSqrtXTranspiler,
+    U3ToRXRZTranspiler,
     U3ToRZSqrtXTranspiler,
     X2HZTranspiler,
+    X2RXTranspiler,
     X2SqrtXTranspiler,
+    Y2RYTranspiler,
     Y2RZXTranspiler,
     Z2HXTranspiler,
     Z2RZTranspiler,
 )
-from .identity_insertion import IdentityInsertionTranspiler
+from .identity_manipulation import (
+    IdentityEliminationTranspiler,
+    IdentityInsertionTranspiler,
+)
 from .multi_pauli_decomposer import (
     PauliDecomposeTranspiler,
     PauliRotationDecomposeTranspiler,
@@ -48,6 +64,10 @@ from .transpiler import (
     ParallelDecomposer,
     SequentialTranspiler,
 )
+from .unitary_matrix_decomposer import (
+    SingleQubitUnitaryMatrix2RYRZTranspiler,
+    su2_decompose,
+)
 
 #: CircuitTranspiler to transpile a QuntumCircuit into another
 #: QuantumCircuit containing only X, SqrtX, CNOT, and RZ.
@@ -58,10 +78,12 @@ RZSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
                 CZ2CNOTHTranspiler(),
                 PauliDecomposeTranspiler(),
                 PauliRotationDecomposeTranspiler(),
+                TOFFOLI2HTTdagCNOTTranspiler(),
             ]
         ),
         ParallelDecomposer(
             [
+                Identity2RZTranspiler(),
                 Y2RZXTranspiler(),
                 Z2RZTranspiler(),
                 H2RZSqrtXTranspiler(),
@@ -77,6 +99,44 @@ RZSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
                 U1ToRZTranspiler(),
                 U2ToRZSqrtXTranspiler(),
                 U3ToRZSqrtXTranspiler(),
+                SWAP2CNOTTranspiler(),
+            ]
+        ),
+    ]
+)
+
+
+#: CircuitTranspiler to transpile a QuntumCircuit into another
+#: QuantumCircuit containing only RX, RY, RZ, and CNOT.
+RotationSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
+    [
+        ParallelDecomposer(
+            [
+                PauliDecomposeTranspiler(),
+                PauliRotationDecomposeTranspiler(),
+                TOFFOLI2HTTdagCNOTTranspiler(),
+            ]
+        ),
+        ParallelDecomposer(
+            [
+                Identity2RZTranspiler(),
+                H2RXRYTranspiler(),
+                X2RXTranspiler(),
+                Y2RYTranspiler(),
+                Z2RZTranspiler(),
+                SqrtX2RXTranspiler(),
+                SqrtXdag2RXTranspiler(),
+                SqrtY2RYTranspiler(),
+                SqrtYdag2RYTranspiler(),
+                S2RZTranspiler(),
+                Sdag2RZTranspiler(),
+                T2RZTranspiler(),
+                Tdag2RZTranspiler(),
+                U1ToRZTranspiler(),
+                U2ToRXRZTranspiler(),
+                U3ToRXRZTranspiler(),
+                CZ2RXRYCNOTTranspiler(),
+                SWAP2CNOTTranspiler(),
             ]
         ),
     ]
@@ -86,35 +146,52 @@ RZSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
 __all__ = [
     "CircuitTranspiler",
     "CircuitTranspilerProtocol",
-    "SequentialTranspiler",
     "GateDecomposer",
     "GateKindDecomposer",
     "ParallelDecomposer",
+    "SequentialTranspiler",
+    "RZSetTranspiler",
+    "RotationSetTranspiler",
     "CliffordApproximationTranspiler",
+    "IdentityEliminationTranspiler",
     "IdentityInsertionTranspiler",
-    "CZ2CNOTHTranspiler",
-    "H2RZSqrtXTranspiler",
+    "Identity2RZTranspiler",
     "PauliDecomposeTranspiler",
     "PauliRotationDecomposeTranspiler",
+    "CNOT2CZHTranspiler",
+    "CZ2CNOTHTranspiler",
+    "CZ2RXRYCNOTTranspiler",
+    "H2RXRYTranspiler",
+    "H2RZSqrtXTranspiler",
     "QubitRemappingTranspiler",
     "RX2RZSqrtXTranspiler",
     "RY2RZSqrtXTranspiler",
-    "RZSetTranspiler",
     "S2RZTranspiler",
     "Sdag2RZTranspiler",
+    "SingleQubitUnitaryMatrix2RYRZTranspiler",
+    "SqrtX2RXTranspiler",
     "SqrtX2RZHTranspiler",
+    "SqrtXdag2RXTranspiler",
     "SqrtXdag2RZSqrtXTranspiler",
+    "SqrtY2RYTranspiler",
     "SqrtY2RZSqrtXTranspiler",
+    "SqrtYdag2RYTranspiler",
     "SqrtYdag2RZSqrtXTranspiler",
     "SWAP2CNOTTranspiler",
     "T2RZTranspiler",
     "Tdag2RZTranspiler",
+    "TOFFOLI2HTTdagCNOTTranspiler",
     "U1ToRZTranspiler",
+    "U2ToRXRZTranspiler",
     "U2ToRZSqrtXTranspiler",
+    "U3ToRXRZTranspiler",
     "U3ToRZSqrtXTranspiler",
     "X2HZTranspiler",
+    "X2RXTranspiler",
     "X2SqrtXTranspiler",
+    "Y2RYTranspiler",
     "Y2RZXTranspiler",
     "Z2HXTranspiler",
     "Z2RZTranspiler",
+    "su2_decompose",
 ]

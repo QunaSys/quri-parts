@@ -25,12 +25,15 @@ from quri_parts.circuit import (
 from quri_parts.circuit.gate_names import (
     MultiQubitGateNameType,
     SingleQubitGateNameType,
+    ThreeQubitGateNameType,
     TwoQubitGateNameType,
     is_gate_name,
     is_multi_qubit_gate_name,
     is_parametric_gate_name,
     is_single_qubit_gate_name,
+    is_three_qubit_gate_name,
     is_two_qubit_gate_name,
+    is_unitary_matrix_gate_name,
 )
 
 _single_qubit_gate_qulacs: Mapping[
@@ -68,6 +71,12 @@ _two_qubit_gate_qulacs: Mapping[TwoQubitGateNameType, Type[qulacs.QuantumGateBas
     gate_names.SWAP: qulacs.gate.SWAP,
 }
 
+_three_qubit_gate_qulacs: Mapping[
+    ThreeQubitGateNameType, Type[qulacs.QuantumGateBase]
+] = {
+    gate_names.TOFFOLI: qulacs.gate.TOFFOLI,
+}
+
 _multi_pauli_gate_qulacs: Mapping[
     MultiQubitGateNameType, Type[qulacs.QuantumGateBase]
 ] = {
@@ -103,11 +112,17 @@ def convert_gate(
         return _two_qubit_gate_qulacs[gate.name](
             *gate.control_indices, *gate.target_indices
         )
+    elif is_three_qubit_gate_name(gate.name):
+        return _three_qubit_gate_qulacs[gate.name](
+            *gate.control_indices, *gate.target_indices
+        )
     elif is_multi_qubit_gate_name(gate.name):
         neg_params = (-p for p in gate.params)
         return _multi_pauli_gate_qulacs[gate.name](
             gate.target_indices, gate.pauli_ids, *neg_params
         )
+    elif is_unitary_matrix_gate_name(gate.name):
+        return qulacs.gate.DenseMatrix(gate.target_indices, gate.unitary_matrix)
     elif is_parametric_gate_name(gate.name):
         raise ValueError("Parametric gates are not supported")
     else:
@@ -131,7 +146,8 @@ def convert_parametric_circuit(
     param_circuit: UnboundParametricQuantumCircuitBase
     param_mapper: Callable[[Sequence[float]], Sequence[float]]
     if isinstance(circuit, LinearMappedUnboundParametricQuantumCircuitBase):
-        param_mapping, param_circuit = circuit.mapping_and_raw_circuit
+        param_mapping = circuit.param_mapping
+        param_circuit = circuit.primitive_circuit()
         orig_param_mapper = param_mapping.seq_mapper
 
         def param_mapper(s: Sequence[float]) -> Sequence[float]:
