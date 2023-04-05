@@ -12,7 +12,7 @@ from quri_parts.chem.mol import (
     MO1eIntArray,
     MO2eIntArray,
     MOeIntSet,
-    get_active_space_integrals,
+    get_active_space_integrals_from_mo,
     to_spin_orbital,
 )
 
@@ -177,7 +177,7 @@ class MolecularHamiltonian(MolecularHamiltonianBase):
         active_orbitals = self.get_active_space_molecular_orbitals(
             n_active_ele, n_active_orb, active_orbs_indices
         )
-        hamiltonian_component = get_active_space_integrals(
+        hamiltonian_component = get_active_space_integrals_from_mo(
             active_orbitals, self.mo_e_int_set
         )
         return hamiltonian_component

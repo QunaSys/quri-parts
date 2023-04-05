@@ -176,11 +176,13 @@ def to_spin_orbital(
     return spin_1e_integrals, spin_2e_integrals
 
 
-def get_active_space_integrals(
+def get_active_space_integrals_from_mo(
     active_space_mo: ActiveSpaceMolecularOrbitals, electron_mo_ints: MOeIntSet
 ) -> MOeIntSet:
     """Compute the active space effective core energy and all the spin space
     electron integrals in the physicist's convention."""
+    # This takes in the mo electron integrals so that the mo integral
+    # only needs to be computed once in the Molecular Hamiltonian class
     mo_1e_int = electron_mo_ints.mo_1e_int.array
     mo_2e_int = electron_mo_ints.mo_2e_int.array
 
@@ -232,3 +234,19 @@ def get_active_space_integrals(
     )
 
     return hamiltonian_component
+
+
+def get_active_space_integrals(
+    active_space_mo: ActiveSpaceMolecularOrbitals, electron_ao_ints: AOeIntSet
+) -> MOeIntSet:
+    mo_coeff = active_space_mo.mo_coeff
+    core_energy = electron_ao_ints.constant
+    mo_1e_int = electron_ao_ints.ao_1e_int.to_mo1int(mo_coeff)
+    mo_2e_int = electron_ao_ints.ao_2e_int.to_mo2int(mo_coeff)
+    electron_mo_ints = MOeIntSet(
+        const=core_energy, mo_1e_int=mo_1e_int, mo_2e_int=mo_2e_int
+    )
+    active_space_integrals = get_active_space_integrals_from_mo(
+        active_space_mo=active_space_mo, electron_mo_ints=electron_mo_ints
+    )
+    return active_space_integrals

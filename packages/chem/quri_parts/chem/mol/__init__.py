@@ -29,6 +29,7 @@ from .non_relativistic_models import (
     AO2eIntArray,
     AOeIntSet,
     get_active_space_integrals,
+    get_active_space_integrals_from_mo,
     get_effective_active_space_1e_integrals,
     get_effective_active_space_core_energy,
     to_spin_orbital,
@@ -54,4 +55,5 @@ __all__ = [
     "get_effective_active_space_1e_integrals",
     "to_spin_orbital",
     "get_active_space_integrals",
+    "get_active_space_integrals_from_mo",
 ]

@@ -14,8 +14,8 @@ from .factory import (
     PySCFMolecularHamiltonian,
 )
 from .non_relativistic import (
-    PySCFAO1eInt,
-    PySCFAO2eInt,
+    PySCFAO1eIntArray,
+    PySCFAO2eIntArray,
     ao1int,
     ao2int,
     pyscf_ao1int,
@@ -29,8 +29,8 @@ __all__ = [
     "MolecularHamiltonianBase",
     "MolecularHamiltonian",
     "PySCFMolecularHamiltonian",
-    "PySCFAO1eInt",
-    "PySCFAO2eInt",
+    "PySCFAO1eIntArray",
+    "PySCFAO2eIntArray",
     "ao1int",
     "ao2int",
     "pyscf_ao1int",

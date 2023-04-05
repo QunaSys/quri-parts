@@ -2,8 +2,8 @@ from numpy import isclose
 from pyscf import gto, scf
 
 from quri_parts.pyscf.mol import (
-    PySCFAO1eInt,
-    PySCFAO2eInt,
+    PySCFAO1eIntArray,
+    PySCFAO2eIntArray,
     PySCFMolecularOrbitals,
     ao1int,
     ao2int,
@@ -35,9 +35,9 @@ def qp_chem_qp_pyscf_comparison(mol: PySCFMolecularOrbitals) -> None:
     qp_chem_ao2eint = ao2int(molecule)
     qp_chem_mo2eint = qp_chem_ao2eint.to_mo2int(molecule.mo_coeff)
 
-    qp_pyscf_ao1eint = PySCFAO1eInt(molecule.mol)
+    qp_pyscf_ao1eint = PySCFAO1eIntArray(molecule.mol)
     qp_pyscf_mo1eint = qp_pyscf_ao1eint.to_mo1int(molecule.mo_coeff)
-    qp_pyscf_ao2eint = PySCFAO2eInt(molecule.mol)
+    qp_pyscf_ao2eint = PySCFAO2eIntArray(molecule.mol)
     qp_pyscf_mo2eint = qp_pyscf_ao2eint.to_mo2int(molecule.mo_coeff)
 
     assert isclose(qp_chem_ao1eint.array - qp_pyscf_ao1eint.array, 0).all()
