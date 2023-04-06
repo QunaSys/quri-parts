@@ -198,7 +198,7 @@ class PySCFMolecularHamiltonian(MolecularHamiltonianBase):
     ) -> MOeIntSet:
         """Computes the active space spin orbital electron integrals with
         PySCF."""
-        cas_mf = mcscf.CASSCF(self.mol.mol, n_active_orb, n_active_ele)
+        cas_mf = mcscf.CASCI(self.mol.mol, n_active_orb, n_active_ele)
         if fix_mo_coeff:
             cas_mf.frozen = self.mol.mol.nao
 
@@ -207,10 +207,8 @@ class PySCFMolecularHamiltonian(MolecularHamiltonianBase):
         else:
             mo = self.mol.mo_coeff
 
-        cas_mf.kernel(mo)
-
-        casscf_mo_1e_int, casscf_nuc = cas_mf.get_h1eff()
-        casscf_mo_2e_int = cas_mf.get_h2eff()
+        casscf_mo_1e_int, casscf_nuc = cas_mf.get_h1eff(mo)
+        casscf_mo_2e_int = cas_mf.get_h2eff(mo)
         casscf_mo_2e_int = ao2mo.restore(1, casscf_mo_2e_int, cas_mf.ncas).transpose(
             0, 2, 3, 1
         )
