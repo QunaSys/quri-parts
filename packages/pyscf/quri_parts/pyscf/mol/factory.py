@@ -66,6 +66,7 @@ class MolecularHamiltonianBase(ABC):
         mo_e_int_set = MOeIntSet(
             const=nuc_energy, mo_1e_int=mo_1e_int, mo_2e_int=mo_2e_int
         )
+
         return ao_e_int_set, mo_e_int_set
 
     @abstractmethod
@@ -201,7 +202,6 @@ class PySCFMolecularHamiltonian(MolecularHamiltonianBase):
         cas_mf = mcscf.CASCI(self.mol.mol, n_active_orb, n_active_ele)
         if fix_mo_coeff:
             cas_mf.frozen = self.mol.mol.nao
-
         if active_orbs_indices:
             mo = cas_mf.sort_mo(active_orbs_indices, mo_coeff=self.mol.mo_coeff, base=0)
         else:
