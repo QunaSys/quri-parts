@@ -195,13 +195,10 @@ class PySCFMolecularHamiltonian(MolecularHamiltonianBase):
         n_active_ele: Optional[int] = None,
         n_active_orb: Optional[int] = None,
         active_orbs_indices: Optional[Sequence[int]] = None,
-        fix_mo_coeff: bool = True,
     ) -> MOeIntSet:
         """Computes the active space spin orbital electron integrals with
         PySCF."""
         cas_mf = mcscf.CASCI(self.mol.mol, n_active_orb, n_active_ele)
-        if fix_mo_coeff:
-            cas_mf.frozen = self.mol.mol.nao
         if active_orbs_indices:
             mo = cas_mf.sort_mo(active_orbs_indices, mo_coeff=self.mol.mo_coeff, base=0)
         else:
@@ -223,20 +220,3 @@ class PySCFMolecularHamiltonian(MolecularHamiltonianBase):
             mo_2e_int=MO2eIntArray(casscf_mo_2e_spin_int),
         )
         return hamiltonian_component
-
-    def get_molecular_hamiltonian(
-        self,
-        n_active_ele: Optional[int] = None,
-        n_active_orb: Optional[int] = None,
-        active_orbs_indices: Optional[Sequence[int]] = None,
-        fix_mo_coeff: bool = True,
-    ) -> MOeIntSet:
-        if not fix_mo_coeff and (n_active_ele and n_active_orb):
-            # For releasing the mo coefficients.
-            hamiltonian_component = self.get_active_space_molecular_integrals(
-                n_active_ele, n_active_orb, active_orbs_indices, fix_mo_coeff=False
-            )
-            return cast(MOeIntSet, hamiltonian_component)
-        return super().get_molecular_hamiltonian(
-            n_active_ele, n_active_orb, active_orbs_indices
-        )
