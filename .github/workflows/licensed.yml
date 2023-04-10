@@ -3,6 +3,7 @@ name: Check licenses of dependencies
 on:
   pull_request:
     paths:
+      - .github/workflows/licensed.yml
       - .licenses/**
       - packages/*/pyproject.toml
   push:
