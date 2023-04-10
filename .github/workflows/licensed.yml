@@ -39,7 +39,7 @@ jobs:
 
     - uses: jonabc/setup-licensed@v1
       with:
-        version: '4.x'
+        version: '3.9.1'
         github_token: ${{ secrets.GITHUB_TOKEN }}
     
     - run: licensed cache
