@@ -224,4 +224,3 @@ class PySCFMolecularHamiltonian(MolecularHamiltonianBase):
             mo_2e_int=MO2eIntArray(casscf_mo_2e_spin_int),
         )
         return hamiltonian_component
-
