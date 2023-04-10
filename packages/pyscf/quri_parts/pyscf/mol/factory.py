@@ -146,15 +146,19 @@ class MolecularHamiltonian(MolecularHamiltonianBase):
     def check(active_orbitals: ActiveSpaceMolecularOrbitals) -> None:
         """Consistency check of the active space configuration."""
         assert active_orbitals.n_vir_orb >= 0, ValueError(
-            f"Number of virtual orbitals should be a positive integer.\n"
+            f"Number of virtual orbitals should be a positive integer or zero.\n"
             f" n_vir = {active_orbitals.n_vir_orb}"
         )
+        assert active_orbitals.n_core_ele >= 0, ValueError(
+            f"Number of core electrons should be a positive integer or zero.\n"
+            f" n_vir = {active_orbitals.n_core_ele}"
+        )
         assert active_orbitals.n_ele_alpha >= 0, ValueError(
-            f"Number of spin up electrons should be a positive integer.\n"
+            f"Number of spin up electrons should be a positive integer or zero.\n"
             f" n_ele_alpha = {active_orbitals.n_ele_alpha}"
         )
         assert active_orbitals.n_ele_beta >= 0, ValueError(
-            f"Number of spin down electrons should be a positive integer.\n"
+            f"Number of spin down electrons should be a positive integer or zero.\n"
             f" n_ele_beta = {active_orbitals.n_ele_beta}"
         )
         assert active_orbitals.n_ele_alpha <= active_orbitals.n_active_orb, ValueError(
@@ -220,3 +224,4 @@ class PySCFMolecularHamiltonian(MolecularHamiltonianBase):
             mo_2e_int=MO2eIntArray(casscf_mo_2e_spin_int),
         )
         return hamiltonian_component
+
