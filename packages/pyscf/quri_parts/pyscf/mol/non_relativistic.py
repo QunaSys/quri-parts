@@ -5,10 +5,10 @@ import numpy.typing as npt
 from pyscf import ao2mo, gto, scf
 
 from quri_parts.chem.mol import (
+    AO1eInt,
     AO1eIntArray,
-    AO1eIntProtocol,
+    AO2eInt,
     AO2eIntArray,
-    AO2eIntProtocol,
     MO1eInt,
     MO2eInt,
 )
@@ -28,7 +28,7 @@ def ao2int(mo: PySCFMolecularOrbitals) -> AO2eIntArray:
     return AO2eIntArray(ao2eint_array=a2e_int)
 
 
-class PySCFAO1eInt(AO1eIntProtocol):
+class PySCFAO1eInt(AO1eInt):
     def __init__(self, mol: gto.Mole) -> None:
         self._mol = mol
 
@@ -42,7 +42,7 @@ class PySCFAO1eInt(AO1eIntProtocol):
         return PySCFMO1eInt(mol=self._mol, mo_coeff=mo_coeff)
 
 
-class PySCFAO2eInt(AO2eIntProtocol):
+class PySCFAO2eInt(AO2eInt):
     def __init__(self, mol: gto.Mole) -> None:
         self._mol = mol
 

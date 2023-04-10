@@ -204,7 +204,7 @@ class ActiveSpaceMolecularOrbitals(MolecularOrbitals):
         return info_str
 
 
-class AO1eIntProtocol(Protocol):
+class AO1eInt(Protocol):
     """Interface protocol for an atomic orbital one-electron integral."""
 
     @abstractproperty
@@ -223,7 +223,7 @@ class AO1eIntProtocol(Protocol):
         ...
 
 
-class AO2eIntProtocol(Protocol):
+class AO2eInt(Protocol):
     """Interface protocol for an atomic orbital two-electron integral."""
 
     @abstractproperty
@@ -248,9 +248,9 @@ class AOeIntSet(NamedTuple):
     #: constant.
     constant: float
     #: non-relativistic atomic  orbital one-electron integral :class:`NRAO1eInt`.
-    ao_1e_int: AO1eIntProtocol
+    ao_1e_int: AO1eInt
     #: non-relativistic atomic  orbital two-electron integral :class:`NRAO2eInt`.
-    ao_2e_int: AO2eIntProtocol
+    ao_2e_int: AO2eInt
 
 
 class MO1eInt(Protocol):

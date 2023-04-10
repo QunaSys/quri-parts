@@ -7,8 +7,8 @@ from numpy import arange, tensordot, trace, zeros
 
 from quri_parts.chem.mol import (
     ActiveSpaceMolecularOrbitals,
-    AO1eIntProtocol,
-    AO2eIntProtocol,
+    AO1eInt,
+    AO2eInt,
     AOeIntSet,
     MO1eIntArray,
     MO2eIntArray,
@@ -17,7 +17,7 @@ from quri_parts.chem.mol import (
 )
 
 
-class AO1eIntArray(AO1eIntProtocol):
+class AO1eIntArray(AO1eInt):
     def __init__(self, ao1eint_array: "npt.NDArray[np.complex128]") -> None:
         self._ao1eint_array = ao1eint_array
 
@@ -32,7 +32,7 @@ class AO1eIntArray(AO1eIntProtocol):
         return MO1eIntArray(h1_mo)
 
 
-class AO2eIntArray(AO2eIntProtocol):
+class AO2eIntArray(AO2eInt):
     def __init__(self, ao2eint_array: npt.NDArray[np.complex128]) -> None:
         # The input should be in physicist's convention
         self._ao2eint_array = ao2eint_array

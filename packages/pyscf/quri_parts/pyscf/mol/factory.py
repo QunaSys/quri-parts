@@ -7,8 +7,8 @@ from pyscf import ao2mo, mcscf
 from quri_parts.chem.mol import (
     ActiveSpace,
     ActiveSpaceMolecularOrbitals,
-    AO1eIntProtocol,
-    AO2eIntProtocol,
+    AO1eInt,
+    AO2eInt,
     AOeIntSet,
     MO1eIntArray,
     MO2eIntArray,
@@ -119,8 +119,8 @@ class MolecularHamiltonianBase(ABC):
     def __init__(
         self,
         molecule: PySCFMolecularOrbitals,
-        ao1_int_computer: Callable[[PySCFMolecularOrbitals], AO1eIntProtocol],
-        ao2_int_computer: Callable[[PySCFMolecularOrbitals], AO2eIntProtocol],
+        ao1_int_computer: Callable[[PySCFMolecularOrbitals], AO1eInt],
+        ao2_int_computer: Callable[[PySCFMolecularOrbitals], AO2eInt],
     ) -> None:
         """
         Args:
