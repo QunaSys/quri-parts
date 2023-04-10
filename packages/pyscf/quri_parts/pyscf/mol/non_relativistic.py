@@ -34,8 +34,7 @@ class PySCFAO1eInt(AO1eIntProtocol):
 
     @property
     def array(self) -> "npt.NDArray[np.complex128]":
-        """Computes the ao 1-electron integrals in a memory effecient way, and
-        returns the array in physicist's notation."""
+        """Computes the ao 1-electron integrals with pyscf."""
         ao_int1e = scf.hf.get_hcore(self._mol)
         return cast(npt.NDArray[np.complex128], ao_int1e)
 

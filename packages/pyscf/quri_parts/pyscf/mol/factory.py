@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Optional, Sequence, cast
+from typing import Callable, NamedTuple, Optional, Sequence, cast
 
+import pyscf
 from pyscf import ao2mo, mcscf
 
 from quri_parts.chem.mol import (
@@ -13,11 +14,103 @@ from quri_parts.chem.mol import (
     MO2eIntArray,
     MOeIntSet,
     get_active_space_integrals_from_mo,
+    spatial_mo_eint_set_to_spin_mo_eint_set,
     to_spin_orbital,
 )
 
-from .non_relativistic import ao1int, ao2int, pyscf_ao1int, pyscf_ao2int
+from .non_relativistic import (
+    PySCFAO1eInt,
+    PySCFAO2eInt,
+    ao1int,
+    ao2int,
+    pyscf_ao1int,
+    pyscf_ao2int,
+)
 from .pyscf_interface import PySCFMolecularOrbitals, get_nuc_energy
+
+# NOTE:
+# (AOint, mo_coeff) -> MOint
+# AO1eInt.to_mo1int()
+# (MOint, active_space) -> ASMOint
+# PySCF: (AOint, mo_coeff) -> ASMOint
+# define: PySCFActiveSpaceMolecularOrbitals
+
+
+class PySCFAOeIntSet(NamedTuple):
+    mol: pyscf.gto.Mole
+    constant: float
+    ao_1e_int: PySCFAO1eInt
+    ao_2e_int: PySCFAO2eInt
+
+
+def pyscf_get_active_space_integrals(
+    active_space_mo: ActiveSpaceMolecularOrbitals, electron_ints: PySCFAOeIntSet
+) -> MOeIntSet:
+    n_active_orb, n_active_ele = (
+        active_space_mo.n_active_orb,
+        active_space_mo.n_active_ele,
+    )
+    _, active_orb_list = active_space_mo.get_core_and_active_orb()
+
+    cas_mf = mcscf.CASCI(electron_ints.mol, n_active_orb, n_active_ele)
+    if active_orb_list:
+        mo = cas_mf.sort_mo(active_orb_list, mo_coeff=active_space_mo.mo_coeff, base=0)
+    else:
+        mo = active_space_mo.mo_coeff
+
+    casscf_mo_1e_int, casscf_nuc = cas_mf.get_h1eff(mo)
+    casscf_mo_2e_int = cas_mf.get_h2eff(mo)
+    casscf_mo_2e_int = ao2mo.restore(1, casscf_mo_2e_int, cas_mf.ncas).transpose(
+        0, 2, 3, 1
+    )
+
+    spatial_integrals = MOeIntSet(
+        const=casscf_nuc,
+        mo_1e_int=MO1eIntArray(casscf_mo_1e_int),
+        mo_2e_int=MO2eIntArray(casscf_mo_2e_int),
+    )
+
+    spin_integrals = spatial_mo_eint_set_to_spin_mo_eint_set(spatial_integrals)
+
+    return spin_integrals
+
+
+# from typing import Protocol
+
+# class MolecularHamiltonianProtcol(Protocol):
+#     def get_active_space_molecular_integrals(
+#         self, n_active_ele: int, n_active_orb: int, active_orbs_indices: Sequence[int]
+#     ) -> MOeIntSet:
+#         ...
+
+#     def get_full_space_molecular_integrals(self) -> MOeIntSet:
+#         ...
+
+
+# class MolecularHamiltonian(MolecularHamiltonianProtcol):
+#     def __init__(self, molecule: PySCFMolecularOrbitals) -> None:
+#         self._mol = molecule
+
+#     def get_active_space_molecular_integrals(
+#         self, n_active_ele: int, n_active_orb: int, active_orbs_indices: Sequence[int]
+#     ) -> tuple[AOeIntSet, MOeIntSet]:
+#         ...
+
+#     def get_full_space_molecular_integrals(self) -> tuple[AOeIntSet, MOeIntSet]:
+#         ...
+
+
+# class PySCFMolecularHamiltonian(MolecularHamiltonianProtcol):
+#     def __init__(self, molecule: PySCFMolecularOrbitals) -> None:
+#         super().__init__()
+
+#     def get_active_space_molecular_integrals(
+#         self, n_active_ele: int, n_active_orb: int, active_orbs_indices: Sequence[int]
+#     ):
+#         ...
+
+#     def get_full_space_molecular_integrals(self) -> tuple[AOeIntSet, MOeIntSet]:
+#         ...
 
 
 class MolecularHamiltonianBase(ABC):

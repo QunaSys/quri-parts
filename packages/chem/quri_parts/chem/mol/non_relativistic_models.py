@@ -1,5 +1,5 @@
 from itertools import product
-from typing import Any, NamedTuple, Sequence, cast
+from typing import Any, Sequence, cast
 
 import numpy as np
 import numpy.typing as npt
@@ -9,6 +9,7 @@ from quri_parts.chem.mol import (
     ActiveSpaceMolecularOrbitals,
     AO1eIntProtocol,
     AO2eIntProtocol,
+    AOeIntSet,
     MO1eIntArray,
     MO2eIntArray,
     MOeIntSet,
@@ -51,17 +52,6 @@ class AO2eIntArray(AO2eIntProtocol):
         tensor = tensordot(mo_coeff.conjugate(), tensor, axes=([0], [3]))
         tensor = tensor.transpose(0, 2, 3, 1)
         return MO2eIntArray(tensor)
-
-
-class AOeIntSet(NamedTuple):
-    """AOeIntSet holds a constant and the atomic orbital electron integrals."""
-
-    #: constant.
-    constant: float
-    #: non-relativistic atomic  orbital one-electron integral :class:`NRAO1eInt`.
-    ao_1e_int: AO1eIntProtocol
-    #: non-relativistic atomic  orbital two-electron integral :class:`NRAO2eInt`.
-    ao_2e_int: AO2eIntProtocol
 
 
 def get_effective_active_space_core_energy(
@@ -174,6 +164,26 @@ def to_spin_orbital(
             spin_2e_integrals[p_b, q_b, r_b, s_b] = spatial_2e_integrals[p, q, r, s]
 
     return spin_1e_integrals, spin_2e_integrals
+
+
+def spatial_mo_eint_set_to_spin_mo_eint_set(
+    spatial_mo_eint_set: MOeIntSet,
+) -> MOeIntSet:
+    nuc_energy = spatial_mo_eint_set.const
+    spatial_mo_1e_int_array = spatial_mo_eint_set.mo_1e_int.array
+    spatial_mo_2e_int_array = spatial_mo_eint_set.mo_2e_int.array
+    n_qubit = 2 * spatial_mo_1e_int_array.shape[0]
+
+    spin_mo_1e_int_array, spin_mo_2e_int_array = to_spin_orbital(
+        n_qubit, spatial_mo_1e_int_array, spatial_mo_2e_int_array
+    )
+
+    hamiltonian_component = MOeIntSet(
+        const=nuc_energy,
+        mo_1e_int=MO1eIntArray(spin_mo_1e_int_array),
+        mo_2e_int=MO2eIntArray(spin_mo_2e_int_array),
+    )
+    return hamiltonian_component
 
 
 def get_active_space_integrals_from_mo(

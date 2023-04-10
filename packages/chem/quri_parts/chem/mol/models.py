@@ -49,7 +49,7 @@ class MolecularOrbitals(Protocol):
 
     @abstractproperty
     def n_electron(self) -> int:
-        """Returns a number of electrons."""
+        """Returns the number of electrons."""
         ...
 
     @abstractproperty
@@ -67,8 +67,8 @@ class MolecularOrbitals(Protocol):
         ...
 
     @abstractproperty
-    def n_orb(self) -> int:
-        """Returns the number of orbitals."""
+    def n_spatial_orb(self) -> int:
+        """Returns the number of spatial orbitals."""
         ...
 
     @abstractproperty
@@ -129,9 +129,9 @@ class ActiveSpaceMolecularOrbitals(MolecularOrbitals):
         return (self.n_active_ele - self.spin) // 2
 
     @property
-    def n_orb(self) -> int:
+    def n_spatial_orb(self) -> int:
         """Returns the number of spatial orbitals."""
-        return self._mo.n_orb
+        return self._mo.n_spatial_orb
 
     @property
     def n_active_orb(self) -> int:
@@ -146,7 +146,7 @@ class ActiveSpaceMolecularOrbitals(MolecularOrbitals):
     @property
     def n_vir_orb(self) -> int:
         """Returns the number of virtual orbitals."""
-        return self._mo.n_orb - self.n_active_orb - self.n_core_orb
+        return self._mo.n_spatial_orb - self.n_active_orb - self.n_core_orb
 
     @property
     def mo_coeff(self) -> "npt.NDArray[np.complex128]":
@@ -193,7 +193,7 @@ class ActiveSpaceMolecularOrbitals(MolecularOrbitals):
             "n_core_ele": self.n_core_ele,
             "n_ele_alpha": self.n_ele_alpha,
             "n_ele_beta": self.n_ele_beta,
-            "n_orb": self.n_orb,
+            "n_spatial_orb": self.n_spatial_orb,
             "n_active_orb": self.n_active_orb,
             "n_core_orb": self.n_core_orb,
             "n_vir_orb": self.n_vir_orb,
@@ -240,6 +240,17 @@ class AO2eIntProtocol(Protocol):
             mo_coeff: molecular orbital coefficients.
         """
         ...
+
+
+class AOeIntSet(NamedTuple):
+    """AOeIntSet holds a constant and the atomic orbital electron integrals."""
+
+    #: constant.
+    constant: float
+    #: non-relativistic atomic  orbital one-electron integral :class:`NRAO1eInt`.
+    ao_1e_int: AO1eIntProtocol
+    #: non-relativistic atomic  orbital two-electron integral :class:`NRAO2eInt`.
+    ao_2e_int: AO2eIntProtocol
 
 
 class MO1eInt(Protocol):

@@ -17,6 +17,7 @@ from .models import (
     ActiveSpaceMolecularOrbitals,
     AO1eIntProtocol,
     AO2eIntProtocol,
+    AOeIntSet,
     MO1eInt,
     MO1eIntArray,
     MO2eInt,
@@ -27,11 +28,11 @@ from .models import (
 from .non_relativistic_models import (
     AO1eIntArray,
     AO2eIntArray,
-    AOeIntSet,
     get_active_space_integrals,
     get_active_space_integrals_from_mo,
     get_effective_active_space_1e_integrals,
     get_effective_active_space_core_energy,
+    spatial_mo_eint_set_to_spin_mo_eint_set,
     to_spin_orbital,
 )
 
@@ -53,6 +54,7 @@ __all__ = [
     "AOeIntSet",
     "get_effective_active_space_core_energy",
     "get_effective_active_space_1e_integrals",
+    "spatial_mo_eint_set_to_spin_mo_eint_set",
     "to_spin_orbital",
     "get_active_space_integrals",
     "get_active_space_integrals_from_mo",

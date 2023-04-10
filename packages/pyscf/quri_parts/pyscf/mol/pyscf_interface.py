@@ -48,8 +48,8 @@ class PySCFMolecularOrbitals(MolecularOrbitals):
         return cast(int, self._mol.nelectron)
 
     @property
-    def n_orb(self) -> int:
-        """Returns the number of orbitals."""
+    def n_spatial_orb(self) -> int:
+        """Returns the number of spatial orbitals."""
         return cast(int, self._mol.nao)
 
     @property
