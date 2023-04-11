@@ -1,4 +1,5 @@
-from typing import NamedTuple, Optional, Protocol, Sequence, Union, cast
+from dataclasses import dataclass
+from typing import Optional, Protocol, Sequence, Union, cast
 
 import pyscf
 from pyscf import ao2mo, mcscf
@@ -26,11 +27,17 @@ from .non_relativistic import (
 from .pyscf_interface import PySCFMolecularOrbitals, get_nuc_energy
 
 
-class PySCFAOeIntSet(NamedTuple):
+@dataclass
+class PySCFAOeIntSet:
     mol: pyscf.gto.Mole
     constant: float
     ao_1e_int: PySCFAO1eInt
     ao_2e_int: PySCFAO2eInt
+
+    def to_active_space_mo_int(
+        self, active_space_mo: ActiveSpaceMolecularOrbitals
+    ) -> MOeIntSet:
+        return pyscf_get_active_space_integrals(active_space_mo, self)
 
 
 def pyscf_get_active_space_integrals(
@@ -141,6 +148,7 @@ class MolecularHamiltonian(MolecularHamiltonianProtocol):
         n_active_orb: int,
         active_orbs_indices: Optional[Sequence[int]] = None,
     ) -> ActiveSpaceMolecularOrbitals:
+        # This might be redundant
         return get_active_space_molecular_orbitals(
             self._mol, n_active_ele, n_active_orb, active_orbs_indices
         )
@@ -151,9 +159,10 @@ class MolecularHamiltonian(MolecularHamiltonianProtocol):
         n_active_orb: int,
         active_orbs_indices: Optional[Sequence[int]] = None,
     ) -> MOeIntSet:
-        active_space = ActiveSpace(n_active_ele, n_active_orb, active_orbs_indices)
-        active_space_mo = ActiveSpaceMolecularOrbitals(
-            mo=self._mol, active_space=active_space
+        active_space_mo = self.get_active_space_molecular_orbitals(
+            n_active_ele,
+            n_active_orb,
+            active_orbs_indices,
         )
         active_space_integrals = get_active_space_integrals_from_mo(
             active_space_mo=active_space_mo, electron_mo_ints=self.mo_eint_set
@@ -173,15 +182,27 @@ class PySCFMolecularHamiltonian(MolecularHamiltonianProtocol):
             molecule=molecule, ao_eint_set=self.ao_eint_set
         )
 
+    def get_active_space_molecular_orbitals(
+        self,
+        n_active_ele: int,
+        n_active_orb: int,
+        active_orbs_indices: Optional[Sequence[int]] = None,
+    ) -> ActiveSpaceMolecularOrbitals:
+        # This might be redundant
+        return get_active_space_molecular_orbitals(
+            self._mol, n_active_ele, n_active_orb, active_orbs_indices
+        )
+
     def get_active_space_molecular_integrals(
         self,
         n_active_ele: int,
         n_active_orb: int,
         active_orbs_indices: Optional[Sequence[int]] = None,
     ) -> MOeIntSet:
-        active_space = ActiveSpace(n_active_ele, n_active_orb, active_orbs_indices)
-        active_space_mo = ActiveSpaceMolecularOrbitals(
-            mo=self._mol, active_space=active_space
+        active_space_mo = self.get_active_space_molecular_orbitals(
+            n_active_ele,
+            n_active_orb,
+            active_orbs_indices,
         )
         active_space_integrals = pyscf_get_active_space_integrals(
             active_space_mo=active_space_mo,

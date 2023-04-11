@@ -11,6 +11,7 @@
 from .factory import (
     MolecularHamiltonian,
     MolecularHamiltonianProtocol,
+    PySCFAOeIntSet,
     PySCFMolecularHamiltonian,
 )
 from .non_relativistic import (
@@ -30,6 +31,7 @@ __all__ = [
     "get_nuc_energy",
     "MolecularHamiltonianProtocol",
     "MolecularHamiltonian",
+    "PySCFAOeIntSet",
     "PySCFMolecularHamiltonian",
     "PySCFAO1eInt",
     "PySCFAO2eInt",
