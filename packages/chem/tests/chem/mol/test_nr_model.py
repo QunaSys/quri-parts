@@ -111,11 +111,15 @@ def qp_of_comparison(
     active_orbs_indices: Optional[Sequence[int]] = None,
 ) -> None:
     # qp computation
-    hamiltonian_component = qp_molecule.get_molecular_hamiltonian(
-        n_active_ele=n_active_ele,
-        n_active_orb=n_active_orb,
-        active_orbs_indices=active_orbs_indices,
-    )
+    if n_active_ele and n_active_orb:
+        hamiltonian_component = qp_molecule.get_active_space_molecular_integrals(
+            n_active_ele=n_active_ele,
+            n_active_orb=n_active_orb,
+            active_orbs_indices=active_orbs_indices,
+        )
+    else:
+        hamiltonian_component = qp_molecule.get_full_space_molecular_integrals()
+
     core_energy, spin_1e_int, spin_2e_int = (
         hamiltonian_component.const,
         hamiltonian_component.mo_1e_int.array,

@@ -10,7 +10,7 @@
 
 from .factory import (
     MolecularHamiltonian,
-    MolecularHamiltonianBase,
+    MolecularHamiltonianProtocol,
     PySCFMolecularHamiltonian,
 )
 from .non_relativistic import (
@@ -28,7 +28,7 @@ from .pyscf_interface import PySCFMolecularOrbitals, get_nuc_energy
 __all__ = [
     "PySCFMolecularOrbitals",
     "get_nuc_energy",
-    "MolecularHamiltonianBase",
+    "MolecularHamiltonianProtocol",
     "MolecularHamiltonian",
     "PySCFMolecularHamiltonian",
     "PySCFAO1eInt",

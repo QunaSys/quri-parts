@@ -8,7 +8,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Sequence
+from typing import TYPE_CHECKING, Optional, Sequence
+
+if TYPE_CHECKING:
+    from quri_parts.chem.mol import ActiveSpaceMolecularOrbitals
 
 
 def get_core_and_active_orbital_indices(
@@ -77,3 +80,35 @@ def convert_to_spin_orbital_indices(
     for a_i in active_indices:
         active_spin_indices.extend([2 * a_i, 2 * a_i + 1])
     return occupied_spin_indices, active_spin_indices
+
+
+def check_active_space_consitency(
+    active_orbitals: "ActiveSpaceMolecularOrbitals",
+) -> None:
+    """Consistency check of the active space configuration."""
+    assert active_orbitals.n_vir_orb >= 0, ValueError(
+        f"Number of virtual orbitals should be a positive integer or zero.\n"
+        f" n_vir = {active_orbitals.n_vir_orb}"
+    )
+    assert active_orbitals.n_core_ele >= 0, ValueError(
+        f"Number of core electrons should be a positive integer or zero.\n"
+        f" n_vir = {active_orbitals.n_core_ele}"
+    )
+    assert active_orbitals.n_ele_alpha >= 0, ValueError(
+        f"Number of spin up electrons should be a positive integer or zero.\n"
+        f" n_ele_alpha = {active_orbitals.n_ele_alpha}"
+    )
+    assert active_orbitals.n_ele_beta >= 0, ValueError(
+        f"Number of spin down electrons should be a positive integer or zero.\n"
+        f" n_ele_beta = {active_orbitals.n_ele_beta}"
+    )
+    assert active_orbitals.n_ele_alpha <= active_orbitals.n_active_orb, ValueError(
+        f"Number of spin up electrons should not exceed the number of active orbitals.\n"  # noqa: E501
+        f" n_ele_alpha = {active_orbitals.n_ele_alpha},\n"
+        f" n_active_orb = {active_orbitals.n_active_orb}"
+    )
+    assert active_orbitals.n_ele_beta <= active_orbitals.n_active_orb, ValueError(
+        f"Number of spin down electrons should not exceed the number of active orbitals.\n"  # noqa: E501
+        f" n_ele_beta = {active_orbitals.n_ele_beta},\n"
+        f" n_active_orb = {active_orbitals.n_active_orb}"
+    )

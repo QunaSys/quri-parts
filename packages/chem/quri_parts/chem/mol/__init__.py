@@ -9,6 +9,7 @@
 # limitations under the License.
 
 from .active_space import (
+    check_active_space_consitency,
     convert_to_spin_orbital_indices,
     get_core_and_active_orbital_indices,
 )
@@ -39,6 +40,7 @@ from .non_relativistic_models import (
 __all__ = [
     "convert_to_spin_orbital_indices",
     "get_core_and_active_orbital_indices",
+    "check_active_space_consitency",
     "ActiveSpace",
     "ActiveSpaceMolecularOrbitals",
     "AO1eInt",
