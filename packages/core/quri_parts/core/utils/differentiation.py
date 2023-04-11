@@ -22,7 +22,7 @@ OperatorGenerator: TypeAlias = Callable[[Sequence[float]], Operator]
 
 #: Represents a function that calculates the gradients of an operator
 #: at given parameters.
-NumericalOperatorGradientCalculator: TypeAlias = Callable[
+OperatorGradientCalculator: TypeAlias = Callable[
     [Sequence[float], OperatorGenerator], Sequence[Operator]
 ]
 

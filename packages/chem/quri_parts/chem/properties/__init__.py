@@ -19,7 +19,7 @@ from quri_parts.core.state import (
     ParametricQuantumStateVector,
 )
 from quri_parts.core.utils.differentiation import (
-    NumericalOperatorGradientCalculator,
+    OperatorGradientCalculator,
     numerical_operator_gradient,
 )
 
@@ -46,7 +46,7 @@ def create_energy_gradient_estimator(
     estimator: ConcurrentParametricQuantumEstimator[_ParametricStateT],
     h_params: Sequence[float],
     h_generator: Callable[[Sequence[float]], Operator],
-    h_gradient_calculator: NumericalOperatorGradientCalculator = numerical_operator_gradient,  # noqa
+    h_gradient_calculator: OperatorGradientCalculator = numerical_operator_gradient,
 ) -> EnergyGradientEstimator[_ParametricStateT]:
     """Create a :class:`EnergyGradientEstimator` that calculates the energy
     gradients with respect to the hamiltonian parameters at the given circuit
