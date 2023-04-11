@@ -195,7 +195,7 @@ def is_ops_close(
     return True
 
 
-def compress(op: Operator, atol: float = 1e-8) -> Operator:
+def truncate(op: Operator, atol: float = 1e-8) -> Operator:
     _op = Operator()
     for pauli, coef in op.items():
         if abs(coef) >= atol:

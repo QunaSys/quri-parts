@@ -13,7 +13,7 @@ from typing import Callable, Protocol, Sequence, TypeVar, Union
 
 from typing_extensions import TypeAlias
 
-from quri_parts.core.operator import Operator, compress
+from quri_parts.core.operator import Operator, truncate
 
 #: Represents a function that generates :class:`Operator` from given
 #: parameters, e.g. generates molecular Hamiltonian from coordinates
@@ -245,7 +245,7 @@ def create_numerical_operator_gradient_calculator(
 
     def gradient_calculator(params: Sequence[float]) -> Sequence[Operator]:
         ops = [
-            compress(op) for op in difference_formula(operator_generator, params, step)
+            truncate(op) for op in difference_formula(operator_generator, params, step)
         ]
         return ops
 

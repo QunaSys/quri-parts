@@ -13,9 +13,9 @@ import pytest
 from quri_parts.core.operator import (
     PAULI_IDENTITY,
     Operator,
-    compress,
     is_ops_close,
     pauli_label,
+    truncate,
     zero,
 )
 
@@ -200,24 +200,24 @@ def test_is_ops_close() -> None:
     assert is_ops_close(zero(), Operator({PAULI_IDENTITY: 1e-4}), atol=1e-3)
 
 
-def test_compress() -> None:
+def test_truncate() -> None:
     operator = Operator()
-    assert compress(operator) == zero()
+    assert truncate(operator) == zero()
 
     operator.constant = 0.01
-    assert compress(operator) == operator
-    assert compress(operator, atol=0.1) == zero()
+    assert truncate(operator) == operator
+    assert truncate(operator, atol=0.1) == zero()
 
     operator.constant = 0.01j
-    assert compress(operator) == operator
-    assert compress(operator, atol=0.1) == zero()
+    assert truncate(operator) == operator
+    assert truncate(operator, atol=0.1) == zero()
 
     operator[pauli_label("Z0")] = 0.01
-    assert compress(operator) == operator
-    assert compress(operator, atol=0.1) == zero()
+    assert truncate(operator) == operator
+    assert truncate(operator, atol=0.1) == zero()
 
     operator[pauli_label("Z1")] = 0.001j
-    assert compress(operator) == operator
-    assert compress(operator, atol=0.005) == Operator(
+    assert truncate(operator) == operator
+    assert truncate(operator, atol=0.005) == Operator(
         {PAULI_IDENTITY: 0.01j, pauli_label("Z0"): 0.01}
     )

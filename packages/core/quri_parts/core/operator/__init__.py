@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .operator import Operator, commutator, compress, is_ops_close, zero
+from .operator import Operator, commutator, is_ops_close, truncate, zero
 from .pauli import (
     PAULI_IDENTITY,
     CommutablePauliSet,
@@ -30,7 +30,7 @@ CommutablePauliSet = CommutablePauliSet
 __all__ = [
     "CommutablePauliSet",
     "commutator",
-    "compress",
+    "truncate",
     "is_ops_close",
     "PAULI_IDENTITY",
     "pauli_label",
