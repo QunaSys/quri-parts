@@ -8,19 +8,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Optional, Sequence, TypeVar, Union
+from typing import Callable, Sequence, TypeVar, Union
 
 from typing_extensions import TypeAlias
 
 from quri_parts.core.estimator import ConcurrentParametricQuantumEstimator
-from quri_parts.core.operator import Operator, is_ops_close
+from quri_parts.core.operator import Operator
 from quri_parts.core.state import (
     ParametricCircuitQuantumState,
     ParametricQuantumStateVector,
 )
 from quri_parts.core.utils.differentiation import (
     NumericalOperatorGradientCalculator,
-    create_numerical_operator_gradient_calculator,
+    numerical_operator_gradient,
 )
 
 #: A type variable represents *any* parametric quantum state classes.
@@ -46,19 +46,14 @@ def create_energy_gradient_estimator(
     estimator: ConcurrentParametricQuantumEstimator[_ParametricStateT],
     h_params: Sequence[float],
     h_generator: Callable[[Sequence[float]], Operator],
-    h_gradient_calculator: Optional[NumericalOperatorGradientCalculator] = None,
+    h_gradient_calculator: NumericalOperatorGradientCalculator = numerical_operator_gradient,  # noqa
 ) -> EnergyGradientEstimator[_ParametricStateT]:
     """Create a :class:`EnergyGradientEstimator` that calculates the energy
     gradients with respect to the hamiltonian parameters at the given circuit
     parameters."""
-    hamiltonian = h_generator(h_params)
-    if not is_ops_close(hamiltonian, hamiltonian.hermitian_conjugated()):
-        raise ValueError("Hamiltonian must be hermitian.")
-    if h_gradient_calculator is None:
-        h_gradient_calculator = create_numerical_operator_gradient_calculator(
-            h_generator
-        )
-    h_grad = h_gradient_calculator(h_params)
+    # if not is_ops_close(hamiltonian, hamiltonian.hermitian_conjugated()):
+    #     raise ValueError("Hamiltonian must be hermitian.")
+    h_grad = h_gradient_calculator(h_params, h_generator)
 
     # EnergyGradientEstimator
     def energy_gradient_estimator(

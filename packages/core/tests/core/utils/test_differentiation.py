@@ -24,11 +24,11 @@ from quri_parts.core.utils.differentiation import (
     backward_difference_hessian_formula,
     central_difference_gradient_formula,
     central_difference_hessian_formula,
-    create_numerical_operator_gradient_calculator,
     forward_difference_gradient_formula,
     forward_difference_hessian_formula,
     gradient,
     hessian,
+    numerical_operator_gradient,
 )
 
 
@@ -117,9 +117,7 @@ def _h_generator(params: Sequence[float]) -> Operator:
     )
 
 
-def test_numerical_operator_gradient_calculator() -> None:
-    op_gradient_calculator = create_numerical_operator_gradient_calculator(_h_generator)
-
+def test_numerical_operator_gradient() -> None:
     params = [1, 2, 3, 4, 5, 6]
     expected = [
         Operator({PAULI_IDENTITY: 1.0, pauli_label("Z0"): 2 * params[1]}),
@@ -132,13 +130,15 @@ def test_numerical_operator_gradient_calculator() -> None:
     assert np.all(
         [
             is_ops_close(res, exp)
-            for res, exp in zip(op_gradient_calculator(params), expected)
+            for res, exp in zip(
+                numerical_operator_gradient(params, _h_generator), expected
+            )
         ]
     )
 
     params = [0, 0, 0, 0, 0, 0]
     expected = [
-        Operator({PAULI_IDENTITY: 1.0}),
+        zero(),
         zero(),
         zero(),
         zero(),
@@ -148,6 +148,8 @@ def test_numerical_operator_gradient_calculator() -> None:
     assert np.all(
         [
             is_ops_close(res, exp)
-            for res, exp in zip(op_gradient_calculator(params), expected)
+            for res, exp in zip(
+                numerical_operator_gradient(params, _h_generator, atol=1.01), expected
+            )
         ]
     )

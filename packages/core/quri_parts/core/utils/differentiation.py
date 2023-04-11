@@ -23,7 +23,7 @@ OperatorGenerator: TypeAlias = Callable[[Sequence[float]], Operator]
 #: Represents a function that calculates the gradients of an operator
 #: at given parameters.
 NumericalOperatorGradientCalculator: TypeAlias = Callable[
-    [Sequence[float]], Sequence[Operator]
+    [Sequence[float], OperatorGenerator], Sequence[Operator]
 ]
 
 _T = TypeVar("_T")
@@ -231,7 +231,8 @@ gradient = central_difference_gradient_formula
 hessian = central_difference_hessian_formula
 
 
-def create_numerical_operator_gradient_calculator(
+def numerical_operator_gradient(
+    params: Sequence[float],
     operator_generator: OperatorGenerator,
     difference_formula: Callable[
         [Callable[[Sequence[float]], Operator], Sequence[float], float],
@@ -239,12 +240,12 @@ def create_numerical_operator_gradient_calculator(
     ] = gradient,
     step: float = 1e-5,
     atol: float = 1e-8,
-) -> NumericalOperatorGradientCalculator:
-    """Create a :class:`NumericalOperatorGradientCalculator` that returns the
-    numerical gradient of an :class:`Operator` with respect to the operator
-    parameters.
+) -> Sequence[Operator]:
+    """Function that returns the numerical gradient of an :class:`Operator` with
+    respect to the operator parameters.
 
     Args:
+        params: Parameters at which the gradient is calculated.
         operator_generator: :class:`OperatorGenerator`.
         difference_formula: Method to calculate gradients.
         step: Step size for ``difference_formula``.
@@ -252,11 +253,8 @@ def create_numerical_operator_gradient_calculator(
             will be ignored.
     """
 
-    def gradient_calculator(params: Sequence[float]) -> Sequence[Operator]:
-        ops = [
-            truncate(op, atol)
-            for op in difference_formula(operator_generator, params, step)
-        ]
-        return ops
-
-    return gradient_calculator
+    ops = [
+        truncate(op, atol)
+        for op in difference_formula(operator_generator, params, step)
+    ]
+    return ops
