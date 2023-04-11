@@ -21,8 +21,6 @@ from .non_relativistic import (
     PySCFMO2eInt,
     ao1int,
     ao2int,
-    pyscf_ao1int,
-    pyscf_ao2int,
 )
 from .pyscf_interface import PySCFMolecularOrbitals, get_nuc_energy
 

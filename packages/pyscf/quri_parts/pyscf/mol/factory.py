@@ -7,6 +7,8 @@ from pyscf import ao2mo, mcscf
 from quri_parts.chem.mol import (
     ActiveSpace,
     ActiveSpaceMolecularOrbitals,
+    AO1eIntArray,
+    AO2eIntArray,
     AOeIntSet,
     MO1eIntArray,
     MO2eIntArray,
@@ -16,14 +18,7 @@ from quri_parts.chem.mol import (
     spatial_mo_eint_set_to_spin_mo_eint_set,
 )
 
-from .non_relativistic import (
-    PySCFAO1eInt,
-    PySCFAO2eInt,
-    ao1int,
-    ao2int,
-    pyscf_ao1int,
-    pyscf_ao2int,
-)
+from .non_relativistic import PySCFAO1eInt, PySCFAO2eInt, ao1int, ao2int
 from .pyscf_interface import PySCFMolecularOrbitals, get_nuc_energy
 
 
@@ -71,10 +66,10 @@ def pyscf_get_active_space_integrals(
     return spin_integrals
 
 
-def get_nuc_ao_eint_set(molecule: PySCFMolecularOrbitals) -> AOeIntSet:
+def get_ao_eint_set(molecule: PySCFMolecularOrbitals) -> AOeIntSet:
     nuc_energy = get_nuc_energy(molecule)
-    ao_1e_int = ao1int(molecule)
-    ao_2e_int = ao2int(molecule)
+    ao_1e_int = AO1eIntArray(ao1int(molecule).array)
+    ao_2e_int = AO2eIntArray(ao2int(molecule).array)
     ao_e_int_set = AOeIntSet(
         constant=nuc_energy,
         ao_1e_int=ao_1e_int,
@@ -83,10 +78,10 @@ def get_nuc_ao_eint_set(molecule: PySCFMolecularOrbitals) -> AOeIntSet:
     return ao_e_int_set
 
 
-def pyscf_get_nuc_ao_eint_set(molecule: PySCFMolecularOrbitals) -> PySCFAOeIntSet:
+def pyscf_get_ao_eint_set(molecule: PySCFMolecularOrbitals) -> PySCFAOeIntSet:
     nuc_energy = get_nuc_energy(molecule)
-    ao_1e_int = pyscf_ao1int(molecule)
-    ao_2e_int = pyscf_ao2int(molecule)
+    ao_1e_int = ao1int(molecule)
+    ao_2e_int = ao2int(molecule)
     ao_e_int_set = PySCFAOeIntSet(
         mol=molecule.mol,
         constant=nuc_energy,
@@ -137,7 +132,7 @@ class MolecularHamiltonianProtocol(Protocol):
 class MolecularHamiltonian(MolecularHamiltonianProtocol):
     def __init__(self, molecule: PySCFMolecularOrbitals) -> None:
         self._mol = molecule
-        self.ao_eint_set = get_nuc_ao_eint_set(molecule=molecule)
+        self.ao_eint_set = get_ao_eint_set(molecule=molecule)
         self.mo_eint_set = get_mo_eint_set_from_ao_eint_set(
             molecule=molecule, ao_eint_set=self.ao_eint_set
         )
@@ -177,7 +172,7 @@ class MolecularHamiltonian(MolecularHamiltonianProtocol):
 class PySCFMolecularHamiltonian(MolecularHamiltonianProtocol):
     def __init__(self, molecule: PySCFMolecularOrbitals) -> None:
         self._mol = molecule
-        self.ao_eint_set = pyscf_get_nuc_ao_eint_set(molecule=molecule)
+        self.ao_eint_set = pyscf_get_ao_eint_set(molecule=molecule)
         self.mo_eint_set = get_mo_eint_set_from_ao_eint_set(
             molecule=molecule, ao_eint_set=self.ao_eint_set
         )

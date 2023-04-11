@@ -4,28 +4,9 @@ import numpy as np
 import numpy.typing as npt
 from pyscf import ao2mo, gto, scf
 
-from quri_parts.chem.mol import (
-    AO1eInt,
-    AO1eIntArray,
-    AO2eInt,
-    AO2eIntArray,
-    MO1eInt,
-    MO2eInt,
-)
+from quri_parts.chem.mol import AO1eInt, AO2eInt, MO1eInt, MO2eInt
 
 from .pyscf_interface import PySCFMolecularOrbitals
-
-
-def ao1int(mo: PySCFMolecularOrbitals) -> AO1eIntArray:
-    """Calculate the atomic orbital one-electron integral."""
-    h1e = scf.hf.get_hcore(mo.mol)
-    return AO1eIntArray(ao1eint_array=h1e)
-
-
-def ao2int(mo: PySCFMolecularOrbitals) -> AO2eIntArray:
-    """Calculate the atomic orbital two-electron integral."""
-    a2e_int = mo.mol.intor("int2e").transpose(0, 2, 3, 1)
-    return AO2eIntArray(ao2eint_array=a2e_int)
 
 
 class PySCFAO1eInt(AO1eInt):
@@ -91,13 +72,13 @@ class PySCFMO2eInt(MO2eInt):
         return cast(npt.NDArray[np.complex128], mo_int_2e)
 
 
-def pyscf_ao1int(mo: PySCFMolecularOrbitals) -> PySCFAO1eInt:
+def ao1int(mo: PySCFMolecularOrbitals) -> PySCFAO1eInt:
     """Calculate the atomic orbital one-electron integral in a memory effcient
     way."""
     return PySCFAO1eInt(mol=mo.mol)
 
 
-def pyscf_ao2int(mo: PySCFMolecularOrbitals) -> PySCFAO2eInt:
+def ao2int(mo: PySCFMolecularOrbitals) -> PySCFAO2eInt:
     """Calculate the atomic orbital two-electron integral in a memory effcient
     way."""
     return PySCFAO2eInt(mol=mo.mol)
