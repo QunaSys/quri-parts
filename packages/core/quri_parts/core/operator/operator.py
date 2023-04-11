@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import math
+import cmath
 
 from .pauli import PAULI_IDENTITY, PauliLabel, pauli_product
 
@@ -190,11 +190,7 @@ def is_ops_close(
     for pauli in uniq_p_labels:
         op1_coeff = op1.get(pauli, 0.0)
         op2_coeff = op2.get(pauli, 0.0)
-        if not math.isclose(
-            op1_coeff.real, op2_coeff.real, rel_tol=rtol, abs_tol=atol
-        ) or not math.isclose(
-            op1_coeff.imag, op2_coeff.imag, rel_tol=rtol, abs_tol=atol
-        ):
+        if not cmath.isclose(op1_coeff, op2_coeff, rel_tol=rtol, abs_tol=atol):
             return False
     return True
 

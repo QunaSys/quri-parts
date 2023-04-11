@@ -189,7 +189,7 @@ def test_is_ops_close() -> None:
     assert is_ops_close(operator_1, operator_2)
 
     operator_1[pauli_label("X0 Y1")] = 3.0 + 3.0j
-    operator_2[pauli_label("X0 Y1")] = 2.8 + 2.65j
+    operator_2[pauli_label("X0 Y1")] = 2.8 + 2.6j
     assert not is_ops_close(operator_1, operator_2)
     assert not is_ops_close(operator_1, operator_2, rtol=1e-1)
     assert is_ops_close(operator_1, operator_2, rtol=2e-1)
