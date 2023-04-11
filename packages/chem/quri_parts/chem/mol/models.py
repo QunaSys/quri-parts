@@ -311,3 +311,11 @@ class MOeIntSet(NamedTuple):
     mo_1e_int: MO1eInt
     #: molecular orbital two-electron integral :class:`MO2eInt`.
     mo_2e_int: MO2eInt
+
+
+def cas(
+    n_active_ele: int,
+    n_active_orb: int,
+    active_orbs_indices: Optional[Sequence[int]] = None,
+):
+    return ActiveSpace(n_active_ele, n_active_orb, active_orbs_indices)
