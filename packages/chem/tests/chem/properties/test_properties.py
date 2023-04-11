@@ -8,19 +8,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence
+from typing import Callable, Sequence
 
 import numpy as np
 import pytest
 
-from quri_parts.chem.properties import create_energy_gradient_estimator
+from quri_parts.chem.properties import (
+    _ParametricStateT,
+    create_energy_gradient_estimator,
+)
 from quri_parts.circuit import UnboundParametricQuantumCircuit
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
 from quri_parts.core.state import ComputationalBasisState
 from quri_parts.core.state.state_parametric import ParametricCircuitQuantumState
-from quri_parts.qulacs.estimator import (
-    create_qulacs_vector_concurrent_parametric_estimator,
-)
+from quri_parts.qulacs.estimator import create_qulacs_vector_concurrent_estimator
 
 
 def _h_generator(params: Sequence[float]) -> Operator:
@@ -39,10 +40,10 @@ def _h_generator(params: Sequence[float]) -> Operator:
 def test_energy_gradient_estimator() -> None:
     qubit_count = 3
     h_params = [1, 2, 3, 4, 5, 6]
-    param_estimator = create_qulacs_vector_concurrent_parametric_estimator()
-    energy_grad_estimator = create_energy_gradient_estimator(
-        param_estimator, h_params, _h_generator
-    )
+    estimator = create_qulacs_vector_concurrent_estimator()
+    energy_grad_estimator: Callable[
+        [_ParametricStateT, Sequence[float]], Sequence[float]
+    ] = create_energy_gradient_estimator(estimator, h_params, _h_generator)
 
     # no circuit parameters
     param_circuit = UnboundParametricQuantumCircuit(qubit_count)
@@ -75,8 +76,8 @@ def test_energy_gradient_estimator_non_hermitian_op() -> None:
         )
 
     h_params = [1, 2, 3, 4, 5, 6]
-    param_estimator = create_qulacs_vector_concurrent_parametric_estimator()
+    estimator = create_qulacs_vector_concurrent_estimator()
     with pytest.raises(ValueError):
         create_energy_gradient_estimator(
-            param_estimator, h_params, _non_hermitian_op_generator
+            estimator, h_params, _non_hermitian_op_generator
         )
