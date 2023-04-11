@@ -32,6 +32,12 @@ class PySCFAOeIntSet:
     def to_active_space_mo_int(
         self, active_space_mo: ActiveSpaceMolecularOrbitals
     ) -> MOeIntSet:
+        # If this is method is constructed this way,
+        # we will lose the classes' generality that
+        # it can also be used for relativistic, x2c
+        # and dft construction.
+        # Or is it good if we also pass in the function for
+        # compiuting the active space integrals?
         return pyscf_get_active_space_integrals(active_space_mo, self)
 
 
