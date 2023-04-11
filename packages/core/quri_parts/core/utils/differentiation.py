@@ -241,8 +241,8 @@ def numerical_operator_gradient(
     step: float = 1e-5,
     atol: float = 1e-8,
 ) -> Sequence[Operator]:
-    """Function that returns the numerical gradient of an :class:`Operator` with
-    respect to the operator parameters.
+    """Function that returns the numerical gradient of an :class:`Operator`
+    with respect to the operator parameters.
 
     Args:
         params: Parameters at which the gradient is calculated.
