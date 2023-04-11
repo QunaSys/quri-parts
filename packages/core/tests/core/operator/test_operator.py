@@ -13,6 +13,7 @@ import pytest
 from quri_parts.core.operator import (
     PAULI_IDENTITY,
     Operator,
+    is_hermitian,
     is_ops_close,
     pauli_label,
     truncate,
@@ -221,3 +222,11 @@ def test_truncate() -> None:
     assert truncate(operator, atol=0.005) == Operator(
         {PAULI_IDENTITY: 0.01j, pauli_label("Z0"): 0.01}
     )
+
+
+def test_is_hermitian() -> None:
+    assert is_hermitian(Operator({PAULI_IDENTITY: 1.0}))
+    assert not is_hermitian(Operator({PAULI_IDENTITY: 1.0j}))
+    assert is_hermitian(Operator({pauli_label("X0 Y1 Z2"): 2.0}))
+    assert not is_hermitian(Operator({pauli_label("X0 Y1 Z2"): 2.0 + 0.01j}))
+    assert is_hermitian(Operator({pauli_label("X0 Y1 Z2"): 2.0 + 0.01j}), atol=0.1)

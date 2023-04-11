@@ -203,3 +203,8 @@ def truncate(op: Operator, atol: float = 1e-8) -> Operator:
         if abs(coef) >= atol:
             _op[pauli] = coef
     return _op
+
+
+def is_hermitian(op: Operator, atol: float = 1e-8) -> bool:
+    """Returns ``True`` if given operator is hermitian."""
+    return is_ops_close(op, op.hermitian_conjugated(), atol)
