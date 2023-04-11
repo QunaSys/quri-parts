@@ -1,12 +1,27 @@
+from dataclasses import dataclass
 from typing import cast
 
 import numpy as np
 import numpy.typing as npt
-from pyscf import ao2mo, gto, scf
+from pyscf import ao2mo, gto, mcscf, scf
 
-from quri_parts.chem.mol import AO1eInt, AO2eInt, MO1eInt, MO2eInt
+from quri_parts.chem.mol import (
+    ActiveSpaceMolecularOrbitals,
+    AO1eInt,
+    AO1eIntArray,
+    AO2eInt,
+    AO2eIntArray,
+    AOeIntArraySet,
+    AOeIntSet,
+    MO1eInt,
+    MO1eIntArray,
+    MO2eInt,
+    MO2eIntArray,
+    MOeIntSet,
+    spatial_mo_eint_set_to_spin_mo_eint_set,
+)
 
-from .pyscf_interface import PySCFMolecularOrbitals
+from .model import PySCFMolecularOrbitals, get_nuc_energy
 
 
 class PySCFAO1eInt(AO1eInt):
@@ -37,6 +52,19 @@ class PySCFAO2eInt(AO2eInt):
 
     def to_mo2int(self, mo_coeff: "npt.NDArray[np.complex128]") -> MO2eInt:
         return PySCFMO2eInt(mol=self._mol, mo_coeff=mo_coeff)
+
+
+@dataclass
+class PySCFAOeIntSet(AOeIntSet):
+    mol: gto.Mole
+    constant: float
+    ao_1e_int: PySCFAO1eInt
+    ao_2e_int: PySCFAO2eInt
+
+    def to_active_space_mo_int(
+        self, active_space_mo: ActiveSpaceMolecularOrbitals
+    ) -> MOeIntSet:
+        return pyscf_get_active_space_integrals(active_space_mo, self)
 
 
 class PySCFMO1eInt(MO1eInt):
@@ -82,3 +110,59 @@ def ao2int(mo: PySCFMolecularOrbitals) -> PySCFAO2eInt:
     """Calculate the atomic orbital two-electron integral in a memory effcient
     way."""
     return PySCFAO2eInt(mol=mo.mol)
+
+
+def get_ao_eint_set(molecule: PySCFMolecularOrbitals) -> AOeIntSet:
+    nuc_energy = get_nuc_energy(molecule)
+    ao_1e_int = AO1eIntArray(ao1int(molecule).array)
+    ao_2e_int = AO2eIntArray(ao2int(molecule).array)
+    ao_e_int_set = AOeIntArraySet(
+        constant=nuc_energy,
+        ao_1e_int=ao_1e_int,
+        ao_2e_int=ao_2e_int,
+    )
+    return ao_e_int_set
+
+
+def pyscf_get_ao_eint_set(molecule: PySCFMolecularOrbitals) -> PySCFAOeIntSet:
+    nuc_energy = get_nuc_energy(molecule)
+    ao_1e_int = ao1int(molecule)
+    ao_2e_int = ao2int(molecule)
+    ao_e_int_set = PySCFAOeIntSet(
+        mol=molecule.mol,
+        constant=nuc_energy,
+        ao_1e_int=ao_1e_int,
+        ao_2e_int=ao_2e_int,
+    )
+    return ao_e_int_set
+
+
+def pyscf_get_active_space_integrals(
+    active_space_mo: ActiveSpaceMolecularOrbitals, electron_ints: PySCFAOeIntSet
+) -> MOeIntSet:
+    n_active_orb, n_active_ele = (
+        active_space_mo.n_active_orb,
+        active_space_mo.n_active_ele,
+    )
+    cas_mf = mcscf.CASCI(electron_ints.mol, n_active_orb, n_active_ele)
+    _, active_orb_list = active_space_mo.get_core_and_active_orb()
+    if active_orb_list:
+        mo = cas_mf.sort_mo(active_orb_list, mo_coeff=active_space_mo.mo_coeff, base=0)
+    else:
+        mo = active_space_mo.mo_coeff
+
+    casci_mo_1e_int, casscf_nuc = cas_mf.get_h1eff(mo)
+    casci_mo_2e_int = cas_mf.get_h2eff(mo)
+    casci_mo_2e_int = ao2mo.restore(1, casci_mo_2e_int, cas_mf.ncas).transpose(
+        0, 2, 3, 1
+    )
+
+    spatial_integrals = MOeIntSet(
+        const=casscf_nuc,
+        mo_1e_int=MO1eIntArray(casci_mo_1e_int),
+        mo_2e_int=MO2eIntArray(casci_mo_2e_int),
+    )
+
+    spin_integrals = spatial_mo_eint_set_to_spin_mo_eint_set(spatial_integrals)
+
+    return spin_integrals

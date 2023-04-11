@@ -34,7 +34,7 @@ class TestMolecularOrbitals(MolecularOrbitals):
 
     @property
     def n_spatial_orb(self) -> int:
-        return 0
+        return 20
 
     @property
     def spin(self) -> int:

@@ -1,5 +1,4 @@
-from dataclasses import dataclass
-from typing import Optional, Sequence, Union, cast
+from typing import Any, Optional, Sequence, Union, cast
 
 import pyscf
 from numpy import complex128, isclose
@@ -7,19 +6,25 @@ from numpy.typing import NDArray
 from openfermion.chem import MolecularData
 from openfermionpyscf import run_pyscf  # type: ignore
 
-from quri_parts.pyscf.mol import MolecularHamiltonian, PySCFMolecularOrbitals
+from quri_parts.chem.mol import (
+    ActiveSpace,
+    ActiveSpaceMolecularOrbitals,
+    AOeIntSet,
+    MOeIntSet,
+    spatial_mo_eint_set_to_spin_mo_eint_set,
+)
+from quri_parts.pyscf.mol import PySCFMolecularOrbitals, get_ao_eint_set
 
 
-def PySCFMoleculeFactory(
-    atom: str,
+def get_pyscf_mo(
+    atom: list[Any],
     spin: int = 0,
     charge: int = 0,
     basis: str = "sto-3g",
     symmetry: Union[bool, str] = False,
     verbose: int = 0,
 ) -> PySCFMolecularOrbitals:
-    """A factory for generating a PySCFMolecularOrbitals instance."""
-
+    # construct PySCFMolecularOrbitals
     mol = pyscf.gto.Mole(
         atom=atom,
         basis=basis,
@@ -32,28 +37,69 @@ def PySCFMoleculeFactory(
 
     if spin:
         mol_coeff = pyscf.scf.ROHF(mol).run().mo_coeff
-        return PySCFMolecularOrbitals(mol=mol, mo_coeff=mol_coeff)
+    else:
+        mol_coeff = pyscf.scf.RHF(mol).run().mo_coeff
 
-    mol_coeff = pyscf.scf.RHF(mol).run().mo_coeff
-    return PySCFMolecularOrbitals(mol=mol, mo_coeff=mol_coeff)
+    mo = PySCFMolecularOrbitals(mol=mol, mo_coeff=mol_coeff)
+    return mo
 
 
-@dataclass(frozen=True)
-class PySCFMoleculeFactoryInput:
-    atom: list[list[Sequence[object]]]
-    spin: int = 0
-    charge: int = 0
-    basis: str = "sto-3g"
-    symmetry: Union[bool, str] = False
-    verbose: int = 0
+def get_active_space_mo(
+    mol: PySCFMolecularOrbitals,
+    n_active_ele: int,
+    n_active_orb: int,
+    active_orbs_indices: Optional[Sequence[int]] = None,
+) -> ActiveSpaceMolecularOrbitals:
+    active_space = ActiveSpace(
+        n_active_ele,
+        n_active_orb,
+        active_orbs_indices,
+    )
+    return ActiveSpaceMolecularOrbitals(mol, active_space)
+
+
+def get_mo_eint_set_from_ao_eint_set(
+    molecule: PySCFMolecularOrbitals, ao_eint_set: AOeIntSet
+) -> MOeIntSet:
+    mo_1e_int = ao_eint_set.ao_1e_int.to_mo1int(molecule.mo_coeff)
+    mo_2e_int = ao_eint_set.ao_2e_int.to_mo2int(molecule.mo_coeff)
+
+    mo_eint_set = MOeIntSet(
+        const=ao_eint_set.constant,
+        mo_1e_int=mo_1e_int,
+        mo_2e_int=mo_2e_int,
+    )
+    return mo_eint_set
+
+
+def get_full_space_integrals(mol: PySCFMolecularOrbitals) -> MOeIntSet:
+    ao_eint_set = get_ao_eint_set(molecule=mol)
+    mo_eint_set = get_mo_eint_set_from_ao_eint_set(
+        molecule=mol, ao_eint_set=ao_eint_set
+    )
+    return spatial_mo_eint_set_to_spin_mo_eint_set(mo_eint_set)
+
+
+def get_active_space_integrals(
+    mol: PySCFMolecularOrbitals,
+    n_active_ele: int,
+    n_active_orb: int,
+    active_orbs_indices: Optional[Sequence[int]] = None,
+) -> MOeIntSet:
+    ao_eint_set = get_ao_eint_set(molecule=mol)
+    active_space_mo = get_active_space_mo(
+        mol, n_active_ele, n_active_orb, active_orbs_indices
+    )
+    active_space_mo_eint_set = ao_eint_set.to_active_space_mo_int(active_space_mo)
+    return active_space_mo_eint_set
 
 
 class OpenFermionMolecularHamiltonian:
-    def __init__(self, molecule: PySCFMoleculeFactoryInput) -> None:
+    def __init__(self, atom: list[Any], spin: int = 0, basis: str = "sto-3g") -> None:
         mol = MolecularData(
-            geometry=molecule.atom,
-            multiplicity=molecule.spin + 1,
-            basis=molecule.basis,
+            geometry=atom,
+            multiplicity=spin + 1,
+            basis=basis,
         )
         self.mol = run_pyscf(mol)
 
@@ -81,30 +127,21 @@ ch3no_atom_list = [
     ["H", (-1.921071, -0.362247, 0.000000)],
 ]
 
-h2o_in = PySCFMoleculeFactoryInput(atom=h2o_atom_list)
-h2o_spin_in = PySCFMoleculeFactoryInput(atom=h2o_atom_list, spin=2)
-hcl_in = PySCFMoleculeFactoryInput(atom=hcl_atom_list)
-ch3no_in = PySCFMoleculeFactoryInput(atom=ch3no_atom_list, basis="cc-pvdz")
 
-h2o = PySCFMoleculeFactory(**h2o_in.__dict__)
-h2o_spin = PySCFMoleculeFactory(**h2o_spin_in.__dict__)
-hcl = PySCFMoleculeFactory(**hcl_in.__dict__)
-ch3no = PySCFMoleculeFactory(**ch3no_in.__dict__)
+qp_h2o = get_pyscf_mo(atom=h2o_atom_list)
+qp_h2o_spin = get_pyscf_mo(atom=h2o_atom_list, spin=2)
+qp_hcl = get_pyscf_mo(atom=hcl_atom_list)
+qp_ch3no = get_pyscf_mo(atom=ch3no_atom_list, basis="cc-pvdz")
 
 
-qp_h2o = MolecularHamiltonian(h2o)
-qp_h2o_spin = MolecularHamiltonian(h2o_spin)
-qp_hcl = MolecularHamiltonian(hcl)
-qp_ch3no = MolecularHamiltonian(ch3no)
-
-of_h2o = OpenFermionMolecularHamiltonian(h2o_in)
-of_h2o_spin = OpenFermionMolecularHamiltonian(h2o_spin_in)
-of_hcl = OpenFermionMolecularHamiltonian(hcl_in)
-of_ch3no = OpenFermionMolecularHamiltonian(ch3no_in)
+of_h2o = OpenFermionMolecularHamiltonian(atom=h2o_atom_list)
+of_h2o_spin = OpenFermionMolecularHamiltonian(atom=h2o_atom_list, spin=2)
+of_hcl = OpenFermionMolecularHamiltonian(atom=hcl_atom_list)
+of_ch3no = OpenFermionMolecularHamiltonian(atom=ch3no_atom_list, basis="cc-pvdz")
 
 
 def qp_of_comparison(
-    qp_molecule: MolecularHamiltonian,
+    qp_molecule: PySCFMolecularOrbitals,
     of_molecule: OpenFermionMolecularHamiltonian,
     n_active_ele: Optional[int] = None,
     n_active_orb: Optional[int] = None,
@@ -112,13 +149,14 @@ def qp_of_comparison(
 ) -> None:
     # qp computation
     if n_active_ele and n_active_orb:
-        hamiltonian_component = qp_molecule.get_active_space_molecular_integrals(
+        hamiltonian_component = get_active_space_integrals(
+            mol=qp_molecule,
             n_active_ele=n_active_ele,
             n_active_orb=n_active_orb,
             active_orbs_indices=active_orbs_indices,
         )
     else:
-        hamiltonian_component = qp_molecule.get_full_space_molecular_integrals()
+        hamiltonian_component = get_full_space_integrals(qp_molecule)
 
     core_energy, spin_1e_int, spin_2e_int = (
         hamiltonian_component.const,
@@ -130,7 +168,8 @@ def qp_of_comparison(
         (
             occupied_indices,
             active_indices,
-        ) = qp_molecule.get_active_space_molecular_orbitals(
+        ) = get_active_space_mo(
+            mol=qp_molecule,
             n_active_ele=n_active_ele,
             n_active_orb=n_active_orb,
             active_orbs_indices=active_orbs_indices,
@@ -181,18 +220,3 @@ def test_h2o_all_active() -> None:
 def test_h2o_spin_all_active() -> None:
     print("\n")
     qp_of_comparison(qp_h2o_spin, of_h2o_spin)
-
-
-# def test_hcl_all_active() -> None:
-#     """Github pytest error to be figured out.
-
-#     Local PyTest passes without any problem
-#     """
-#     print("\n")
-#     qp_of_comparison(qp_hcl, of_hcl)
-
-
-# def test_ch3no_all_active() -> None:
-#     print("\n")
-#     # takes too long to execute
-#     qp_of_comparison(qp_ch3no, of_ch3no)

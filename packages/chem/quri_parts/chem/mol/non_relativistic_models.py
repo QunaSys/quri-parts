@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from itertools import product
 from typing import Any, Sequence, cast
 
@@ -52,6 +53,20 @@ class AO2eIntArray(AO2eInt):
         tensor = tensordot(mo_coeff.conjugate(), tensor, axes=([0], [3]))
         tensor = tensor.transpose(0, 2, 3, 1)
         return MO2eIntArray(tensor)
+
+
+@dataclass
+class AOeIntArraySet(AOeIntSet):
+    constant: float
+    ao_1e_int: AO1eIntArray
+    ao_2e_int: AO2eIntArray
+
+    def to_active_space_mo_int(
+        self, active_space_mo: ActiveSpaceMolecularOrbitals
+    ) -> MOeIntSet:
+        """Does not provide speed advantage as it takes in ao_int instead of
+        mo_int."""
+        return get_active_space_integrals(active_space_mo, self)
 
 
 def get_effective_active_space_core_energy(

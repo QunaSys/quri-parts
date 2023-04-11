@@ -9,7 +9,6 @@
 # limitations under the License.
 
 from .active_space import (
-    check_active_space_consitency,
     convert_to_spin_orbital_indices,
     get_core_and_active_orbital_indices,
 )
@@ -29,6 +28,7 @@ from .models import (
 from .non_relativistic_models import (
     AO1eIntArray,
     AO2eIntArray,
+    AOeIntArraySet,
     get_active_space_integrals,
     get_active_space_integrals_from_mo,
     get_effective_active_space_1e_integrals,
@@ -53,6 +53,7 @@ __all__ = [
     "MolecularOrbitals",
     "AO1eIntArray",
     "AO2eIntArray",
+    "AOeIntArraySet",
     "AOeIntSet",
     "get_effective_active_space_core_energy",
     "get_effective_active_space_1e_integrals",

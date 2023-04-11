@@ -92,6 +92,7 @@ class ActiveSpaceMolecularOrbitals(MolecularOrbitals):
     ):
         self._mo = mo
         self._active_space = active_space
+        self.check_active_space_consitency()
 
     @property
     def n_electron(self) -> int:
@@ -183,8 +184,46 @@ class ActiveSpaceMolecularOrbitals(MolecularOrbitals):
         else:
             return OrbitalType.VIRTUAL
 
-    def __repr__(self) -> str:
-        return self.__str__()
+    def check_active_space_consitency(self) -> None:
+        """Consistency check of the active space configuration."""
+        assert self.n_vir_orb >= 0, ValueError(
+            f"Number of virtual orbitals should be a positive integer or zero.\n"
+            f" n_vir = {self.n_vir_orb}"
+            f" Possible fix: (n_active_orb - n_active_ele//2) should not"
+            f" exceed {self.n_spatial_orb - self.n_electron//2}."
+        )
+        assert self.n_core_ele >= 0, ValueError(
+            f"Number of core electrons should be a positive integer or zero.\n"
+            f" n_core_ele = {self.n_core_ele}.\n"
+            f" Possible fix: n_active_ele should be less than"
+            f" total number of electrons: {self.n_electron}."
+        )
+        assert self.n_ele_alpha >= 0, ValueError(
+            f"Number of spin up electrons should be a positive integer or zero.\n"
+            f" n_ele_alpha = {self.n_ele_alpha}"
+            f" Possible_fix: - n_active_ele should not"
+            f" be less then the value of spin: {self.spin}."
+        )
+        assert self.n_ele_beta >= 0, ValueError(
+            f"Number of spin down electrons should be a positive integer or zero.\n"
+            f" n_ele_beta = {self.n_ele_beta}.\n"
+            f" Possible_fix: n_active_ele should not"
+            f" exceed the value of spin: {self.spin}."
+        )
+        assert self.n_ele_alpha <= self.n_active_orb, ValueError(
+            f"Number of spin up electrons should not exceed the number of active orbitals.\n"  # noqa: E501
+            f" n_ele_alpha = {self.n_ele_alpha},\n"
+            f" n_active_orb = {self.n_active_orb}.\n"
+            f" Possible fix: [(n_active_ele + spin)//2] should be"
+            f"less than {self.n_active_orb}"
+        )
+        assert self.n_ele_beta <= self.n_active_orb, ValueError(
+            f"Number of spin down electrons should not exceed the number of active orbitals.\n"  # noqa: E501
+            f" n_ele_beta = {self.n_ele_beta},\n"
+            f" n_active_orb = {self.n_active_orb}"
+            f" Possible fix: [(n_active_ele - spin)//2] should be"
+            f" less than {self.n_active_orb}"
+        )
 
     def __str__(self) -> str:
         info_dict = {
@@ -242,15 +281,20 @@ class AO2eInt(Protocol):
         ...
 
 
-class AOeIntSet(NamedTuple):
+class AOeIntSet(Protocol):
     """AOeIntSet holds a constant and the atomic orbital electron integrals."""
 
     #: constant.
     constant: float
-    #: non-relativistic atomic  orbital one-electron integral :class:`NRAO1eInt`.
+    #: atomic orbital one-electron integral :class:`AO1eInt`.
     ao_1e_int: AO1eInt
-    #: non-relativistic atomic  orbital two-electron integral :class:`NRAO2eInt`.
+    #: atomic orbital two-electron integral :class:`AO2eInt`.
     ao_2e_int: AO2eInt
+
+    def to_active_space_mo_int(
+        self, active_space_mo: ActiveSpaceMolecularOrbitals
+    ) -> "MOeIntSet":
+        ...
 
 
 class MO1eInt(Protocol):
