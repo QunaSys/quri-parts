@@ -238,14 +238,24 @@ def create_numerical_operator_gradient_calculator(
         Sequence[Operator],
     ] = gradient,
     step: float = 1e-5,
+    atol: float = 1e-8,
 ) -> NumericalOperatorGradientCalculator:
     """Create a :class:`NumericalOperatorGradientCalculator` that returns the
     numerical gradient of an :class:`Operator` with respect to the operator
-    parameters."""
+    parameters.
+
+    Args:
+        operator_generator: :class:`OperatorGenerator`.
+        difference_formula: Method to calculate gradients.
+        step: Step size for ``difference_formula``.
+        atol: Absolute tolerance. Terms whose coefficients are smaller than ``atol``
+            will be ignored.
+    """
 
     def gradient_calculator(params: Sequence[float]) -> Sequence[Operator]:
         ops = [
-            truncate(op) for op in difference_formula(operator_generator, params, step)
+            truncate(op, atol)
+            for op in difference_formula(operator_generator, params, step)
         ]
         return ops
 

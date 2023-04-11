@@ -184,7 +184,7 @@ def commutator(op1: Operator, op2: Operator) -> Operator:
 def is_ops_close(
     op1: Operator, op2: Operator, rtol: float = 1e-9, atol: float = 0.0
 ) -> bool:
-    """Returns True if two operators are close to each other."""
+    """Returns ``True`` if two operators are close to each other."""
     uniq_p_labels = set(op1) | set(op2)
 
     for pauli in uniq_p_labels:
@@ -196,6 +196,8 @@ def is_ops_close(
 
 
 def truncate(op: Operator, atol: float = 1e-8) -> Operator:
+    """Returns truncated operator by eliminating terms whose coefficients are
+    smaller than ``atol``."""
     _op = Operator()
     for pauli, coef in op.items():
         if abs(coef) >= atol:
