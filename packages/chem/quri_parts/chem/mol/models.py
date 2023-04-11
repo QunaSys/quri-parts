@@ -317,5 +317,5 @@ def cas(
     n_active_ele: int,
     n_active_orb: int,
     active_orbs_indices: Optional[Sequence[int]] = None,
-):
+) -> ActiveSpace:
     return ActiveSpace(n_active_ele, n_active_orb, active_orbs_indices)
