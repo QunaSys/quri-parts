@@ -123,7 +123,7 @@ def ao2int(mo: PySCFMolecularOrbitals) -> PySCFAO2eInt:
     return PySCFAO2eInt(mol=mo.mol)
 
 
-def get_ao_eint_set(molecule: PySCFMolecularOrbitals) -> AOeIntSet:
+def get_ao_eint_set(molecule: PySCFMolecularOrbitals) -> AOeIntArraySet:
     """Compute the ao electron integrals and store then inside PySCFAOeIntSet.
 
     The explicit electron integral arrays will vbe stored on memory.
