@@ -292,11 +292,13 @@ class AOeIntSet(Protocol):
     ao_2e_int: AO2eInt
 
     def to_full_space_mo_int(self, mo: MolecularOrbitals) -> "MOeIntSet":
+        """Compute the full space spin mo integral."""
         ...
 
     def to_active_space_mo_int(
         self, active_space_mo: ActiveSpaceMolecularOrbitals
     ) -> "MOeIntSet":
+        """Compute the active space spin mo integral."""
         ...
 
 
@@ -365,4 +367,5 @@ def cas(
     n_active_orb: int,
     active_orbs_indices: Optional[Sequence[int]] = None,
 ) -> ActiveSpace:
+    """Shorthand function for constructing the active space."""
     return ActiveSpace(n_active_ele, n_active_orb, active_orbs_indices)

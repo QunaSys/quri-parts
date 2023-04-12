@@ -124,6 +124,10 @@ def ao2int(mo: PySCFMolecularOrbitals) -> PySCFAO2eInt:
 
 
 def get_ao_eint_set(molecule: PySCFMolecularOrbitals) -> AOeIntSet:
+    """Compute the ao electron integrals and store then inside PySCFAOeIntSet.
+
+    The explicit electron integral arrays will vbe stored on memory.
+    """
     nuc_energy = get_nuc_energy(molecule)
     ao_1e_int = AO1eIntArray(ao1int(molecule).array)
     ao_2e_int = AO2eIntArray(ao2int(molecule).array)
@@ -136,6 +140,11 @@ def get_ao_eint_set(molecule: PySCFMolecularOrbitals) -> AOeIntSet:
 
 
 def pyscf_get_ao_eint_set(molecule: PySCFMolecularOrbitals) -> PySCFAOeIntSet:
+    """Compute the ao electron integrals and store then inside PySCFAOeIntSet.
+
+    The molecule is stored on memory while the electron integral arrays
+    are not.
+    """
     nuc_energy = get_nuc_energy(molecule)
     ao_1e_int = ao1int(molecule)
     ao_2e_int = ao2int(molecule)
@@ -151,6 +160,11 @@ def pyscf_get_ao_eint_set(molecule: PySCFMolecularOrbitals) -> PySCFAOeIntSet:
 def pyscf_get_active_space_integrals(
     active_space_mo: ActiveSpaceMolecularOrbitals, electron_ints: PySCFAOeIntSet
 ) -> MOeIntSet:
+    """Computes the active space electron integrals by pyscf.casci.
+
+    The output is the spin mo electron integrals in physicists'
+    convention.
+    """
     n_active_orb, n_active_ele = (
         active_space_mo.n_active_orb,
         active_space_mo.n_active_ele,

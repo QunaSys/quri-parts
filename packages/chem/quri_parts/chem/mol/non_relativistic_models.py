@@ -64,6 +64,10 @@ class AOeIntArraySet(AOeIntSet):
     ao_2e_int: AO2eIntArray
 
     def to_full_space_mo_int(self, mo: MolecularOrbitals) -> "MOeIntSet":
+        """Computes the full space mo integrals.
+
+        Note that it outputs spin space electron integrals.
+        """
         spatial_mo_eint_set = MOeIntSet(
             const=self.constant,
             mo_1e_int=self.ao_1e_int.to_mo1int(mo.mo_coeff),
@@ -76,8 +80,13 @@ class AOeIntArraySet(AOeIntSet):
     def to_active_space_mo_int(
         self, active_space_mo: ActiveSpaceMolecularOrbitals
     ) -> MOeIntSet:
-        """Does not provide speed advantage as it takes in ao_int instead of
-        mo_int."""
+        """Computes the active space mo integrals.
+
+        Note that:
+        1. It outputs spin space electron integrals.
+        2. Does not provide speed advantage as it takes in ao_int instead of
+        mo_int.
+        """
         return get_active_space_integrals(active_space_mo, self)
 
 
@@ -196,6 +205,7 @@ def to_spin_orbital(
 def spatial_mo_eint_set_to_spin_mo_eint_set(
     spatial_mo_eint_set: MOeIntSet,
 ) -> MOeIntSet:
+    """Compute the spin space mo_eint_set from spatial mo_eint_set."""
     nuc_energy = spatial_mo_eint_set.const
     spatial_mo_1e_int_array = spatial_mo_eint_set.mo_1e_int.array
     spatial_mo_2e_int_array = spatial_mo_eint_set.mo_2e_int.array
@@ -276,6 +286,8 @@ def get_active_space_integrals_from_mo(
 def get_active_space_integrals(
     active_space_mo: ActiveSpaceMolecularOrbitals, electron_ao_ints: AOeIntSet
 ) -> MOeIntSet:
+    """Compute the active space electron integrals from ao electron
+    integrals."""
     mo_coeff = active_space_mo.mo_coeff
     core_energy = electron_ao_ints.constant
     mo_1e_int = electron_ao_ints.ao_1e_int.to_mo1int(mo_coeff)

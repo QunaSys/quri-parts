@@ -23,7 +23,7 @@ def get_pyscf_mo(
     symmetry: Union[bool, str] = False,
     verbose: int = 0,
 ) -> PySCFMolecularOrbitals:
-    # construct PySCFMolecularOrbitals
+    """construct PySCFMolecularOrbitals."""
     mol = pyscf.gto.Mole(
         atom=atom,
         basis=basis,
@@ -49,6 +49,13 @@ def get_active_space_mo(
     n_active_orb: int,
     active_orbs_indices: Optional[Sequence[int]] = None,
 ) -> ActiveSpaceMolecularOrbitals:
+    """Construct instance of active ActiveSpaceMolecularOrbitals automatically
+    by assigning:
+
+    - n_active_ele
+    - n_active_orb
+    - active_orbs_indices
+    """
     active_space = ActiveSpace(
         n_active_ele,
         n_active_orb,
@@ -60,6 +67,7 @@ def get_active_space_mo(
 def get_mo_eint_set_from_ao_eint_set(
     molecule: PySCFMolecularOrbitals, ao_eint_set: AOeIntSet
 ) -> MOeIntSet:
+    """Computes the mo_eint_set from ao_eint_set automatically."""
     mo_1e_int = ao_eint_set.ao_1e_int.to_mo1int(molecule.mo_coeff)
     mo_2e_int = ao_eint_set.ao_2e_int.to_mo2int(molecule.mo_coeff)
 
@@ -144,6 +152,8 @@ def qp_of_comparison(
     n_active_orb: Optional[int] = None,
     active_orbs_indices: Optional[Sequence[int]] = None,
 ) -> None:
+    """Generate the quri-parts computed electron integrals and compare them
+    with openfermion results."""
     # qp computation
     if n_active_ele and n_active_orb:
         hamiltonian_component = get_active_space_integrals(
