@@ -186,17 +186,17 @@ class ActiveSpaceMolecularOrbitals(MolecularOrbitals):
 
     def check_active_space_consitency(self) -> None:
         """Consistency check of the active space configuration."""
-        assert self.n_vir_orb >= 0, ValueError(
-            f"Number of virtual orbitals should be a positive integer or zero.\n"
-            f" n_vir = {self.n_vir_orb}"
-            f" Possible fix: (n_active_orb - n_active_ele//2) should not"
-            f" exceed {self.n_spatial_orb - self.n_electron//2}."
-        )
         assert self.n_core_ele >= 0, ValueError(
             f"Number of core electrons should be a positive integer or zero.\n"
             f" n_core_ele = {self.n_core_ele}.\n"
             f" Possible fix: n_active_ele should be less than"
             f" total number of electrons: {self.n_electron}."
+        )
+        assert self.n_vir_orb >= 0, ValueError(
+            f"Number of virtual orbitals should be a positive integer or zero.\n"
+            f" n_vir = {self.n_vir_orb}.\n"
+            f" Possible fix: (n_active_orb - n_active_ele//2) should not"
+            f" exceed {self.n_spatial_orb - self.n_electron//2}."
         )
         assert self.n_ele_alpha >= 0, ValueError(
             f"Number of spin up electrons should be a positive integer or zero.\n"
@@ -215,14 +215,14 @@ class ActiveSpaceMolecularOrbitals(MolecularOrbitals):
             f" n_ele_alpha = {self.n_ele_alpha},\n"
             f" n_active_orb = {self.n_active_orb}.\n"
             f" Possible fix: [(n_active_ele + spin)//2] should be"
-            f"less than {self.n_active_orb}"
+            f" less than n_active_orb: {self.n_active_orb}"
         )
         assert self.n_ele_beta <= self.n_active_orb, ValueError(
             f"Number of spin down electrons should not exceed the number of active orbitals.\n"  # noqa: E501
             f" n_ele_beta = {self.n_ele_beta},\n"
             f" n_active_orb = {self.n_active_orb}"
             f" Possible fix: [(n_active_ele - spin)//2] should be"
-            f" less than {self.n_active_orb}"
+            f" less than n_active_orb: {self.n_active_orb}"
         )
 
     def __str__(self) -> str:
