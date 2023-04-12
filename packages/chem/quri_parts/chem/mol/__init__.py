@@ -24,6 +24,7 @@ from .models import (
     MO2eIntArray,
     MOeIntSet,
     MolecularOrbitals,
+    cas,
 )
 from .non_relativistic_models import (
     AO1eIntArray,
@@ -61,4 +62,5 @@ __all__ = [
     "to_spin_orbital",
     "get_active_space_integrals",
     "get_active_space_integrals_from_mo",
+    "cas",
 ]
