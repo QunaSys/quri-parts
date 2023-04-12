@@ -291,6 +291,9 @@ class AOeIntSet(Protocol):
     #: atomic orbital two-electron integral :class:`AO2eInt`.
     ao_2e_int: AO2eInt
 
+    def to_full_space_mo_int(self, mo: MolecularOrbitals) -> "MOeIntSet":
+        ...
+
     def to_active_space_mo_int(
         self, active_space_mo: ActiveSpaceMolecularOrbitals
     ) -> "MOeIntSet":

@@ -18,6 +18,7 @@ from quri_parts.chem.mol import (
     MO2eInt,
     MO2eIntArray,
     MOeIntSet,
+    MolecularOrbitals,
     spatial_mo_eint_set_to_spin_mo_eint_set,
 )
 
@@ -60,6 +61,16 @@ class PySCFAOeIntSet(AOeIntSet):
     constant: float
     ao_1e_int: PySCFAO1eInt
     ao_2e_int: PySCFAO2eInt
+
+    def to_full_space_mo_int(self, mo: MolecularOrbitals) -> "MOeIntSet":
+        spatial_mo_eint_set = MOeIntSet(
+            const=self.constant,
+            mo_1e_int=self.ao_1e_int.to_mo1int(mo.mo_coeff),
+            mo_2e_int=self.ao_2e_int.to_mo2int(mo.mo_coeff),
+        )
+        spin_mo_eint_set = spatial_mo_eint_set_to_spin_mo_eint_set(spatial_mo_eint_set)
+
+        return spin_mo_eint_set
 
     def to_active_space_mo_int(
         self, active_space_mo: ActiveSpaceMolecularOrbitals

@@ -11,7 +11,6 @@ from quri_parts.chem.mol import (
     ActiveSpaceMolecularOrbitals,
     AOeIntSet,
     MOeIntSet,
-    spatial_mo_eint_set_to_spin_mo_eint_set,
 )
 from quri_parts.pyscf.mol import PySCFMolecularOrbitals, get_ao_eint_set
 
@@ -74,10 +73,8 @@ def get_mo_eint_set_from_ao_eint_set(
 
 def get_full_space_integrals(mol: PySCFMolecularOrbitals) -> MOeIntSet:
     ao_eint_set = get_ao_eint_set(molecule=mol)
-    mo_eint_set = get_mo_eint_set_from_ao_eint_set(
-        molecule=mol, ao_eint_set=ao_eint_set
-    )
-    return spatial_mo_eint_set_to_spin_mo_eint_set(mo_eint_set)
+    spin_mo_eint_set = ao_eint_set.to_full_space_mo_int(mol)
+    return spin_mo_eint_set
 
 
 def get_active_space_integrals(

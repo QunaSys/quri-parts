@@ -17,6 +17,8 @@ from quri_parts.chem.mol import (
     convert_to_spin_orbital_indices,
 )
 
+from .models import MolecularOrbitals
+
 
 class AO1eIntArray(AO1eInt):
     def __init__(self, ao1eint_array: "npt.NDArray[np.complex128]") -> None:
@@ -60,6 +62,16 @@ class AOeIntArraySet(AOeIntSet):
     constant: float
     ao_1e_int: AO1eIntArray
     ao_2e_int: AO2eIntArray
+
+    def to_full_space_mo_int(self, mo: MolecularOrbitals) -> "MOeIntSet":
+        spatial_mo_eint_set = MOeIntSet(
+            const=self.constant,
+            mo_1e_int=self.ao_1e_int.to_mo1int(mo.mo_coeff),
+            mo_2e_int=self.ao_2e_int.to_mo2int(mo.mo_coeff),
+        )
+        spin_mo_eint_set = spatial_mo_eint_set_to_spin_mo_eint_set(spatial_mo_eint_set)
+
+        return spin_mo_eint_set
 
     def to_active_space_mo_int(
         self, active_space_mo: ActiveSpaceMolecularOrbitals
