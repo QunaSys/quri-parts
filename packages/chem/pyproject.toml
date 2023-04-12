@@ -39,7 +39,6 @@ mypy = ">=0.950"
 docformatter = "^1.4"
 isort = "^5.10.1"
 black = "^23.1.0"
-pyscf = "2.1.1"
 openfermionpyscf = "^0.5"
 
 [tool.black]
