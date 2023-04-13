@@ -11,7 +11,7 @@
 from abc import abstractmethod, abstractproperty
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import NamedTuple, Optional, Protocol, Sequence
+from typing import NamedTuple, Optional, Protocol, Sequence, Union
 
 import numpy as np
 import numpy.typing as npt  # noqa: F401
@@ -300,14 +300,20 @@ class AOeIntSet(Protocol):
     #: atomic orbital two-electron integral :class:`AO2eInt`.
     ao_2e_int: AO2eInt
 
-    def to_full_space_mo_int(self, mo: MolecularOrbitals) -> "SpinMOeIntSet":
-        """Compute the full space spin mo integral."""
+    def to_full_space_mo_int(
+        self,
+        mo: MolecularOrbitals,
+        return_spin_integrals: bool = True,
+    ) -> Union["SpinMOeIntSet", "SpatialMOeIntSet"]:
+        """Compute the full space spatial or spin mo integral."""
         ...
 
     def to_active_space_mo_int(
-        self, active_space_mo: ActiveSpaceMolecularOrbitals
-    ) -> "SpinMOeIntSet":
-        """Compute the active space spin mo integral."""
+        self,
+        active_space_mo: ActiveSpaceMolecularOrbitals,
+        return_spin_integrals: bool = True,
+    ) -> Union["SpinMOeIntSet", "SpatialMOeIntSet"]:
+        """Compute the active space spatial or spin mo integral."""
         ...
 
 

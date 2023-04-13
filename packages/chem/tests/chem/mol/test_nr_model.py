@@ -83,7 +83,7 @@ def get_mo_eint_set_from_ao_eint_set(
 def get_full_space_integrals(mol: PySCFMolecularOrbitals) -> SpinMOeIntSet:
     ao_eint_set = get_ao_eint_set(molecule=mol)
     spin_mo_eint_set = ao_eint_set.to_full_space_mo_int(mol)
-    return spin_mo_eint_set
+    return cast(SpinMOeIntSet, spin_mo_eint_set)
 
 
 def get_active_space_integrals(
@@ -97,7 +97,7 @@ def get_active_space_integrals(
         mol, n_active_ele, n_active_orb, active_orbs_indices
     )
     active_space_mo_eint_set = ao_eint_set.to_active_space_mo_int(active_space_mo)
-    return active_space_mo_eint_set
+    return cast(SpinMOeIntSet, active_space_mo_eint_set)
 
 
 class OpenFermionMolecularHamiltonian:

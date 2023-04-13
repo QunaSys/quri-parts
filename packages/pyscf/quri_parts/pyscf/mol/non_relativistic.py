@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import cast
+from typing import Union, cast
 
 import numpy as np
 import numpy.typing as npt
@@ -63,20 +63,32 @@ class PySCFAOeIntSet(AOeIntSet):
     ao_1e_int: PySCFAO1eInt
     ao_2e_int: PySCFAO2eInt
 
-    def to_full_space_mo_int(self, mo: MolecularOrbitals) -> "SpinMOeIntSet":
+    def to_full_space_mo_int(
+        self,
+        mo: MolecularOrbitals,
+        return_spin_integrals: bool = True,
+    ) -> Union[SpinMOeIntSet, SpatialMOeIntSet]:
         spatial_mo_eint_set = SpatialMOeIntSet(
             const=self.constant,
             mo_1e_int=self.ao_1e_int.to_mo1int(mo.mo_coeff),
             mo_2e_int=self.ao_2e_int.to_mo2int(mo.mo_coeff),
         )
-        spin_mo_eint_set = spatial_mo_eint_set_to_spin_mo_eint_set(spatial_mo_eint_set)
+        if return_spin_integrals:
+            spin_mo_eint_set = spatial_mo_eint_set_to_spin_mo_eint_set(
+                spatial_mo_eint_set
+            )
+            return spin_mo_eint_set
 
-        return spin_mo_eint_set
+        return spatial_mo_eint_set
 
     def to_active_space_mo_int(
-        self, active_space_mo: ActiveSpaceMolecularOrbitals
-    ) -> SpinMOeIntSet:
-        return pyscf_get_active_space_integrals(active_space_mo, self)
+        self,
+        active_space_mo: ActiveSpaceMolecularOrbitals,
+        return_spin_integrals: bool = True,
+    ) -> Union[SpinMOeIntSet, SpatialMOeIntSet]:
+        return pyscf_get_active_space_integrals(
+            active_space_mo, self, return_spin_integrals=return_spin_integrals
+        )
 
 
 class PySCFSpatialMO1eInt(SpatialMO1eInt):
@@ -159,8 +171,10 @@ def pyscf_get_ao_eint_set(molecule: PySCFMolecularOrbitals) -> PySCFAOeIntSet:
 
 
 def pyscf_get_active_space_integrals(
-    active_space_mo: ActiveSpaceMolecularOrbitals, electron_ints: PySCFAOeIntSet
-) -> SpinMOeIntSet:
+    active_space_mo: ActiveSpaceMolecularOrbitals,
+    electron_ints: PySCFAOeIntSet,
+    return_spin_integrals: bool = True,
+) -> Union[SpinMOeIntSet, SpatialMOeIntSet]:
     """Computes the active space electron integrals by pyscf.casci.
 
     The output is the spin mo electron integrals in physicists'
@@ -189,6 +203,8 @@ def pyscf_get_active_space_integrals(
         mo_2e_int=SpatialMO2eIntArray(casci_mo_2e_int),
     )
 
-    spin_integrals = spatial_mo_eint_set_to_spin_mo_eint_set(spatial_integrals)
+    if return_spin_integrals:
+        spin_integrals = spatial_mo_eint_set_to_spin_mo_eint_set(spatial_integrals)
+        return spin_integrals
 
-    return spin_integrals
+    return spatial_integrals

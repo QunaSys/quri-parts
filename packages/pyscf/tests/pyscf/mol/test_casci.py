@@ -28,7 +28,13 @@ h2o_active_space_mo = ActiveSpaceMolecularOrbitals(
 pyscf_active_space_integrals = pyscf_ao_eint_set.to_active_space_mo_int(
     h2o_active_space_mo
 )
+pyscf_active_space_spatial_integrals = pyscf_ao_eint_set.to_active_space_mo_int(
+    h2o_active_space_mo, return_spin_integrals=False
+)
 active_space_integrals = ao_eint_set.to_active_space_mo_int(h2o_active_space_mo)
+active_space_spatial_integrals = ao_eint_set.to_active_space_mo_int(
+    h2o_active_space_mo, return_spin_space_integrals=False
+)
 
 
 def test_casci_result() -> None:
@@ -40,4 +46,16 @@ def test_casci_result() -> None:
     assert allclose(
         pyscf_active_space_integrals.mo_2e_int.array,
         active_space_integrals.mo_2e_int.array,
+    )
+
+    assert allclose(
+        pyscf_active_space_spatial_integrals.const, active_space_spatial_integrals.const
+    )
+    assert allclose(
+        pyscf_active_space_spatial_integrals.mo_1e_int.array,
+        active_space_spatial_integrals.mo_1e_int.array,
+    )
+    assert allclose(
+        pyscf_active_space_spatial_integrals.mo_2e_int.array,
+        active_space_spatial_integrals.mo_2e_int.array,
     )

@@ -1,12 +1,11 @@
 from dataclasses import dataclass
 from itertools import product
-from typing import Any, Sequence, cast
+from typing import Any, Sequence, Union, cast
 
 import numpy as np
 import numpy.typing as npt
 from numpy import arange, tensordot, trace, zeros
 
-from .active_space import convert_to_spin_orbital_indices
 from .models import (
     ActiveSpaceMolecularOrbitals,
     AO1eInt,
@@ -67,23 +66,27 @@ class AOeIntArraySet(AOeIntSet):
     ao_1e_int: AO1eIntArray
     ao_2e_int: AO2eIntArray
 
-    def to_full_space_mo_int(self, mo: MolecularOrbitals) -> SpinMOeIntSet:
-        """Computes the full space mo integrals.
-
-        Note that it outputs spin space electron integrals.
-        """
+    def to_full_space_mo_int(
+        self, mo: MolecularOrbitals, return_spin_space_integrals: bool = True
+    ) -> Union[SpinMOeIntSet, SpatialMOeIntSet]:
+        """Computes the full space spin or spatial mo integrals."""
         spatial_mo_eint_set = SpatialMOeIntSet(
             const=self.constant,
             mo_1e_int=self.ao_1e_int.to_mo1int(mo.mo_coeff),
             mo_2e_int=self.ao_2e_int.to_mo2int(mo.mo_coeff),
         )
-        spin_mo_eint_set = spatial_mo_eint_set_to_spin_mo_eint_set(spatial_mo_eint_set)
-
-        return spin_mo_eint_set
+        if return_spin_space_integrals:
+            spin_mo_eint_set = spatial_mo_eint_set_to_spin_mo_eint_set(
+                spatial_mo_eint_set
+            )
+            return spin_mo_eint_set
+        return spatial_mo_eint_set
 
     def to_active_space_mo_int(
-        self, active_space_mo: ActiveSpaceMolecularOrbitals
-    ) -> SpinMOeIntSet:
+        self,
+        active_space_mo: ActiveSpaceMolecularOrbitals,
+        return_spin_space_integrals: bool = True,
+    ) -> Union[SpinMOeIntSet, SpatialMOeIntSet]:
         """Computes the active space mo integrals.
 
         Note:
@@ -91,7 +94,9 @@ class AOeIntArraySet(AOeIntSet):
         does not store the mo electron integrals on memory and call the
         get_active_space_integrals_from_mo function.
         """
-        return get_active_space_integrals(active_space_mo, self)
+        return get_active_space_integrals(
+            active_space_mo, self, return_spin_space_integrals
+        )
 
 
 def get_effective_active_space_core_energy(
@@ -230,8 +235,10 @@ def spatial_mo_eint_set_to_spin_mo_eint_set(
 
 
 def get_active_space_integrals_from_mo(
-    active_space_mo: ActiveSpaceMolecularOrbitals, electron_mo_ints: SpatialMOeIntSet
-) -> SpinMOeIntSet:
+    active_space_mo: ActiveSpaceMolecularOrbitals,
+    electron_mo_ints: SpatialMOeIntSet,
+    return_spin_integrals: bool = True,
+) -> Union[SpinMOeIntSet, SpatialMOeIntSet]:
     """Compute the active space effective core energy and all the spin space
     electron integrals in the physicist's convention.
 
@@ -247,9 +254,6 @@ def get_active_space_integrals_from_mo(
         core_spatial_orb_idx,
         active_spatial_orb_idx,
     ) = active_space_mo.get_core_and_active_orb()
-    _, active_spin_orb_idx = convert_to_spin_orbital_indices(
-        occupied_indices=core_spatial_orb_idx, active_indices=active_spatial_orb_idx
-    )
 
     effective_core_energy = get_effective_active_space_core_energy(
         electron_mo_ints.const,
@@ -276,26 +280,23 @@ def get_active_space_integrals_from_mo(
         )
     ]
 
-    n_spin_orb = len(active_spin_orb_idx)
-    spin_1e_integrals, spin_2e_integrals = to_spin_orbital_integrals(
-        n_spin_orb=n_spin_orb,
-        spatial_1e_integrals=spatial_1e_integrals_subset,
-        spatial_2e_integrals=spatial_2e_integrals_subset,
+    spatial_mo_eint_set = SpatialMOeIntSet(
+        const=effective_core_energy,
+        mo_1e_int=SpatialMO1eIntArray(array=spatial_1e_integrals_subset),
+        mo_2e_int=SpatialMO2eIntArray(array=spatial_2e_integrals_subset),
     )
 
-    active_space_1e_int = SpinMO1eInt(array=spin_1e_integrals)
-    active_space_2e_int = SpinMO2eInt(array=spin_2e_integrals)
+    if return_spin_integrals:
+        return spatial_mo_eint_set_to_spin_mo_eint_set(spatial_mo_eint_set)
 
-    hamiltonian_component = SpinMOeIntSet(
-        effective_core_energy, active_space_1e_int, active_space_2e_int
-    )
-
-    return hamiltonian_component
+    return spatial_mo_eint_set
 
 
 def get_active_space_integrals(
-    active_space_mo: ActiveSpaceMolecularOrbitals, electron_ao_ints: AOeIntSet
-) -> SpinMOeIntSet:
+    active_space_mo: ActiveSpaceMolecularOrbitals,
+    electron_ao_ints: AOeIntSet,
+    return_spin_integrals: bool = True,
+) -> Union[SpinMOeIntSet, SpatialMOeIntSet]:
     """Compute the active space electron integrals from ao electron
     integrals."""
     mo_coeff = active_space_mo.mo_coeff
@@ -306,6 +307,9 @@ def get_active_space_integrals(
         const=core_energy, mo_1e_int=mo_1e_int, mo_2e_int=mo_2e_int
     )
     active_space_integrals = get_active_space_integrals_from_mo(
-        active_space_mo=active_space_mo, electron_mo_ints=electron_mo_ints
+        active_space_mo=active_space_mo,
+        electron_mo_ints=electron_mo_ints,
+        return_spin_integrals=return_spin_integrals,
     )
+
     return active_space_integrals
