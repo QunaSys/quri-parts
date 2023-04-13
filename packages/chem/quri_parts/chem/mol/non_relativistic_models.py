@@ -86,10 +86,10 @@ class AOeIntArraySet(AOeIntSet):
     ) -> SpinMOeIntSet:
         """Computes the active space mo integrals.
 
-        Note that:
-        1. It outputs spin space electron integrals.
-        2. Does not provide speed advantage as it takes in ao_int instead of
-        mo_int.
+        Note:
+        Does not provide speed advantage compared to PySCFAOeIntSet as it
+        does not store the mo electron integrals on memory and call the
+        get_active_space_integrals_from_mo function.
         """
         return get_active_space_integrals(active_space_mo, self)
 
@@ -233,7 +233,13 @@ def get_active_space_integrals_from_mo(
     active_space_mo: ActiveSpaceMolecularOrbitals, electron_mo_ints: SpatialMOeIntSet
 ) -> SpinMOeIntSet:
     """Compute the active space effective core energy and all the spin space
-    electron integrals in the physicist's convention."""
+    electron integrals in the physicist's convention.
+
+    Note:
+    This function yields the active space electron integral faster than
+    pyscf_get_active_space_integrals function in the quri_parts.pyscf package,
+    as it stores the mo electron integrals on memory fot computations.
+    """
     mo_1e_int = electron_mo_ints.mo_1e_int.array
     mo_2e_int = electron_mo_ints.mo_2e_int.array
 
