@@ -44,6 +44,15 @@ class ActiveSpace:
     active_orbs_indices: Optional[Sequence[int]] = None
 
 
+def cas(
+    n_active_ele: int,
+    n_active_orb: int,
+    active_orbs_indices: Optional[Sequence[int]] = None,
+) -> ActiveSpace:
+    """Convenient function for constructing the active space."""
+    return ActiveSpace(n_active_ele, n_active_orb, active_orbs_indices)
+
+
 class MolecularOrbitals(Protocol):
     """Interface protocol for a data of the molecule."""
 
@@ -92,7 +101,7 @@ class ActiveSpaceMolecularOrbitals(MolecularOrbitals):
     ):
         self._mo = mo
         self._active_space = active_space
-        self.check_active_space_consitency()
+        self._check_active_space_consistency()
 
     @property
     def n_electron(self) -> int:
@@ -113,10 +122,6 @@ class ActiveSpaceMolecularOrbitals(MolecularOrbitals):
     def n_core_ele(self) -> int:
         """Returns the number of core electrons."""
         n_core_electron = self.n_electron - self.n_active_ele
-
-        if n_core_electron % 2 == 1:
-            raise ValueError("The number of electrons in core must be even.")
-
         return n_core_electron
 
     @property
@@ -184,8 +189,14 @@ class ActiveSpaceMolecularOrbitals(MolecularOrbitals):
         else:
             return OrbitalType.VIRTUAL
 
-    def check_active_space_consitency(self) -> None:
+    def _check_active_space_consistency(self) -> None:
         """Consistency check of the active space configuration."""
+        assert self.n_core_ele % 2 == 0, ValueError(
+            "The number of electrons in core must be even."
+            " Please set the active electron to a {} number".format(
+                {0: "even", 1: "odd"}[self.n_electron % 2]
+            )
+        )
         assert self.n_core_ele >= 0, ValueError(
             f"Number of core electrons should be a positive integer or zero.\n"
             f" n_core_ele = {self.n_core_ele}.\n"
@@ -360,12 +371,3 @@ class MOeIntSet(NamedTuple):
     mo_1e_int: MO1eInt
     #: molecular orbital two-electron integral :class:`MO2eInt`.
     mo_2e_int: MO2eInt
-
-
-def cas(
-    n_active_ele: int,
-    n_active_orb: int,
-    active_orbs_indices: Optional[Sequence[int]] = None,
-) -> ActiveSpace:
-    """Shorthand function for constructing the active space."""
-    return ActiveSpace(n_active_ele, n_active_orb, active_orbs_indices)

@@ -46,7 +46,11 @@ neg_spinning_h2o = PySCFMolecularOrbitals(
 
 def test_odd_core_ele() -> None:
     with pytest.raises(
-        ValueError, match="The number of electrons in core must be even."
+        AssertionError,
+        match=(
+            "The number of electrons in core must be even."
+            " Please set the active electron to a even number"
+        ),
     ):
         ActiveSpaceMolecularOrbitals(h2o, ActiveSpace(n_active_ele=3, n_active_orb=2))
 

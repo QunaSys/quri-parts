@@ -6,7 +6,8 @@ import numpy as np
 import numpy.typing as npt
 from numpy import arange, tensordot, trace, zeros
 
-from quri_parts.chem.mol import (
+from .active_space import convert_to_spin_orbital_indices
+from .models import (
     ActiveSpaceMolecularOrbitals,
     AO1eInt,
     AO2eInt,
@@ -14,10 +15,8 @@ from quri_parts.chem.mol import (
     MO1eIntArray,
     MO2eIntArray,
     MOeIntSet,
-    convert_to_spin_orbital_indices,
+    MolecularOrbitals,
 )
-
-from .models import MolecularOrbitals
 
 
 class AO1eIntArray(AO1eInt):
@@ -169,26 +168,29 @@ def get_effective_active_space_1e_integrals(
     return cast(npt.NDArray[np.complex128], original_1e_integrals_new)
 
 
-def to_spin_orbital(
-    n_qubits: int,
+def to_spin_orbital_integrals(
+    n_spin_orb: int,
     spatial_1e_integrals: npt.NDArray[np.complex128],
     spatial_2e_integrals: npt.NDArray[np.complex128],
 ) -> tuple[npt.NDArray[np.complex128], npt.NDArray[np.complex128]]:
     """Convert spatial orbital electron integrals to spin orbital electron
     integrals."""
-    spin_1e_integrals = cast(npt.NDArray[np.complex128], zeros((n_qubits, n_qubits)))
+    spin_1e_integrals = cast(
+        npt.NDArray[np.complex128], zeros((n_spin_orb, n_spin_orb))
+    )
     spin_2e_integrals = cast(
-        npt.NDArray[np.complex128], zeros((n_qubits, n_qubits, n_qubits, n_qubits))
+        npt.NDArray[np.complex128],
+        zeros((n_spin_orb, n_spin_orb, n_spin_orb, n_spin_orb)),
     )
 
-    for p, q in product(range(n_qubits // 2), repeat=2):
+    for p, q in product(range(n_spin_orb // 2), repeat=2):
         p_a, q_a = 2 * p, 2 * q
         p_b, q_b = 2 * p + 1, 2 * q + 1
 
         spin_1e_integrals[p_a, q_a] = spatial_1e_integrals[p, q]
         spin_1e_integrals[p_b, q_b] = spatial_1e_integrals[p, q]
 
-        for r, s in product(range(n_qubits // 2), repeat=2):
+        for r, s in product(range(n_spin_orb // 2), repeat=2):
             r_a, s_a = 2 * r, 2 * s
             r_b, s_b = 2 * r + 1, 2 * s + 1
             # Mixed spin
@@ -209,10 +211,10 @@ def spatial_mo_eint_set_to_spin_mo_eint_set(
     nuc_energy = spatial_mo_eint_set.const
     spatial_mo_1e_int_array = spatial_mo_eint_set.mo_1e_int.array
     spatial_mo_2e_int_array = spatial_mo_eint_set.mo_2e_int.array
-    n_qubit = 2 * spatial_mo_1e_int_array.shape[0]
+    n_spin_orb = 2 * spatial_mo_1e_int_array.shape[0]
 
-    spin_mo_1e_int_array, spin_mo_2e_int_array = to_spin_orbital(
-        n_qubit, spatial_mo_1e_int_array, spatial_mo_2e_int_array
+    spin_mo_1e_int_array, spin_mo_2e_int_array = to_spin_orbital_integrals(
+        n_spin_orb, spatial_mo_1e_int_array, spatial_mo_2e_int_array
     )
 
     hamiltonian_component = MOeIntSet(
@@ -228,8 +230,6 @@ def get_active_space_integrals_from_mo(
 ) -> MOeIntSet:
     """Compute the active space effective core energy and all the spin space
     electron integrals in the physicist's convention."""
-    # This takes in the mo electron integrals so that the mo integral
-    # only needs to be computed once in the Molecular Hamiltonian class
     mo_1e_int = electron_mo_ints.mo_1e_int.array
     mo_2e_int = electron_mo_ints.mo_2e_int.array
 
@@ -266,9 +266,9 @@ def get_active_space_integrals_from_mo(
         )
     ]
 
-    n_qubits = len(active_spin_orb_idx)
-    spin_1e_integrals, spin_2e_integrals = to_spin_orbital(
-        n_qubits=n_qubits,
+    n_spin_orb = len(active_spin_orb_idx)
+    spin_1e_integrals, spin_2e_integrals = to_spin_orbital_integrals(
+        n_spin_orb=n_spin_orb,
         spatial_1e_integrals=spatial_1e_integrals_subset,
         spatial_2e_integrals=spatial_2e_integrals_subset,
     )
