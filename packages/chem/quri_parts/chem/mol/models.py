@@ -11,14 +11,12 @@
 from abc import abstractmethod, abstractproperty
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import TYPE_CHECKING, NamedTuple, Optional, Protocol, Sequence
+from typing import NamedTuple, Optional, Protocol, Sequence
 
 import numpy as np
+import numpy.typing as npt  # noqa: F401
 
 from quri_parts.chem.mol import get_core_and_active_orbital_indices
-
-if TYPE_CHECKING:
-    import numpy.typing as npt  # noqa: F401
 
 
 class OrbitalType(Enum):
@@ -193,7 +191,7 @@ class ActiveSpaceMolecularOrbitals(MolecularOrbitals):
         """Consistency check of the active space configuration."""
         assert self.n_core_ele % 2 == 0, ValueError(
             "The number of electrons in core must be even."
-            " Please set the active electron to a {} number".format(
+            " Please set the active electron to an {} number".format(
                 {0: "even", 1: "odd"}[self.n_electron % 2]
             )
         )
@@ -263,7 +261,7 @@ class AO1eInt(Protocol):
         ...
 
     @abstractmethod
-    def to_mo1int(self, mo_coeff: "npt.NDArray[np.complex128]") -> "MO1eInt":
+    def to_mo1int(self, mo_coeff: "npt.NDArray[np.complex128]") -> "SpatialMO1eInt":
         """This method converts an atomic orbital one-electron integral into
         the molecular orbital one-electron integral.
 
@@ -282,7 +280,7 @@ class AO2eInt(Protocol):
         ...
 
     @abstractmethod
-    def to_mo2int(self, mo_coeff: "npt.NDArray[np.complex128]") -> "MO2eInt":
+    def to_mo2int(self, mo_coeff: "npt.NDArray[np.complex128]") -> "SpatialMO2eInt":
         """This method converts an atomic orbital two-electron integral into
         the molecular orbital two-electron integral.
 
@@ -302,18 +300,18 @@ class AOeIntSet(Protocol):
     #: atomic orbital two-electron integral :class:`AO2eInt`.
     ao_2e_int: AO2eInt
 
-    def to_full_space_mo_int(self, mo: MolecularOrbitals) -> "MOeIntSet":
+    def to_full_space_mo_int(self, mo: MolecularOrbitals) -> "SpinMOeIntSet":
         """Compute the full space spin mo integral."""
         ...
 
     def to_active_space_mo_int(
         self, active_space_mo: ActiveSpaceMolecularOrbitals
-    ) -> "MOeIntSet":
+    ) -> "SpinMOeIntSet":
         """Compute the active space spin mo integral."""
         ...
 
 
-class MO1eInt(Protocol):
+class SpatialMO1eInt(Protocol):
     """Interface protocol for a molecular orbital one-electron integral."""
 
     @abstractproperty
@@ -322,7 +320,7 @@ class MO1eInt(Protocol):
         ...
 
 
-class MO2eInt(Protocol):
+class SpatialMO2eInt(Protocol):
     """Interface protocol for a molecular orbital two-electron integral."""
 
     @abstractproperty
@@ -331,7 +329,7 @@ class MO2eInt(Protocol):
         ...
 
 
-class MO1eIntArray(MO1eInt):
+class SpatialMO1eIntArray(SpatialMO1eInt):
     """A class of a molecular orbital one-electron integral.
 
     This interface has an integral as numpy ndarray.
@@ -346,7 +344,7 @@ class MO1eIntArray(MO1eInt):
         return self._array
 
 
-class MO2eIntArray(MO2eInt):
+class SpatialMO2eIntArray(SpatialMO2eInt):
     """A class of a molecular orbital two-electron integral.
 
     This interface has an integral as numpy ndarray.
@@ -361,13 +359,37 @@ class MO2eIntArray(MO2eInt):
         return self._array
 
 
-class MOeIntSet(NamedTuple):
+class SpatialMOeIntSet(NamedTuple):
     """MOeIntSet holds a constant and a set of molecular orbital electron
     integral."""
 
     #: constant.
     const: float
     #: molecular orbital one-electron integral :class:`MO1eInt`.
-    mo_1e_int: MO1eInt
+    mo_1e_int: SpatialMO1eInt
     #: molecular orbital two-electron integral :class:`MO2eInt`.
-    mo_2e_int: MO2eInt
+    mo_2e_int: SpatialMO2eInt
+
+
+class SpinMO1eInt(NamedTuple):
+    """Named tuple that stores the array of the 1-electron integrals."""
+
+    array: npt.NDArray[np.complex128]
+
+
+class SpinMO2eInt(NamedTuple):
+    """Named tuple that stores the array of the 2-electron integrals."""
+
+    array: npt.NDArray[np.complex128]
+
+
+class SpinMOeIntSet(NamedTuple):
+    """MOeIntSet holds a constant and a set of molecular orbital electron
+    integral."""
+
+    #: constant.
+    const: float
+    #: spin molecular orbital one-electron integral :class:`MO1eInt`.
+    mo_1e_int: SpinMO1eInt
+    #: spin molecular orbital two-electron integral :class:`MO2eInt`.
+    mo_2e_int: SpinMO2eInt

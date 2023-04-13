@@ -13,12 +13,13 @@ from quri_parts.chem.mol import (
     AO2eIntArray,
     AOeIntArraySet,
     AOeIntSet,
-    MO1eInt,
-    MO1eIntArray,
-    MO2eInt,
-    MO2eIntArray,
-    MOeIntSet,
     MolecularOrbitals,
+    SpatialMO1eInt,
+    SpatialMO1eIntArray,
+    SpatialMO2eInt,
+    SpatialMO2eIntArray,
+    SpatialMOeIntSet,
+    SpinMOeIntSet,
     spatial_mo_eint_set_to_spin_mo_eint_set,
 )
 
@@ -35,8 +36,8 @@ class PySCFAO1eInt(AO1eInt):
         ao_int1e = scf.hf.get_hcore(self._mol)
         return cast(npt.NDArray[np.complex128], ao_int1e)
 
-    def to_mo1int(self, mo_coeff: "npt.NDArray[np.complex128]") -> MO1eInt:
-        return PySCFMO1eInt(mol=self._mol, mo_coeff=mo_coeff)
+    def to_mo1int(self, mo_coeff: "npt.NDArray[np.complex128]") -> SpatialMO1eInt:
+        return PySCFSpatialMO1eInt(mol=self._mol, mo_coeff=mo_coeff)
 
 
 class PySCFAO2eInt(AO2eInt):
@@ -51,8 +52,8 @@ class PySCFAO2eInt(AO2eInt):
         ao_int2e = ao2mo.restore(1, ao_int2e, self._mol.nao).transpose(0, 2, 3, 1)
         return cast(npt.NDArray[np.complex128], ao_int2e)
 
-    def to_mo2int(self, mo_coeff: "npt.NDArray[np.complex128]") -> MO2eInt:
-        return PySCFMO2eInt(mol=self._mol, mo_coeff=mo_coeff)
+    def to_mo2int(self, mo_coeff: "npt.NDArray[np.complex128]") -> SpatialMO2eInt:
+        return PySCFSpatialMO2eInt(mol=self._mol, mo_coeff=mo_coeff)
 
 
 @dataclass
@@ -62,8 +63,8 @@ class PySCFAOeIntSet(AOeIntSet):
     ao_1e_int: PySCFAO1eInt
     ao_2e_int: PySCFAO2eInt
 
-    def to_full_space_mo_int(self, mo: MolecularOrbitals) -> "MOeIntSet":
-        spatial_mo_eint_set = MOeIntSet(
+    def to_full_space_mo_int(self, mo: MolecularOrbitals) -> "SpinMOeIntSet":
+        spatial_mo_eint_set = SpatialMOeIntSet(
             const=self.constant,
             mo_1e_int=self.ao_1e_int.to_mo1int(mo.mo_coeff),
             mo_2e_int=self.ao_2e_int.to_mo2int(mo.mo_coeff),
@@ -74,11 +75,11 @@ class PySCFAOeIntSet(AOeIntSet):
 
     def to_active_space_mo_int(
         self, active_space_mo: ActiveSpaceMolecularOrbitals
-    ) -> MOeIntSet:
+    ) -> SpinMOeIntSet:
         return pyscf_get_active_space_integrals(active_space_mo, self)
 
 
-class PySCFMO1eInt(MO1eInt):
+class PySCFSpatialMO1eInt(SpatialMO1eInt):
     def __init__(self, mol: gto.Mole, mo_coeff: npt.NDArray[np.complex128]) -> None:
         self._mol = mol
         self._mo_coeff = mo_coeff
@@ -93,7 +94,7 @@ class PySCFMO1eInt(MO1eInt):
         return cast(npt.NDArray[np.complex128], h1_mo)
 
 
-class PySCFMO2eInt(MO2eInt):
+class PySCFSpatialMO2eInt(SpatialMO2eInt):
     def __init__(self, mol: gto.Mole, mo_coeff: npt.NDArray[np.complex128]) -> None:
         self._mol = mol
         self._mo_coeff = mo_coeff
@@ -159,7 +160,7 @@ def pyscf_get_ao_eint_set(molecule: PySCFMolecularOrbitals) -> PySCFAOeIntSet:
 
 def pyscf_get_active_space_integrals(
     active_space_mo: ActiveSpaceMolecularOrbitals, electron_ints: PySCFAOeIntSet
-) -> MOeIntSet:
+) -> SpinMOeIntSet:
     """Computes the active space electron integrals by pyscf.casci.
 
     The output is the spin mo electron integrals in physicists'
@@ -182,10 +183,10 @@ def pyscf_get_active_space_integrals(
         0, 2, 3, 1
     )
 
-    spatial_integrals = MOeIntSet(
+    spatial_integrals = SpatialMOeIntSet(
         const=casscf_nuc,
-        mo_1e_int=MO1eIntArray(casci_mo_1e_int),
-        mo_2e_int=MO2eIntArray(casci_mo_2e_int),
+        mo_1e_int=SpatialMO1eIntArray(casci_mo_1e_int),
+        mo_2e_int=SpatialMO2eIntArray(casci_mo_2e_int),
     )
 
     spin_integrals = spatial_mo_eint_set_to_spin_mo_eint_set(spatial_integrals)

@@ -49,7 +49,7 @@ def test_odd_core_ele() -> None:
         AssertionError,
         match=(
             "The number of electrons in core must be even."
-            " Please set the active electron to a even number"
+            " Please set the active electron to an even number"
         ),
     ):
         ActiveSpaceMolecularOrbitals(h2o, ActiveSpace(n_active_ele=3, n_active_orb=2))

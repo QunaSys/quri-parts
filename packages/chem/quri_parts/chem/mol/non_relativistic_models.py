@@ -12,10 +12,13 @@ from .models import (
     AO1eInt,
     AO2eInt,
     AOeIntSet,
-    MO1eIntArray,
-    MO2eIntArray,
-    MOeIntSet,
     MolecularOrbitals,
+    SpatialMO1eIntArray,
+    SpatialMO2eIntArray,
+    SpatialMOeIntSet,
+    SpinMO1eInt,
+    SpinMO2eInt,
+    SpinMOeIntSet,
 )
 
 
@@ -28,10 +31,11 @@ class AO1eIntArray(AO1eInt):
         """Returns the ao 1-electron integrals in physicist's notation."""
         return self._ao1eint_array
 
-    def to_mo1int(self, mo_coeff: "npt.NDArray[np.complex128]") -> MO1eIntArray:
-        """Returns the mo 1-electron integrals in physicist's notation."""
+    def to_mo1int(self, mo_coeff: "npt.NDArray[np.complex128]") -> SpatialMO1eIntArray:
+        """Returns the spatial mo 1-electron integrals in physicist's
+        notation."""
         h1_mo = mo_coeff.conjugate().T @ self._ao1eint_array @ mo_coeff
-        return MO1eIntArray(h1_mo)
+        return SpatialMO1eIntArray(h1_mo)
 
 
 class AO2eIntArray(AO2eInt):
@@ -44,8 +48,9 @@ class AO2eIntArray(AO2eInt):
         """Returns the ao 2-electron integrals in physicist's convention."""
         return self._ao2eint_array
 
-    def to_mo2int(self, mo_coeff: "npt.NDArray[np.complex128]") -> MO2eIntArray:
-        """Compute the mo 2-electron integrals in physicist's convention."""
+    def to_mo2int(self, mo_coeff: "npt.NDArray[np.complex128]") -> SpatialMO2eIntArray:
+        """Returns the spatial mo 2-electron integrals in physicist's
+        convention."""
         # Transpose back to chemist convention for computation.
         ao2eint_chem_array = self._ao2eint_array.transpose(0, 3, 1, 2)
         tensor = tensordot(mo_coeff, ao2eint_chem_array, axes=([0], [0]))
@@ -53,7 +58,7 @@ class AO2eIntArray(AO2eInt):
         tensor = tensordot(mo_coeff, tensor, axes=([0], [2]))
         tensor = tensordot(mo_coeff.conjugate(), tensor, axes=([0], [3]))
         tensor = tensor.transpose(0, 2, 3, 1)
-        return MO2eIntArray(tensor)
+        return SpatialMO2eIntArray(tensor)
 
 
 @dataclass
@@ -62,12 +67,12 @@ class AOeIntArraySet(AOeIntSet):
     ao_1e_int: AO1eIntArray
     ao_2e_int: AO2eIntArray
 
-    def to_full_space_mo_int(self, mo: MolecularOrbitals) -> "MOeIntSet":
+    def to_full_space_mo_int(self, mo: MolecularOrbitals) -> SpinMOeIntSet:
         """Computes the full space mo integrals.
 
         Note that it outputs spin space electron integrals.
         """
-        spatial_mo_eint_set = MOeIntSet(
+        spatial_mo_eint_set = SpatialMOeIntSet(
             const=self.constant,
             mo_1e_int=self.ao_1e_int.to_mo1int(mo.mo_coeff),
             mo_2e_int=self.ao_2e_int.to_mo2int(mo.mo_coeff),
@@ -78,7 +83,7 @@ class AOeIntArraySet(AOeIntSet):
 
     def to_active_space_mo_int(
         self, active_space_mo: ActiveSpaceMolecularOrbitals
-    ) -> MOeIntSet:
+    ) -> SpinMOeIntSet:
         """Computes the active space mo integrals.
 
         Note that:
@@ -205,8 +210,8 @@ def to_spin_orbital_integrals(
 
 
 def spatial_mo_eint_set_to_spin_mo_eint_set(
-    spatial_mo_eint_set: MOeIntSet,
-) -> MOeIntSet:
+    spatial_mo_eint_set: SpatialMOeIntSet,
+) -> SpinMOeIntSet:
     """Compute the spin space mo_eint_set from spatial mo_eint_set."""
     nuc_energy = spatial_mo_eint_set.const
     spatial_mo_1e_int_array = spatial_mo_eint_set.mo_1e_int.array
@@ -217,17 +222,16 @@ def spatial_mo_eint_set_to_spin_mo_eint_set(
         n_spin_orb, spatial_mo_1e_int_array, spatial_mo_2e_int_array
     )
 
-    hamiltonian_component = MOeIntSet(
+    return SpinMOeIntSet(
         const=nuc_energy,
-        mo_1e_int=MO1eIntArray(spin_mo_1e_int_array),
-        mo_2e_int=MO2eIntArray(spin_mo_2e_int_array),
+        mo_1e_int=SpinMO1eInt(array=spin_mo_1e_int_array),
+        mo_2e_int=SpinMO2eInt(array=spin_mo_2e_int_array),
     )
-    return hamiltonian_component
 
 
 def get_active_space_integrals_from_mo(
-    active_space_mo: ActiveSpaceMolecularOrbitals, electron_mo_ints: MOeIntSet
-) -> MOeIntSet:
+    active_space_mo: ActiveSpaceMolecularOrbitals, electron_mo_ints: SpatialMOeIntSet
+) -> SpinMOeIntSet:
     """Compute the active space effective core energy and all the spin space
     electron integrals in the physicist's convention."""
     mo_1e_int = electron_mo_ints.mo_1e_int.array
@@ -273,11 +277,11 @@ def get_active_space_integrals_from_mo(
         spatial_2e_integrals=spatial_2e_integrals_subset,
     )
 
-    active_sapce_1e_int = MO1eIntArray(spin_1e_integrals)
-    active_sapce_2e_int = MO2eIntArray(spin_2e_integrals)
+    active_space_1e_int = SpinMO1eInt(array=spin_1e_integrals)
+    active_space_2e_int = SpinMO2eInt(array=spin_2e_integrals)
 
-    hamiltonian_component = MOeIntSet(
-        effective_core_energy, active_sapce_1e_int, active_sapce_2e_int
+    hamiltonian_component = SpinMOeIntSet(
+        effective_core_energy, active_space_1e_int, active_space_2e_int
     )
 
     return hamiltonian_component
@@ -285,14 +289,14 @@ def get_active_space_integrals_from_mo(
 
 def get_active_space_integrals(
     active_space_mo: ActiveSpaceMolecularOrbitals, electron_ao_ints: AOeIntSet
-) -> MOeIntSet:
+) -> SpinMOeIntSet:
     """Compute the active space electron integrals from ao electron
     integrals."""
     mo_coeff = active_space_mo.mo_coeff
     core_energy = electron_ao_ints.constant
     mo_1e_int = electron_ao_ints.ao_1e_int.to_mo1int(mo_coeff)
     mo_2e_int = electron_ao_ints.ao_2e_int.to_mo2int(mo_coeff)
-    electron_mo_ints = MOeIntSet(
+    electron_mo_ints = SpatialMOeIntSet(
         const=core_energy, mo_1e_int=mo_1e_int, mo_2e_int=mo_2e_int
     )
     active_space_integrals = get_active_space_integrals_from_mo(
