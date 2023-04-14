@@ -67,7 +67,7 @@ class AOeIntArraySet(AOeIntSet):
     ao_2e_int: AO2eIntArray
 
     def to_full_space_mo_int(
-        self, mo: MolecularOrbitals, return_spin_space_integrals: bool = True
+        self, mo: MolecularOrbitals, return_spin_integrals: bool = True
     ) -> Union[SpinMOeIntSet, SpatialMOeIntSet]:
         """Computes the full space spin or spatial mo integrals."""
         spatial_mo_eint_set = SpatialMOeIntSet(
@@ -75,7 +75,7 @@ class AOeIntArraySet(AOeIntSet):
             mo_1e_int=self.ao_1e_int.to_mo1int(mo.mo_coeff),
             mo_2e_int=self.ao_2e_int.to_mo2int(mo.mo_coeff),
         )
-        if return_spin_space_integrals:
+        if return_spin_integrals:
             spin_mo_eint_set = spatial_mo_eint_set_to_spin_mo_eint_set(
                 spatial_mo_eint_set
             )
@@ -85,7 +85,7 @@ class AOeIntArraySet(AOeIntSet):
     def to_active_space_mo_int(
         self,
         active_space_mo: ActiveSpaceMolecularOrbitals,
-        return_spin_space_integrals: bool = True,
+        return_spin_integrals: bool = True,
     ) -> Union[SpinMOeIntSet, SpatialMOeIntSet]:
         """Computes the active space mo integrals.
 
@@ -94,9 +94,7 @@ class AOeIntArraySet(AOeIntSet):
         does not store the mo electron integrals on memory and call the
         get_active_space_integrals_from_mo function.
         """
-        return get_active_space_integrals(
-            active_space_mo, self, return_spin_space_integrals
-        )
+        return get_active_space_integrals(active_space_mo, self, return_spin_integrals)
 
 
 def get_effective_active_space_core_energy(

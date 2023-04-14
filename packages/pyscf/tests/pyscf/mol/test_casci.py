@@ -33,7 +33,7 @@ pyscf_active_space_spatial_integrals = pyscf_ao_eint_set.to_active_space_mo_int(
 )
 active_space_integrals = ao_eint_set.to_active_space_mo_int(h2o_active_space_mo)
 active_space_spatial_integrals = ao_eint_set.to_active_space_mo_int(
-    h2o_active_space_mo, return_spin_space_integrals=False
+    h2o_active_space_mo, return_spin_integrals=False
 )
 
 
