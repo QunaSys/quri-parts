@@ -1,6 +1,7 @@
-from typing import Union
+from typing import Sequence, Union, cast
 
-from typing_extensions import TypeAlias
+from numpy.typing import ArrayLike
+from typing_extensions import TypeAlias, TypeVar
 
 from quri_parts.core.state import (
     CircuitQuantumState,
@@ -18,3 +19,9 @@ QulacsStateT: TypeAlias = Union[CircuitQuantumState, QuantumStateVector]
 QulacsParametricStateT: TypeAlias = Union[
     ParametricCircuitQuantumState, ParametricQuantumStateVector
 ]
+
+Numerics = TypeVar("Numerics", int, float, complex)
+
+
+def cast_to_list(int_sequence: Union[Sequence[Numerics], ArrayLike]) -> list[Numerics]:
+    return cast(list[Numerics], int_sequence)

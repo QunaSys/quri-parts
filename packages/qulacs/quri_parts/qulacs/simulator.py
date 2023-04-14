@@ -8,6 +8,8 @@ from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.core.state import GeneralCircuitQuantumState, QuantumStateVector
 from quri_parts.qulacs.circuit import convert_circuit
 
+from . import cast_to_list
+
 
 def evaluate_state_to_vector(
     state: Union[GeneralCircuitQuantumState, QuantumStateVector]
@@ -44,11 +46,13 @@ def run_circuit(
         raise ValueError("Inconsistent qubit length between circuit and state")
 
     qulacs_state = ql.QuantumState(circuit.qubit_count)
-    qulacs_state.load(list(init_state))
+    qulacs_state.load(cast_to_list(init_state))
 
     qulacs_cicuit = convert_circuit(circuit)
     qulacs_cicuit.update_quantum_state(qulacs_state)
 
+    # The `.get_matrix()` method returns NDArray[complex128, _Shape]
+    # (_Shape should be the first argument)
     new_state_vector: NDArray[cfloat] = qulacs_state.get_vector()  # type: ignore
 
     return new_state_vector

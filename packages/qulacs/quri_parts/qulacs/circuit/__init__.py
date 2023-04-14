@@ -9,9 +9,10 @@
 # limitations under the License.
 
 from collections.abc import Mapping, Sequence
-from typing import Callable, cast
+from typing import Callable, Union, cast
 
 import qulacs
+from numpy.typing import ArrayLike
 from typing_extensions import assert_never
 
 from quri_parts.circuit import (
@@ -120,14 +121,16 @@ _parametric_gate_qulacs = {
 }
 
 
-def _dense_matrix_gate_qulacs(gate: QuantumGate) -> qulacs.QuantumGateBase:
+def _dense_matrix_gate_qulacs(
+    t: Union[int, Sequence[int]], unitary_matrix: ArrayLike
+) -> qulacs.QuantumGateBase:
     # This cast is workaround for too strict type annotation of Qulacs
-    t = cast(list[int], gate.target_indices)
+    # t = cast(list[int], gate.target_indices)
     # We need to disable type check due to an error in qulacs type annotation
     # https://github.com/qulacs/qulacs/issues/537
     return cast(
         qulacs.QuantumGateBase,
-        qulacs.gate.DenseMatrix(t, gate.unitary_matrix),  # type: ignore
+        qulacs.gate.DenseMatrix(t, unitary_matrix),  # type: ignore
     )
 
 
@@ -177,7 +180,7 @@ def convert_gate(
         else:
             assert False, "Unreachable"
     elif is_unitary_matrix_gate_name(gate.name):
-        return _dense_matrix_gate_qulacs(gate)
+        return _dense_matrix_gate_qulacs(gate.target_indices, gate.unitary_matrix)
     elif is_parametric_gate_name(gate.name):
         raise ValueError("Parametric gates are not supported")
     else:

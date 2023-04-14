@@ -97,10 +97,16 @@ def ionq_circuit_state(
     qs_circuit = qulacs.QuantumCircuit(circuit.qubit_count)
     for gate in circuit.gates:
         if gate.name in ionq_gates_1:
+            # the second argument of `.add_dense_matrix_gate()`
+            # takes in NDArray[complex128, _Shape]
+            # (_Shape should be the first argument)
             qs_circuit.add_dense_matrix_gate(
                 gate.target_indices[0], ionq_gate_matrix(gate)  # type: ignore
             )
         elif gate.name in ionq_gates_2:
+            # the second argument of `.add_dense_matrix_gate()`
+            # takes in NDArray[complex128, _Shape]
+            # (_Shape should be the first argument)
             qs_circuit.add_dense_matrix_gate(
                 [gate.target_indices[0], gate.target_indices[1]], ionq_gate_matrix(gate)  # type: ignore  # noqa: E501
             )
