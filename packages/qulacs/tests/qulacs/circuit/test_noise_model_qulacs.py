@@ -45,7 +45,7 @@ def gates_equal(g1: qulacs.QuantumGateBase, g2: qulacs.QuantumGateBase) -> bool:
         )
 
     return (gate_info(g1) == gate_info(g2)) and np.array_equal(
-        g1.get_matrix(), g2.get_matrix()
+        g1.get_matrix(), g2.get_matrix()  # type: ignore
     )
 
 
@@ -247,4 +247,4 @@ def test_convert_kraus_cptp() -> None:
         kdg = k.conj().T
         cptp += k @ rho @ kdg  # K_i rho K_i^dagger
 
-    assert np.allclose(cptp, matrix.get_matrix())
+    assert np.allclose(cptp, matrix.get_matrix())  # type: ignore
