@@ -9,7 +9,8 @@
 # limitations under the License.
 
 from collections.abc import Sequence
-from typing import Literal
+from typing import Literal, Union
+from typing_extensions import TypeAlias
 
 import numpy as np
 
@@ -504,3 +505,21 @@ Note that the instance of this class doesn't contain parameter values.
 Every parametric gate is carried with it's parameter
 (:class:`~Parameter`) such as (ParametricPauliRotation, Parameter).
 """
+
+SingleGateFactories: TypeAlias = Union[
+    IdentityFactory,
+    XFactory,
+    YFactory,
+    ZFactory,
+    HFactory,
+    SFactory,
+    SdagFactory,
+    SqrtXFactory,
+    SqrtXdagFactory,
+    SqrtYFactory,
+    SqrtYdagFactory,
+    TFactory,
+    TdagFactory,
+]
+TwoQubitGateFactories: TypeAlias = Union[CNOTFactory, CZFactory, SWAPFactory]
+RotationGateFactories: TypeAlias = Union[RXFactory, RYFactory, RZFactory]
