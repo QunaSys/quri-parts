@@ -44,11 +44,11 @@ def run_circuit(
         raise ValueError("Inconsistent qubit length between circuit and state")
 
     qulacs_state = ql.QuantumState(circuit.qubit_count)
-    qulacs_state.load(init_state)
+    qulacs_state.load(list(init_state))
 
     qulacs_cicuit = convert_circuit(circuit)
     qulacs_cicuit.update_quantum_state(qulacs_state)
 
-    new_state_vector: NDArray[cfloat] = qulacs_state.get_vector()
+    new_state_vector: NDArray[cfloat] = qulacs_state.get_vector()  # type: ignore
 
     return new_state_vector
