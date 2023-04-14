@@ -102,7 +102,7 @@ def ionq_circuit_state(
             )
         elif gate.name in ionq_gates_2:
             qs_circuit.add_dense_matrix_gate(
-                [gate.target_indices[0], gate.target_indices[1]], ionq_gate_matrix(gate)  # type: ignore
+                [gate.target_indices[0], gate.target_indices[1]], ionq_gate_matrix(gate)  # type: ignore  # noqa: E501
             )
         elif gate.name == gate_names.RX:
             qs_circuit.add_RX_gate(gate.target_indices[0], -gate.params[0])

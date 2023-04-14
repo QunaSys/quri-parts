@@ -10,9 +10,9 @@
 
 from collections.abc import Sequence
 from typing import Literal, Union
-from typing_extensions import TypeAlias
 
 import numpy as np
+from typing_extensions import TypeAlias
 
 from quri_parts.circuit import gate_names
 

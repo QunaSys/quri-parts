@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from collections.abc import Mapping
-from typing import Callable, Type, Union, cast
+from typing import Callable, cast
 
 import numpy as np
 import qulacs
@@ -17,16 +17,20 @@ import qulacs
 from quri_parts.circuit import (
     LinearMappedUnboundParametricQuantumCircuit,
     QuantumCircuit,
-    QuantumGate,
     UnboundParametricQuantumCircuit,
     gates,
+)
+from quri_parts.circuit.gates import (
+    RotationGateFactories,
+    SingleGateFactories,
+    TOFFOLIFactory,
+    TwoQubitGateFactories,
 )
 from quri_parts.qulacs.circuit import (
     convert_circuit,
     convert_gate,
     convert_parametric_circuit,
 )
-from quri_parts.circuit.gates import SingleGateFactories, TwoQubitGateFactories, TOFFOLIFactory, RotationGateFactories
 
 
 def gates_equal(g1: qulacs.QuantumGateBase, g2: qulacs.QuantumGateBase) -> bool:
@@ -87,7 +91,7 @@ def test_convert_two_qubit_gate() -> None:
         expected = qs_gate(11, 7)
         assert gates_equal(converted, expected)
 
-from quri_parts.circuit.gates import TOFFOLIFactory
+
 three_qubit_gate_mapping: Mapping[
     TOFFOLIFactory, Callable[[int, int, int], qulacs.QuantumGateBase]
 ] = {
@@ -170,7 +174,7 @@ def test_convert_pauli_rotation_gate() -> None:
     c = np.cos(np.pi / 4)
     s = np.sin(np.pi / 4)
     assert np.allclose(
-        convert_gate(gates.PauliRotation((0,), (1,), np.pi / 2)).get_matrix(),  # type: ignore
+        convert_gate(gates.PauliRotation((0,), (1,), np.pi / 2)).get_matrix(),  # type: ignore  # noqa: E501
         [[c, -s * 1j], [-s * 1j, c]],
     )
 

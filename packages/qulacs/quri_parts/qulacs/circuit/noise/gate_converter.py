@@ -9,17 +9,18 @@
 # limitations under the License.
 
 from collections.abc import Sequence
+from typing import cast
 
 from qulacs import QuantumGateBase
 from qulacs.gate import CPTP, DenseMatrix, Identity, Pauli, Probabilistic
 
 from quri_parts.circuit.noise import AbstractKrausNoise, PauliNoise, ProbabilisticNoise
-from typing import cast
+
 
 def create_kraus_gate(
     qubits: Sequence[int], noise: AbstractKrausNoise
 ) -> QuantumGateBase:
-    return CPTP([DenseMatrix(qubits, kraus) for kraus in noise.kraus_operators])  # type: ignore
+    return CPTP([DenseMatrix(qubits, kraus) for kraus in noise.kraus_operators])  # type: ignore  # noqa: E501
 
 
 def create_pauli_noise_gate(
@@ -40,5 +41,5 @@ def create_pauli_noise_gate(
 def create_probabilistic_gate(
     qubits: Sequence[int], noise: ProbabilisticNoise
 ) -> QuantumGateBase:
-    dense_matrices = [DenseMatrix(qubits, matrix) for matrix in noise.gate_matrices]  # type: ignore
+    dense_matrices = [DenseMatrix(qubits, matrix) for matrix in noise.gate_matrices]  # type: ignore  # noqa: E501
     return cast(QuantumGateBase, Probabilistic(list(noise.prob_list), dense_matrices))

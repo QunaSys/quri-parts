@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from collections.abc import Mapping, Sequence
-from typing import Callable, Type, cast
+from typing import Callable, cast
 
 import qulacs
 from typing_extensions import assert_never
