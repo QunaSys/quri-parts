@@ -43,7 +43,7 @@ class PySCFAO1eInt(AO1eInt):
     def to_spatial_mo1int(
         self, mo_coeff: "npt.NDArray[np.complex128]"
     ) -> SpatialMO1eInt:
-        return PySCFSpatialMO1eInt(mol=self._mol, mo_coeff=mo_coeff).array
+        return PySCFSpatialMO1eInt(mol=self._mol, mo_coeff=mo_coeff)
 
     def to_mo1int(self, mo_coeff: "npt.NDArray[np.complex128]") -> SpinMO1eInt:
         spatial_1e_int = PySCFSpatialMO1eInt(mol=self._mol, mo_coeff=mo_coeff).array
@@ -67,7 +67,7 @@ class PySCFAO2eInt(AO2eInt):
     def to_spatial_mo1int(
         self, mo_coeff: "npt.NDArray[np.complex128]"
     ) -> SpatialMO2eInt:
-        return PySCFSpatialMO2eInt(mol=self._mol, mo_coeff=mo_coeff).array
+        return PySCFSpatialMO2eInt(mol=self._mol, mo_coeff=mo_coeff)
 
     def to_mo2int(self, mo_coeff: "npt.NDArray[np.complex128]") -> SpinMO2eInt:
         spatial_2e_int = PySCFSpatialMO2eInt(mol=self._mol, mo_coeff=mo_coeff).array
