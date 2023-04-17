@@ -11,18 +11,22 @@
 import numpy as np
 
 from quri_parts.circuit import RZ, QuantumCircuit
-from quri_parts.honeywell.circuit import ZZ, U1q
+from quri_parts.honeywell.circuit import RZZ, ZZ, U1q
 from quri_parts.honeywell.circuit.transpile import (
     CNOT2U1qZZRZTranspiler,
+    CNOTRZ2RZZTranspiler,
+    CZ2RZZZTranspiler,
     H2U1qRZTranspiler,
     RX2U1qTranspiler,
     RY2U1qTranspiler,
+    U1qNormalizeWithRZTranspiler,
 )
 
 
 class TestHoneywellNativeTranspile:
     def test_rx2u1q_transpile(self) -> None:
         theta = np.random.rand()
+
         circuit = QuantumCircuit(1)
         circuit.add_RX_gate(0, theta)
         transpiled = RX2U1qTranspiler()(circuit)
@@ -34,6 +38,7 @@ class TestHoneywellNativeTranspile:
 
     def test_ry2u1q_transpile(self) -> None:
         theta = np.random.rand()
+
         circuit = QuantumCircuit(1)
         circuit.add_RY_gate(0, theta)
         transpiled = RY2U1qTranspiler()(circuit)
@@ -68,5 +73,66 @@ class TestHoneywellNativeTranspile:
                 RZ(1, -np.pi / 2.0),
             ]
         )
+
+        assert transpiled.gates == expect.gates
+
+    def test_u1qnormalize_transpile(self) -> None:
+        phi = np.random.rand()
+        theta = np.pi / 5.0
+
+        circuit = QuantumCircuit(1)
+        circuit.extend(
+            [
+                U1q(0, 0.0, phi),
+                U1q(0, -np.pi / 2.0, phi),
+                U1q(0, np.pi, phi),
+                U1q(0, np.pi / 2.0, phi),
+                U1q(0, theta, phi),
+            ]
+        )
+        transpiled = U1qNormalizeWithRZTranspiler()(circuit)
+
+        expect = QuantumCircuit(1)
+        expect.extend(
+            [
+                RZ(0, 0.0),
+                U1q(0, np.pi / 2.0, phi + np.pi),
+                U1q(0, np.pi, phi),
+                U1q(0, np.pi / 2.0, phi),
+                U1q(0, np.pi / 2.0, phi + np.pi / 2.0),
+                RZ(0, theta),
+                U1q(0, np.pi / 2.0, phi - np.pi / 2.0),
+            ]
+        )
+
+        assert transpiled.gates == expect.gates
+
+    def test_cz2rzz_transpile(self) -> None:
+        circuit = QuantumCircuit(2)
+        circuit.add_CZ_gate(0, 1)
+        transpiled = CZ2RZZZTranspiler()(circuit)
+
+        expect = QuantumCircuit(2)
+        expect.extend(
+            [
+                RZ(0, -np.pi / 2.0),
+                RZ(1, -np.pi / 2.0),
+                ZZ(0, 1),
+            ]
+        )
+
+        assert transpiled.gates == expect.gates
+
+    def test_cnotrz2rzz_transpile(self) -> None:
+        theta = np.random.rand()
+
+        circuit = QuantumCircuit(2)
+        circuit.add_CNOT_gate(0, 1)
+        circuit.add_RZ_gate(1, theta)
+        circuit.add_CNOT_gate(0, 1)
+        transpiled = CNOTRZ2RZZTranspiler()(circuit)
+
+        expect = QuantumCircuit(2)
+        expect.extend([RZZ(0, 1, theta)])
 
         assert transpiled.gates == expect.gates

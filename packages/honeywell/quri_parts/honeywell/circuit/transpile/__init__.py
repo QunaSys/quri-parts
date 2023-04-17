@@ -19,9 +19,12 @@ from quri_parts.circuit.transpile import (
 
 from .honeywell_native_transpiler import (
     CNOT2U1qZZRZTranspiler,
+    CNOTRZ2RZZTranspiler,
+    CZ2RZZZTranspiler,
     H2U1qRZTranspiler,
     RX2U1qTranspiler,
     RY2U1qTranspiler,
+    U1qNormalizeWithRZTranspiler,
 )
 
 #: CircuitTranspiler to transpile a QuantumCircuit into another
@@ -44,7 +47,10 @@ HoneywellSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTran
 __all__ = [
     "HoneywellSetTranspiler",
     "CNOT2U1qZZRZTranspiler",
+    "CNOTRZ2RZZTranspiler",
+    "CZ2RZZZTranspiler",
     "H2U1qRZTranspiler",
     "RX2U1qTranspiler",
     "RY2U1qTranspiler",
+    "U1qNormalizeWithRZTranspiler",
 ]
