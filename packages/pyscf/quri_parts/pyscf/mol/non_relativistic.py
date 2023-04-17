@@ -125,14 +125,12 @@ class PySCFSpatialMO2eInt(SpatialMO2eInt):
 
 
 def ao1int(mo: PySCFMolecularOrbitals) -> PySCFAO1eInt:
-    """Calculate the atomic orbital one-electron integral in a memory effcient
-    way."""
+    """Returns a PySCFAO1eInt object."""
     return PySCFAO1eInt(mol=mo.mol)
 
 
 def ao2int(mo: PySCFMolecularOrbitals) -> PySCFAO2eInt:
-    """Calculate the atomic orbital two-electron integral in a memory effcient
-    way."""
+    """Returns a PySCFAO2eInt object."""
     return PySCFAO2eInt(mol=mo.mol)
 
 
@@ -184,16 +182,16 @@ def pyscf_get_active_space_integrals(
         active_space_mo.n_active_orb,
         active_space_mo.n_active_ele,
     )
-    cas_mf = mcscf.CASCI(electron_ints.mol, n_active_orb, n_active_ele)
+    casci = mcscf.CASCI(electron_ints.mol, n_active_orb, n_active_ele)
     _, active_orb_list = active_space_mo.get_core_and_active_orb()
     if active_orb_list:
-        mo = cas_mf.sort_mo(active_orb_list, mo_coeff=active_space_mo.mo_coeff, base=0)
+        mo = casci.sort_mo(active_orb_list, mo_coeff=active_space_mo.mo_coeff, base=0)
     else:
         mo = active_space_mo.mo_coeff
 
-    casci_mo_1e_int, casscf_nuc = cas_mf.get_h1eff(mo)
-    casci_mo_2e_int = cas_mf.get_h2eff(mo)
-    casci_mo_2e_int = ao2mo.restore(1, casci_mo_2e_int, cas_mf.ncas).transpose(
+    casci_mo_1e_int, casscf_nuc = casci.get_h1eff(mo)
+    casci_mo_2e_int = casci.get_h2eff(mo)
+    casci_mo_2e_int = ao2mo.restore(1, casci_mo_2e_int, casci.ncas).transpose(
         0, 2, 3, 1
     )
 

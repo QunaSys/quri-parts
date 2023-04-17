@@ -91,10 +91,12 @@ class AOeIntArraySet(AOeIntSet):
 
         Note:
         Does not provide speed advantage compared to PySCFAOeIntSet as it
-        does not store the mo electron integrals on memory and call the
-        get_active_space_integrals_from_mo function.
+        takes additional time to convert ao_eint to mo_eint.
+        Performance penalty grows when the full space mo integral is large.
         """
-        return get_active_space_integrals(active_space_mo, self, return_spin_integrals)
+        return get_active_space_integrals_from_ao_eint(
+            active_space_mo, self, return_spin_integrals
+        )
 
 
 def get_effective_active_space_core_energy(
@@ -133,7 +135,6 @@ def get_effective_active_space_core_energy(
 
 
 def get_effective_active_space_1e_integrals(
-    original_1e_integrals: npt.NDArray[np.complex128],
     mo_1e_int: npt.NDArray[np.complex128],
     mo_2e_int: npt.NDArray[np.complex128],
     core_spatial_orb_idx: Sequence[int],
@@ -142,8 +143,6 @@ def get_effective_active_space_1e_integrals(
     active space configuration. (for spatial orbital.)
 
     Args:
-        original_core_energy:
-            The orginal space core erengy.
         mo_1e_int:
             The orginal space spatial mo 1-electron integral.
         mo_2e_int:
@@ -165,7 +164,7 @@ def get_effective_active_space_1e_integrals(
         full_idx,
     )
 
-    original_1e_integrals_new = original_1e_integrals.copy()
+    original_1e_integrals_new = mo_1e_int.copy()
     original_1e_integrals_new += 2 * trace(
         mo_2e_int[get_core_array_from_2e_1], axis1=0, axis2=3
     )
@@ -232,7 +231,7 @@ def spatial_mo_eint_set_to_spin_mo_eint_set(
     )
 
 
-def get_active_space_integrals_from_mo(
+def get_active_space_integrals_from_mo_eint(
     active_space_mo: ActiveSpaceMolecularOrbitals,
     electron_mo_ints: SpatialMOeIntSet,
     return_spin_integrals: bool = True,
@@ -243,7 +242,7 @@ def get_active_space_integrals_from_mo(
     Note:
     This function yields the active space electron integral faster than
     pyscf_get_active_space_integrals function in the quri_parts.pyscf package,
-    as it stores the mo electron integrals on memory fot computations.
+    as it stores the mo electron integrals on memory for computations.
     """
     mo_1e_int = electron_mo_ints.mo_1e_int.array
     mo_2e_int = electron_mo_ints.mo_2e_int.array
@@ -260,7 +259,6 @@ def get_active_space_integrals_from_mo(
         core_spatial_orb_idx=core_spatial_orb_idx,
     )
     effective_mo_1e_int = get_effective_active_space_1e_integrals(
-        mo_1e_int,
         mo_1e_int=mo_1e_int,
         mo_2e_int=mo_2e_int,
         core_spatial_orb_idx=core_spatial_orb_idx,
@@ -290,7 +288,7 @@ def get_active_space_integrals_from_mo(
     return spatial_mo_eint_set
 
 
-def get_active_space_integrals(
+def get_active_space_integrals_from_ao_eint(
     active_space_mo: ActiveSpaceMolecularOrbitals,
     electron_ao_ints: AOeIntSet,
     return_spin_integrals: bool = True,
@@ -304,7 +302,7 @@ def get_active_space_integrals(
     electron_mo_ints = SpatialMOeIntSet(
         const=core_energy, mo_1e_int=mo_1e_int, mo_2e_int=mo_2e_int
     )
-    active_space_integrals = get_active_space_integrals_from_mo(
+    active_space_integrals = get_active_space_integrals_from_mo_eint(
         active_space_mo=active_space_mo,
         electron_mo_ints=electron_mo_ints,
         return_spin_integrals=return_spin_integrals,

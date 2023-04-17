@@ -40,6 +40,7 @@ class PySCFMolecularOrbitals(MolecularOrbitals):
 
     @property
     def spin(self) -> int:
+        """Returns the total spin of the electrons."""
         return int(self._mol.spin)
 
     @property

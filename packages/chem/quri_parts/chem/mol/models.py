@@ -61,7 +61,7 @@ class MolecularOrbitals(Protocol):
 
     @abstractproperty
     def spin(self) -> int:
-        """Returns the spin of the electron.
+        """Returns the total spin of the electrons.
 
         Note:
             We follow the quantum chemistry convention where:
@@ -108,7 +108,7 @@ class ActiveSpaceMolecularOrbitals(MolecularOrbitals):
 
     @property
     def spin(self) -> int:
-        """Returns the spin of the molecule."""
+        """Returns the total spin of the electrons."""
         return self._mo.spin
 
     @property
