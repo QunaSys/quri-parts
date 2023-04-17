@@ -30,11 +30,19 @@ class AO1eIntArray(AO1eInt):
         """Returns the ao 1-electron integrals in physicist's notation."""
         return self._ao1eint_array
 
-    def to_mo1int(self, mo_coeff: "npt.NDArray[np.complex128]") -> SpatialMO1eIntArray:
-        """Returns the spatial mo 1-electron integrals in physicist's
-        notation."""
+    def to_spatial_mo1int(
+        self, mo_coeff: "npt.NDArray[np.complex128]"
+    ) -> SpatialMO1eIntArray:
         h1_mo = mo_coeff.conjugate().T @ self._ao1eint_array @ mo_coeff
         return SpatialMO1eIntArray(h1_mo)
+
+    def to_mo1int(self, mo_coeff: "npt.NDArray[np.complex128]") -> SpinMO1eInt:
+        """Returns the spatial mo 1-electron integrals in physicist's
+        notation."""
+        h1_mo = self.to_spatial_mo1int(mo_coeff=mo_coeff).array
+        n_spin_orb = h1_mo.shape[0] * 2
+        h1_mo = spatial_mo_1e_int_to_spin_mo_1e_int(n_spin_orb, h1_mo)
+        return SpinMO1eInt(h1_mo)
 
 
 class AO2eIntArray(AO2eInt):
@@ -47,10 +55,9 @@ class AO2eIntArray(AO2eInt):
         """Returns the ao 2-electron integrals in physicist's convention."""
         return self._ao2eint_array
 
-    def to_mo2int(self, mo_coeff: "npt.NDArray[np.complex128]") -> SpatialMO2eIntArray:
-        """Returns the spatial mo 2-electron integrals in physicist's
-        convention."""
-        # Transpose back to chemist convention for computation.
+    def to_spatial_mo2int(
+        self, mo_coeff: "npt.NDArray[np.complex128]"
+    ) -> SpatialMO2eIntArray:
         ao2eint_chem_array = self._ao2eint_array.transpose(0, 3, 1, 2)
         tensor = tensordot(mo_coeff, ao2eint_chem_array, axes=([0], [0]))
         tensor = tensordot(mo_coeff.conjugate(), tensor, axes=([0], [1]))
@@ -59,6 +66,15 @@ class AO2eIntArray(AO2eInt):
         tensor = tensor.transpose(0, 2, 3, 1)
         return SpatialMO2eIntArray(tensor)
 
+    def to_mo2int(self, mo_coeff: "npt.NDArray[np.complex128]") -> SpinMO2eInt:
+        """Returns the spatial mo 2-electron integrals in physicist's
+        convention."""
+        # Transpose back to chemist convention for computation.
+        tensor = self.to_spatial_mo2int(mo_coeff=mo_coeff).array
+        n_spin_orb = tensor.shape[0] * 2
+        tensor = spatial_mo_2e_int_to_spin_mo_2e_int(n_spin_orb, tensor)
+        return SpinMO2eInt(tensor)
+
 
 @dataclass
 class AOeIntArraySet(AOeIntSet):
@@ -66,27 +82,19 @@ class AOeIntArraySet(AOeIntSet):
     ao_1e_int: AO1eIntArray
     ao_2e_int: AO2eIntArray
 
-    def to_full_space_mo_int(
-        self, mo: MolecularOrbitals, return_spin_integrals: bool = True
-    ) -> Union[SpinMOeIntSet, SpatialMOeIntSet]:
+    def to_full_space_mo_int(self, mo: MolecularOrbitals) -> SpinMOeIntSet:
         """Computes the full space spin or spatial mo integrals."""
-        spatial_mo_eint_set = SpatialMOeIntSet(
+        spin_mo_eint_set = SpinMOeIntSet(
             const=self.constant,
             mo_1e_int=self.ao_1e_int.to_mo1int(mo.mo_coeff),
             mo_2e_int=self.ao_2e_int.to_mo2int(mo.mo_coeff),
         )
-        if return_spin_integrals:
-            spin_mo_eint_set = spatial_mo_eint_set_to_spin_mo_eint_set(
-                spatial_mo_eint_set
-            )
-            return spin_mo_eint_set
-        return spatial_mo_eint_set
+        return spin_mo_eint_set
 
     def to_active_space_mo_int(
         self,
         active_space_mo: ActiveSpaceMolecularOrbitals,
-        return_spin_integrals: bool = True,
-    ) -> Union[SpinMOeIntSet, SpatialMOeIntSet]:
+    ) -> SpinMOeIntSet:
         """Computes the active space mo integrals.
 
         Note:
@@ -94,9 +102,10 @@ class AOeIntArraySet(AOeIntSet):
         takes additional time to convert ao_eint to mo_eint.
         Performance penalty grows when the full space mo integral is large.
         """
-        return get_active_space_integrals_from_ao_eint(
-            active_space_mo, self, return_spin_integrals
+        spin_mo_eint_set = get_active_space_integrals_from_ao_eint(
+            active_space_mo, self
         )
+        return cast(SpinMOeIntSet, spin_mo_eint_set)
 
 
 def get_effective_active_space_core_energy(
@@ -173,6 +182,51 @@ def get_effective_active_space_1e_integrals(
     )
 
     return cast(npt.NDArray[np.complex128], original_1e_integrals_new)
+
+
+def spatial_mo_1e_int_to_spin_mo_1e_int(
+    n_spin_orb: int,
+    spatial_1e_integrals: npt.NDArray[np.complex128],
+) -> npt.NDArray[np.complex128]:
+    """Convert spatial mo 1e electron integrals to spin mo 1e electron
+    integrals."""
+    spin_1e_integrals = cast(
+        npt.NDArray[np.complex128], zeros((n_spin_orb, n_spin_orb))
+    )
+
+    for p, q in product(range(n_spin_orb // 2), repeat=2):
+        p_a, q_a = 2 * p, 2 * q
+        p_b, q_b = 2 * p + 1, 2 * q + 1
+
+        spin_1e_integrals[p_a, q_a] = spatial_1e_integrals[p, q]
+        spin_1e_integrals[p_b, q_b] = spatial_1e_integrals[p, q]
+
+    return spin_1e_integrals
+
+
+def spatial_mo_2e_int_to_spin_mo_2e_int(
+    n_spin_orb: int,
+    spatial_2e_integrals: npt.NDArray[np.complex128],
+) -> npt.NDArray[np.complex128]:
+    """Convert spatial mo 2e electron integrals to spin mo 2e electron
+    integrals."""
+    spin_2e_integrals = cast(
+        npt.NDArray[np.complex128],
+        zeros((n_spin_orb, n_spin_orb, n_spin_orb, n_spin_orb)),
+    )
+
+    for p, q, r, s in product(range(n_spin_orb // 2), repeat=4):
+        p_a, q_a, r_a, s_a = 2 * p, 2 * q, 2 * r, 2 * s
+        p_b, q_b, r_b, s_b = 2 * p + 1, 2 * q + 1, 2 * r + 1, 2 * s + 1
+        # Mixed spin
+        spin_2e_integrals[p_a, q_b, r_b, s_a] = spatial_2e_integrals[p, q, r, s]
+        spin_2e_integrals[p_b, q_a, r_a, s_b] = spatial_2e_integrals[p, q, r, s]
+
+        # Same spin
+        spin_2e_integrals[p_a, q_a, r_a, s_a] = spatial_2e_integrals[p, q, r, s]
+        spin_2e_integrals[p_b, q_b, r_b, s_b] = spatial_2e_integrals[p, q, r, s]
+
+    return spin_2e_integrals
 
 
 def to_spin_orbital_integrals(
@@ -297,8 +351,12 @@ def get_active_space_integrals_from_ao_eint(
     integrals."""
     mo_coeff = active_space_mo.mo_coeff
     core_energy = electron_ao_ints.constant
-    mo_1e_int = electron_ao_ints.ao_1e_int.to_mo1int(mo_coeff)
-    mo_2e_int = electron_ao_ints.ao_2e_int.to_mo2int(mo_coeff)
+    mo_1e_int = cast(AO1eIntArray, electron_ao_ints.ao_1e_int).to_spatial_mo1int(
+        mo_coeff
+    )
+    mo_2e_int = cast(AO2eIntArray, electron_ao_ints.ao_2e_int).to_spatial_mo2int(
+        mo_coeff
+    )
     electron_mo_ints = SpatialMOeIntSet(
         const=core_energy, mo_1e_int=mo_1e_int, mo_2e_int=mo_2e_int
     )

@@ -11,7 +11,7 @@
 from abc import abstractmethod, abstractproperty
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import NamedTuple, Optional, Protocol, Sequence, Union
+from typing import NamedTuple, Optional, Protocol, Sequence
 
 import numpy as np
 import numpy.typing as npt  # noqa: F401
@@ -261,7 +261,7 @@ class AO1eInt(Protocol):
         ...
 
     @abstractmethod
-    def to_mo1int(self, mo_coeff: "npt.NDArray[np.complex128]") -> "SpatialMO1eInt":
+    def to_mo1int(self, mo_coeff: "npt.NDArray[np.complex128]") -> "SpinMO1eInt":
         """This method converts an atomic orbital one-electron integral into
         the molecular orbital one-electron integral.
 
@@ -280,7 +280,7 @@ class AO2eInt(Protocol):
         ...
 
     @abstractmethod
-    def to_mo2int(self, mo_coeff: "npt.NDArray[np.complex128]") -> "SpatialMO2eInt":
+    def to_mo2int(self, mo_coeff: "npt.NDArray[np.complex128]") -> "SpinMO2eInt":
         """This method converts an atomic orbital two-electron integral into
         the molecular orbital two-electron integral.
 
@@ -303,16 +303,14 @@ class AOeIntSet(Protocol):
     def to_full_space_mo_int(
         self,
         mo: MolecularOrbitals,
-        return_spin_integrals: bool = True,
-    ) -> Union["SpinMOeIntSet", "SpatialMOeIntSet"]:
+    ) -> "SpinMOeIntSet":
         """Compute the full space spatial or spin mo integral."""
         ...
 
     def to_active_space_mo_int(
         self,
         active_space_mo: ActiveSpaceMolecularOrbitals,
-        return_spin_integrals: bool = True,
-    ) -> Union["SpinMOeIntSet", "SpatialMOeIntSet"]:
+    ) -> "SpinMOeIntSet":
         """Compute the active space spatial or spin mo integral."""
         ...
 

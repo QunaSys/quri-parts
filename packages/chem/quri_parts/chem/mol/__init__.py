@@ -37,6 +37,8 @@ from .non_relativistic_models import (
     get_active_space_integrals_from_mo_eint,
     get_effective_active_space_1e_integrals,
     get_effective_active_space_core_energy,
+    spatial_mo_1e_int_to_spin_mo_1e_int,
+    spatial_mo_2e_int_to_spin_mo_2e_int,
     spatial_mo_eint_set_to_spin_mo_eint_set,
     to_spin_orbital_integrals,
 )
@@ -68,4 +70,6 @@ __all__ = [
     "get_effective_active_space_1e_integrals",
     "spatial_mo_eint_set_to_spin_mo_eint_set",
     "to_spin_orbital_integrals",
+    "spatial_mo_1e_int_to_spin_mo_1e_int",
+    "spatial_mo_2e_int_to_spin_mo_2e_int",
 ]

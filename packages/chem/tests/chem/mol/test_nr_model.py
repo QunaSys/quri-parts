@@ -6,13 +6,7 @@ from numpy.typing import NDArray
 from openfermion.chem import MolecularData
 from openfermionpyscf import run_pyscf  # type: ignore
 
-from quri_parts.chem.mol import (
-    ActiveSpace,
-    ActiveSpaceMolecularOrbitals,
-    AOeIntSet,
-    SpatialMOeIntSet,
-    SpinMOeIntSet,
-)
+from quri_parts.chem.mol import ActiveSpace, ActiveSpaceMolecularOrbitals, SpinMOeIntSet
 from quri_parts.pyscf.mol import PySCFMolecularOrbitals, get_ao_eint_set
 
 
@@ -63,21 +57,6 @@ def get_active_space_mo(
         active_orbs_indices,
     )
     return ActiveSpaceMolecularOrbitals(mol, active_space)
-
-
-def get_mo_eint_set_from_ao_eint_set(
-    molecule: PySCFMolecularOrbitals, ao_eint_set: AOeIntSet
-) -> SpatialMOeIntSet:
-    """Computes the mo_eint_set from ao_eint_set automatically."""
-    mo_1e_int = ao_eint_set.ao_1e_int.to_mo1int(molecule.mo_coeff)
-    mo_2e_int = ao_eint_set.ao_2e_int.to_mo2int(molecule.mo_coeff)
-
-    mo_eint_set = SpatialMOeIntSet(
-        const=ao_eint_set.constant,
-        mo_1e_int=mo_1e_int,
-        mo_2e_int=mo_2e_int,
-    )
-    return mo_eint_set
 
 
 def get_full_space_integrals(mol: PySCFMolecularOrbitals) -> SpinMOeIntSet:
