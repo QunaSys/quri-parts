@@ -40,6 +40,11 @@ class PySCFAO1eInt(AO1eInt):
         ao_int1e = scf.hf.get_hcore(self._mol)
         return cast(npt.NDArray[np.complex128], ao_int1e)
 
+    def to_spatial_mo1int(
+        self, mo_coeff: "npt.NDArray[np.complex128]"
+    ) -> SpatialMO1eInt:
+        return PySCFSpatialMO1eInt(mol=self._mol, mo_coeff=mo_coeff).array
+
     def to_mo1int(self, mo_coeff: "npt.NDArray[np.complex128]") -> SpinMO1eInt:
         spatial_1e_int = PySCFSpatialMO1eInt(mol=self._mol, mo_coeff=mo_coeff).array
         n_spin_orb = spatial_1e_int.shape[0] * 2
@@ -58,6 +63,11 @@ class PySCFAO2eInt(AO2eInt):
         ao_int2e = ao2mo.get_ao_eri(mol=self._mol)
         ao_int2e = ao2mo.restore(1, ao_int2e, self._mol.nao).transpose(0, 2, 3, 1)
         return cast(npt.NDArray[np.complex128], ao_int2e)
+
+    def to_spatial_mo1int(
+        self, mo_coeff: "npt.NDArray[np.complex128]"
+    ) -> SpatialMO2eInt:
+        return PySCFSpatialMO2eInt(mol=self._mol, mo_coeff=mo_coeff).array
 
     def to_mo2int(self, mo_coeff: "npt.NDArray[np.complex128]") -> SpinMO2eInt:
         spatial_2e_int = PySCFSpatialMO2eInt(mol=self._mol, mo_coeff=mo_coeff).array
@@ -138,7 +148,7 @@ def ao2int(mo: PySCFMolecularOrbitals) -> PySCFAO2eInt:
 def get_ao_eint_set(molecule: PySCFMolecularOrbitals) -> AOeIntArraySet:
     """Compute the ao electron integrals and store then inside PySCFAOeIntSet.
 
-    The explicit electron integral arrays will vbe stored on memory.
+    The explicit electron integral arrays will be stored on memory.
     """
     nuc_energy = get_nuc_energy(molecule)
     ao_1e_int = AO1eIntArray(ao1int(molecule).array)

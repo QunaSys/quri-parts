@@ -33,12 +33,13 @@ class AO1eIntArray(AO1eInt):
     def to_spatial_mo1int(
         self, mo_coeff: "npt.NDArray[np.complex128]"
     ) -> SpatialMO1eIntArray:
+        """Returns the spatial mo 1-electron integrals in physicist's
+        notation."""
         h1_mo = mo_coeff.conjugate().T @ self._ao1eint_array @ mo_coeff
         return SpatialMO1eIntArray(h1_mo)
 
     def to_mo1int(self, mo_coeff: "npt.NDArray[np.complex128]") -> SpinMO1eInt:
-        """Returns the spatial mo 1-electron integrals in physicist's
-        notation."""
+        """Returns the spin mo 1-electron integrals in physicist's notation."""
         h1_mo = self.to_spatial_mo1int(mo_coeff=mo_coeff).array
         n_spin_orb = h1_mo.shape[0] * 2
         h1_mo = spatial_mo_1e_int_to_spin_mo_1e_int(n_spin_orb, h1_mo)
@@ -58,6 +59,8 @@ class AO2eIntArray(AO2eInt):
     def to_spatial_mo2int(
         self, mo_coeff: "npt.NDArray[np.complex128]"
     ) -> SpatialMO2eIntArray:
+        """Returns the spatial mo 2-electron integrals in physicist's
+        convention."""
         ao2eint_chem_array = self._ao2eint_array.transpose(0, 3, 1, 2)
         tensor = tensordot(mo_coeff, ao2eint_chem_array, axes=([0], [0]))
         tensor = tensordot(mo_coeff.conjugate(), tensor, axes=([0], [1]))
@@ -67,7 +70,7 @@ class AO2eIntArray(AO2eInt):
         return SpatialMO2eIntArray(tensor)
 
     def to_mo2int(self, mo_coeff: "npt.NDArray[np.complex128]") -> SpinMO2eInt:
-        """Returns the spatial mo 2-electron integrals in physicist's
+        """Returns the spin mo 2-electron integrals in physicist's
         convention."""
         # Transpose back to chemist convention for computation.
         tensor = self.to_spatial_mo2int(mo_coeff=mo_coeff).array
