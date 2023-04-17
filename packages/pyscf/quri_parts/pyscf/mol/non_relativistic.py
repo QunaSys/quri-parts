@@ -64,7 +64,7 @@ class PySCFAO2eInt(AO2eInt):
         ao_int2e = ao2mo.restore(1, ao_int2e, self._mol.nao).transpose(0, 2, 3, 1)
         return cast(npt.NDArray[np.complex128], ao_int2e)
 
-    def to_spatial_mo1int(
+    def to_spatial_mo2int(
         self, mo_coeff: "npt.NDArray[np.complex128]"
     ) -> SpatialMO2eInt:
         return PySCFSpatialMO2eInt(mol=self._mol, mo_coeff=mo_coeff)
@@ -87,6 +87,7 @@ class PySCFAOeIntSet(AOeIntSet):
         self,
         mo: MolecularOrbitals,
     ) -> SpinMOeIntSet:
+        """Returns the full space spin electon integrals."""
         spin_mo_eint_set = SpinMOeIntSet(
             const=self.constant,
             mo_1e_int=self.ao_1e_int.to_mo1int(mo.mo_coeff),
@@ -94,12 +95,35 @@ class PySCFAOeIntSet(AOeIntSet):
         )
         return spin_mo_eint_set
 
+    def to_full_space_spatial_mo_int(
+        self,
+        mo: MolecularOrbitals,
+    ) -> SpatialMOeIntSet:
+        """Returns the full space spatial electon integrals."""
+        spatial_mo_eint_set = SpatialMOeIntSet(
+            const=self.constant,
+            mo_1e_int=self.ao_1e_int.to_spatial_mo1int(mo.mo_coeff),
+            mo_2e_int=self.ao_2e_int.to_spatial_mo2int(mo.mo_coeff),
+        )
+        return spatial_mo_eint_set
+
     def to_active_space_mo_int(
         self,
         active_space_mo: ActiveSpaceMolecularOrbitals,
     ) -> SpinMOeIntSet:
+        """Returns the full space spin electon integrals."""
         spin_mo_eint_set = pyscf_get_active_space_integrals(active_space_mo, self)
         return cast(SpinMOeIntSet, spin_mo_eint_set)
+
+    def to_active_space_spatial_mo_int(
+        self,
+        active_space_mo: ActiveSpaceMolecularOrbitals,
+    ) -> SpatialMOeIntSet:
+        """Returns the full space spatial electon integrals."""
+        spatial_mo_eint_set = pyscf_get_active_space_integrals(
+            active_space_mo, self, return_spin_integrals=False
+        )
+        return cast(SpatialMOeIntSet, spatial_mo_eint_set)
 
 
 class PySCFSpatialMO1eInt(SpatialMO1eInt):
