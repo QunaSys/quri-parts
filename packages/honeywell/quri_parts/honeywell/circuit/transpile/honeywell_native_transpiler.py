@@ -104,9 +104,8 @@ class CNOT2U1qZZRZTranspiler(GateKindDecomposer):
 
 
 class U1qNormalizeWithRZTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which converts U1q gates into gate sequences containing RZ gates
-    so that theta of the U1q gates will be pi or pi/2.
-    """
+    """CircuitTranspiler, which converts U1q gates into gate sequences
+    containing RZ gates so that theta of the U1q gates will be pi or pi/2."""
 
     def __init__(self, epsilon: float = 1.0e-9):
         self._epsilon = epsilon
@@ -142,8 +141,8 @@ class U1qNormalizeWithRZTranspiler(GateKindDecomposer):
 
 
 class CZ2RZZZTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decomposes CZ gates into sequences of RZ and ZZ gates.
-    """
+    """CircuitTranspiler, which decomposes CZ gates into sequences of RZ and ZZ
+    gates."""
 
     @property
     def target_gate_names(self) -> Sequence[str]:
@@ -159,8 +158,9 @@ class CZ2RZZZTranspiler(GateKindDecomposer):
 
 
 class CNOTRZ2RZZTranspiler(CircuitTranspilerProtocol):
-    """CircuitTranspiler, which fuses consecutive CNOT and RZ gates into RZZ gates
-    if the gates are in the following sequence and have the following parameters.
+    """CircuitTranspiler, which fuses consecutive CNOT and RZ gates into
+    RZZ(control, target) gates if the gates are in the following sequence and
+    have the following parameters.
 
     [CNOT(control, target), RZ(target, theta), CNOT(control, target)]
     """
