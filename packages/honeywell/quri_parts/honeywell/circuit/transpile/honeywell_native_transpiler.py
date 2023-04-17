@@ -173,7 +173,7 @@ class CNOTRZ2RZZTranspiler(CircuitTranspilerProtocol):
         i = 0
 
         while i < len(xs) - 2:
-            a, b, c = xs[i], xs[i + 1], xs[i + 2]  # avoid xs[i:i + 3] due to lint error
+            a, b, c = xs[i : i + 3]  # noqa: E203
             if (
                 a.name == gate_names.CNOT
                 and b.name == gate_names.RZ
