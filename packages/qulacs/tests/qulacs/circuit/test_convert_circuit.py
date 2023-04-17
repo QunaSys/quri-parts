@@ -21,7 +21,6 @@ from quri_parts.circuit import (
     UnboundParametricQuantumCircuit,
     gates,
 )
-from quri_parts.qulacs import cast_to_list
 from quri_parts.qulacs.circuit import (
     _dense_matrix_gate_qulacs,
     convert_circuit,
@@ -125,20 +124,18 @@ def test_convert_rotation_gate() -> None:
     c = np.cos(np.pi / 4)
     s = np.sin(np.pi / 4)
 
-    # the `.get_matrix()` method returns NDArray[complex128, _Shape]
-    # (_Shape should be the first argument)
+    # We need to disable type check due to an error in qulacs type annotation
+    # https://github.com/qulacs/qulacs/issues/537
     assert np.allclose(
         convert_gate(gates.RX(0, np.pi / 2)).get_matrix(),  # type: ignore
         [[c, -s * 1j], [-s * 1j, c]],
     )
-    # the `.get_matrix()` method returns NDArray[complex128, _Shape]
-    # (_Shape should be the first argument)
+
     assert np.allclose(
         convert_gate(gates.RY(0, np.pi / 2)).get_matrix(),  # type: ignore
         [[c, -s], [s, c]],
     )
-    # the `.get_matrix()` method returns NDArray[complex128, _Shape]
-    # (_Shape should be the first argument)
+
     assert np.allclose(
         convert_gate(gates.RZ(0, np.pi / 2)).get_matrix(),  # type: ignore
         [[c - s * 1j, 0], [0, c + s * 1j]],
@@ -165,23 +162,21 @@ def test_convert_u_gate() -> None:
 def test_convert_pauli_gate() -> None:
     g = gates.Pauli((11, 7, 13), (2, 3, 1))
     converted = convert_gate(g)
-    expected = qulacs.gate.Pauli(cast_to_list((11, 7, 13)), cast_to_list((2, 3, 1)))
+    expected = qulacs.gate.Pauli([11, 7, 13], [2, 3, 1])
     assert gates_equal(converted, expected)
 
 
 def test_convert_pauli_rotation_gate() -> None:
     g = gates.PauliRotation((11, 7, 13), (2, 3, 1), 0.125)
     converted = convert_gate(g)
-    expected = qulacs.gate.PauliRotation(
-        cast_to_list((11, 7, 13)), cast_to_list((2, 3, 1)), -0.125
-    )
+    expected = qulacs.gate.PauliRotation([11, 7, 13], [2, 3, 1], -0.125)
     assert gates_equal(converted, expected)
 
     # Check rotation angle sign
     c = np.cos(np.pi / 4)
     s = np.sin(np.pi / 4)
-    # the `.get_matrix()` method returns NDArray[complex128, _Shape]
-    # (_Shape should be the first argument)
+    # We need to disable type check due to an error in qulacs type annotation
+    # https://github.com/qulacs/qulacs/issues/537
     assert np.allclose(
         convert_gate(gates.PauliRotation((0,), (1,), np.pi / 2)).get_matrix(),  # type: ignore  # noqa: E501
         [[c, -s * 1j], [-s * 1j, c]],
@@ -236,9 +231,7 @@ def test_convert_parametric_circuit() -> None:
         qulacs.gate.CNOT(0, 2),
         qulacs.gate.ParametricRZ(2, 0.0),
         qulacs.gate.RX(0, -0.125),
-        qulacs.gate.ParametricPauliRotation(
-            cast_to_list((0, 1, 2)), cast_to_list((1, 2, 3)), 0.0
-        ),
+        qulacs.gate.ParametricPauliRotation([0, 1, 2], [1, 2, 3], 0.0),
     ]
     assert converted.get_gate_count() == len(expected_gates)
     for i, expected in enumerate(expected_gates):
@@ -269,9 +262,7 @@ def test_convert_linear_mapped_parametric_circuit() -> None:
         qulacs.gate.CNOT(0, 2),
         qulacs.gate.ParametricRZ(2, 0.0),
         qulacs.gate.RX(0, -0.125),
-        qulacs.gate.ParametricPauliRotation(
-            cast_to_list((0, 1, 2)), cast_to_list((1, 2, 3)), 0.0
-        ),
+        qulacs.gate.ParametricPauliRotation([0, 1, 2], [1, 2, 3], 0.0),
     ]
     assert converted.get_gate_count() == len(expected_gates)
     for i, expected in enumerate(expected_gates):

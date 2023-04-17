@@ -39,9 +39,6 @@ def create_pauli_noise_gate(
 ) -> QuantumGateBase:
     qubits = noise.qubit_indices
     pauli_list, prob_list = noise.pauli_list, list(noise.prob_list)
-    # have to convert to list(noise.prob_list), otherwise mypy throws:
-    # Argument 1 to "append" of "list" has incompatible type "float"; expected "int"
-    # Even if the `reveal_type(cast_to_list(prob_list))` shows it is a list of floats.
 
     pauli_gates = [
         Pauli(cast_to_list(qubits), cast_to_list(pauli)) for pauli in pauli_list

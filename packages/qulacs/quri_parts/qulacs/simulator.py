@@ -51,8 +51,8 @@ def run_circuit(
     qulacs_cicuit = convert_circuit(circuit)
     qulacs_cicuit.update_quantum_state(qulacs_state)
 
-    # The `.get_matrix()` method returns NDArray[complex128, _Shape]
-    # (_Shape should be the first argument)
+    # We need to disable type check due to an error in qulacs type annotation
+    # https://github.com/qulacs/qulacs/issues/537
     new_state_vector: NDArray[cfloat] = qulacs_state.get_vector()  # type: ignore
 
     return new_state_vector

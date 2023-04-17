@@ -124,8 +124,6 @@ _parametric_gate_qulacs = {
 def _dense_matrix_gate_qulacs(
     t: Union[int, Sequence[int]], unitary_matrix: ArrayLike
 ) -> qulacs.QuantumGateBase:
-    # This cast is workaround for too strict type annotation of Qulacs
-    # t = cast(list[int], gate.target_indices)
     # We need to disable type check due to an error in qulacs type annotation
     # https://github.com/qulacs/qulacs/issues/537
     return cast(

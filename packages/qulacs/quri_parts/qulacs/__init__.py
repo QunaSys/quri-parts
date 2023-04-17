@@ -24,4 +24,6 @@ Numerics = TypeVar("Numerics", int, float, complex)
 
 
 def cast_to_list(int_sequence: Union[Sequence[Numerics], ArrayLike]) -> list[Numerics]:
+    """Cast a sequence of numerics (int, float, complex) or an array to a list
+    of the same type."""
     return cast(list[Numerics], int_sequence)
