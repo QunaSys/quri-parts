@@ -11,7 +11,7 @@
 from typing import Literal
 
 from quri_parts.circuit import QuantumGate
-from quri_parts.honeywell.circuit import gate_names
+from quri_parts.quantinuum.circuit import gate_names
 
 
 class U1qFactory:
