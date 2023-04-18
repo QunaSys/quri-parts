@@ -7,6 +7,8 @@ from quri_parts.pyscf.mol import (
     PySCFMolecularOrbitals,
     ao1int,
     ao2int,
+    get_ao_eint_set,
+    pyscf_get_ao_eint_set,
 )
 
 h2o_atom_list = [["O", [0, 0, 0]], ["H", [0, 0, 1]], ["H", [2, 0, 0.5]]]
@@ -28,23 +30,31 @@ hcl_mf.kernel()
 hcl = PySCFMolecularOrbitals(mol=hcl_mol, mo_coeff=hcl_mf.mo_coeff)
 
 
-def qp_chem_qp_pyscf_comparison(mol: PySCFMolecularOrbitals) -> None:
-    molecule = mol
-    qp_chem_ao1eint = ao1int(molecule)
-    qp_chem_mo1eint = qp_chem_ao1eint.to_mo1int(molecule.mo_coeff)
-    qp_chem_ao2eint = ao2int(molecule)
-    qp_chem_mo2eint = qp_chem_ao2eint.to_mo2int(molecule.mo_coeff)
+def qp_chem_qp_pyscf_comparison(molecule: PySCFMolecularOrbitals) -> None:
+    """ Compare output of AOeIntArraySet and PySCFAOeIntSet
+    """
+    qp_chem_ao_eint_set = get_ao_eint_set(molecule)
+    qp_chem_ao1eint = qp_chem_ao_eint_set.ao_1e_int
+    qp_chem_spin_mo1eint = qp_chem_ao1eint.to_mo1int(molecule.mo_coeff)
+    qp_chem_spatial_mo1eint = qp_chem_ao1eint.to_spatial_mo1int(molecule.mo_coeff)
+    qp_chem_ao2eint = qp_chem_ao_eint_set.ao_2e_int
+    qp_chem_spin_mo2eint = qp_chem_ao2eint.to_mo2int(molecule.mo_coeff)
+    qp_chem_spatial_mo2eint = qp_chem_ao2eint.to_spatial_mo2int(molecule.mo_coeff)
 
-    qp_pyscf_ao1eint = PySCFAO1eInt(molecule.mol)
-    qp_pyscf_mo1eint = qp_pyscf_ao1eint.to_mo1int(molecule.mo_coeff)
-    qp_pyscf_ao2eint = PySCFAO2eInt(molecule.mol)
-    qp_pyscf_mo2eint = qp_pyscf_ao2eint.to_mo2int(molecule.mo_coeff)
+    qp_pyscf_ao_eint_set = pyscf_get_ao_eint_set(molecule)
+    qp_pyscf_ao1eint = qp_pyscf_ao_eint_set.ao_1e_int
+    qp_pyscf_spin_mo1eint = qp_pyscf_ao1eint.to_mo1int(molecule.mo_coeff)
+    qp_pyscf_spatial_mo1eint = qp_pyscf_ao1eint.to_spatial_mo1int(molecule.mo_coeff)
+    qp_pyscf_ao2eint = qp_pyscf_ao_eint_set.ao_2e_int
+    qp_pyscf_spin_mo2eint = qp_pyscf_ao2eint.to_mo2int(molecule.mo_coeff)
+    qp_pyscf_spatial_mo2eint = qp_pyscf_ao2eint.to_spatial_mo2int(molecule.mo_coeff)
 
     assert isclose(qp_chem_ao1eint.array - qp_pyscf_ao1eint.array, 0).all()
     assert isclose(qp_chem_ao2eint.array - qp_pyscf_ao2eint.array, 0).all()
-    assert isclose(qp_chem_mo1eint.array - qp_pyscf_mo1eint.array, 0).all()
-    assert isclose(qp_chem_mo2eint.array - qp_pyscf_mo2eint.array, 0).all()
-
+    assert isclose(qp_chem_spin_mo1eint.array - qp_pyscf_spin_mo1eint.array, 0).all()
+    assert isclose(qp_chem_spin_mo2eint.array - qp_pyscf_spin_mo2eint.array, 0).all()
+    assert isclose(qp_chem_spatial_mo1eint.array - qp_pyscf_spatial_mo1eint.array, 0).all()
+    assert isclose(qp_chem_spatial_mo2eint.array - qp_pyscf_spatial_mo2eint.array, 0).all()
 
 def test_h2o() -> None:
     qp_chem_qp_pyscf_comparison(h2o)
