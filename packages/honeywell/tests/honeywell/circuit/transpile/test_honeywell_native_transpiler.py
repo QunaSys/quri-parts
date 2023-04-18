@@ -10,7 +10,7 @@
 
 import numpy as np
 
-from quri_parts.circuit import CNOT, H, RZ, QuantumCircuit
+from quri_parts.circuit import CNOT, RZ, H, QuantumCircuit
 from quri_parts.honeywell.circuit import RZZ, ZZ, U1q
 from quri_parts.honeywell.circuit.transpile import (
     CNOT2U1qZZRZTranspiler,
