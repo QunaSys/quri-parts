@@ -179,6 +179,14 @@ def _psi_ext(
     return theta_i, theta_j, xi
 
 
+def _all_different(xs: Sequence[complex], error: float = 1.0e-9) -> bool:
+    for i in range(len(xs)):
+        for j in range(i + 1, len(xs)):
+            if abs(xs[i] - xs[j]) < error:
+                return False
+    return True
+
+
 def su4_decompose(
     ut: Sequence[Sequence[complex]],
     eiglim: float = 1e-10,
@@ -193,6 +201,10 @@ def su4_decompose(
         eigvalue, eigvec = np.diag(w), np.identity(4, dtype=np.complex128)
     else:
         eigvalue, eigvec = np.linalg.eig(w)
+
+        if not _all_different(eigvalue):
+            raise ValueError("Dupliation of eigenvalues for SU4_decompose()")
+
         eigvec_t = np.zeros((4, 4), dtype=np.complex128)
         for i in range(4):
             u = eigvec.T[i]
