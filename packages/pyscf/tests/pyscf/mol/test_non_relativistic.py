@@ -1,4 +1,4 @@
-from numpy import isclose
+from numpy import allclose
 from pyscf import gto, scf
 
 from quri_parts.pyscf.mol import (
@@ -44,16 +44,12 @@ def qp_chem_qp_pyscf_comparison(molecule: PySCFMolecularOrbitals) -> None:
     qp_pyscf_spin_mo2eint = qp_pyscf_ao2eint.to_mo2int(molecule.mo_coeff)
     qp_pyscf_spatial_mo2eint = qp_pyscf_ao2eint.to_spatial_mo2int(molecule.mo_coeff)
 
-    assert isclose(qp_chem_ao1eint.array - qp_pyscf_ao1eint.array, 0).all()
-    assert isclose(qp_chem_ao2eint.array - qp_pyscf_ao2eint.array, 0).all()
-    assert isclose(qp_chem_spin_mo1eint.array - qp_pyscf_spin_mo1eint.array, 0).all()
-    assert isclose(qp_chem_spin_mo2eint.array - qp_pyscf_spin_mo2eint.array, 0).all()
-    assert isclose(
-        qp_chem_spatial_mo1eint.array - qp_pyscf_spatial_mo1eint.array, 0
-    ).all()
-    assert isclose(
-        qp_chem_spatial_mo2eint.array - qp_pyscf_spatial_mo2eint.array, 0
-    ).all()
+    assert allclose(qp_chem_ao1eint.array, qp_pyscf_ao1eint.array)
+    assert allclose(qp_chem_ao2eint.array, qp_pyscf_ao2eint.array)
+    assert allclose(qp_chem_spin_mo1eint.array, qp_pyscf_spin_mo1eint.array)
+    assert allclose(qp_chem_spin_mo2eint.array, qp_pyscf_spin_mo2eint.array)
+    assert allclose(qp_chem_spatial_mo1eint.array, qp_pyscf_spatial_mo1eint.array)
+    assert allclose(qp_chem_spatial_mo2eint.array, qp_pyscf_spatial_mo2eint.array)
 
 
 def test_h2o() -> None:
