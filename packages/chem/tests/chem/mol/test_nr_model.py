@@ -59,18 +59,14 @@ def get_active_space_mo(
     return ActiveSpaceMolecularOrbitals(mol, active_space)
 
 
-def get_full_space_integrals(mol: PySCFMolecularOrbitals) -> SpinMOeIntSet:
-    ao_eint_set = get_ao_eint_set(molecule=mol)
-    spin_mo_eint_set = ao_eint_set.to_full_space_mo_int(mol)
-    return cast(SpinMOeIntSet, spin_mo_eint_set)
-
-
 def get_active_space_integrals(
     mol: PySCFMolecularOrbitals,
     n_active_ele: int,
     n_active_orb: int,
     active_orbs_indices: Optional[Sequence[int]] = None,
 ) -> SpinMOeIntSet:
+    """Get active space integral by assigning active space information.
+    """
     ao_eint_set = get_ao_eint_set(molecule=mol)
     active_space_mo = get_active_space_mo(
         mol, n_active_ele, n_active_orb, active_orbs_indices
@@ -134,24 +130,16 @@ def qp_of_comparison(
 ) -> None:
     """Generate the quri-parts computed electron integrals and compare them
     with openfermion results."""
-    # qp computation
-    if n_active_ele and n_active_orb:
-        hamiltonian_component = get_active_space_integrals(
-            mol=qp_molecule,
-            n_active_ele=n_active_ele,
-            n_active_orb=n_active_orb,
-            active_orbs_indices=active_orbs_indices,
+    
+    # Get occupied_indices and active_indices indices.
+    if n_active_ele is None and n_active_orb is None:
+        n_active_ele = qp_molecule.n_electron
+        n_active_orb = qp_molecule.n_spatial_orb
+        occupied_indices, active_indices = cast(Sequence[int], None), cast(
+            Sequence[int], None
         )
+    
     else:
-        hamiltonian_component = get_full_space_integrals(qp_molecule)
-
-    core_energy, spin_1e_int, spin_2e_int = (
-        hamiltonian_component.const,
-        hamiltonian_component.mo_1e_int.array,
-        hamiltonian_component.mo_2e_int.array,
-    )
-
-    if n_active_ele is not None and n_active_orb is not None:
         (
             occupied_indices,
             active_indices,
@@ -161,10 +149,20 @@ def qp_of_comparison(
             n_active_orb=n_active_orb,
             active_orbs_indices=active_orbs_indices,
         ).get_core_and_active_orb()
-    else:
-        occupied_indices, active_indices = cast(Sequence[int], None), cast(
-            Sequence[int], None
-        )
+    
+    # qp computation
+    hamiltonian_component = get_active_space_integrals(
+        mol=qp_molecule,
+        n_active_ele=n_active_ele,
+        n_active_orb=n_active_orb,
+        active_orbs_indices=active_orbs_indices,
+    )
+
+    core_energy, spin_1e_int, spin_2e_int = (
+        hamiltonian_component.const,
+        hamiltonian_component.mo_1e_int.array,
+        hamiltonian_component.mo_2e_int.array,
+    )        
 
     # of computation
     (
