@@ -209,7 +209,7 @@ def test_large_beta_ele() -> None:
         match=re.escape(
             f"Number of spin down electrons should not exceed the number of active orbitals.\n"  # noqa: E501
             f" n_ele_beta = {n_ele_beta},\n"
-            f" n_active_orb = {n_active_orb}"
+            f" n_active_orb = {n_active_orb}\n"
             f" Possible fix: [(n_active_ele - spin)//2] should be"
             f" less than n_active_orb: {n_active_orb}"
         ),
