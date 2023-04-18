@@ -11,5 +11,6 @@ updates:
       interval: "daily"
       time: "08:50"
       timezone: "Asia/Tokyo"
+    target-branch: "main"
     ignore:
       - dependency-name: "quri-parts-*"
