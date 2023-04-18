@@ -188,11 +188,13 @@ class CNOTRZ2RZZTranspiler(CircuitTranspilerProtocol):
                     and target_b == target_c
                 ):
                     ys.append(RZZ(control_a, target_a, b.params[0]))
-                    i += 2
+                    i += 3
                     continue
 
             ys.append(xs[i])
             i += 1
+
+        ys.extend(xs[i:])
 
         ret = QuantumCircuit(circuit.qubit_count)
         ret.extend(ys)
