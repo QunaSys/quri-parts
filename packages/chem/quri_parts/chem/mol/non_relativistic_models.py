@@ -61,8 +61,9 @@ class AO2eIntArray(AO2eInt):
     ) -> SpatialMO2eIntArray:
         """Returns the spatial mo 2-electron integrals in physicist's
         convention."""
-        ao2eint_chem_array = self._ao2eint_array.transpose(0, 3, 1, 2)
-        tensor = tensordot(mo_coeff, ao2eint_chem_array, axes=([0], [0]))
+        # Transpose back to chemist convention for computation.
+        tensor = self._ao2eint_array.transpose(0, 3, 1, 2)
+        tensor = tensordot(mo_coeff, tensor, axes=([0], [0]))
         tensor = tensordot(mo_coeff.conjugate(), tensor, axes=([0], [1]))
         tensor = tensordot(mo_coeff, tensor, axes=([0], [2]))
         tensor = tensordot(mo_coeff.conjugate(), tensor, axes=([0], [3]))
@@ -72,7 +73,6 @@ class AO2eIntArray(AO2eInt):
     def to_mo2int(self, mo_coeff: "npt.NDArray[np.complex128]") -> SpinMO2eInt:
         """Returns the spin mo 2-electron integrals in physicist's
         convention."""
-        # Transpose back to chemist convention for computation.
         tensor = self.to_spatial_mo2int(mo_coeff=mo_coeff).array
         n_spin_orb = tensor.shape[0] * 2
         tensor = spatial_mo_2e_int_to_spin_mo_2e_int(n_spin_orb, tensor)
@@ -86,7 +86,7 @@ class AOeIntArraySet(AOeIntSet):
     ao_2e_int: AO2eIntArray
 
     def to_full_space_mo_int(self, mo: MolecularOrbitals) -> SpinMOeIntSet:
-        """Computes the full space spin or spatial mo integrals."""
+        """Computes the full space spin mo integrals."""
         spin_mo_eint_set = SpinMOeIntSet(
             const=self.constant,
             mo_1e_int=self.ao_1e_int.to_mo1int(mo.mo_coeff),
@@ -95,7 +95,7 @@ class AOeIntArraySet(AOeIntSet):
         return spin_mo_eint_set
 
     def to_full_space_spatial_mo_int(self, mo: MolecularOrbitals) -> SpatialMOeIntSet:
-        """Computes the full space spin or spatial mo integrals."""
+        """Computes the full space spatial mo integrals."""
         spatial_mo_eint_set = SpatialMOeIntSet(
             const=self.constant,
             mo_1e_int=self.ao_1e_int.to_spatial_mo1int(mo.mo_coeff),
@@ -107,7 +107,7 @@ class AOeIntArraySet(AOeIntSet):
         self,
         active_space_mo: ActiveSpaceMolecularOrbitals,
     ) -> SpinMOeIntSet:
-        """Computes the active space mo integrals.
+        """Computes the active space spatial mo integrals.
 
         Note:
         Does not provide speed advantage compared to PySCFAOeIntSet as it
@@ -125,6 +125,7 @@ class AOeIntArraySet(AOeIntSet):
         spatial_mo_eint_set = get_active_space_integrals_from_ao_eint(
             active_space_mo, self, return_spin_integrals=False
         )
+        """Computes the active space spatial mo integrals."""
         return cast(SpatialMOeIntSet, spatial_mo_eint_set)
 
 
