@@ -20,7 +20,7 @@ from quri_parts.quantinuum.circuit.transpile import (
 )
 
 
-class TestHoneywellNativeTranspile:
+class TestQuantinuumNativeTranspile:
     def test_rx2u1q_transpile(self) -> None:
         theta = np.random.rand()
         circuit = QuantumCircuit(1)
