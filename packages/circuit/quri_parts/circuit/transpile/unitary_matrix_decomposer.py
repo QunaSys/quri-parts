@@ -179,7 +179,7 @@ def _psi_ext(
     return theta_i, theta_j, xi
 
 
-def _all_different(xs: Sequence[complex], error: float = 1.0e-9) -> bool:
+def _all_different(xs: npt.NDArray[np.complex128], error: float = 1.0e-9) -> bool:
     for i in range(len(xs)):
         for j in range(i + 1, len(xs)):
             if abs(xs[i] - xs[j]) < error:
