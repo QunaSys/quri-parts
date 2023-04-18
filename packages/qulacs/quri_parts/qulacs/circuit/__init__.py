@@ -37,6 +37,8 @@ from quri_parts.circuit.gate_names import (
     is_unitary_matrix_gate_name,
 )
 
+from .. import cast_to_list
+
 _single_qubit_gate_qulacs: Mapping[
     SingleQubitGateNameType, Callable[[int], qulacs.QuantumGateBase]
 ] = {
@@ -166,8 +168,8 @@ def convert_gate(
         )
     elif is_multi_qubit_gate_name(gate.name):
         # These cast are workaround for too strict type annotation of Qulacs
-        target_indices = cast(list[int], gate.target_indices)
-        pauli_ids = cast(list[int], gate.pauli_ids)
+        target_indices = cast_to_list(gate.target_indices)
+        pauli_ids = cast_to_list(gate.pauli_ids)
         if gate.name in _multi_pauli_gate_qulacs:
             return _multi_pauli_gate_qulacs[gate.name](target_indices, pauli_ids)
         elif gate.name in _multi_pauli_rotation_gate_qulacs:
@@ -229,8 +231,8 @@ def convert_parametric_circuit(
                 qulacs_circuit.add_parametric_RZ_gate(gate.target_indices[0], 0)
             elif gate.name == gate_names.ParametricPauliRotation:
                 # These cast are workaround for too strict type annotation of Qulacs
-                target_indices = cast(list[int], gate.target_indices)
-                pauli_ids = cast(list[int], gate.pauli_ids)
+                target_indices = cast_to_list(gate.target_indices)
+                pauli_ids = cast_to_list(gate.pauli_ids)
                 qulacs_circuit.add_parametric_multi_Pauli_rotation_gate(
                     target_indices, pauli_ids, 0
                 )
