@@ -10,7 +10,7 @@
 
 import numpy as np
 
-from quri_parts.circuit import RZ, QuantumCircuit
+from quri_parts.circuit import CNOT, H, RZ, QuantumCircuit
 from quri_parts.honeywell.circuit import RZZ, ZZ, U1q
 from quri_parts.honeywell.circuit.transpile import (
     CNOT2U1qZZRZTranspiler,
@@ -124,15 +124,37 @@ class TestHoneywellNativeTranspile:
         assert transpiled.gates == expect.gates
 
     def test_cnotrz2rzz_transpile(self) -> None:
-        theta = np.random.rand()
+        theta0, theta1, theta2 = np.random.rand(3)
 
-        circuit = QuantumCircuit(2)
-        circuit.add_CNOT_gate(0, 1)
-        circuit.add_RZ_gate(1, theta)
-        circuit.add_CNOT_gate(0, 1)
+        circuit = QuantumCircuit(3)
+        circuit.extend(
+            [
+                CNOT(0, 1),
+                RZ(1, theta0),
+                CNOT(0, 1),
+                H(2),
+                CNOT(1, 2),
+                RZ(1, theta1),
+                CNOT(1, 2),
+                CNOT(2, 0),
+                RZ(0, theta2),
+                CNOT(2, 0),
+                H(1),
+            ]
+        )
         transpiled = CNOTRZ2RZZTranspiler()(circuit)
 
-        expect = QuantumCircuit(2)
-        expect.extend([RZZ(0, 1, theta)])
+        expect = QuantumCircuit(3)
+        expect.extend(
+            [
+                RZZ(0, 1, theta0),
+                H(2),
+                CNOT(1, 2),
+                RZ(1, theta1),
+                CNOT(1, 2),
+                RZZ(2, 0, theta2),
+                H(1),
+            ]
+        )
 
         assert transpiled.gates == expect.gates
