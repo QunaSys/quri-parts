@@ -9,7 +9,7 @@
 # limitations under the License.
 
 import io
-from typing import TYPE_CHECKING, Mapping
+from typing import TYPE_CHECKING, Callable, Mapping
 
 from quri_parts.circuit import gate_names
 from quri_parts.circuit.gate_names import (
@@ -17,7 +17,14 @@ from quri_parts.circuit.gate_names import (
     is_multi_qubit_gate_name,
     is_parametric_gate_name,
     is_single_qubit_gate_name,
+    is_three_qubit_gate_name,
     is_two_qubit_gate_name,
+)
+from quri_parts.circuit.transpile import (
+    CircuitTranspiler,
+    PauliDecomposeTranspiler,
+    PauliRotationDecomposeTranspiler,
+    SequentialTranspiler,
 )
 
 if TYPE_CHECKING:
@@ -25,8 +32,15 @@ if TYPE_CHECKING:
     from quri_parts.circuit.gate_names import (
         ParametricGateNameType,
         SingleQubitGateNameType,
+        ThreeQubitGateNameType,
         TwoQubitGateNameType,
     )
+
+
+OpenQASMTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
+    [PauliDecomposeTranspiler(), PauliRotationDecomposeTranspiler()]
+)
+
 
 _HEADER = """OPENQASM 3;
 include "stdgates.inc";"""
@@ -41,9 +55,10 @@ _single_qubit_gate_stdgates_symbol: Mapping["SingleQubitGateNameType", str] = {
     gate_names.Z: "z",
     gate_names.H: "h",
     gate_names.S: "s",
-    gate_names.Sdag: "sdag",
+    gate_names.SqrtX: "sx",
+    gate_names.Sdag: "sdg",
     gate_names.T: "t",
-    gate_names.Tdag: "tdag",
+    gate_names.Tdag: "tdg",
 }
 
 _single_qubit_rotation_gate_stdgates_symbol: Mapping["SingleQubitGateNameType", str] = {
@@ -56,6 +71,10 @@ _two_qubit_gate_stdgates_symbol: Mapping["TwoQubitGateNameType", str] = {
     gate_names.CNOT: "cx",
     gate_names.CZ: "cz",
     gate_names.SWAP: "swap",
+}
+
+_three_qubit_gate_stdgates_symbol: Mapping["ThreeQubitGateNameType", str] = {
+    gate_names.TOFFOLI: "ccx",
 }
 
 _parametric_gate_stdgates_symbol: Mapping["ParametricGateNameType", str] = {
@@ -71,7 +90,6 @@ _U_gate_stdgates_symbol: Mapping["SingleQubitGateNameType", str] = {
 }
 
 _not_implemented_gates: set["SingleQubitGateNameType"] = {
-    gate_names.SqrtX,
     gate_names.SqrtXdag,
     gate_names.SqrtY,
     gate_names.SqrtYdag,
@@ -143,7 +161,16 @@ def convert_gate_to_qasm_line(gate: "QuantumGate") -> str:
                 _ref_q_str(i)
                 for i in tuple(gate.control_indices) + tuple(gate.target_indices)
             ]
-            return f"{gate_str} {c_q_str} {t_q_str};"
+            return f"{gate_str} {c_q_str}, {t_q_str};"
+
+    elif is_three_qubit_gate_name(gate.name):
+        if gate.name in _three_qubit_gate_stdgates_symbol:
+            gate_str = _three_qubit_gate_stdgates_symbol[gate.name]
+            q_str1, q_str2, q_str3 = [
+                _ref_q_str(i)
+                for i in tuple(gate.control_indices) + tuple(gate.target_indices)
+            ]
+            return f"{gate_str} {q_str1}, {q_str2}, {q_str3};"
 
     elif is_parametric_gate_name(gate.name):
         raise ValueError("Parametric gates are not supported.")

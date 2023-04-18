@@ -17,6 +17,7 @@ from .gate_kind_decomposer import (
     CZ2RXRYCNOTTranspiler,
     H2RXRYTranspiler,
     H2RZSqrtXTranspiler,
+    Identity2RZTranspiler,
     RX2RZSqrtXTranspiler,
     RY2RZSqrtXTranspiler,
     S2RZTranspiler,
@@ -32,6 +33,7 @@ from .gate_kind_decomposer import (
     SWAP2CNOTTranspiler,
     T2RZTranspiler,
     Tdag2RZTranspiler,
+    TOFFOLI2HTTdagCNOTTranspiler,
     U1ToRZTranspiler,
     U2ToRXRZTranspiler,
     U2ToRZSqrtXTranspiler,
@@ -45,7 +47,10 @@ from .gate_kind_decomposer import (
     Z2HXTranspiler,
     Z2RZTranspiler,
 )
-from .identity_insertion import IdentityInsertionTranspiler
+from .identity_manipulation import (
+    IdentityEliminationTranspiler,
+    IdentityInsertionTranspiler,
+)
 from .multi_pauli_decomposer import (
     PauliDecomposeTranspiler,
     PauliRotationDecomposeTranspiler,
@@ -75,10 +80,12 @@ RZSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
                 CZ2CNOTHTranspiler(),
                 PauliDecomposeTranspiler(),
                 PauliRotationDecomposeTranspiler(),
+                TOFFOLI2HTTdagCNOTTranspiler(),
             ]
         ),
         ParallelDecomposer(
             [
+                Identity2RZTranspiler(),
                 Y2RZXTranspiler(),
                 Z2RZTranspiler(),
                 H2RZSqrtXTranspiler(),
@@ -109,10 +116,12 @@ RotationSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTrans
             [
                 PauliDecomposeTranspiler(),
                 PauliRotationDecomposeTranspiler(),
+                TOFFOLI2HTTdagCNOTTranspiler(),
             ]
         ),
         ParallelDecomposer(
             [
+                Identity2RZTranspiler(),
                 H2RXRYTranspiler(),
                 X2RXTranspiler(),
                 Y2RYTranspiler(),
@@ -146,7 +155,9 @@ __all__ = [
     "RZSetTranspiler",
     "RotationSetTranspiler",
     "CliffordApproximationTranspiler",
+    "IdentityEliminationTranspiler",
     "IdentityInsertionTranspiler",
+    "Identity2RZTranspiler",
     "PauliDecomposeTranspiler",
     "PauliRotationDecomposeTranspiler",
     "CNOT2CZHTranspiler",
@@ -171,6 +182,7 @@ __all__ = [
     "SWAP2CNOTTranspiler",
     "T2RZTranspiler",
     "Tdag2RZTranspiler",
+    "TOFFOLI2HTTdagCNOTTranspiler",
     "TwoQubitUnitaryMatrixKAKTranspiler",
     "U1ToRZTranspiler",
     "U2ToRXRZTranspiler",

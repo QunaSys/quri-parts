@@ -13,6 +13,8 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Install Poetry
+      env:
+        POETRY_VERSION: 1.4.0
       run: |
         curl -sSL https://install.python-poetry.org | python -
         echo "$HOME/.poetry/bin" >> $GITHUB_PATH
@@ -24,5 +26,7 @@ jobs:
 
     - run: |
         poetry install -vvv
+
+    - run: poetry run julia -e 'using Pkg; Pkg.add("PythonCall")'
 
     - run: poetry run pytest

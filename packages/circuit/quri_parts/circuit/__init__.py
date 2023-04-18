@@ -22,11 +22,9 @@ from .circuit_linear_mapped import (
     LinearMappedUnboundParametricQuantumCircuitBase,
 )
 from .circuit_parametric import (
-    CONST,
     ImmutableBoundParametricQuantumCircuit,
     ImmutableUnboundParametricQuantumCircuit,
     MutableUnboundParametricQuantumCircuitProtocol,
-    Parameter,
     UnboundParametricQuantumCircuit,
     UnboundParametricQuantumCircuitBase,
     UnboundParametricQuantumCircuitProtocol,
@@ -40,6 +38,7 @@ from .gates import (
     RY,
     RZ,
     SWAP,
+    TOFFOLI,
     U1,
     U2,
     U3,
@@ -66,7 +65,8 @@ from .gates import (
     Y,
     Z,
 )
-from .inverse_gate import inverse_gate
+from .inverse import inverse_circuit, inverse_gate
+from .parameter import CONST, Parameter
 from .parameter_mapping import (
     LinearParameterFunction,
     LinearParameterMapping,
@@ -111,6 +111,7 @@ __all__ = [
     "CNOT",
     "CZ",
     "SWAP",
+    "TOFFOLI",
     "Pauli",
     "PauliRotation",
     "ParametricRX",
@@ -139,5 +140,6 @@ __all__ = [
     "LinearMappedUnboundParametricQuantumCircuit",
     "ImmutableLinearMappedUnboundParametricQuantumCircuit",
     "inverse_gate",
+    "inverse_circuit",
     "is_clifford",
 ]

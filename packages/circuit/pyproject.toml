@@ -19,7 +19,6 @@ classifiers = [
 packages = [
     { include = "quri_parts" }
 ]
-include = ["NOTICE"]
 
 [tool.poetry-dynamic-versioning]
 enable = true
@@ -32,11 +31,11 @@ numpy = ">=1.22.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.0.1"
-black = "^22.1.0"
-flake8 = "^4.0.1"
+flake8 = ">=4.0.1,<7.0.0"
 mypy = ">=0.950"
 docformatter = "^1.4"
 isort = "^5.10.1"
+black = "^23.1.0"
 
 [tool.black]
 line-length = 88

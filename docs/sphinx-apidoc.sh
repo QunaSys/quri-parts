@@ -16,6 +16,8 @@ pkgs="
     openqasm
     honeywell
     ionq
+    itensor
+    pyscf
 "
 
 for pkg in $pkgs
