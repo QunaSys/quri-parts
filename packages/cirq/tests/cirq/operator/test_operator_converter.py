@@ -20,7 +20,7 @@ from quri_parts.cirq.operator import operator_from_cirq_op
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
 
 
-def test_operator_from_cirq() -> None:
+def test_operator_from_cirq_op() -> None:
     q0 = LineQubit(0)
     q1 = LineQubit(1)
     q2 = LineQubit(2)
