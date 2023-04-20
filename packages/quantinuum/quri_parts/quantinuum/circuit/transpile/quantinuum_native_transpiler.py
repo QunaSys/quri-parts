@@ -12,7 +12,7 @@ from collections.abc import Sequence
 
 import numpy as np
 
-import quri_parts.honeywell.circuit.gate_names as native_gate_names
+import quri_parts.quantinuum.circuit.gate_names as native_gate_names
 from quri_parts.circuit import (
     RZ,
     NonParametricQuantumCircuit,
@@ -21,7 +21,7 @@ from quri_parts.circuit import (
     gate_names,
 )
 from quri_parts.circuit.transpile import CircuitTranspilerProtocol, GateKindDecomposer
-from quri_parts.honeywell.circuit import RZZ, ZZ, U1q
+from quri_parts.quantinuum.circuit import RZZ, ZZ, U1q
 
 
 class RX2U1qTranspiler(GateKindDecomposer):

@@ -11,8 +11,8 @@
 import numpy as np
 
 from quri_parts.circuit import CNOT, RZ, H, QuantumCircuit
-from quri_parts.honeywell.circuit import RZZ, ZZ, U1q
-from quri_parts.honeywell.circuit.transpile import (
+from quri_parts.quantinuum.circuit import RZZ, ZZ, U1q
+from quri_parts.quantinuum.circuit.transpile import (
     CNOT2U1qZZRZTranspiler,
     CNOTRZ2RZZTranspiler,
     CZ2RZZZTranspiler,
@@ -23,7 +23,7 @@ from quri_parts.honeywell.circuit.transpile import (
 )
 
 
-class TestHoneywellNativeTranspile:
+class TestQuantinuumNativeTranspile:
     def test_rx2u1q_transpile(self) -> None:
         theta = np.random.rand()
 
