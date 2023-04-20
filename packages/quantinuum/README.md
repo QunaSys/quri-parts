@@ -1,6 +1,6 @@
-# QURI Parts Honeywell
+# QURI Parts Quantinuum
 
-QURI Parts Honeywell is a support library for using Honeywell with QURI Parts.
+QURI Parts Quantinuum is a support library for using Quantinuum with QURI Parts.
 
 ## Documentation
 
@@ -9,7 +9,7 @@ QURI Parts Honeywell is a support library for using Honeywell with QURI Parts.
 ## Installation
 
 ```
-pip install quri-parts-honeywell
+pip install quri-parts-quantinuum
 ```
 
 ## License

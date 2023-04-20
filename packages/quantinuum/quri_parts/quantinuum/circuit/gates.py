@@ -26,7 +26,7 @@ class U1qFactory:
 
 
 U1q = U1qFactory()
-r"""Honeywell native gate U1q defined as follows.
+r"""Quantinuum native gate U1q defined as follows.
 
 .. math::
     U_{1q}(\theta, \phi) =
@@ -53,7 +53,7 @@ class ZZFactory:
 
 
 ZZ = ZZFactory()
-r"""Honeywell native gate ZZ defined as follows.
+r"""Quantinuum native gate ZZ defined as follows.
 
 .. math::
     ZZ = e^{-i\frac{\pi}{4} \hat{Z} \otimes \hat{Z}} = e^{-\frac{i\pi}{4}}
@@ -84,7 +84,7 @@ class RZZFactory:
 
 
 RZZ = RZZFactory()
-r"""Honeywell native gate RZZ defined as follows.
+r"""Quantinuum native gate RZZ defined as follows.
 
 .. math::
     RZZ = e^{-i\frac{\pi}{2} \hat{Z} \otimes \hat{Z}} = e^{-\frac{i\pi}{2}}
