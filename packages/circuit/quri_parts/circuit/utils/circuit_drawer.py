@@ -8,10 +8,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import warnings
+
 # The implementation is originally from qulacs-visualizer
 # https://github.com/Qulacs-Osaka/qulacs-visualizer
 from typing import Sequence
-import warnings
 
 import numpy as np
 import numpy.typing as npt
