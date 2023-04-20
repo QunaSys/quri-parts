@@ -116,7 +116,7 @@ class PySCFAOeIntSet(AOeIntSet):
         active_space_mo: ActiveSpaceMolecularOrbitals,
     ) -> SpinMOeIntSet:
         """Returns the full space spin electon integrals."""
-        spin_mo_eint_set = pyscf_get_active_space_integrals(active_space_mo, self)
+        spin_mo_eint_set = get_active_space_integrals(active_space_mo, self)
         return cast(SpinMOeIntSet, spin_mo_eint_set)
 
     def to_active_space_spatial_mo_int(
@@ -124,7 +124,7 @@ class PySCFAOeIntSet(AOeIntSet):
         active_space_mo: ActiveSpaceMolecularOrbitals,
     ) -> SpatialMOeIntSet:
         """Returns the full space spatial electon integrals."""
-        spatial_mo_eint_set = pyscf_get_active_space_integrals(
+        spatial_mo_eint_set = get_active_space_integrals(
             active_space_mo, self, return_spin_integrals=False
         )
         return cast(SpatialMOeIntSet, spatial_mo_eint_set)
@@ -173,23 +173,9 @@ def ao2int(mo: PySCFMolecularOrbitals) -> PySCFAO2eInt:
     return PySCFAO2eInt(mol=mo.mol)
 
 
-def get_ao_eint_set(molecule: PySCFMolecularOrbitals) -> AOeIntArraySet:
-    """Compute the ao electron integrals and store then inside PySCFAOeIntSet.
-
-    The explicit electron integral arrays will be stored on memory.
-    """
-    nuc_energy = get_nuc_energy(molecule)
-    ao_1e_int = AO1eIntArray(ao1int(molecule).array)
-    ao_2e_int = AO2eIntArray(ao2int(molecule).array)
-    ao_e_int_set = AOeIntArraySet(
-        constant=nuc_energy,
-        ao_1e_int=ao_1e_int,
-        ao_2e_int=ao_2e_int,
-    )
-    return ao_e_int_set
-
-
-def pyscf_get_ao_eint_set(molecule: PySCFMolecularOrbitals) -> PySCFAOeIntSet:
+def get_ao_eint_set(
+    molecule: PySCFMolecularOrbitals, store_array_on_memory: bool = False
+) -> Union[PySCFAOeIntSet, AOeIntArraySet]:
     """Compute the ao electron integrals and store then inside PySCFAOeIntSet.
 
     The molecule is stored on memory while the electron integral arrays
@@ -198,6 +184,17 @@ def pyscf_get_ao_eint_set(molecule: PySCFMolecularOrbitals) -> PySCFAOeIntSet:
     nuc_energy = get_nuc_energy(molecule)
     ao_1e_int = ao1int(molecule)
     ao_2e_int = ao2int(molecule)
+
+    if store_array_on_memory:
+        ao_1e_int_array = AO1eIntArray(ao_1e_int.array)
+        ao_2e_int_array = AO2eIntArray(ao_2e_int.array)
+        ao_e_int_array_set = AOeIntArraySet(
+            constant=nuc_energy,
+            ao_1e_int=ao_1e_int_array,
+            ao_2e_int=ao_2e_int_array,
+        )
+        return ao_e_int_array_set
+
     ao_e_int_set = PySCFAOeIntSet(
         mol=molecule.mol,
         constant=nuc_energy,
@@ -207,7 +204,7 @@ def pyscf_get_ao_eint_set(molecule: PySCFMolecularOrbitals) -> PySCFAOeIntSet:
     return ao_e_int_set
 
 
-def pyscf_get_active_space_integrals(
+def get_active_space_integrals(
     active_space_mo: ActiveSpaceMolecularOrbitals,
     electron_ints: PySCFAOeIntSet,
     return_spin_integrals: bool = True,
@@ -228,14 +225,14 @@ def pyscf_get_active_space_integrals(
     else:
         mo = active_space_mo.mo_coeff
 
-    casci_mo_1e_int, casscf_nuc = casci.get_h1eff(mo)
+    casci_mo_1e_int, casci_nuc = casci.get_h1eff(mo)
     casci_mo_2e_int = casci.get_h2eff(mo)
     casci_mo_2e_int = ao2mo.restore(1, casci_mo_2e_int, casci.ncas).transpose(
         0, 2, 3, 1
     )
 
     spatial_integrals = SpatialMOeIntSet(
-        const=casscf_nuc,
+        const=casci_nuc,
         mo_1e_int=SpatialMO1eIntArray(casci_mo_1e_int),
         mo_2e_int=SpatialMO2eIntArray(casci_mo_2e_int),
     )

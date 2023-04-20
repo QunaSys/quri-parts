@@ -23,6 +23,7 @@ from .models import (
 
 class AO1eIntArray(AO1eInt):
     def __init__(self, ao1eint_array: "npt.NDArray[np.complex128]") -> None:
+        """AO1eIntArray holds the ao one-electron integral array on memory."""
         self._ao1eint_array = ao1eint_array
 
     @property
@@ -48,7 +49,10 @@ class AO1eIntArray(AO1eInt):
 
 class AO2eIntArray(AO2eInt):
     def __init__(self, ao2eint_array: npt.NDArray[np.complex128]) -> None:
-        # The input should be in physicist's convention
+        """An object that holds the ao two-electron integral on memory.
+
+        Note that the input array should be in physicist's convention
+        """
         self._ao2eint_array = ao2eint_array
 
     @property
@@ -130,7 +134,7 @@ class AOeIntArraySet(AOeIntSet):
 
 
 def get_effective_active_space_core_energy(
-    original_core_energy: float,
+    core_energy: float,
     mo_1e_int: npt.NDArray[np.complex128],
     mo_2e_int: npt.NDArray[np.complex128],
     core_spatial_orb_idx: Sequence[int],
@@ -139,12 +143,12 @@ def get_effective_active_space_core_energy(
     configuration. (for spatial orbital.)
 
     Args:
-        original_core_energy:
-            The orginal space core erengy.
+        energy:
+            The full space core erengy.
         mo_1e_int:
-            The orginal space spatial mo 1-electron integral.
+            The full space spatial mo 1-electron integral.
         mo_2e_int:
-            The orginal space spatial mo 2-electron integral.
+            The full space spatial mo 2-electron integral.
         core_spatial_orb_idx:
             The core spatial orbital indices.
     """
@@ -161,7 +165,7 @@ def get_effective_active_space_core_energy(
     delta_E += 2 * trace(mo_1e_int[get_core_array_from_1e])
     delta_E += 2 * trace(trace(mo_2e_int_core_subset, axis1=0, axis2=3))
     delta_E -= 1 * trace(trace(mo_2e_int_core_subset, axis1=0, axis2=2))
-    return original_core_energy + delta_E
+    return core_energy + delta_E
 
 
 def get_effective_active_space_1e_integrals(
@@ -182,10 +186,10 @@ def get_effective_active_space_1e_integrals(
     """
     full_idx = arange(mo_1e_int.shape[0])
     get_core_array_from_2e_1 = np.ix_(
-        cast(Any, core_spatial_orb_idx),
+        np.asarray(core_spatial_orb_idx, dtype=int),
         full_idx,
         full_idx,
-        cast(Any, core_spatial_orb_idx),
+        np.asarray(core_spatial_orb_idx, dtype=int),
     )
     get_core_array_from_2e_2 = np.ix_(
         cast(Any, core_spatial_orb_idx),
@@ -257,32 +261,12 @@ def to_spin_orbital_integrals(
 ) -> tuple[npt.NDArray[np.complex128], npt.NDArray[np.complex128]]:
     """Convert spatial orbital electron integrals to spin orbital electron
     integrals."""
-    spin_1e_integrals = cast(
-        npt.NDArray[np.complex128], zeros((n_spin_orb, n_spin_orb))
+    spin_1e_integrals = spatial_mo_1e_int_to_spin_mo_1e_int(
+        n_spin_orb=n_spin_orb, spatial_1e_integrals=spatial_1e_integrals
     )
-    spin_2e_integrals = cast(
-        npt.NDArray[np.complex128],
-        zeros((n_spin_orb, n_spin_orb, n_spin_orb, n_spin_orb)),
+    spin_2e_integrals = spatial_mo_2e_int_to_spin_mo_2e_int(
+        n_spin_orb=n_spin_orb, spatial_2e_integrals=spatial_2e_integrals
     )
-
-    for p, q in product(range(n_spin_orb // 2), repeat=2):
-        p_a, q_a = 2 * p, 2 * q
-        p_b, q_b = 2 * p + 1, 2 * q + 1
-
-        spin_1e_integrals[p_a, q_a] = spatial_1e_integrals[p, q]
-        spin_1e_integrals[p_b, q_b] = spatial_1e_integrals[p, q]
-
-        for r, s in product(range(n_spin_orb // 2), repeat=2):
-            r_a, s_a = 2 * r, 2 * s
-            r_b, s_b = 2 * r + 1, 2 * s + 1
-            # Mixed spin
-            spin_2e_integrals[p_a, q_b, r_b, s_a] = spatial_2e_integrals[p, q, r, s]
-            spin_2e_integrals[p_b, q_a, r_a, s_b] = spatial_2e_integrals[p, q, r, s]
-
-            # Same spin
-            spin_2e_integrals[p_a, q_a, r_a, s_a] = spatial_2e_integrals[p, q, r, s]
-            spin_2e_integrals[p_b, q_b, r_b, s_b] = spatial_2e_integrals[p, q, r, s]
-
     return spin_1e_integrals, spin_2e_integrals
 
 
@@ -365,19 +349,15 @@ def get_active_space_integrals_from_mo_eint(
 
 def get_active_space_integrals_from_ao_eint(
     active_space_mo: ActiveSpaceMolecularOrbitals,
-    electron_ao_ints: AOeIntSet,
+    electron_ao_ints: AOeIntArraySet,
     return_spin_integrals: bool = True,
 ) -> Union[SpinMOeIntSet, SpatialMOeIntSet]:
     """Compute the active space electron integrals from ao electron
     integrals."""
     mo_coeff = active_space_mo.mo_coeff
     core_energy = electron_ao_ints.constant
-    mo_1e_int = cast(AO1eIntArray, electron_ao_ints.ao_1e_int).to_spatial_mo1int(
-        mo_coeff
-    )
-    mo_2e_int = cast(AO2eIntArray, electron_ao_ints.ao_2e_int).to_spatial_mo2int(
-        mo_coeff
-    )
+    mo_1e_int = electron_ao_ints.ao_1e_int.to_spatial_mo1int(mo_coeff)
+    mo_2e_int = electron_ao_ints.ao_2e_int.to_spatial_mo2int(mo_coeff)
     electron_mo_ints = SpatialMOeIntSet(
         const=core_energy, mo_1e_int=mo_1e_int, mo_2e_int=mo_2e_int
     )

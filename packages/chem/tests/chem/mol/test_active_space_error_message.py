@@ -1,47 +1,45 @@
-import pyscf
+from dataclasses import dataclass
+
+import numpy as np
+import numpy.typing as npt  # noqa: F401
 import pytest
 
-from quri_parts.chem.mol import ActiveSpace, ActiveSpaceMolecularOrbitals
-from quri_parts.pyscf.mol import PySCFMolecularOrbitals
-
-h2o_atom_list = [["H", [0, 0, 0]], ["O", [2, 0, 1]], ["H", [0, 0, 2]]]
-
-h2o_mol = pyscf.gto.Mole(
-    atom=h2o_atom_list, charge=0, spin=0, basis="sto-3g", verbose=0
+from quri_parts.chem.mol import (
+    ActiveSpace,
+    ActiveSpaceMolecularOrbitals,
+    MolecularOrbitals,
 )
-h2o_mol.build()
-h2o_mf = pyscf.scf.RHF(h2o_mol)
-h2o_mf.kernel()
-h2o = PySCFMolecularOrbitals(h2o_mol, h2o_mf.mo_coeff)
 
 
-charged_h2o_mol = pyscf.gto.Mole(
-    atom=h2o_atom_list, charge=1, spin=1, basis="sto-3g", verbose=0
-)
-charged_h2o_mol.build()
-charged_h2o_mf = pyscf.scf.RHF(charged_h2o_mol)
-charged_h2o_mf.kernel()
-charged_h2o = PySCFMolecularOrbitals(charged_h2o_mol, charged_h2o_mf.mo_coeff)
+@dataclass
+class MolecularOrbitalsInfo(MolecularOrbitals):
+    _n_electron: int
+    _n_spatial_orb: int
+    _spin: int = 0
+    _mo_coeff: npt.NDArray[np.complex128] = np.zeros((1,), dtype=np.complex128)
+    charge: int = 0
+
+    @property
+    def n_electron(self) -> int:
+        return self._n_electron
+
+    @property
+    def spin(self) -> int:
+        return self._spin
+
+    @property
+    def n_spatial_orb(self) -> int:
+        return self._n_spatial_orb
+
+    @property
+    def mo_coeff(self) -> "npt.NDArray[np.complex128]":
+        return self._mo_coeff
 
 
-spinning_h2o_mol = pyscf.gto.Mole(
-    atom=h2o_atom_list, charge=0, spin=6, basis="ccpvdz", verbose=0
-)
-spinning_h2o_mol.build()
-spinning_h2o_mf = pyscf.scf.ROHF(spinning_h2o_mol)
-spinning_h2o_mf.kernel()
-spinning_h2o = PySCFMolecularOrbitals(spinning_h2o_mol, spinning_h2o_mf.mo_coeff)
-
-
-neg_spinning_h2o_mol = pyscf.gto.Mole(
-    atom=h2o_atom_list, charge=0, spin=-6, basis="ccpvdz", verbose=0
-)
-neg_spinning_h2o_mol.build()
-neg_spinning_h2o_mf = pyscf.scf.ROHF(neg_spinning_h2o_mol)
-neg_spinning_h2o_mf.kernel()
-neg_spinning_h2o = PySCFMolecularOrbitals(
-    neg_spinning_h2o_mol, neg_spinning_h2o_mf.mo_coeff
-)
+h2o = MolecularOrbitalsInfo(_n_electron=10, _n_spatial_orb=7)
+charged_h2o = MolecularOrbitalsInfo(_n_electron=9, _n_spatial_orb=7, _spin=1, charge=1)
+spinning_h2o = MolecularOrbitalsInfo(_n_electron=10, _n_spatial_orb=24, _spin=6)
+neg_spinning_h2o = MolecularOrbitalsInfo(_n_electron=10, _n_spatial_orb=24, _spin=-6)
 
 
 def test_odd_core_ele() -> None:

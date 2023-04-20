@@ -1,8 +1,7 @@
 from typing import Any, Optional, Sequence, Union, cast
 
 import pyscf
-from numpy import complex128, isclose
-from numpy.typing import NDArray
+from numpy import isclose
 from openfermion.chem import MolecularData
 from openfermionpyscf import run_pyscf  # type: ignore
 
@@ -74,61 +73,17 @@ def get_active_space_integrals(
     return cast(SpinMOeIntSet, active_space_mo_eint_set)
 
 
-class OpenFermionMolecularHamiltonian:
-    def __init__(self, atom: list[Any], spin: int = 0, basis: str = "sto-3g") -> None:
-        mol = MolecularData(
-            geometry=atom,
-            multiplicity=spin + 1,
-            basis=basis,
-        )
-        self.mol = run_pyscf(mol)
-
-    def get_molecular_hamiltonian(
-        self, occupied_indices: Sequence[int], active_indices: Sequence[int]
-    ) -> tuple[float, NDArray[complex128], NDArray[complex128]]:
-        hamiltonian_component = self.mol.get_molecular_hamiltonian(
-            occupied_indices=occupied_indices, active_indices=active_indices
-        ).n_body_tensors
-        return (
-            hamiltonian_component[tuple()],
-            hamiltonian_component[(1, 0)],
-            hamiltonian_component[(1, 1, 0, 0)],
-        )
-
-
-h2o_atom_list = [["O", [0, 0, 0]], ["H", [0, 0, 1]], ["H", [2, 0, 0.5]]]
-hcl_atom_list = [["H", [0, 0, 1]], ["Cl", [0, 0, 0]]]
-ch3no_atom_list = [
-    ["C", (0.000000, 0.418626, 0.000000)],
-    ["H", (-0.460595, 1.426053, 0.000000)],
-    ["O", (1.196516, 0.242075, 0.000000)],
-    ["N", (-0.936579, -0.568753, 0.000000)],
-    ["H", (-0.634414, -1.530889, 0.000000)],
-    ["H", (-1.921071, -0.362247, 0.000000)],
-]
-
-
-qp_h2o = get_pyscf_mo(atom=h2o_atom_list)
-qp_h2o_spin = get_pyscf_mo(atom=h2o_atom_list, spin=2)
-qp_hcl = get_pyscf_mo(atom=hcl_atom_list)
-qp_ch3no = get_pyscf_mo(atom=ch3no_atom_list, basis="cc-pvdz")
-
-
-of_h2o = OpenFermionMolecularHamiltonian(atom=h2o_atom_list)
-of_h2o_spin = OpenFermionMolecularHamiltonian(atom=h2o_atom_list, spin=2)
-of_hcl = OpenFermionMolecularHamiltonian(atom=hcl_atom_list)
-of_ch3no = OpenFermionMolecularHamiltonian(atom=ch3no_atom_list, basis="cc-pvdz")
-
-
 def qp_of_comparison(
-    qp_molecule: PySCFMolecularOrbitals,
-    of_molecule: OpenFermionMolecularHamiltonian,
+    atom: list[Any],
+    spin: int,
+    basis: str,
     n_active_ele: Optional[int] = None,
     n_active_orb: Optional[int] = None,
     active_orbs_indices: Optional[Sequence[int]] = None,
 ) -> None:
     """Generate the quri-parts computed electron integrals and compare them
     with openfermion results."""
+    qp_molecule = get_pyscf_mo(atom=atom, spin=spin, basis=basis)
 
     # Get occupied_indices and active_indices indices.
     if n_active_ele is None and n_active_orb is None:
@@ -164,11 +119,20 @@ def qp_of_comparison(
     )
 
     # of computation
+    of_molecule = run_pyscf(
+        MolecularData(
+            geometry=atom,
+            multiplicity=spin + 1,
+            basis=basis,
+        )
+    )
     (
         of_core_energy,
         of_spin_1e_int,
         of_spin_2e_int,
-    ) = of_molecule.get_molecular_hamiltonian(occupied_indices, active_indices)
+    ) = of_molecule.get_molecular_hamiltonian(
+        occupied_indices=occupied_indices, active_indices=active_indices
+    ).n_body_tensors.values()
 
     # Assertions
     assert isclose(of_core_energy - core_energy, 0)
@@ -177,30 +141,49 @@ def qp_of_comparison(
 
 
 def test_h2o() -> None:
-    print("\n")
-    qp_of_comparison(qp_h2o, of_h2o, n_active_ele=6, n_active_orb=4)
+    atom = [["O", [0, 0, 0]], ["H", [0, 0, 1]], ["H", [2, 0, 0.5]]]
+    spin = 0
+    basis = "sto-3g"
+    qp_of_comparison(atom=atom, spin=spin, basis=basis, n_active_ele=6, n_active_orb=4)
 
 
 def test_h2o_spin() -> None:
-    print("\n")
-    qp_of_comparison(qp_h2o_spin, of_h2o_spin, n_active_ele=6, n_active_orb=4)
+    atom = [["O", [0, 0, 0]], ["H", [0, 0, 1]], ["H", [2, 0, 0.5]]]
+    spin = 2
+    basis = "sto-3g"
+    qp_of_comparison(atom=atom, spin=spin, basis=basis, n_active_ele=6, n_active_orb=4)
 
 
 def test_hcl() -> None:
-    print("\n")
-    qp_of_comparison(qp_hcl, of_hcl, n_active_ele=6, n_active_orb=4)
+    atom = [["H", [0, 0, 1]], ["Cl", [0, 0, 0]]]
+    spin = 0
+    basis = "sto-3g"
+    qp_of_comparison(atom=atom, spin=spin, basis=basis, n_active_ele=6, n_active_orb=4)
 
 
 def test_ch3no() -> None:
-    print("\n")
-    qp_of_comparison(qp_ch3no, of_ch3no, n_active_ele=6, n_active_orb=4)
+    atom = [
+        ["C", (0.000000, 0.418626, 0.000000)],
+        ["H", (-0.460595, 1.426053, 0.000000)],
+        ["O", (1.196516, 0.242075, 0.000000)],
+        ["N", (-0.936579, -0.568753, 0.000000)],
+        ["H", (-0.634414, -1.530889, 0.000000)],
+        ["H", (-1.921071, -0.362247, 0.000000)],
+    ]
+    spin = 0
+    basis = "ccpvdz"
+    qp_of_comparison(atom=atom, spin=spin, basis=basis, n_active_ele=6, n_active_orb=4)
 
 
 def test_h2o_all_active() -> None:
-    print("\n")
-    qp_of_comparison(qp_h2o, of_h2o)
+    atom = [["O", [0, 0, 0]], ["H", [0, 0, 1]], ["H", [2, 0, 0.5]]]
+    spin = 0
+    basis = "sto-3g"
+    qp_of_comparison(atom=atom, spin=spin, basis=basis)
 
 
 def test_h2o_spin_all_active() -> None:
-    print("\n")
-    qp_of_comparison(qp_h2o_spin, of_h2o_spin)
+    atom = [["O", [0, 0, 0]], ["H", [0, 0, 1]], ["H", [2, 0, 0.5]]]
+    spin = 2
+    basis = "sto-3g"
+    qp_of_comparison(atom=atom, spin=spin, basis=basis)

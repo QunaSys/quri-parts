@@ -304,14 +304,14 @@ class AOeIntSet(Protocol):
         self,
         mo: MolecularOrbitals,
     ) -> "SpinMOeIntSet":
-        """Compute the full space spatial or spin mo integral."""
+        """Compute the full space spin or spin mo integral."""
         ...
 
     def to_active_space_mo_int(
         self,
         active_space_mo: ActiveSpaceMolecularOrbitals,
     ) -> "SpinMOeIntSet":
-        """Compute the active space spatial or spin mo integral."""
+        """Compute the active space spin or spin mo integral."""
         ...
 
 
@@ -364,14 +364,14 @@ class SpatialMO2eIntArray(SpatialMO2eInt):
 
 
 class SpatialMOeIntSet(NamedTuple):
-    """MOeIntSet holds a constant and a set of molecular orbital electron
-    integral."""
+    """SpatialMOeIntSet holds a constant and a set of molecular orbital
+    electron integral."""
 
     #: constant.
     const: float
-    #: molecular orbital one-electron integral :class:`MO1eInt`.
+    #: molecular orbital one-electron integral.
     mo_1e_int: SpatialMO1eInt
-    #: molecular orbital two-electron integral :class:`MO2eInt`.
+    #: molecular orbital two-electron integral.
     mo_2e_int: SpatialMO2eInt
 
 
@@ -388,12 +388,12 @@ class SpinMO2eInt(NamedTuple):
 
 
 class SpinMOeIntSet(NamedTuple):
-    """MOeIntSet holds a constant and a set of molecular orbital electron
+    """SpinMOeIntSet holds a constant and a set of molecular orbital electron
     integral."""
 
     #: constant.
     const: float
-    #: spin molecular orbital one-electron integral :class:`MO1eInt`.
+    #: spin molecular orbital one-electron integral.
     mo_1e_int: SpinMO1eInt
-    #: spin molecular orbital two-electron integral :class:`MO2eInt`.
+    #: spin molecular orbital two-electron integral.
     mo_2e_int: SpinMO2eInt

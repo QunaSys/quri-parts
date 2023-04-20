@@ -17,9 +17,8 @@ from .non_relativistic import (
     PySCFSpatialMO2eInt,
     ao1int,
     ao2int,
+    get_active_space_integrals,
     get_ao_eint_set,
-    pyscf_get_active_space_integrals,
-    pyscf_get_ao_eint_set,
 )
 
 __all__ = [
@@ -36,6 +35,5 @@ __all__ = [
     "ao1int",
     "ao2int",
     "get_ao_eint_set",
-    "pyscf_get_ao_eint_set",
-    "pyscf_get_active_space_integrals",
+    "get_active_space_integrals",
 ]
