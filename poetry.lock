@@ -3697,9 +3697,9 @@ type = "directory"
 url = "packages/core"
 
 [[package]]
-name = "quri-parts-honeywell"
+name = "quri-parts-quantinuum"
 version = "0.0.0"
-description = "A plugin to use Honeywell with QIRI Parts"
+description = "A plugin to use Quantinuum with QIRI Parts"
 category = "main"
 optional = false
 python-versions = "^3.9.8"
@@ -3712,7 +3712,7 @@ typing-extensions = "^4.1.1"
 
 [package.source]
 type = "directory"
-url = "packages/honeywell"
+url = "packages/quantinuum"
 
 [[package]]
 name = "quri-parts-ionq"
@@ -4895,7 +4895,7 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [extras]
 braket = ["quri-parts-braket"]
 cirq = ["quri-parts-cirq"]
-honeywell = ["quri-parts-honeywell"]
+quantinuum = ["quri-parts-quantinuum"]
 ionq = ["quri-parts-ionq"]
 itensor = ["quri-parts-itensor"]
 openfermion = ["quri-parts-openfermion"]
