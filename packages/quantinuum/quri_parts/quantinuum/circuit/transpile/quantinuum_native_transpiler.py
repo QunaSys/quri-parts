@@ -105,7 +105,12 @@ class CNOT2U1qZZRZTranspiler(GateKindDecomposer):
 
 class U1qNormalizeWithRZTranspiler(GateKindDecomposer):
     """CircuitTranspiler, which converts U1q gates into gate sequences
-    containing RZ gates so that theta of the U1q gates will be pi or pi/2."""
+    containing RZ gates so that theta of the U1q gates will be pi or pi/2.
+
+    Ref:
+        [1]: https://www.quantinuum.com/hardware/h1
+            System Model H1 Product Data Sheet (P5)
+    """
 
     def __init__(self, epsilon: float = 1.0e-9):
         self._epsilon = epsilon
@@ -142,7 +147,12 @@ class U1qNormalizeWithRZTranspiler(GateKindDecomposer):
 
 class CZ2RZZZTranspiler(GateKindDecomposer):
     """CircuitTranspiler, which decomposes CZ gates into sequences of RZ and ZZ
-    gates."""
+    gates.
+
+    Ref:
+        [1]: https://www.quantinuum.com/hardware/h1
+            System Model H1 Product Data Sheet (P5)
+    """
 
     @property
     def target_gate_names(self) -> Sequence[str]:
@@ -163,6 +173,11 @@ class CNOTRZ2RZZTranspiler(CircuitTranspilerProtocol):
     have the following parameters.
 
     [CNOT(control, target), RZ(target, theta), CNOT(control, target)]
+
+    Ref:
+        [1]: https://www.quantinuum.com/hardware/h1
+            System Model H1 Product Data Sheet
+            (P5 Arbitrary Angle ZZ Gates)
     """
 
     def __call__(

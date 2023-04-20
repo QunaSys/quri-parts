@@ -32,7 +32,9 @@ from .quantinuum_native_transpiler import (
 #: Note that the converted circuit contains Quantinuum native gates.
 QuantinuumSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
     [
+        CZ2RZZZTranspiler(),
         RotationSetTranspiler(),
+        CNOTRZ2RZZTranspiler(),
         ParallelDecomposer(
             [
                 RX2U1qTranspiler(),
@@ -40,6 +42,7 @@ QuantinuumSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTra
                 CNOT2U1qZZRZTranspiler(),
             ]
         ),
+        U1qNormalizeWithRZTranspiler(),
     ]
 )
 
