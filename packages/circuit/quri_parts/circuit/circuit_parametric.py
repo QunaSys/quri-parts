@@ -331,6 +331,14 @@ class UnboundParametricQuantumCircuit(
     def freeze(self) -> "ImmutableUnboundParametricQuantumCircuit":
         return ImmutableUnboundParametricQuantumCircuit(self)
 
+    def __mul__(
+        self,
+        circuit: Union[
+            UnboundParametricQuantumCircuitBase, NonParametricQuantumCircuit
+        ],
+    ) -> None:
+        self.extend(circuit)
+
 
 class ImmutableUnboundParametricQuantumCircuit(UnboundParametricQuantumCircuitBase):
     """An immutable unbound parametric quantum circuit.
