@@ -215,9 +215,7 @@ def spatial_mo_1e_int_to_spin_mo_1e_int(
 ) -> npt.NDArray[np.complex128]:
     """Convert spatial mo 1e electron integrals to spin mo 1e electron
     integrals."""
-    spin_1e_integrals = cast(
-        npt.NDArray[np.complex128], zeros((n_spin_orb, n_spin_orb))
-    )
+    spin_1e_integrals = zeros((n_spin_orb, n_spin_orb), dtype=np.complex128)
 
     for p, q in product(range(n_spin_orb // 2), repeat=2):
         p_a, q_a = 2 * p, 2 * q
@@ -235,9 +233,8 @@ def spatial_mo_2e_int_to_spin_mo_2e_int(
 ) -> npt.NDArray[np.complex128]:
     """Convert spatial mo 2e electron integrals to spin mo 2e electron
     integrals."""
-    spin_2e_integrals = cast(
-        npt.NDArray[np.complex128],
-        zeros((n_spin_orb, n_spin_orb, n_spin_orb, n_spin_orb)),
+    spin_2e_integrals = zeros(
+        (n_spin_orb, n_spin_orb, n_spin_orb, n_spin_orb), dtype=np.complex128
     )
 
     for p, q, r, s in product(range(n_spin_orb // 2), repeat=4):
