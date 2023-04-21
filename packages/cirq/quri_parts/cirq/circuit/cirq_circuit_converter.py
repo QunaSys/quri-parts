@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Mapping
+from collections.abc import Mapping
 
 from cirq.circuits.circuit import Circuit
 from cirq.ops.common_gates import CNOT, CZ, H, Rx, Ry, Rz, S, T
@@ -16,6 +16,7 @@ from cirq.ops.identity import I
 from cirq.ops.pauli_gates import X, Y, Z
 from cirq.ops.raw_types import Gate
 from cirq.ops.swap_gates import SWAP
+from cirq.ops.three_qubit_gates import CCX
 from cirq.protocols.unitary_protocol import unitary
 
 from quri_parts.circuit import (
@@ -25,7 +26,11 @@ from quri_parts.circuit import (
     UnitaryMatrix,
     gate_names,
 )
-from quri_parts.circuit.gate_names import SingleQubitGateNameType, TwoQubitGateNameType
+from quri_parts.circuit.gate_names import (
+    SingleQubitGateNameType,
+    ThreeQubitGateNameType,
+    TwoQubitGateNameType,
+)
 
 _single_qubit_gate_quri_parts: Mapping[Gate, SingleQubitGateNameType] = {
     I: gate_names.Identity,
@@ -47,6 +52,10 @@ _two_qubit_gate_quri_parts: Mapping[Gate, TwoQubitGateNameType] = {
     CNOT: gate_names.CNOT,
     CZ: gate_names.CZ,
     SWAP: gate_names.SWAP,
+}
+
+_three_qubit_gate_quri_parts: Mapping[Gate, ThreeQubitGateNameType] = {
+    CCX: gate_names.TOFFOLI,
 }
 
 
@@ -89,6 +98,17 @@ def circuit_from_cirq(cirq_circuit: Circuit) -> NonParametricQuantumCircuit:
                     name=str(operation.gate)[:2].upper(),
                     target_indices=(operation.qubits[0].x,),
                     params=(gate._rads,),
+                )
+            )
+        elif gate in _three_qubit_gate_quri_parts:
+            circuit.add_gate(
+                QuantumGate(
+                    name=_three_qubit_gate_quri_parts[gate],
+                    target_indices=(operation.qubits[2].x,),
+                    control_indices=(
+                        operation.qubits[0].x,
+                        operation.qubits[1].x,
+                    ),
                 )
             )
         else:

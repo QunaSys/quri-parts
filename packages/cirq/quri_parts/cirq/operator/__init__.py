@@ -28,14 +28,13 @@ def operator_from_cirq_op(operator: Union[PauliString[Any], PauliSum]) -> Operat
     for op in operator:
         coeff = op.coefficient
         if len(op.qubits) == 0:
-            pauli_string_quri_parts = PAULI_IDENTITY
-            qp_op += Operator({pauli_label(pauli_string_quri_parts): coeff})
+            qp_op.add_term(PAULI_IDENTITY, coeff)
         else:
             pauli_string_str = ""
-            for qubit, pauli in sorted(op.items()):
+            for qubit, pauli in op.items():
                 pauli_string_str += f"{pauli}{qubit.x} "
 
-            qp_op += Operator({pauli_label(pauli_string_str): coeff})
+            qp_op.add_term(pauli_label(pauli_string_str), coeff)
     return qp_op
 
 

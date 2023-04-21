@@ -45,17 +45,6 @@ def test_circuit_from_cirq() -> None:
         ]
     )
 
-    toffoli_mat = (
-        ((1 + 0j), 0j, 0j, 0j, 0j, 0j, 0j, 0j),
-        (0j, (1 + 0j), 0j, 0j, 0j, 0j, 0j, 0j),
-        (0j, 0j, (1 + 0j), 0j, 0j, 0j, 0j, 0j),
-        (0j, 0j, 0j, (1 + 0j), 0j, 0j, 0j, 0j),
-        (0j, 0j, 0j, 0j, (1 + 0j), 0j, 0j, 0j),
-        (0j, 0j, 0j, 0j, 0j, (1 + 0j), 0j, 0j),
-        (0j, 0j, 0j, 0j, 0j, 0j, 0j, (1 + 0j)),
-        (0j, 0j, 0j, 0j, 0j, 0j, (1 + 0j), 0j),
-    )
-
     gate_list = [
         gates.H(0),
         gates.T(1),
@@ -64,7 +53,7 @@ def test_circuit_from_cirq() -> None:
         gates.H(2),
         gates.CNOT(1, 2),
         gates.SWAP(0, 1),
-        gates.UnitaryMatrix([0, 1, 2], toffoli_mat),
+        gates.TOFFOLI(0, 1, 2),
         gates.RX(1, 0.5),
         gates.RZ(0, 1.25),
         gates.UnitaryMatrix([0, 1], mat.tolist()),
