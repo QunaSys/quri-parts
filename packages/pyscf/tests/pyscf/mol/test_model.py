@@ -29,6 +29,12 @@ class TestPySCFMolecularOrbitals:
     def test_n_electron(self) -> None:
         assert test_mol_set.n_electron == 2
 
+    def test_spin(self) -> None:
+        assert test_mol_set.spin == 0
+
+    def test_n_spatial_orb(self) -> None:
+        assert test_mol_set.n_spatial_orb == 2
+
     def test_mo_coeff(self) -> None:
         test_mo_coeff = test_mol_set.mo_coeff
         assert test_mo_coeff.shape == (2, 2)

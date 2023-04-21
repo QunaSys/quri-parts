@@ -38,7 +38,7 @@ class TestMolecularOrbitals(MolecularOrbitals):
 
     @property
     def spin(self) -> int:
-        return 0
+        return 2
 
     @property
     def mo_coeff(self) -> "npt.NDArray[np.complex128]":
@@ -62,3 +62,30 @@ class TestActiveSpaceMolecularOrbitals:
         assert self.as_mol.orb_type(1) == OrbitalType.CORE
         assert self.as_mol.orb_type(3) == OrbitalType.VIRTUAL
         assert self.as_mol.orb_type(5) == OrbitalType.ACTIVE
+
+    def test_spin(self) -> None:
+        assert self.as_mol.spin == 2
+
+    def test_n_active_ele(self) -> None:
+        assert self.as_mol.n_active_ele == 2
+
+    def test_n_core_ele(self) -> None:
+        assert self.as_mol.n_core_ele == 6
+
+    def test_n_ele_alpha(self) -> None:
+        assert self.as_mol.n_ele_alpha == 2
+
+    def test_n_ele_beta(self) -> None:
+        assert self.as_mol.n_ele_beta == 0
+
+    def test_n_spatial_orb(self) -> None:
+        assert self.as_mol.n_spatial_orb == 20
+
+    def test_n_active_orb(self) -> None:
+        assert self.as_mol.n_active_orb == 4
+
+    def test_n_core_orb(self) -> None:
+        assert self.as_mol.n_core_orb == 3
+
+    def test_n_vir_orb(self) -> None:
+        assert self.as_mol.n_vir_orb == 20 - 4 - 3
