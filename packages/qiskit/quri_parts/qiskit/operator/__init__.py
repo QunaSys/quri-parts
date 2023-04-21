@@ -38,11 +38,11 @@ def operator_from_qiskit_op(pauli_operator: Union[PauliSumOp, PauliOp]) -> Opera
 
     for coeff, pauli_string in zip(coeff_list, string_list):
         if all(s == "I" for s in pauli_string):
-            qp_op += Operator({pauli_label(PAULI_IDENTITY): coeff})
+            qp_op.add_term(PAULI_IDENTITY, coeff)
         else:
             pauli_string_quri_parts = ""
             for i, pauli in enumerate(pauli_string):
                 if pauli != "I":
                     pauli_string_quri_parts += f"{pauli}{i} "
-            qp_op += Operator({pauli_label(pauli_string_quri_parts): coeff})
+            qp_op.add_term(pauli_label(pauli_string_quri_parts), coeff)
     return qp_op

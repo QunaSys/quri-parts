@@ -19,7 +19,11 @@ from quri_parts.circuit import (
     UnitaryMatrix,
     gate_names,
 )
-from quri_parts.circuit.gate_names import SingleQubitGateNameType, TwoQubitGateNameType
+from quri_parts.circuit.gate_names import (
+    SingleQubitGateNameType,
+    ThreeQubitGateNameType,
+    TwoQubitGateNameType,
+)
 
 _single_qubit_gate_qiskit_quri_parts: Mapping[str, SingleQubitGateNameType] = {
     "id": gate_names.Identity,
@@ -45,6 +49,10 @@ _two_qubit_gate_qiskit_quri_parts: Mapping[str, TwoQubitGateNameType] = {
     "cx": gate_names.CNOT,
     "cz": gate_names.CZ,
     "swap": gate_names.SWAP,
+}
+
+_three_qubits_gate_quri_parts: Mapping[str, ThreeQubitGateNameType] = {
+    "ccx": gate_names.TOFFOLI,
 }
 
 _U_gate_qiskit_quri_parts: Mapping[str, SingleQubitGateNameType] = {
@@ -102,6 +110,17 @@ def circuit_from_qiskit(
                 QuantumGate(
                     name=_two_qubit_gate_qiskit_quri_parts[gname],
                     target_indices=(
+                        q[0].index,
+                        q[1].index,
+                    ),
+                )
+            )
+        elif gname in _three_qubits_gate_quri_parts:
+            circuit.add_gate(
+                QuantumGate(
+                    name=_three_qubits_gate_quri_parts[gname],
+                    target_indices=(q[2].index,),
+                    control_indices=(
                         q[0].index,
                         q[1].index,
                     ),

@@ -25,6 +25,8 @@ def test_circuit_from_qiskit() -> None:
     qis_circ.rx(0.125, 0)
     qis_circ.p(2.3, 0)
     qis_circ.u(1.2, 2.1, 3.1, 2)
+    qis_circ.ccx(0, 1, 2)
+
     matrix = [[0, 0, 0, 1], [0, 0, 1, 0], [1, 0, 0, 0], [0, 1, 0, 0]]
     gate = UnitaryGate(matrix)
     qis_circ.append(gate, [0, 1])
@@ -38,6 +40,7 @@ def test_circuit_from_qiskit() -> None:
         gates.RX(0, 0.125),
         gates.U1(0, 2.3),
         gates.U3(2, 1.2, 2.1, 3.1),
+        gates.TOFFOLI(0, 1, 2),
         gates.UnitaryMatrix([0, 1], matrix),
     ]
     expected = QuantumCircuit(3, gate_list)
