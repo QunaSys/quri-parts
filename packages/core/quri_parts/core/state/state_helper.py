@@ -36,41 +36,48 @@ def apply_circuit(
 
 def quantum_state(
     n_qubits: int,
-    vec: Optional[Union[StateVectorType, "npt.ArrayLike"]] = None,
+    vector: Optional[Union[StateVectorType, "npt.ArrayLike"]] = None,
     bits: int = 0,
     circuit: Optional[
         Union[NonParametricQuantumCircuit, UnboundParametricQuantumCircuitProtocol]
     ] = None,
 ) -> QuantumState:
     if bits != 0:
-        if circuit is None:
-            return ComputationalBasisState(n_qubits, bits=bits)
-        elif isinstance(circuit, NonParametricQuantumCircuit):
-            ...
-            # cb_state = ComputationalBasisState(n_qubits, bits=bits)
-            # combined_circuit = NonParametricQuantumCircuit(n_qubits)
-            # combined_circuit += cb_state.circuit
-            # combined_circuit += circuit
-            # return GeneralCircuitQuantumState(n_qubits, combined_circuit)
-        else:
-            # cb_state = ComputationalBasisState(n_qubits, bits=bits)
-            # combined_circuit =
-            ...
-    if vec is None:
-        if circuit is None or isinstance(circuit, NonParametricQuantumCircuit):
-            return GeneralCircuitQuantumState(n_qubits, circuit)
-        else:
-            return ParametricCircuitQuantumState(n_qubits, circuit)
+        return ComputationalBasisState(n_qubits, bits=bits)
+    if vector is None:
+        circuit_quantum_state(n_qubits, circuit)
     else:
-        if circuit is None or isinstance(circuit, NonParametricQuantumCircuit):
-            return QuantumStateVector(n_qubits, vec, circuit)
-        else:
-            return ParametricQuantumStateVector(n_qubits, circuit, vec)
+        quantum_state_vector(n_qubits, vector=vector, circuit=circuit)
 
 
-# quantum_state(3, circuit, vec)
-# s = quantum_state(3, vec)
-# s = apply_circuit(circuit, s)
+def circuit_quantum_state(
+    n_qubits: int,
+    circuit: Optional[
+        Union[NonParametricQuantumCircuit, UnboundParametricQuantumCircuitProtocol]
+    ] = None,
+) -> QuantumState:
+    if is_parametric_circuit(circuit):
+        return GeneralCircuitQuantumState(n_qubits, circuit)
+    else:
+        return ParametricCircuitQuantumState(n_qubits, circuit)
 
-# s = quantum_state(3, bits=0b101)
-# s = apply_circuit(circuit, s)
+
+def quantum_state_vector(
+    n_qubits: int,
+    vector: Union[StateVectorType, "npt.ArrayLike"],
+    circuit: Optional[
+        Union[NonParametricQuantumCircuit, UnboundParametricQuantumCircuitProtocol]
+    ] = None,
+) -> QuantumState:
+    if is_parametric_circuit(circuit):
+        return QuantumStateVector(n_qubits, vector=vector, circuit=circuit)
+    else:
+        return ParametricQuantumStateVector(n_qubits, vector=vector, circuit=circuit)
+
+
+def is_parametric_circuit(
+    circuit: Optional[
+        Union[NonParametricQuantumCircuit, UnboundParametricQuantumCircuitProtocol]
+    ] = None
+) -> bool:
+    return circuit is None or isinstance(circuit, NonParametricQuantumCircuit)
