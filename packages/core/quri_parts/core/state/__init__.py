@@ -13,7 +13,7 @@ from typing import Sequence, TypeVar
 
 from .comp_basis import ComputationalBasisState, comp_basis_superposition
 from .state import CircuitQuantumState, GeneralCircuitQuantumState, QuantumState
-from .state_helper import apply_circuit, quantum_state
+from .state_helper import quantum_state
 from .state_parametric import ParametricCircuitQuantumState
 from .state_vector import QuantumStateVector, StateVectorType
 from .state_vector_parametric import ParametricQuantumStateVector
@@ -60,6 +60,5 @@ __all__ = [
     "ParametricQuantumStateVector",
     "QuantumStateT",
     "ParametricQuantumStateT",
-    "apply_circuit",
     "quantum_state",
 ]
