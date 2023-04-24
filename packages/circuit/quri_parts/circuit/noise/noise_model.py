@@ -220,7 +220,7 @@ class NoiseModel:
         Args:
            gate: :class:`QuantumGate` to which noises are applied.
         """
-        noises = it.chain(
+        pairs = it.chain(
             self._get_gate_noises_for_all(gate, self._gate_noises_for_all),
             self._get_gate_noises_for_all_qubits_specified_gates(gate),
             self._get_gate_noises_for_all_gates_specified_qubits(gate),
@@ -228,13 +228,13 @@ class NoiseModel:
         )
 
         if self._custom_gate_filters:
-            noises = filter(
-                lambda noise: id(noise) not in self._custom_gate_filters
-                or self._custom_gate_filters[id(noise)](gate),
-                noises,
+            pairs = filter(
+                lambda pair: id(pair[1]) not in self._custom_gate_filters
+                or self._custom_gate_filters[id(pair[1])](gate),
+                pairs,
             )
 
-        return sorted(noises, key=lambda x: self._id_to_index[id(x[1])])
+        return sorted(pairs, key=lambda x: self._id_to_index[id(x[1])])
 
     def noises_for_circuit(self) -> Sequence[CircuitNoiseInstruction]:
         """Returns sequence of :class:`CircuitNoiseInstruction` in the
