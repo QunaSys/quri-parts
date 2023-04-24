@@ -5,6 +5,7 @@ from typing import cast
 import numpy as np
 import numpy.typing as npt
 from numpy import array
+from openfermion.chem.molecular_data import spinorb_from_spatial
 
 from quri_parts.chem.mol import (
     ActiveSpaceMolecularOrbitals,
@@ -15,6 +16,7 @@ from quri_parts.chem.mol import (
     SpinMOeIntSet,
     cas,
     get_active_space_integrals_from_ao_eint,
+    to_spin_orbital_integrals,
 )
 
 
@@ -120,6 +122,10 @@ mo_coeff = array(
     ]
 )
 
+full_space_spin_integrals = to_spin_orbital_integrals(
+    2 * ao_1e_int.array.shape[0], ao_1e_int.array, ao_2e_int.array
+)
+
 ao_eint_set = AOeIntArraySet(
     constant=core_energy, ao_1e_int=ao_1e_int, ao_2e_int=ao_2e_int
 )
@@ -135,6 +141,7 @@ class TestActiveSpaceIntegrals(unittest.TestCase):
     _nuc_energy: float
     _spin_mo_1e_int: npt.NDArray[np.complex128]
     _spin_mo_2e_int: npt.NDArray[np.complex128]
+    _full_space_spin_integrals: npt.NDArray[np.complex128]
     qp_chem_active_space_integrals: SpinMOeIntSet
 
     @classmethod
@@ -146,6 +153,9 @@ class TestActiveSpaceIntegrals(unittest.TestCase):
             ),
         )
 
+        # openfermion active space result.
+        # _spin_mo_2e_int is multiplied by a factor of 2 to be consistent with
+        # qp convention
         cls._nuc_energy = -1.1870269447600394
         cls._spin_mo_1e_int = array([[-0.33696926, 0.0], [0.0, -0.33696926]])
         cls._spin_mo_2e_int = array(
@@ -154,10 +164,19 @@ class TestActiveSpaceIntegrals(unittest.TestCase):
                 [[[0.0, 0.53466412], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.53466412]]],
             ]
         )
+        cls._full_space_spin_integrals = spinorb_from_spatial(
+            ao_1e_int.array, ao_2e_int.array
+        )
+
+    def test_spatial_to_spin_conversion(self) -> None:
+        assert np.allclose(
+            self._full_space_spin_integrals[0], full_space_spin_integrals[0]
+        )
+        assert np.allclose(
+            self._full_space_spin_integrals[1], full_space_spin_integrals[1]
+        )
 
     def test_eff_nuc_energy(self) -> None:
-        print(self._nuc_energy)
-        print(self.qp_chem_active_space_integrals.const)
         assert np.allclose(self.qp_chem_active_space_integrals.const, self._nuc_energy)
 
     def test_eff_h1(self) -> None:
