@@ -12,7 +12,6 @@ from collections.abc import Collection, Iterable, Sequence
 from typing import TYPE_CHECKING, Any, Callable, NamedTuple, Optional, Union
 
 import qulacs
-from typing_extensions import TypeAlias
 
 from quri_parts.circuit.noise import NoiseModel
 from quri_parts.core.estimator import (
@@ -25,14 +24,11 @@ from quri_parts.core.estimator import (
     create_parametric_estimator,
 )
 from quri_parts.core.operator import zero
-from quri_parts.core.state import (
-    CircuitQuantumState,
-    ParametricCircuitQuantumState,
-    ParametricQuantumStateVector,
-    QuantumStateVector,
-)
+from quri_parts.core.state import ParametricQuantumStateVector, QuantumStateVector
 from quri_parts.core.utils.concurrent import execute_concurrently
+from quri_parts.qulacs import QulacsParametricStateT, QulacsStateT
 
+from . import cast_to_list
 from .circuit import convert_circuit, convert_parametric_circuit
 from .circuit.noise import convert_circuit_with_noise_model
 from .operator import convert_operator
@@ -46,23 +42,12 @@ class _Estimate(NamedTuple):
     error: float = 0.0
 
 
-#: A type alias for state classes supported by Qulacs estimators.
-#: Qulacs estimators support both of circuit states and state vectors.
-QulacsStateT: TypeAlias = Union[CircuitQuantumState, QuantumStateVector]
-
-#: A type alias for parametric state classes supported by Qulacs estimators.
-#: Qulacs estimators support both of circuit states and state vectors.
-QulacsParametricStateT: TypeAlias = Union[
-    ParametricCircuitQuantumState, ParametricQuantumStateVector
-]
-
-
 def _create_qulacs_initial_state(
     state: Union[QulacsStateT, QulacsParametricStateT]
 ) -> qulacs.QuantumState:
     qs_state = qulacs.QuantumState(state.qubit_count)
     if isinstance(state, (QuantumStateVector, ParametricQuantumStateVector)):
-        qs_state.load(state.vector)
+        qs_state.load(cast_to_list(state.vector))
     return qs_state
 
 
@@ -236,7 +221,7 @@ def create_qulacs_density_matrix_estimator(
         circuit = convert_circuit_with_noise_model(state.circuit, model)
         qs_state = qulacs.DensityMatrix(state.qubit_count)
         if isinstance(state, QuantumStateVector):
-            qs_state.load(state.vector)
+            qs_state.load(cast_to_list(state.vector))
         op = convert_operator(operator, state.qubit_count)
         circuit.update_quantum_state(qs_state)
         exp = op.get_expectation_value(qs_state)
@@ -272,7 +257,7 @@ def create_qulacs_density_matrix_concurrent_estimator(
         qubit_count = state.qubit_count
         qs_state = qulacs.DensityMatrix(qubit_count)
         if isinstance(state, QuantumStateVector):
-            qs_state.load(state.vector)
+            qs_state.load(cast_to_list(state.vector))
         circuit.update_quantum_state(qs_state)
         results = []
         for op in operators:
@@ -318,7 +303,7 @@ def create_qulacs_density_matrix_concurrent_parametric_estimator(
             qs_circuit = convert_circuit_with_noise_model(circuit, model)
             qs_state = qulacs.DensityMatrix(qubit_count)
             if isinstance(state, (QuantumStateVector, ParametricQuantumStateVector)):
-                qs_state.load(state.vector)
+                qs_state.load(cast_to_list(state.vector))
             qs_circuit.update_quantum_state(qs_state)
             exp = op.get_expectation_value(qs_state)
             estimates.append(_Estimate(value=exp))
