@@ -220,7 +220,7 @@ class NoiseModel:
         Args:
            gate: :class:`QuantumGate` to which noises are applied.
         """
-        pairs = it.chain(
+        cpairs = it.chain(
             self._get_gate_noises_for_all(gate, self._gate_noises_for_all),
             self._get_gate_noises_for_all_qubits_specified_gates(gate),
             self._get_gate_noises_for_all_gates_specified_qubits(gate),
@@ -228,11 +228,15 @@ class NoiseModel:
         )
 
         if self._custom_gate_filters:
-            pairs = filter(
-                lambda pair: id(pair[1]) not in self._custom_gate_filters
-                or self._custom_gate_filters[id(pair[1])](gate),
-                pairs,
+            pairs = tuple(
+                filter(
+                    lambda pair: id(pair[1]) not in self._custom_gate_filters
+                    or self._custom_gate_filters[id(pair[1])](gate),
+                    cpairs,
+                )
             )
+        else:
+            pairs = tuple(cpairs)
 
         return sorted(pairs, key=lambda x: self._id_to_index[id(x[1])])
 
