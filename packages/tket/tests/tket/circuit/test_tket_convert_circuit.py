@@ -3,6 +3,7 @@ from typing import Callable, Type, cast
 
 import numpy as np
 from pytket import Circuit, OpType  # type: ignore
+from pytket import circuit as pytket_circ
 
 from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
 from quri_parts.tket.circuit import convert_circuit  # type: ignore
@@ -140,12 +141,26 @@ def test_convert_three_qubit_gate() -> None:
         assert circuit_equal(converted, expected)
 
 
-# def test_convert_unitary_matrix_gate() -> None:
-#     umat = ((1, 0), (0, np.cos(np.pi / 4) + 1j * np.sin(np.pi / 4)))
-#     qp_gate = gates.UnitaryMatrix((7,), umat)
-#     converted = convert_gate(qp_gate)
-#     expected = UnitaryGate(np.array(umat))
-#     assert gate_equal(converted, expected)
+def test_convert_unitary_matrix_gate() -> None:
+    umat = ((1, 0), (0, np.cos(np.pi / 4) + 1j * np.sin(np.pi / 4)))
+
+    # converted = convert_gate(qp_gate)
+    # expected = UnitaryGate(np.array(umat))
+
+    target_index = 7
+    n_qubit = 8
+
+    qp_gate = gates.UnitaryMatrix((7,), umat)
+    qp_circuit = QuantumCircuit(n_qubit)
+    qp_circuit.add_gate(qp_gate)
+
+    tket_circuit = Circuit(n_qubit)
+    tket_circuit.add_unitary1qbox(pytket_circ.Unitary1qBox(umat), target_index)  # type: ignore  # noqa: E501
+
+    converted = convert_circuit(qp_circuit)
+    expected = tket_circuit
+
+    assert circuit_equal(converted, expected)
 
 
 def test_convert_u1_gate() -> None:

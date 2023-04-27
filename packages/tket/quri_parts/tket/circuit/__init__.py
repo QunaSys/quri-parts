@@ -1,8 +1,9 @@
 from collections.abc import Mapping
-from typing import Callable, Union
+from typing import Callable, Union, cast
 
 from numpy import array, pi
 from pytket import Circuit, OpType  # type: ignore
+from pytket.circuit import Unitary1qBox  # type: ignore
 
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate, gate_names
 from quri_parts.circuit.gate_names import (
@@ -74,7 +75,7 @@ def convert_gate(
         return _three_qubit_gate_tket[gate.name]
 
     elif is_unitary_matrix_gate_name(gate.name):
-        raise ValueError("Unitary matrix gates are not supported")
+        return cast(OpType, Unitary1qBox(gate.unitary_matrix))
 
     elif is_parametric_gate_name(gate.name):
         raise ValueError("Parametric gates are not supported")
@@ -111,6 +112,12 @@ def convert_circuit(circuit: NonParametricQuantumCircuit) -> Circuit:
             control_qubit = tuple(gate.control_indices)
             tket_circuit.add_gate(convert_gate(gate), control_qubit + target_qubit)
             continue
+        if gate.name == "UnitaryMatrix":
+            target_qubit = gate.target_indices
+            tket_circuit.add_unitary1qbox(convert_gate(gate), target_qubit[0])
+            continue
+        else:
+            raise ValueError("This gate is not supported.")
 
     return tket_circuit
 
