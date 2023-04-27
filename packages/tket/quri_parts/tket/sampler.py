@@ -8,7 +8,7 @@ from quri_parts.backend import SamplingCounts, SamplingJob, SamplingResult
 
 
 class TKetSamplingResult(SamplingResult):
-    """A result of a Qiskit sampling job."""
+    """A result of a TKet sampling job."""
 
     def __init__(self, tket_result: BackendResult):
         if not isinstance(tket_result, BackendResult):
@@ -19,16 +19,16 @@ class TKetSamplingResult(SamplingResult):
 
     @property
     def counts(self) -> SamplingCounts:
-        qiskit_counts = self._tket_result.get_counts()
+        tket_counts = self._tket_result.get_counts()
         measurements: MutableMapping[int, int] = {}
-        for result in qiskit_counts:
+        for result in tket_counts:
             result_label = int("".join(map(str, result)), 2)
-            measurements[result_label] = qiskit_counts[result]
+            measurements[result_label] = tket_counts[result]
         return measurements
 
 
 class TKetSamplingJob(SamplingJob):
-    """A job for a Qiskit sampling measurement."""
+    """A job for a TKet sampling measurement."""
 
     def __init__(self, circuit: Circuit, n_shots: int):
         circuit_ = circuit.copy().measure_all()
