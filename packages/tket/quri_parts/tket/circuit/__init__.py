@@ -27,7 +27,7 @@ _single_qubit_gate_tket: Mapping[SingleQubitGateNameType, OpType] = {
     gate_names.SqrtX: OpType.SX,
     gate_names.SqrtXdag: OpType.SXdg,
     gate_names.T: OpType.T,
-    gate_names.Tdag: OpType.T,
+    gate_names.Tdag: OpType.Tdg,
 }
 
 _single_qubit_rotation_gate_tket: Mapping[
@@ -107,8 +107,9 @@ def convert_circuit(circuit: NonParametricQuantumCircuit) -> Circuit:
                 tket_circuit.add_gate(convert_gate(gate), control_qubit + target_qubit)
                 continue
         if gate.name in _three_qubit_gate_tket:
-            target_qubit = gate.target_indices
-            tket_circuit.add_gate(convert_gate(gate), target_qubit)
+            target_qubit = tuple(gate.target_indices)
+            control_qubit = tuple(gate.control_indices)
+            tket_circuit.add_gate(convert_gate(gate), control_qubit + target_qubit)
             continue
 
     return tket_circuit
