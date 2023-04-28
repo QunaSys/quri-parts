@@ -184,24 +184,24 @@ def test_apply_circuit_with_state_vector_and_parametric_circuit() -> None:
     assert isinstance(combined_state, ParametricQuantumStateVector)
 
 
-# def test_apply_circuit_with_parametric_state_and_general_circuit():
-#     state = apply_circuit(b_state(), a_circuit())
+def test_apply_circuit_with_parametric_state_and_general_circuit():
+    state = apply_circuit(b_state(), a_circuit())
 
-#     assert isinstance(state, ParametricCircuitQuantumState)
-
-
-# def test_apply_circuit_with_parametric_state_and_parametric_circuit():
-#     state = apply_circuit(b_state(), b_circuit())
-
-#     assert isinstance(state, ParametricCircuitQuantumState)
-
-# def test_apply_circuit_with_parametric_state_vector_and_general_circuit():
-#     state = apply_circuit()
-
-#     assert isinstance(state, ParametricQuantumStateVector)
+    assert isinstance(state, ParametricCircuitQuantumState)
 
 
-# def test_apply_circuit_with_parametric_state_vector_and_parametric_circuit():
-#     state = apply_circuit()
+def test_apply_circuit_with_parametric_state_and_parametric_circuit():
+    state = apply_circuit(b_state(), b_circuit())
 
-#     assert isinstance(state, ParametricQuantumStateVector)
+    assert isinstance(state, ParametricCircuitQuantumState)
+
+def test_apply_circuit_with_parametric_state_vector_and_general_circuit():
+    state = apply_circuit(b_state_vector(), a_circuit())
+
+    assert isinstance(state, ParametricQuantumStateVector)
+
+
+def test_apply_circuit_with_parametric_state_vector_and_parametric_circuit():
+    state = apply_circuit(b_state_vector(), b_circuit())
+
+    assert isinstance(state, ParametricQuantumStateVector)
