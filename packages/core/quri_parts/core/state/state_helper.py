@@ -30,9 +30,18 @@ def apply_circuit(
         Union[NonParametricQuantumCircuit, UnboundParametricQuantumCircuitProtocol]
     ] = None,
 ) -> QuantumState:
-    print(f"type: {type(state.circuit.get_mutable_copy())}")
-    combined_circuit = state.circuit.get_mutable_copy() * circuit
-    return quantum_state(state.qubit_count, circuit=combined_circuit)
+    if isinstance(state, GeneralCircuitQuantumState):
+        combined_circuit = state.circuit.get_mutable_copy() * circuit
+        return quantum_state(state.qubit_count, circuit=combined_circuit)
+    elif isinstance(state, QuantumStateVector):
+        combined_circuit = state.circuit.get_mutable_copy() * circuit
+        return quantum_state(state.qubit_count, vector=state.vector, circuit=combined_circuit)
+    elif isinstance(state, ParametricCircuitQuantumState):
+        combined_circuit = state.parametric_circuit.get_mutable_copy() * circuit
+        return quantum_state(state.qubit_count, circuit=combined_circuit)
+    elif isinstance(state, ParametricQuantumStateVector):
+        combined_circuit = state.parametric_circuit.get_mutable_copy() * circuit
+        return quantum_state(state.qubit_count, vector=state.vector, circuit=combined_circuit)
 
 
 def quantum_state(
