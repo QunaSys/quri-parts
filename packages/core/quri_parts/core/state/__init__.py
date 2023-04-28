@@ -61,4 +61,5 @@ __all__ = [
     "QuantumStateT",
     "ParametricQuantumStateT",
     "quantum_state",
+    "apply_circuit",
 ]

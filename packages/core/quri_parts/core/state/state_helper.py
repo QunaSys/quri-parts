@@ -24,14 +24,14 @@ from .state_parametric import ParametricCircuitQuantumState
 from .state_vector import QuantumStateVector, StateVectorType
 from .state_vector_parametric import ParametricQuantumStateVector
 
-# def apply_circuit(
-#     state: QuantumState,
-#     circuit: Optional[
-#         Union[NonParametricQuantumCircuit, UnboundParametricQuantumCircuitProtocol]
-#     ] = None,
-# ) -> QuantumState:
-#     combined_state = state.circuit * circuit
-#     return combined_state
+def apply_circuit(
+    state: QuantumState,
+    circuit: Optional[
+        Union[NonParametricQuantumCircuit, UnboundParametricQuantumCircuitProtocol]
+    ] = None,
+) -> QuantumState:
+    combined_state = state.circuit * circuit
+    return combined_state
 
 
 def quantum_state(

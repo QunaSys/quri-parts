@@ -16,6 +16,7 @@ from quri_parts.core.state import (
     ParametricQuantumStateVector,
     QuantumStateVector,
     quantum_state,
+    apply_circuit,
 )
 
 
@@ -122,14 +123,14 @@ def test_quantum_state_with_parametric_circuit_and_bits() -> None:
     assert len(state.parametric_circuit.gates) == 4
 
 
-# def test_apply_circuit_empty() -> None:
-#     state = a_state()
-#     state2 = a_state()
-#     circuit = QuantumCircuit(2)
-#     combined_state = apply_circuit(state, circuit)
+def test_apply_circuit_empty() -> None:
+    state = a_state()
+    state2 = a_state()
+    circuit = QuantumCircuit(2)
+    combined_state = apply_circuit(state, circuit)
 
-#     assert isinstance(combined_state, GeneralCircuitQuantumState)
-#     assert combined_state._circuit == state2._circuit
+    assert isinstance(combined_state, GeneralCircuitQuantumState)
+    assert combined_state._circuit == state2._circuit
 
 # def test_apply_circuit() -> None:
 #     state = a_state()
