@@ -24,6 +24,7 @@ from .state_parametric import ParametricCircuitQuantumState
 from .state_vector import QuantumStateVector, StateVectorType
 from .state_vector_parametric import ParametricQuantumStateVector
 
+
 def apply_circuit(
     state: QuantumState,
     circuit: Optional[
@@ -35,13 +36,17 @@ def apply_circuit(
         return quantum_state(state.qubit_count, circuit=combined_circuit)
     elif isinstance(state, QuantumStateVector):
         combined_circuit = state.circuit.get_mutable_copy() * circuit
-        return quantum_state(state.qubit_count, vector=state.vector, circuit=combined_circuit)
+        return quantum_state(
+            state.qubit_count, vector=state.vector, circuit=combined_circuit
+        )
     elif isinstance(state, ParametricCircuitQuantumState):
         combined_circuit = state.parametric_circuit.get_mutable_copy() * circuit
         return quantum_state(state.qubit_count, circuit=combined_circuit)
     elif isinstance(state, ParametricQuantumStateVector):
         combined_circuit = state.parametric_circuit.get_mutable_copy() * circuit
-        return quantum_state(state.qubit_count, vector=state.vector, circuit=combined_circuit)
+        return quantum_state(
+            state.qubit_count, vector=state.vector, circuit=combined_circuit
+        )
 
 
 def quantum_state(
@@ -60,7 +65,9 @@ def quantum_state(
             if isinstance(circuit, NonParametricQuantumCircuit):
                 return cb_state.with_gates_applied(circuit.gates)
             else:
-                comb_circuit: UnboundParametricQuantumCircuitProtocol = cb_state.circuit * circuit
+                comb_circuit: UnboundParametricQuantumCircuitProtocol = (
+                    cb_state.circuit * circuit
+                )
                 return circuit_quantum_state(n_qubits, comb_circuit)
     elif vector is None:
         return circuit_quantum_state(n_qubits, circuit)
@@ -91,4 +98,3 @@ def quantum_state_vector(
         return QuantumStateVector(n_qubits, vector=vector, circuit=circuit)
     else:
         return ParametricQuantumStateVector(n_qubits, vector=vector, circuit=circuit)
-

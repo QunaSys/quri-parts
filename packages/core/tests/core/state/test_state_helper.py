@@ -8,15 +8,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from quri_parts.circuit import H, QuantumCircuit, UnboundParametricQuantumCircuit, Z, RX, RY
+from quri_parts.circuit import (
+    RX,
+    RY,
+    H,
+    QuantumCircuit,
+    UnboundParametricQuantumCircuit,
+    Z,
+)
 from quri_parts.core.state import (
     ComputationalBasisState,
     GeneralCircuitQuantumState,
     ParametricCircuitQuantumState,
     ParametricQuantumStateVector,
     QuantumStateVector,
-    quantum_state,
     apply_circuit,
+    quantum_state,
 )
 
 
@@ -25,22 +32,27 @@ def a_state() -> GeneralCircuitQuantumState:
     s = s.with_gates_applied([H(0), Z(1)])
     return s
 
+
 def b_state() -> ParametricCircuitQuantumState:
     s = ParametricCircuitQuantumState(2)
     s = s.with_gates_applied([RX(0), RY(1)])
     return s
 
+
 def a_state_vector() -> QuantumStateVector:
     return QuantumStateVector(2, vector=[1.0, 0, 0, 0])
+
 
 def b_state_vector() -> ParametricQuantumStateVector:
     s = ParametricQuantumStateVector(2, vector=[1.0, 0, 0, 0])
     s.with_gates_applied([RX(0), RY(1)])
 
+
 def a_circuit() -> QuantumCircuit:
     circuit = QuantumCircuit(2)
     circuit.add_H_gate(1)
     return circuit
+
 
 def b_circuit() -> UnboundParametricQuantumCircuit:
     circuit = UnboundParametricQuantumCircuit(2)

@@ -340,6 +340,7 @@ class QuantumCircuit(NonParametricQuantumCircuit, MutableQuantumCircuitProtocol)
         combined_circuit.extend(circuit)
         return combined_circuit
 
+
 class ImmutableQuantumCircuit(NonParametricQuantumCircuit):
     """An immutable quantum circuit having only non-parametric gates."""
 
