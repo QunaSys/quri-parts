@@ -50,8 +50,8 @@ def quantum_state(
             if isinstance(circuit, NonParametricQuantumCircuit):
                 return cb_state.with_gates_applied(circuit.gates)
             else:
-                # TODO: for parametric
-                ...
+                comb_circuit: UnboundParametricQuantumCircuitProtocol = cb_state.circuit * circuit
+                return circuit_quantum_state(n_qubits, comb_circuit)
     elif vector is None:
         return circuit_quantum_state(n_qubits, circuit)
     else:

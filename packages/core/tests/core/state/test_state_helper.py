@@ -119,6 +119,7 @@ def test_quantum_state_with_parametric_circuit_and_bits() -> None:
 
     assert isinstance(state, ParametricCircuitQuantumState)
     assert state.qubit_count == n_qubits
+    assert len(state.parametric_circuit.gates) == 4
 
 
 # def test_apply_circuit_empty() -> None:

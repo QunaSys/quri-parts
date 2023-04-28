@@ -331,13 +331,16 @@ class UnboundParametricQuantumCircuit(
     def freeze(self) -> "ImmutableUnboundParametricQuantumCircuit":
         return ImmutableUnboundParametricQuantumCircuit(self)
 
-    def __mul__(
+    def __rmul__(
         self,
         circuit: Union[
             UnboundParametricQuantumCircuitBase, NonParametricQuantumCircuit
         ],
     ) -> None:
-        self.extend(circuit)
+        combined_circuit = UnboundParametricQuantumCircuit(self.qubit_count)
+        combined_circuit.extend(circuit)
+        combined_circuit.extend(self)
+        return combined_circuit
 
 
 class ImmutableUnboundParametricQuantumCircuit(UnboundParametricQuantumCircuitBase):
