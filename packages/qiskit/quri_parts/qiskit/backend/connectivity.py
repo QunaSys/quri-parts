@@ -1,11 +1,25 @@
+from typing import Union
+
 import networkx as nx
-from qiskit.providers.ibmq import IBMQBackend
+from qiskit.providers import BackendV1, BackendV2
 
 
-def device_connectivity_graph(device: IBMQBackend) -> nx.Graph:
-    config = device.configuration()
-    adj_list = getattr(config, "coupling_map", None)
-    num_qubits = getattr(config, "num_qubits", -1)
+def device_connectivity_graph(device: Union[BackendV1, BackendV2]) -> nx.Graph:
+    if isinstance(device, BackendV1):
+        config = device.configuration()
+        coupling_map = getattr(config, "coupling_map", None)
+
+        if coupling_map is None:
+            adj_list = None
+        else:
+            adj_list = coupling_map.get_edges()
+
+        num_qubits = getattr(config, "num_qubits", -1)
+
+    else:
+        coupling_map = device.coupling_map
+        adj_list = coupling_map.get_edges()
+        num_qubits = device.num_qubits
 
     if adj_list is None:
         raise ValueError("Given device does not have a coupling map.")
@@ -13,9 +27,6 @@ def device_connectivity_graph(device: IBMQBackend) -> nx.Graph:
     if num_qubits == -1:
         raise ValueError("Number of qubits not specified by the backend.")
 
-    config = device.configuration()
-    adj_list = config.coupling_map
-    num_qubits = config.num_qubits
     lines = [f"{a} {b}" for (a, b) in adj_list]
     lines.extend([str(a) for a in range(num_qubits)])
 
