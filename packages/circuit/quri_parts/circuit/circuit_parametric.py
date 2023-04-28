@@ -336,11 +336,19 @@ class UnboundParametricQuantumCircuit(
         circuit: Union[
             UnboundParametricQuantumCircuitBase, NonParametricQuantumCircuit
         ],
-    ) -> None:
+    ) -> "UnboundParametricQuantumCircuit":
         combined_circuit = UnboundParametricQuantumCircuit(self.qubit_count)
         combined_circuit.extend(circuit)
         combined_circuit.extend(self)
         return combined_circuit
+
+    def __mul__(
+        self,
+        circuit: Union[
+            UnboundParametricQuantumCircuitBase, NonParametricQuantumCircuit
+        ],
+    ) -> "UnboundParametricQuantumCircuit":
+        return self.combine(circuit)
 
 
 class ImmutableUnboundParametricQuantumCircuit(UnboundParametricQuantumCircuitBase):
