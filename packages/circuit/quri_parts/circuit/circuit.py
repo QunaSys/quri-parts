@@ -331,6 +331,11 @@ class QuantumCircuit(NonParametricQuantumCircuit, MutableQuantumCircuitProtocol)
         self.extend(gates)
         return self
 
+    def __mul__(self, circuit: "QuantumCircuit") -> "QuantumCircuit":
+        combined_circuit = QuantumCircuit(circuit.qubit_count)
+        combined_circuit.extend(self)
+        combined_circuit.extend(circuit)
+        return combined_circuit
 
 class ImmutableQuantumCircuit(NonParametricQuantumCircuit):
     """An immutable quantum circuit having only non-parametric gates."""
