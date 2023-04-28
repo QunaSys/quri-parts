@@ -27,27 +27,6 @@ from quri_parts.core.state import (
 )
 
 
-def a_state() -> GeneralCircuitQuantumState:
-    s = GeneralCircuitQuantumState(2)
-    s = s.with_gates_applied([H(0), Z(1)])
-    return s
-
-
-def b_state() -> ParametricCircuitQuantumState:
-    s = ParametricCircuitQuantumState(2)
-    s = s.with_gates_applied([RX(0), RY(1)])
-    return s
-
-
-def a_state_vector() -> QuantumStateVector:
-    return QuantumStateVector(2, vector=[1.0, 0, 0, 0])
-
-
-def b_state_vector() -> ParametricQuantumStateVector:
-    s = ParametricQuantumStateVector(2, vector=[1.0, 0, 0, 0])
-    s.with_gates_applied([RX(0), RY(1)])
-
-
 def a_circuit() -> QuantumCircuit:
     circuit = QuantumCircuit(2)
     circuit.add_H_gate(1)
@@ -60,6 +39,24 @@ def b_circuit() -> UnboundParametricQuantumCircuit:
     circuit.add_Z_gate(1)
     circuit.add_ParametricRX_gate(0)
     return circuit
+
+
+def a_state() -> GeneralCircuitQuantumState:
+    s = GeneralCircuitQuantumState(2)
+    s = s.with_gates_applied([H(0), Z(1)])
+    return s
+
+
+def b_state() -> ParametricCircuitQuantumState:
+    return ParametricCircuitQuantumState(2, b_circuit())
+
+
+def a_state_vector() -> QuantumStateVector:
+    return QuantumStateVector(2, vector=[1.0, 0, 0, 0])
+
+
+def b_state_vector() -> ParametricQuantumStateVector:
+    return ParametricQuantumStateVector(2, vector=[1.0, 0, 0, 0], circuit=b_circuit())
 
 
 def test_quantum_state_init() -> None:

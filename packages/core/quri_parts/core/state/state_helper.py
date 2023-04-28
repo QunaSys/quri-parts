@@ -47,6 +47,8 @@ def apply_circuit(
         return quantum_state(
             state.qubit_count, vector=state.vector, circuit=combined_circuit
         )
+    else:
+        raise ValueError(f"Unsupported state type: {state}")
 
 
 def quantum_state(
@@ -65,9 +67,7 @@ def quantum_state(
             if isinstance(circuit, NonParametricQuantumCircuit):
                 return cb_state.with_gates_applied(circuit.gates)
             else:
-                comb_circuit: UnboundParametricQuantumCircuitProtocol = (
-                    cb_state.circuit * circuit
-                )
+                comb_circuit = cb_state.circuit.get_mutable_copy() * circuit
                 return circuit_quantum_state(n_qubits, comb_circuit)
     elif vector is None:
         return circuit_quantum_state(n_qubits, circuit)
