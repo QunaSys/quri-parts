@@ -117,7 +117,7 @@ def convert_circuit(circuit: NonParametricQuantumCircuit) -> Circuit:
             tket_circuit.add_unitary1qbox(convert_gate(gate), target_qubit[0])
             continue
         else:
-            raise ValueError("This gate is not supported.")
+            raise ValueError(f"{gate.name} gate is not supported.")
 
     return tket_circuit
 
