@@ -1,5 +1,5 @@
 from collections.abc import Mapping
-from typing import Callable, Union, cast
+from typing import Callable, Sequence, Union, cast
 
 from numpy import array, pi
 from pytket import Circuit, OpType  # type: ignore
@@ -57,6 +57,13 @@ _three_qubit_gate_tket: Mapping[ThreeQubitGateNameType, OpType] = {
     gate_names.TOFFOLI: OpType.CCX,
 }
 
+_special_named_gate_matrix: Mapping[
+    SingleQubitGateNameType, Sequence[Sequence[complex]]
+] = {
+    gate_names.SqrtY: [[0.5 + 0.5j, -0.5 - 0.5j], [0.5 + 0.5j, 0.5 + 0.5j]],
+    gate_names.SqrtYdag: [[0.5 - 0.5j, 0.5 - 0.5j], [-0.5 + 0.5j, 0.5 - 0.5j]],
+}
+
 
 def convert_gate(
     gate: QuantumGate,
@@ -64,6 +71,9 @@ def convert_gate(
     if is_single_qubit_gate_name(gate.name):
         if gate.name in _single_qubit_gate_tket:
             return _single_qubit_gate_tket[gate.name]
+
+        elif gate.name in _special_named_gate_matrix:
+            return cast(OpType, Unitary1qBox(_special_named_gate_matrix[gate.name]))
 
         else:
             return _single_qubit_rotation_gate_tket[gate.name]
@@ -112,7 +122,7 @@ def convert_circuit(circuit: NonParametricQuantumCircuit) -> Circuit:
             control_qubit = tuple(gate.control_indices)
             tket_circuit.add_gate(convert_gate(gate), control_qubit + target_qubit)
             continue
-        if gate.name == "UnitaryMatrix":
+        if gate.name == "UnitaryMatrix" or gate.name in _special_named_gate_matrix:
             target_qubit = gate.target_indices
             tket_circuit.add_unitary1qbox(convert_gate(gate), target_qubit[0])
             continue

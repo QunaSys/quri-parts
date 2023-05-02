@@ -4,6 +4,7 @@ from typing import Callable, Type, cast
 import numpy as np
 from pytket import Circuit, OpType  # type: ignore
 from pytket import circuit as pytket_circ
+from pytket.circuit import Unitary1qBox  # type: ignore
 
 from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
 from quri_parts.tket.circuit import convert_circuit  # type: ignore
@@ -46,22 +47,31 @@ def test_convert_single_qubit_gate() -> None:
         assert circuit_equal(converted, expected)
 
 
-# single_qubit_sgate_mapping: Mapping[Callable[[int], QuantumGate], QiskitGate] = {
-#     gates.SqrtY: UnitaryGate(
-#         np.array([[0.5 + 0.5j, -0.5 - 0.5j], [0.5 + 0.5j, 0.5 + 0.5j]])
-#     ),
-#     gates.SqrtYdag: UnitaryGate(
-#         np.array([[0.5 - 0.5j, 0.5 - 0.5j], [-0.5 + 0.5j, 0.5 - 0.5j]])
-#     ),
-# }
+single_qubit_sqrt_y_gate_mapping: Mapping[Callable[[int], QuantumGate], Unitary1qBox] = {
+    gates.SqrtY: Unitary1qBox(
+        np.array([[0.5 + 0.5j, -0.5 - 0.5j], [0.5 + 0.5j, 0.5 + 0.5j]])
+    ),
+    gates.SqrtYdag: Unitary1qBox(
+        np.array([[0.5 - 0.5j, 0.5 - 0.5j], [-0.5 + 0.5j, 0.5 - 0.5j]])
+    ),
+}
 
 
-# def test_convert_single_qubit_sgate() -> None:
-#     for qp_factory, qiskit_gate in single_qubit_sgate_mapping.items():
-#         qp_gate = qp_factory(7)
-#         converted = convert_gate(qp_gate)
-#         expected = qiskit_gate
-#         assert gate_equal(converted, expected)
+def test_convert_single_qubit_sgate() -> None:
+    for qp_factory, tket_gate in single_qubit_sqrt_y_gate_mapping.items():
+        target_index = 7
+        n_qubit = 8
+
+        qp_gate = qp_factory(target_index)
+        qp_circuit = QuantumCircuit(n_qubit)
+        qp_circuit.add_gate(qp_gate)
+
+        tket_circuit = Circuit(n_qubit)
+        tket_circuit.add_unitary1qbox(tket_gate, target_index)
+
+        converted = convert_circuit(qp_circuit)
+        expected = tket_circuit
+        assert circuit_equal(converted, expected)
 
 
 rotation_gate_mapping: Mapping[Callable[[int, float], QuantumGate], Type[OpType]] = {
@@ -143,9 +153,6 @@ def test_convert_three_qubit_gate() -> None:
 
 def test_convert_unitary_matrix_gate() -> None:
     umat = ((1, 0), (0, np.cos(np.pi / 4) + 1j * np.sin(np.pi / 4)))
-
-    # converted = convert_gate(qp_gate)
-    # expected = UnitaryGate(np.array(umat))
 
     target_index = 7
     n_qubit = 8
@@ -242,23 +249,3 @@ def test_convert_circuit() -> None:
     expected.Rx(0.125 / np.pi, 0)
 
     assert circuit_equal(converted, expected)
-
-
-# def test_convert_pauli() -> None:
-#     circuit = QuantumCircuit(4)
-#     original_gates = [
-#         gates.Pauli([0, 1, 2, 3], [1, 2, 3, 1]),
-#         gates.PauliRotation([0, 1, 2, 3], [1, 2, 3, 2], 0.266),
-#     ]
-#     for gate in original_gates:
-#         circuit.add_gate(gate)
-
-#     converted = convert_circuit(circuit)
-#     assert converted.num_qubits == 4
-
-#     expected = QiskitQuantumCircuit(4)
-#     expected.pauli(pauli_string="XZYX", qubits=[0, 1, 2, 3])
-#     evo = qgate.PauliEvolutionGate(Y ^ Z ^ Y ^ X, time=0.133)
-#     expected.append(evo, [0, 1, 2, 3])
-
-#     assert circuit_equal(converted, expected)
