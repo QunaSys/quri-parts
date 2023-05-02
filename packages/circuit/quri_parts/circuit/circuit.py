@@ -331,7 +331,7 @@ class QuantumCircuit(NonParametricQuantumCircuit, MutableQuantumCircuitProtocol)
         self.extend(gates)
         return self
 
-    def __mul__(self, circuit: "QuantumCircuit") -> "QuantumCircuit":
+    def __mul__(self, circuit: Optional[QuantumCircuitProtocol] = None) -> "QuantumCircuit":
         if not isinstance(circuit, QuantumCircuit):
             # fallback to `__rmul__` in the class of the circuit argument.
             return NotImplemented

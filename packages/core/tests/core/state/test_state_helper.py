@@ -8,14 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from quri_parts.circuit import (
-    RX,
-    RY,
-    H,
-    QuantumCircuit,
-    UnboundParametricQuantumCircuit,
-    Z,
-)
+from quri_parts.circuit import H, QuantumCircuit, UnboundParametricQuantumCircuit, Z
 from quri_parts.core.state import (
     ComputationalBasisState,
     GeneralCircuitQuantumState,
@@ -148,7 +141,7 @@ def test_quantum_state_with_parametric_circuit_and_bits() -> None:
     assert isinstance(state, ParametricCircuitQuantumState)
     assert state.qubit_count == n_qubits
     assert len(state.parametric_circuit.gates) == 4
-    assert state.parametric_circuit.gates[0].name == 'X'
+    assert state.parametric_circuit.gates[0].name == "X"
     assert state.parametric_circuit.gates[0].target_indices == (0,)
 
 
@@ -197,48 +190,37 @@ def test_apply_circuit_with_state_vector_and_parametric_circuit() -> None:
     assert combined_state.parametric_circuit == circuit
 
 
-def test_apply_circuit_with_parametric_state_and_general_circuit():
+def test_apply_circuit_with_parametric_state_and_general_circuit() -> None:
     state = b_state()
     circuit = a_circuit()
     combined_state = apply_circuit(state, circuit)
-    exp_state = state.with_gates_applied(circuit)
 
     assert isinstance(combined_state, ParametricCircuitQuantumState)
-    for actual, exp in zip(combined_state.parametric_circuit.gates, exp_state.parametric_circuit.gates):
-        assert actual.name == exp.name
-        assert actual.target_indices == exp.target_indices
+    assert len(combined_state.parametric_circuit.gates) == 4
 
 
-def test_apply_circuit_with_parametric_state_and_parametric_circuit():
+def test_apply_circuit_with_parametric_state_and_parametric_circuit() -> None:
     state = b_state()
     circuit = b_circuit()
     combined_state = apply_circuit(state, circuit)
-    exp_state = state.with_gates_applied(circuit)
 
     assert isinstance(combined_state, ParametricCircuitQuantumState)
-    for actual, exp in zip(combined_state.parametric_circuit.gates, exp_state.parametric_circuit.gates):
-        assert actual.name == exp.name
-        assert actual.target_indices == exp.target_indices
+    assert len(combined_state.parametric_circuit.gates) == 6
 
-def test_apply_circuit_with_parametric_state_vector_and_general_circuit():
+
+def test_apply_circuit_with_parametric_state_vector_and_general_circuit() -> None:
     state = b_state_vector()
     circuit = a_circuit()
     combined_state = apply_circuit(state, circuit)
-    exp_state = state.with_gates_applied(circuit)
 
-    assert isinstance(state, ParametricQuantumStateVector)
-    for actual, exp in zip(combined_state.parametric_circuit.gates, exp_state.parametric_circuit.gates):
-        assert actual.name == exp.name
-        assert actual.target_indices == exp.target_indices
+    assert isinstance(combined_state, ParametricQuantumStateVector)
+    assert len(combined_state.parametric_circuit.gates) == 4
 
 
-def test_apply_circuit_with_parametric_state_vector_and_parametric_circuit():
+def test_apply_circuit_with_parametric_state_vector_and_parametric_circuit() -> None:
     state = b_state_vector()
     circuit = b_circuit()
     combined_state = apply_circuit(state, circuit)
-    exp_state = state.with_gates_applied(circuit)
 
-    assert isinstance(state, ParametricQuantumStateVector)
-    for actual, exp in zip(combined_state.parametric_circuit.gates, exp_state.parametric_circuit.gates):
-        assert actual.name == exp.name
-        assert actual.target_indices == exp.target_indices
+    assert isinstance(combined_state, ParametricQuantumStateVector)
+    assert len(combined_state.parametric_circuit.gates) == 6

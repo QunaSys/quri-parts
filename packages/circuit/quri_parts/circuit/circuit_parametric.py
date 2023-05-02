@@ -345,7 +345,7 @@ class UnboundParametricQuantumCircuit(
     def __mul__(
         self,
         circuit: Union[
-            UnboundParametricQuantumCircuitBase, NonParametricQuantumCircuit
+            "UnboundParametricQuantumCircuit", NonParametricQuantumCircuit
         ],
     ) -> "UnboundParametricQuantumCircuit":
         return self.combine(circuit)
