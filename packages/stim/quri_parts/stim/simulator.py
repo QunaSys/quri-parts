@@ -38,6 +38,12 @@ def run_circuit(
     circuit: NonParametricQuantumCircuit,
     init_state: NDArray[cfloat],
 ) -> NDArray[cfloat]:
+    """Act a NonParametricQuantumCircuit onto a state vector and returns a new
+    state vector.
+
+    Note that in Stim, the output vector gets canonicalized in the way
+    that the first non-zero component of the output vector is positive.
+    """
     tableau = stim.TableauSimulator()
     tableau.set_state_from_state_vector(init_state, endian="little")
     stim_circuit = convert_circuit(circuit)
