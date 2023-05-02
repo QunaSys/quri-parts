@@ -1,8 +1,8 @@
 from collections.abc import MutableMapping
 
 from pytket import Circuit  # type: ignore
+from pytket.backends.backend import Backend
 from pytket.backends.backendresult import BackendResult
-from pytket.extensions.qiskit import AerBackend  # type: ignore
 
 from quri_parts.backend import SamplingCounts, SamplingJob, SamplingResult
 
@@ -30,9 +30,9 @@ class TKetSamplingResult(SamplingResult):
 class TKetSamplingJob(SamplingJob):
     """A job for a TKet sampling measurement."""
 
-    def __init__(self, circuit: Circuit, n_shots: int):
+    def __init__(self, circuit: Circuit, n_shots: int, backend: Backend):
         circuit_ = circuit.copy().measure_all()
-        self.backend = AerBackend()
+        self.backend = backend
         self.compiled_circ = self.backend.get_compiled_circuit(circuit_)
         self.handle = self.backend.process_circuit(self.compiled_circ, n_shots=n_shots)
 
