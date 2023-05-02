@@ -1,7 +1,7 @@
 # QURI Parts tket
 
-QURI Parts Stim is a support library for using tket with QURI Parts.
-You can combine your code written in QURI Parts with this library to execute it on Stim.
+QURI Parts tket is a support library for using tket with QURI Parts.
+You can combine your code written in QURI Parts with this library to execute it on tket.
 
 ## Documentation
 
