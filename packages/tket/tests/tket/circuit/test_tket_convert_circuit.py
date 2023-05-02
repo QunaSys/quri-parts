@@ -47,7 +47,9 @@ def test_convert_single_qubit_gate() -> None:
         assert circuit_equal(converted, expected)
 
 
-single_qubit_sqrt_y_gate_mapping: Mapping[Callable[[int], QuantumGate], Unitary1qBox] = {
+single_qubit_sqrt_y_gate_mapping: Mapping[
+    Callable[[int], QuantumGate], Unitary1qBox
+] = {
     gates.SqrtY: Unitary1qBox(
         np.array([[0.5 + 0.5j, -0.5 - 0.5j], [0.5 + 0.5j, 0.5 + 0.5j]])
     ),
