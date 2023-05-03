@@ -176,6 +176,8 @@ def test_ch3no() -> None:
 
 
 def test_h2o_all_active() -> None:
+    """Testing the edge case that setting all orbitals and all electrons to be
+    active reproduces the full space electron integrals."""
     atom = [["O", [0, 0, 0]], ["H", [0, 0, 1]], ["H", [2, 0, 0.5]]]
     spin = 0
     basis = "sto-3g"
@@ -183,6 +185,8 @@ def test_h2o_all_active() -> None:
 
 
 def test_h2o_spin_all_active() -> None:
+    """Testing the edge case that setting all orbitals and all electrons to be
+    active reproduces the full space electron integrals."""
     atom = [["O", [0, 0, 0]], ["H", [0, 0, 1]], ["H", [2, 0, 0.5]]]
     spin = 2
     basis = "sto-3g"

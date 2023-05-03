@@ -24,21 +24,21 @@ def compute_integrals(
     SpatialMOeIntSet,
     SpatialMOeIntSet,
 ]:
-    qp_chem_ao_eint_set = get_ao_eint_set(molecule, store_array_on_memory=True)
-    qp_pyscf_ao_eint_set = get_ao_eint_set(molecule)
-    pyscf_active_space_integrals = qp_pyscf_ao_eint_set.to_active_space_mo_int(
+    chem_ao_eint_set = get_ao_eint_set(molecule, store_array_on_memory=True)
+    pyscf_ao_eint_set = get_ao_eint_set(molecule)
+    pyscf_active_space_integrals = pyscf_ao_eint_set.to_active_space_mo_int(
         active_space_mo
     )
-    active_space_integrals = qp_chem_ao_eint_set.to_active_space_mo_int(active_space_mo)
+    active_space_integrals = chem_ao_eint_set.to_active_space_mo_int(active_space_mo)
     pyscf_active_space_spatial_integrals = (
-        qp_pyscf_ao_eint_set.to_active_space_spatial_mo_int(active_space_mo)
+        pyscf_ao_eint_set.to_active_space_spatial_mo_int(active_space_mo)
     )
-    active_space_spatial_integrals = qp_chem_ao_eint_set.to_active_space_spatial_mo_int(
+    active_space_spatial_integrals = chem_ao_eint_set.to_active_space_spatial_mo_int(
         active_space_mo
     )
     return (
-        cast(AOeIntArraySet, qp_chem_ao_eint_set),
-        cast(PySCFAOeIntSet, qp_pyscf_ao_eint_set),
+        cast(AOeIntArraySet, chem_ao_eint_set),
+        cast(PySCFAOeIntSet, pyscf_ao_eint_set),
         pyscf_active_space_integrals,
         active_space_integrals,
         pyscf_active_space_spatial_integrals,
@@ -51,62 +51,58 @@ class TestMolecule(unittest.TestCase):
 
     molecule: PySCFMolecularOrbitals
     active_space_mo: ActiveSpaceMolecularOrbitals
-    qp_chem_ao_eint_set: AOeIntArraySet
-    qp_pyscf_ao_eint_set: PySCFAOeIntSet
+    chem_ao_eint_set: AOeIntArraySet
+    pyscf_ao_eint_set: PySCFAOeIntSet
     pyscf_active_space_integrals: SpinMOeIntSet
     active_space_integrals: SpinMOeIntSet
     pyscf_active_space_spatial_integrals: SpatialMOeIntSet
     active_space_spatial_integrals: SpatialMOeIntSet
 
     def compare_ao1eint(self) -> None:
-        qp_chem_ao1eint = self.qp_chem_ao_eint_set.ao_1e_int
-        qp_pyscf_ao1eint = self.qp_pyscf_ao_eint_set.ao_1e_int
-        assert allclose(qp_chem_ao1eint.array, qp_pyscf_ao1eint.array)
+        chem_ao1eint = self.chem_ao_eint_set.ao_1e_int
+        pyscf_ao1eint = self.pyscf_ao_eint_set.ao_1e_int
+        assert allclose(chem_ao1eint.array, pyscf_ao1eint.array)
 
     def compare_ao2eint(self) -> None:
-        qp_chem_ao2eint = self.qp_chem_ao_eint_set.ao_2e_int
-        qp_pyscf_ao2eint = self.qp_pyscf_ao_eint_set.ao_2e_int
-        assert allclose(qp_chem_ao2eint.array, qp_pyscf_ao2eint.array)
+        chem_ao2eint = self.chem_ao_eint_set.ao_2e_int
+        pyscf_ao2eint = self.pyscf_ao_eint_set.ao_2e_int
+        assert allclose(chem_ao2eint.array, pyscf_ao2eint.array)
 
     def compare_spin_mo1eint(self) -> None:
-        qp_chem_spin_mo1eint = self.qp_chem_ao_eint_set.ao_1e_int.to_mo1int(
+        chem_spin_mo1eint = self.chem_ao_eint_set.ao_1e_int.to_mo1int(
             self.molecule.mo_coeff
         )
-        qp_pyscf_spin_mo1eint = self.qp_pyscf_ao_eint_set.ao_1e_int.to_mo1int(
+        pyscf_spin_mo1eint = self.pyscf_ao_eint_set.ao_1e_int.to_mo1int(
             self.molecule.mo_coeff
         )
-        assert allclose(qp_chem_spin_mo1eint.array, qp_pyscf_spin_mo1eint.array)
+        assert allclose(chem_spin_mo1eint.array, pyscf_spin_mo1eint.array)
 
     def compare_spin_mo2eint(self) -> None:
-        qp_chem_spin_mo2eint = self.qp_chem_ao_eint_set.ao_2e_int.to_mo2int(
+        chem_spin_mo2eint = self.chem_ao_eint_set.ao_2e_int.to_mo2int(
             self.molecule.mo_coeff
         )
-        qp_pyscf_spin_mo2eint = self.qp_pyscf_ao_eint_set.ao_2e_int.to_mo2int(
+        pyscf_spin_mo2eint = self.pyscf_ao_eint_set.ao_2e_int.to_mo2int(
             self.molecule.mo_coeff
         )
-        assert allclose(qp_chem_spin_mo2eint.array, qp_pyscf_spin_mo2eint.array)
+        assert allclose(chem_spin_mo2eint.array, pyscf_spin_mo2eint.array)
 
     def compare_spatial_mo1eint(self) -> None:
-        qp_chem_spatial_mo1eint = self.qp_chem_ao_eint_set.ao_1e_int.to_spatial_mo1int(
+        chem_spatial_mo1eint = self.chem_ao_eint_set.ao_1e_int.to_spatial_mo1int(
             self.molecule.mo_coeff
         )
-        qp_pyscf_spatial_mo1eint = (
-            self.qp_pyscf_ao_eint_set.ao_1e_int.to_spatial_mo1int(
-                self.molecule.mo_coeff
-            )
+        pyscf_spatial_mo1eint = self.pyscf_ao_eint_set.ao_1e_int.to_spatial_mo1int(
+            self.molecule.mo_coeff
         )
-        assert allclose(qp_chem_spatial_mo1eint.array, qp_pyscf_spatial_mo1eint.array)
+        assert allclose(chem_spatial_mo1eint.array, pyscf_spatial_mo1eint.array)
 
     def compare_spatial_mo2eint(self) -> None:
-        qp_chem_spatial_mo2eint = self.qp_chem_ao_eint_set.ao_2e_int.to_spatial_mo2int(
+        chem_spatial_mo2eint = self.chem_ao_eint_set.ao_2e_int.to_spatial_mo2int(
             self.molecule.mo_coeff
         )
-        qp_pyscf_spatial_mo2eint = (
-            self.qp_pyscf_ao_eint_set.ao_2e_int.to_spatial_mo2int(
-                self.molecule.mo_coeff
-            )
+        pyscf_spatial_mo2eint = self.pyscf_ao_eint_set.ao_2e_int.to_spatial_mo2int(
+            self.molecule.mo_coeff
         )
-        assert allclose(qp_chem_spatial_mo2eint.array, qp_pyscf_spatial_mo2eint.array)
+        assert allclose(chem_spatial_mo2eint.array, pyscf_spatial_mo2eint.array)
 
     def compare_casci_const(self) -> None:
         assert allclose(
@@ -171,8 +167,8 @@ class TestH2O(TestMolecule):
             cls.molecule, cas(n_active_ele=6, n_active_orb=4)
         )
         (
-            cls.qp_chem_ao_eint_set,
-            cls.qp_pyscf_ao_eint_set,
+            cls.chem_ao_eint_set,
+            cls.pyscf_ao_eint_set,
             cls.pyscf_active_space_integrals,
             cls.active_space_integrals,
             cls.pyscf_active_space_spatial_integrals,
@@ -198,8 +194,8 @@ class TestSpinningH2O(TestMolecule):
             cls.molecule, cas(n_active_ele=6, n_active_orb=4)
         )
         (
-            cls.qp_chem_ao_eint_set,
-            cls.qp_pyscf_ao_eint_set,
+            cls.chem_ao_eint_set,
+            cls.pyscf_ao_eint_set,
             cls.pyscf_active_space_integrals,
             cls.active_space_integrals,
             cls.pyscf_active_space_spatial_integrals,
@@ -225,8 +221,8 @@ class TestCCPVDZH2O(TestMolecule):
             cls.molecule, cas(n_active_ele=6, n_active_orb=4)
         )
         (
-            cls.qp_chem_ao_eint_set,
-            cls.qp_pyscf_ao_eint_set,
+            cls.chem_ao_eint_set,
+            cls.pyscf_ao_eint_set,
             cls.pyscf_active_space_integrals,
             cls.active_space_integrals,
             cls.pyscf_active_space_spatial_integrals,
@@ -252,8 +248,8 @@ class TestChargedH2O(TestMolecule):
             cls.molecule, cas(n_active_ele=5, n_active_orb=4)
         )
         (
-            cls.qp_chem_ao_eint_set,
-            cls.qp_pyscf_ao_eint_set,
+            cls.chem_ao_eint_set,
+            cls.pyscf_ao_eint_set,
             cls.pyscf_active_space_integrals,
             cls.active_space_integrals,
             cls.pyscf_active_space_spatial_integrals,

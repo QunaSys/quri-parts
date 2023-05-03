@@ -44,6 +44,8 @@ class MolecularOrbitalsInfo(MolecularOrbitals):
         return self._mo_coeff
 
 
+# Hard coded full space spatial electron integrals of a spin up H3 chain
+
 core_energy = 1.3229430273
 
 ao_1e_int = AO1eIntArray(
@@ -138,10 +140,10 @@ active_space_mo = ActiveSpaceMolecularOrbitals(
 
 
 class TestActiveSpaceIntegrals(unittest.TestCase):
-    _nuc_energy: float
-    _spin_mo_1e_int: npt.NDArray[np.complex128]
-    _spin_mo_2e_int: npt.NDArray[np.complex128]
-    _full_space_spin_integrals: npt.NDArray[np.complex128]
+    of_nuc_energy: float
+    of_spin_mo_1e_int: npt.NDArray[np.complex128]
+    of_spin_mo_2e_int: npt.NDArray[np.complex128]
+    of_full_space_spin_integrals: npt.NDArray[np.complex128]
     qp_chem_active_space_integrals: SpinMOeIntSet
 
     @classmethod
@@ -156,35 +158,41 @@ class TestActiveSpaceIntegrals(unittest.TestCase):
         # openfermion active space result.
         # _spin_mo_2e_int is multiplied by a factor of 2 to be consistent with
         # qp convention
-        cls._nuc_energy = -1.1870269447600394
-        cls._spin_mo_1e_int = array([[-0.33696926, 0.0], [0.0, -0.33696926]])
-        cls._spin_mo_2e_int = array(
-            [
-                [[[0.53466412, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.53466412, 0.0]]],
-                [[[0.0, 0.53466412], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.53466412]]],
-            ]
+        cls.of_nuc_energy = -1.1870269447600394
+        cls.of_spin_mo_1e_int = array([[-0.33696926, 0.0], [0.0, -0.33696926]])
+        cls.of_spin_mo_2e_int = (
+            array(
+                [
+                    [[[0.26733206, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.26733206, 0.0]]],
+                    [[[0.0, 0.26733206], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.26733206]]],
+                ]
+            ).astype(np.complex128)
+            * 2
         )
-        cls._full_space_spin_integrals = spinorb_from_spatial(
+
+        cls.of_full_space_spin_integrals = spinorb_from_spatial(
             ao_1e_int.array, ao_2e_int.array
         )
 
     def test_spatial_to_spin_conversion(self) -> None:
         assert np.allclose(
-            self._full_space_spin_integrals[0], full_space_spin_integrals[0]
+            self.of_full_space_spin_integrals[0], full_space_spin_integrals[0]
         )
         assert np.allclose(
-            self._full_space_spin_integrals[1], full_space_spin_integrals[1]
+            self.of_full_space_spin_integrals[1], full_space_spin_integrals[1]
         )
 
     def test_eff_nuc_energy(self) -> None:
-        assert np.allclose(self.qp_chem_active_space_integrals.const, self._nuc_energy)
+        assert np.allclose(
+            self.qp_chem_active_space_integrals.const, self.of_nuc_energy
+        )
 
     def test_eff_h1(self) -> None:
         assert np.allclose(
-            self.qp_chem_active_space_integrals.mo_1e_int.array, self._spin_mo_1e_int
+            self.qp_chem_active_space_integrals.mo_1e_int.array, self.of_spin_mo_1e_int
         )
 
     def test_eff_h2(self) -> None:
         assert np.allclose(
-            self.qp_chem_active_space_integrals.mo_2e_int.array, self._spin_mo_2e_int
+            self.qp_chem_active_space_integrals.mo_2e_int.array, self.of_spin_mo_2e_int
         )
