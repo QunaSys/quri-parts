@@ -7,7 +7,7 @@ from pytket import circuit as pytket_circ
 from pytket.circuit import Unitary1qBox  # type: ignore
 
 from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
-from quri_parts.tket.circuit import convert_circuit  # type: ignore
+from quri_parts.tket.circuit import convert_circuit
 
 
 def circuit_equal(c1: Circuit, c2: Circuit) -> bool:

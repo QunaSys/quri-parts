@@ -6,7 +6,7 @@ from pytket.extensions.qiskit import AerBackend  # type: ignore
 
 from quri_parts.backend import SamplingJob, SamplingResult
 from quri_parts.circuit import QuantumCircuit
-from quri_parts.tket.sampler import TKetSamplingJob  # type: ignore
+from quri_parts.tket.sampler import TKetSamplingJob
 
 
 class TestTKetSamplingBackend(unittest.TestCase):

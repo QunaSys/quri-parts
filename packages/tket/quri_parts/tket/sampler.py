@@ -7,7 +7,7 @@ from pytket.backends.backendresult import BackendResult
 
 from quri_parts.backend import SamplingCounts, SamplingJob, SamplingResult
 from quri_parts.circuit import NonParametricQuantumCircuit
-from quri_parts.tket.circuit import convert_circuit  # type: ignore
+from quri_parts.tket.circuit import convert_circuit
 
 
 class TKetSamplingResult(SamplingResult):
