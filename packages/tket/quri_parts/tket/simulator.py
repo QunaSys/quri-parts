@@ -10,7 +10,7 @@ from quri_parts.core.state import GeneralCircuitQuantumState, QuantumStateVector
 from quri_parts.tket.circuit import convert_circuit
 
 State: TypeAlias = Union[
-    GeneralCircuitQuantumState, QuantumStateVector, NDArray[float64]
+    GeneralCircuitQuantumState, QuantumStateVector, NDArray[cfloat]
 ]
 
 
