@@ -65,7 +65,7 @@ def circuit_from_tket(tket_circuit: Circuit) -> NonParametricQuantumCircuit:
 
     for operation in tket_circuit:
         gate_name = operation.op.type
-        qubits = list(map(lambda qubit: qubit.index[0], operation.qubits))  # type: ignore
+        qubits = list(map(lambda qubit: qubit.index[0], operation.qubits))  # type: ignore  # noqa: E501
 
         if gate_name in _single_qubit_gate_quri_parts:
             circuit.add_gate(
