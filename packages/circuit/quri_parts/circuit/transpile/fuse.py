@@ -25,7 +25,7 @@ class FuseRotationTranspiler(CircuitTranspilerProtocol):
         self, circuit: NonParametricQuantumCircuit
     ) -> NonParametricQuantumCircuit:
         xs = circuit.gates
-        ys = []
+        ys: list[QuantumGate] = []
 
         while xs:
             x = xs.pop(0)
