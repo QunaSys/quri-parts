@@ -9,16 +9,17 @@
 # limitations under the License.
 
 from quri_parts.chem.utils.excitations import (
+    DoubleExcitation,
+    SingleExcitation,
     excitations,
     spin_symmetric_excitations,
-    SingleExcitation,
-    DoubleExcitation,
 )
 from quri_parts.circuit import (
     ImmutableLinearMappedUnboundParametricQuantumCircuit,
     LinearMappedUnboundParametricQuantumCircuit,
+    Parameter,
 )
-from quri_parts.circuit import Parameter
+
 from ..transforms import OpenFermionQubitMapping, jordan_wigner
 from ..utils import (
     add_exp_excitation_gates_trotter_decomposition,
@@ -60,18 +61,22 @@ class TrotterSingletUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
         if n_vir_sorbs <= 0:
             raise ValueError("Number of virtual orbitals must be a non-zero integer.")
 
-        circuit = _construct_spin_symmetric_circuit(
-            n_spin_orbitals,
-            n_fermions,
-            fermion_qubit_mapping,
-            trotter_number,
-            use_singles,
-        ) if spin_symmetric else _construct_circuit(
-            n_spin_orbitals,
-            n_fermions,
-            fermion_qubit_mapping,
-            trotter_number,
-            use_singles,
+        circuit = (
+            _construct_spin_symmetric_circuit(
+                n_spin_orbitals,
+                n_fermions,
+                fermion_qubit_mapping,
+                trotter_number,
+                use_singles,
+            )
+            if spin_symmetric
+            else _construct_circuit(
+                n_spin_orbitals,
+                n_fermions,
+                fermion_qubit_mapping,
+                trotter_number,
+                use_singles,
+            )
         )
 
         super().__init__(circuit)
@@ -127,19 +132,19 @@ def _construct_spin_symmetric_circuit(
         for occ, vir in s_excs:
             param_name = f"theta_s_{occ//2}_{vir//2}"
             if param_name not in s_exc_param_names.values():
-                s_exc_params[(occ//2, vir//2)] = circuit.add_parameter(param_name)
+                s_exc_params[(occ // 2, vir // 2)] = circuit.add_parameter(param_name)
             s_exc_param_names[(occ, vir)] = param_name
-            
-    
+
     d_exc_params: dict[DoubleExcitation, Parameter] = {}
     d_exc_param_names: dict[DoubleExcitation, str] = {}
     for occ1, occ2, vir1, vir2 in d_excs:
         param_name = f"theta_d_{occ1//2}_{occ2//2}_{vir1//2}_{vir2//2}"
         if param_name not in d_exc_param_names.values():
-            d_exc_params[(occ1//2, occ2//2, vir1//2, vir2//2)] = circuit.add_parameter(param_name)
+            d_exc_params[
+                (occ1 // 2, occ2 // 2, vir1 // 2, vir2 // 2)
+            ] = circuit.add_parameter(param_name)
         d_exc_param_names[(occ1, occ2, vir1, vir2)] = param_name
 
-            
     op_mapper = fermion_qubit_mapping.get_of_operator_mapper(
         n_spin_orbitals, n_fermions
     )

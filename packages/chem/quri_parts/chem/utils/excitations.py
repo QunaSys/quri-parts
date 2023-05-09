@@ -57,18 +57,23 @@ def spin_symmetric_excitations(
     n_spin_orbitals: int, n_fermions: int
 ) -> tuple[Sequence[SingleExcitation], Sequence[DoubleExcitation]]:
     """Returns the lists of spin-symmetric single and double excitations.
+
     Please refer to eq.(81) of arXiv:2109.15176 for more details.
     """
     sz = [0.5 if (i % 2 == 0) else -0.5 for i in range(n_spin_orbitals)]
     singles = []
     doubles = []
-    for r, p in itertools.product(range(n_fermions), range(n_fermions, n_spin_orbitals)):
+    for r, p in itertools.product(
+        range(n_fermions), range(n_fermions, n_spin_orbitals)
+    ):
         if sz[p] == sz[r]:
             singles.append((r, p))
 
     for i, j, a, b in itertools.product(
-        range(n_fermions), range(n_fermions),
-        range(n_fermions, n_spin_orbitals), range(n_fermions, n_spin_orbitals)
+        range(n_fermions),
+        range(n_fermions),
+        range(n_fermions, n_spin_orbitals),
+        range(n_fermions, n_spin_orbitals),
     ):
         if sz[a] == sz[b] == sz[i] == sz[j] and b > a > j > i:
             doubles.append((i, j, b, a))
@@ -78,7 +83,7 @@ def spin_symmetric_excitations(
             continue
         else:
             continue
-    
+
     return singles, doubles
 
 
