@@ -42,7 +42,9 @@ class FuseRotationTranspiler(CircuitTranspilerProtocol):
                 theta = (x.params[0] + y.params[0]) % (2 * np.pi)
                 ys.append(
                     QuantumGate(
-                        name=x.name, target_indices=x.target_indices, params=theta
+                        name=x.name,
+                        target_indices=x.target_indices,
+                        params=[theta],
                     )
                 )
             else:
