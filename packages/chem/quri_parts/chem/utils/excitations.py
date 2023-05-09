@@ -7,7 +7,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import itertools
 from typing import Sequence
 
 from typing_extensions import TypeAlias
@@ -50,6 +50,35 @@ def excitations(
                     if sz[p] + sz[q] - sz[r] - sz[s] == delta_sz:
                         doubles.append((s, r, q, p))
 
+    return singles, doubles
+
+
+def spin_symmetric_excitations(
+    n_spin_orbitals: int, n_fermions: int
+) -> tuple[Sequence[SingleExcitation], Sequence[DoubleExcitation]]:
+    """Returns the lists of spin-symmetric single and double excitations.
+    Please refer to eq.(81) of arXiv:2109.15176 for more details.
+    """
+    sz = [0.5 if (i % 2 == 0) else -0.5 for i in range(n_spin_orbitals)]
+    singles = []
+    doubles = []
+    for r, p in itertools.product(range(n_fermions), range(n_fermions, n_spin_orbitals)):
+        if sz[p] == sz[r]:
+            singles.append((r, p))
+
+    for i, j, a, b in itertools.product(
+        range(n_fermions), range(n_fermions),
+        range(n_fermions, n_spin_orbitals), range(n_fermions, n_spin_orbitals)
+    ):
+        if sz[a] == sz[b] == sz[i] == sz[j] and b > a > j > i:
+            doubles.append((i, j, b, a))
+            continue
+        if sz[i] == sz[a] == 0.5 and sz[j] == sz[b] == -0.5:
+            doubles.append((i, j, b, a))
+            continue
+        else:
+            continue
+    
     return singles, doubles
 
 
