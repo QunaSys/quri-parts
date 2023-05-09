@@ -11,6 +11,7 @@
 from typing import Callable
 
 from .clifford_approximation import CliffordApproximationTranspiler
+from .fuse import FuseRotationTranspiler
 from .gate_kind_decomposer import (
     CNOT2CZHTranspiler,
     CZ2CNOTHTranspiler,
@@ -143,6 +144,41 @@ RotationSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTrans
 )
 
 
+#: CircuitTranspiler to transpile a QuntumCircuit into another
+#: QuantumCircuit containing only H, X, Y, Z, S, RZ, and CNOT.
+CliffordRZSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
+    [
+        ParallelDecomposer(
+            [
+                CZ2CNOTHTranspiler(),
+                PauliDecomposeTranspiler(),
+                PauliRotationDecomposeTranspiler(),
+                TOFFOLI2HTTdagCNOTTranspiler(),
+            ]
+        ),
+        ParallelDecomposer(
+            [
+                Identity2RZTranspiler(),
+                SqrtXdag2RZSqrtXTranspiler(),
+                SqrtY2RZSqrtXTranspiler(),
+                SqrtYdag2RZSqrtXTranspiler(),
+                Sdag2RZTranspiler(),
+                T2RZTranspiler(),
+                Tdag2RZTranspiler(),
+                RX2RZSqrtXTranspiler(),
+                RY2RZSqrtXTranspiler(),
+                U1ToRZTranspiler(),
+                U2ToRZSqrtXTranspiler(),
+                U3ToRZSqrtXTranspiler(),
+                SWAP2CNOTTranspiler(),
+            ]
+        ),
+        SqrtX2RZHTranspiler(),
+        FuseRotationTranspiler(),
+    ]
+)
+
+
 __all__ = [
     "CircuitTranspiler",
     "CircuitTranspilerProtocol",
@@ -152,6 +188,7 @@ __all__ = [
     "SequentialTranspiler",
     "RZSetTranspiler",
     "RotationSetTranspiler",
+    "CliffordRZSetTranspiler",
     "CliffordApproximationTranspiler",
     "IdentityEliminationTranspiler",
     "IdentityInsertionTranspiler",
@@ -161,6 +198,7 @@ __all__ = [
     "CNOT2CZHTranspiler",
     "CZ2CNOTHTranspiler",
     "CZ2RXRYCNOTTranspiler",
+    "FuseRotationTranspiler",
     "H2RXRYTranspiler",
     "H2RZSqrtXTranspiler",
     "QubitRemappingTranspiler",
