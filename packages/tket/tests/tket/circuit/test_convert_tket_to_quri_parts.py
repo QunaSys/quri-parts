@@ -1,5 +1,6 @@
 import numpy as np
 from pytket import Circuit, OpType  # type: ignore
+from pytket.circuit import Unitary1qBox  # type: ignore
 
 from quri_parts.circuit import QuantumGate, gates
 from quri_parts.tket.circuit.tket_circuit_converter import circuit_from_tket
@@ -15,6 +16,8 @@ def gate_equal(gate_1: QuantumGate, gate_2: QuantumGate) -> None:
 
 
 def test_circuit_from_tket() -> None:
+    unitary_matrix = [[1, 0], [0, np.cos(np.pi / 4) + 1j * np.sin(np.pi / 4)]]
+
     tket_circuit = Circuit(4)
     tket_circuit.add_gate(OpType.noop, (0,))
     tket_circuit.X(1)
@@ -37,6 +40,7 @@ def test_circuit_from_tket() -> None:
     tket_circuit.CZ(1, 2)
     tket_circuit.SWAP(0, 2)
     tket_circuit.CCX(0, 1, 2)
+    tket_circuit.add_unitary1qbox(Unitary1qBox(unitary_matrix), 2)
 
     qp_circuit = circuit_from_tket(tket_circuit)
 
@@ -62,6 +66,7 @@ def test_circuit_from_tket() -> None:
         gates.CZ(1, 2),
         gates.SWAP(0, 2),
         gates.TOFFOLI(0, 1, 2),
+        gates.UnitaryMatrix([2], unitary_matrix),
     ]
 
     for i, g in enumerate(qp_circuit.gates):

@@ -1,8 +1,8 @@
 from collections.abc import Mapping
-from typing import Callable, Union
+from typing import Callable, Sequence, cast
 
 from numpy import array, pi
-from pytket import Circuit, OpType  # type: ignore
+from pytket import Circuit, OpType, Qubit  # type: ignore
 
 from quri_parts.circuit import (
     NonParametricQuantumCircuit,
@@ -31,11 +31,7 @@ _single_qubit_gate_quri_parts: Mapping[OpType, SingleQubitGateNameType] = {
 }
 
 _single_qubit_rotation_gate_tket: Mapping[
-    Union[
-        Callable[[float], OpType],
-        Callable[[float, float], OpType],
-        Callable[[float, float, float], OpType],
-    ],
+    OpType,
     SingleQubitGateNameType,
 ] = {
     OpType.U1: gate_names.U1,
@@ -65,8 +61,8 @@ def circuit_from_tket(tket_circuit: Circuit) -> NonParametricQuantumCircuit:
 
     for operation in tket_circuit:
         gate_name = operation.op.type
-        qubits = list(map(lambda qubit: qubit.index[0], operation.qubits))  # type: ignore  # noqa: E501
-
+        qubit_converter: Callable[[Qubit], int] = lambda qubit: int(qubit.index[0])
+        qubits = list(map(qubit_converter, cast(Sequence[Qubit], operation.qubits)))
         if gate_name in _single_qubit_gate_quri_parts:
             circuit.add_gate(
                 QuantumGate(
