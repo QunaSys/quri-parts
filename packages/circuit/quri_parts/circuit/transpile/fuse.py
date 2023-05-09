@@ -44,7 +44,7 @@ class FuseRotationTranspiler(CircuitTranspilerProtocol):
                     QuantumGate(
                         name=x.name,
                         target_indices=x.target_indices,
-                        params=[theta],
+                        params=(theta,),
                     )
                 )
             else:
