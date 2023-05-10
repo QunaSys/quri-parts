@@ -267,8 +267,8 @@ class TwoQubitUnitaryMatrixKAKTranspiler(GateDecomposer):
     gate sequences containing H, S, RX, RY, RZ, and CNOT gates.
 
     Raises:
-        ValueError: Depending on the nature of the input matrix, the decomposition
-            may fail and throw an error.
+        ValueError: Depending on the nature of the unitary matrix of the input
+            UnitaryMatrix gate, the decomposition may fail and throw an error.
 
     Ref:
         [1]: Tomonori Shirakawa, Hiroshi Ueda, and Seiji Yunoki,
