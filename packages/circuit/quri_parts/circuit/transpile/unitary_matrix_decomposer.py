@@ -266,6 +266,10 @@ class TwoQubitUnitaryMatrixKAKTranspiler(GateDecomposer):
     """CircuitTranspiler, which decomposes two qubit UnitaryMatrix gates into
     gate sequences containing H, S, RX, RY, RZ, and CNOT gates.
 
+    Raises:
+        ValueError: Depending on the nature of the input matrix, the decomposition
+            may fail and throw an error.
+
     Ref:
         [1]: Tomonori Shirakawa, Hiroshi Ueda, and Seiji Yunoki,
             Automatic quantum circuit encoding of a given arbitrary quantum state,
