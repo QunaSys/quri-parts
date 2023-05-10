@@ -11,7 +11,7 @@
 from abc import ABC, abstractmethod, abstractproperty
 from collections.abc import Mapping, Sequence
 from functools import cached_property
-from typing import Optional, Protocol, Union
+from typing import Optional, Protocol, Union, runtime_checkable
 
 from quri_parts.circuit import gate_names
 
@@ -22,6 +22,7 @@ from .circuit import (
     NonParametricQuantumCircuit,
     QuantumCircuit,
     QuantumCircuitProtocol,
+    is_gate_sequence,
 )
 from .gate import ParametricQuantumGate, QuantumGate
 from .gates import (
@@ -38,6 +39,7 @@ from .parameter import Parameter
 from .parameter_mapping import LinearParameterMapping, ParameterMapping
 
 
+@runtime_checkable
 class UnboundParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
     """Interface protocol for a quantum circuit containing unbound (i.e. not
     assigned values) parameters.
@@ -230,6 +232,26 @@ class UnboundParametricQuantumCircuitBase(UnboundParametricQuantumCircuitProtoco
     def parameter_count(self) -> int:
         return len(self._params)
 
+    def __rmul__(
+        self,
+        gates: Union[GateSequence, "UnboundParametricQuantumCircuitBase"],
+    ) -> "UnboundParametricQuantumCircuit":
+        combined_circuit = UnboundParametricQuantumCircuit(self.qubit_count)
+        combined_circuit.extend(gates)
+        combined_circuit.extend(self)
+        return combined_circuit
+
+    def __mul__(
+        self,
+        gates: Union[GateSequence, "UnboundParametricQuantumCircuitBase"],
+    ) -> "UnboundParametricQuantumCircuit":
+        if not (
+            is_gate_sequence(gates)
+            or isinstance(gates, UnboundParametricQuantumCircuitBase)
+        ):
+            return NotImplemented
+        return self.combine(gates)
+
 
 class UnboundParametricQuantumCircuit(
     UnboundParametricQuantumCircuitBase,
@@ -330,25 +352,6 @@ class UnboundParametricQuantumCircuit(
 
     def freeze(self) -> "ImmutableUnboundParametricQuantumCircuit":
         return ImmutableUnboundParametricQuantumCircuit(self)
-
-    def __rmul__(
-        self,
-        circuit: Union[
-            UnboundParametricQuantumCircuitBase, NonParametricQuantumCircuit
-        ],
-    ) -> "UnboundParametricQuantumCircuit":
-        combined_circuit = UnboundParametricQuantumCircuit(self.qubit_count)
-        combined_circuit.extend(circuit)
-        combined_circuit.extend(self)
-        return combined_circuit
-
-    def __mul__(
-        self,
-        circuit: Union[
-            "UnboundParametricQuantumCircuit", NonParametricQuantumCircuit
-        ],
-    ) -> "UnboundParametricQuantumCircuit":
-        return self.combine(circuit)
 
 
 class ImmutableUnboundParametricQuantumCircuit(UnboundParametricQuantumCircuitBase):

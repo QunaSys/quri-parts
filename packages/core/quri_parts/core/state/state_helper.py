@@ -8,14 +8,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Optional, Union, cast
 
 if TYPE_CHECKING:
     import numpy.typing as npt
 
 from quri_parts.circuit import (
     NonParametricQuantumCircuit,
-    UnboundParametricQuantumCircuitProtocol,
+    UnboundParametricQuantumCircuitBase,
 )
 
 from . import ComputationalBasisState
@@ -27,23 +27,27 @@ from .state_vector_parametric import ParametricQuantumStateVector
 
 def apply_circuit(
     state: QuantumState,
-    circuit: Optional[
-        Union[NonParametricQuantumCircuit, UnboundParametricQuantumCircuitProtocol]
-    ] = None,
+    circuit: Union[NonParametricQuantumCircuit, UnboundParametricQuantumCircuitBase],
 ) -> QuantumState:
     if isinstance(state, GeneralCircuitQuantumState):
-        combined_circuit = state.circuit.get_mutable_copy() * circuit
+        combined_circuit = state.circuit * circuit
         return quantum_state(state.qubit_count, circuit=combined_circuit)
     elif isinstance(state, QuantumStateVector):
-        combined_circuit = state.circuit.get_mutable_copy() * circuit
+        combined_circuit = state.circuit * circuit
         return quantum_state(
             state.qubit_count, vector=state.vector, circuit=combined_circuit
         )
     elif isinstance(state, ParametricCircuitQuantumState):
-        combined_circuit = state.parametric_circuit.get_mutable_copy() * circuit
+        combined_circuit = (
+            cast(UnboundParametricQuantumCircuitBase, state.parametric_circuit)
+            * circuit
+        )
         return quantum_state(state.qubit_count, circuit=combined_circuit)
     elif isinstance(state, ParametricQuantumStateVector):
-        combined_circuit = state.parametric_circuit.get_mutable_copy() * circuit
+        combined_circuit = (
+            cast(UnboundParametricQuantumCircuitBase, state.parametric_circuit)
+            * circuit
+        )
         return quantum_state(
             state.qubit_count, vector=state.vector, circuit=combined_circuit
         )
@@ -56,29 +60,25 @@ def quantum_state(
     vector: Optional[Union[StateVectorType, "npt.ArrayLike"]] = None,
     bits: int = 0,
     circuit: Optional[
-        Union[NonParametricQuantumCircuit, UnboundParametricQuantumCircuitProtocol]
+        Union[NonParametricQuantumCircuit, UnboundParametricQuantumCircuitBase]
     ] = None,
 ) -> QuantumState:
-    if bits != 0:
+    if vector is None:
+        cb_state = ComputationalBasisState(n_qubits, bits=bits)
         if circuit is None:
-            return ComputationalBasisState(n_qubits, bits=bits)
+            return cb_state
         else:
-            cb_state = ComputationalBasisState(n_qubits, bits=bits)
-            if isinstance(circuit, NonParametricQuantumCircuit):
-                return cb_state.with_gates_applied(circuit.gates)
-            else:
-                comb_circuit = cb_state.circuit.get_mutable_copy() * circuit
-                return circuit_quantum_state(n_qubits, comb_circuit)
-    elif vector is None:
-        return circuit_quantum_state(n_qubits, circuit)
-    else:
-        return quantum_state_vector(n_qubits, vector, circuit)
+            comb_circuit = cb_state.circuit * circuit
+            return circuit_quantum_state(n_qubits, comb_circuit)
+    if bits != 0:
+        raise ValueError("")
+    return quantum_state_vector(n_qubits, vector, circuit)
 
 
 def circuit_quantum_state(
     n_qubits: int,
     circuit: Optional[
-        Union[NonParametricQuantumCircuit, UnboundParametricQuantumCircuitProtocol]
+        Union[NonParametricQuantumCircuit, UnboundParametricQuantumCircuitBase]
     ] = None,
 ) -> QuantumState:
     if circuit is None or isinstance(circuit, NonParametricQuantumCircuit):
@@ -91,7 +91,7 @@ def quantum_state_vector(
     n_qubits: int,
     vector: Union[StateVectorType, "npt.ArrayLike"],
     circuit: Optional[
-        Union[NonParametricQuantumCircuit, UnboundParametricQuantumCircuitProtocol]
+        Union[NonParametricQuantumCircuit, UnboundParametricQuantumCircuitBase]
     ] = None,
 ) -> QuantumState:
     if circuit is None or isinstance(circuit, NonParametricQuantumCircuit):

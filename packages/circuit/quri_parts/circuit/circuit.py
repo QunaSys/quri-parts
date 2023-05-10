@@ -49,6 +49,10 @@ from .gates import (
 GateSequence: TypeAlias = Union["NonParametricQuantumCircuit", Sequence[QuantumGate]]
 
 
+def is_gate_sequence(gates: Union["QuantumCircuitProtocol", GateSequence]) -> bool:
+    return isinstance(gates, (NonParametricQuantumCircuit, Sequence))
+
+
 class QuantumCircuitProtocol(Protocol):
     """Interface protocol for a quantum circuit.
 
@@ -273,6 +277,13 @@ class NonParametricQuantumCircuit(QuantumCircuitProtocol, ABC):
         ...
 
     def __add__(self, gates: GateSequence) -> "QuantumCircuit":
+        if not is_gate_sequence(gates):
+            return NotImplemented
+        return self.combine(gates)
+
+    def __mul__(self, gates: GateSequence) -> "QuantumCircuit":
+        if not is_gate_sequence(gates):
+            return NotImplemented
         return self.combine(gates)
 
 
@@ -328,17 +339,15 @@ class QuantumCircuit(NonParametricQuantumCircuit, MutableQuantumCircuitProtocol)
         return self.freeze() == other.freeze()
 
     def __iadd__(self, gates: GateSequence) -> "QuantumCircuit":
-        self.extend(gates)
+        if not is_gate_sequence(gates):
+            return NotImplemented
         return self
 
-    def __mul__(self, circuit: Optional[QuantumCircuitProtocol] = None) -> "QuantumCircuit":
-        if not isinstance(circuit, QuantumCircuit):
-            # fallback to `__rmul__` in the class of the circuit argument.
+    def __imul__(self, gates: GateSequence) -> "QuantumCircuit":
+        if not is_gate_sequence(gates):
             return NotImplemented
-        combined_circuit = QuantumCircuit(circuit.qubit_count)
-        combined_circuit.extend(self)
-        combined_circuit.extend(circuit)
-        return combined_circuit
+        self.extend(gates)
+        return self
 
 
 class ImmutableQuantumCircuit(NonParametricQuantumCircuit):

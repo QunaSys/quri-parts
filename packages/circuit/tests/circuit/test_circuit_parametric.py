@@ -13,6 +13,7 @@ from quri_parts.circuit import (
     RX,
     ImmutableBoundParametricQuantumCircuit,
     ImmutableUnboundParametricQuantumCircuit,
+    QuantumCircuit,
     QuantumGate,
     UnboundParametricQuantumCircuit,
     X,
@@ -85,6 +86,24 @@ class TestUnboundParametricQuantumCircuit:
         assert circuit_2.depth == 2
         immutable_circuit_2 = circuit_2.freeze()
         assert immutable_circuit_2.depth == 2
+
+    def test_mul_unbound_param_and_non_param(self) -> None:
+        circuit = mutable_circuit()
+        circuit2 = QuantumCircuit(2)
+        circuit2.add_H_gate(0)
+        got_circuit = circuit * circuit2
+        exp_circuit = circuit.get_mutable_copy()
+        exp_circuit.add_H_gate(0)
+        assert got_circuit.gates == exp_circuit.gates
+
+    def test_mul_unbound_param_circuits(self) -> None:
+        circuit = mutable_circuit()
+        circuit2 = UnboundParametricQuantumCircuit(2)
+        circuit2.add_ParametricRX_gate(0)
+        got_circuit = circuit * circuit2
+        exp_circuit = circuit.get_mutable_copy()
+        exp_circuit.add_ParametricRX_gate(0)
+        assert got_circuit.gates == exp_circuit.gates
 
 
 class TestImmutableUnboundParametricQuantumCircuit:
