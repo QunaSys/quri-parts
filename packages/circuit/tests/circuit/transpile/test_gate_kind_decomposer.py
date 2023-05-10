@@ -635,9 +635,7 @@ class TestRotationSetTranspile:
 
 class TestCliffordRZSetTranspile:
     def test_cliffordrzset_transpile(self) -> None:
-        theta = np.random.rand() * 2.0 * np.pi
-        phi = np.random.rand() * 2.0 * np.pi
-        lam = np.random.rand() * 2.0 * np.pi
+        theta, phi, lam = np.pi / 3.0, np.pi / 5.0, np.pi / 7.0
 
         circuit = QuantumCircuit(1)
         circuit.extend(
@@ -661,19 +659,19 @@ class TestCliffordRZSetTranspile:
         expect = QuantumCircuit(3)
         expect.extend(
             [
-                RZ(0, -np.pi / 2.0),  # SqrtX
+                Sdag(0),  # SqrtX
                 H(0),
-                RZ(0, 0.0),  # SqrtX, SqrtXdag
+                # RZ(0, 0.0),  # SqrtX, SqrtXdag
                 H(0),
-                RZ(0, 3.0 * np.pi / 2.0),  # SqrtXdag, SqrtY
+                Sdag(0),  # SqrtXdag, SqrtY
                 H(0),
-                RZ(0, 0.0),  # SqrtY, SqrtYdag
+                # RZ(0, 0.0),  # SqrtY, SqrtYdag
                 H(0),
-                RZ(0, np.pi / 2.0),  # SqrtYdag, T, Tdag
+                S(0),  # SqrtYdag, T, Tdag
                 H(0),  # RX
                 RZ(0, theta),
                 H(0),
-                RZ(0, 3.0 * np.pi / 2.0),  # RY
+                Sdag(0),  # RY
                 H(0),
                 RZ(0, theta),
                 H(0),

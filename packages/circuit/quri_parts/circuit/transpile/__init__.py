@@ -11,7 +11,12 @@
 from typing import Callable
 
 from .clifford_approximation import CliffordApproximationTranspiler
-from .fuse import FuseRotationTranspiler
+from .fuse import (
+    FuseRotationTranspiler,
+    RX2NamedTranspiler,
+    RY2NamedTranspiler,
+    RZ2NamedTranspiler,
+)
 from .gate_kind_decomposer import (
     CNOT2CZHTranspiler,
     CZ2CNOTHTranspiler,
@@ -146,7 +151,9 @@ RotationSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTrans
 
 #: CircuitTranspiler to transpile a QuntumCircuit into another
 #: QuantumCircuit containing only H, X, Y, Z, S, RZ, and CNOT.
-CliffordRZSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
+CliffordRZSetTranspiler: Callable[
+    [float], CircuitTranspiler
+] = lambda epsilon=1.0e-9: SequentialTranspiler(
     [
         ParallelDecomposer(
             [
@@ -158,7 +165,6 @@ CliffordRZSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTra
         ),
         ParallelDecomposer(
             [
-                Identity2RZTranspiler(),
                 SqrtXdag2RZSqrtXTranspiler(),
                 SqrtY2RZSqrtXTranspiler(),
                 SqrtYdag2RZSqrtXTranspiler(),
@@ -175,6 +181,10 @@ CliffordRZSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTra
         ),
         SqrtX2RZHTranspiler(),
         FuseRotationTranspiler(),
+        RX2NamedTranspiler(epsilon),
+        RY2NamedTranspiler(epsilon),
+        RZ2NamedTranspiler(epsilon),
+        IdentityEliminationTranspiler(),
     ]
 )
 
@@ -204,6 +214,9 @@ __all__ = [
     "QubitRemappingTranspiler",
     "RX2RZSqrtXTranspiler",
     "RY2RZSqrtXTranspiler",
+    "RX2NamedTranspiler",
+    "RY2NamedTranspiler",
+    "RZ2NamedTranspiler",
     "S2RZTranspiler",
     "Sdag2RZTranspiler",
     "SingleQubitUnitaryMatrix2RYRZTranspiler",

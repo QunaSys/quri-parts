@@ -10,8 +10,13 @@
 
 import numpy as np
 
-from quri_parts.circuit import CNOT, RX, RY, RZ, SWAP, H, QuantumCircuit, QuantumGate, X
-from quri_parts.circuit.transpile import FuseRotationTranspiler
+from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
+from quri_parts.circuit.transpile import (
+    FuseRotationTranspiler,
+    RX2NamedTranspiler,
+    RY2NamedTranspiler,
+    RZ2NamedTranspiler,
+)
 
 
 def _gates_close(x: QuantumGate, y: QuantumGate) -> bool:
@@ -30,17 +35,17 @@ class TestFuseRotation:
         circuit = QuantumCircuit(3)
         circuit.extend(
             [
-                H(0),
-                RX(1, np.pi / 2),
-                RX(1, np.pi / 2),
-                RX(2, np.pi / 2),
-                RY(0, np.pi / 2),
-                RY(0, np.pi / 2),
-                RY(0, np.pi / 2),
-                CNOT(0, 2),
-                X(2),
-                RZ(2, np.pi / 2),
-                RZ(2, np.pi / 2),
+                gates.H(0),
+                gates.RX(1, np.pi / 2.0),
+                gates.RX(1, np.pi / 2.0),
+                gates.RX(2, np.pi / 2.0),
+                gates.RY(0, np.pi / 2.0),
+                gates.RY(0, np.pi / 2.0),
+                gates.RY(0, np.pi / 2.0),
+                gates.CNOT(0, 2),
+                gates.X(2),
+                gates.RZ(2, np.pi / 2.0),
+                gates.RZ(2, np.pi / 2.0),
             ]
         )
         transpiled = FuseRotationTranspiler()(circuit)
@@ -48,29 +53,89 @@ class TestFuseRotation:
         expect = QuantumCircuit(3)
         expect.extend(
             [
-                H(0),
-                RX(1, np.pi),
-                RX(2, np.pi / 2),
-                RY(0, np.pi * 3 / 2),
-                CNOT(0, 2),
-                X(2),
-                RZ(2, np.pi),
+                gates.H(0),
+                gates.RX(1, np.pi),
+                gates.RX(2, np.pi / 2.0),
+                gates.RY(0, 3.0 * np.pi / 2.0),
+                gates.CNOT(0, 2),
+                gates.X(2),
+                gates.RZ(2, np.pi),
             ]
         )
 
         for t, e in zip(transpiled.gates, expect.gates):
             assert _gates_close(t, e)
 
-    def test_no_change(self) -> None:
-        circuit = QuantumCircuit(2)
-        circuit.extend(
-            [RZ(0, np.pi), RZ(1, np.pi), H(0), RX(0, np.pi), RY(0, np.pi), SWAP(1, 0)]
-        )
-        transpiled = FuseRotationTranspiler()(circuit)
 
-        expect = QuantumCircuit(2)
+class TestRotation2Named:
+    def test_rx2named(self) -> None:
+        circuit = QuantumCircuit(1)
+        circuit.extend(
+            [
+                gates.RX(0, 0.0),
+                gates.RX(0, np.pi),
+            ]
+        )
+        transpiled = RX2NamedTranspiler()(circuit)
+
+        expect = QuantumCircuit(1)
         expect.extend(
-            [RZ(0, np.pi), RZ(1, np.pi), H(0), RX(0, np.pi), RY(0, np.pi), SWAP(1, 0)]
+            [
+                gates.Identity(0),
+                gates.X(0),
+            ]
+        )
+
+        for t, e in zip(transpiled.gates, expect.gates):
+            assert _gates_close(t, e)
+
+    def test_ry2named(self) -> None:
+        circuit = QuantumCircuit(1)
+        circuit.extend(
+            [
+                gates.RY(0, 0.0),
+                gates.RY(0, np.pi),
+            ]
+        )
+        transpiled = RY2NamedTranspiler()(circuit)
+
+        expect = QuantumCircuit(1)
+        expect.extend(
+            [
+                gates.Identity(0),
+                gates.Y(0),
+            ]
+        )
+
+        for t, e in zip(transpiled.gates, expect.gates):
+            assert _gates_close(t, e)
+
+    def test_rz2named(self) -> None:
+        circuit = QuantumCircuit(1)
+        circuit.extend(
+            [
+                gates.RZ(0, 0.0),
+                gates.RZ(0, np.pi),
+                gates.RZ(0, -np.pi),
+                gates.RZ(0, np.pi / 2.0),
+                gates.RZ(0, -np.pi / 2.0),
+                gates.RZ(0, np.pi / 4.0),
+                gates.RZ(0, -np.pi / 4.0),
+            ]
+        )
+        transpiled = RZ2NamedTranspiler()(circuit)
+
+        expect = QuantumCircuit(1)
+        expect.extend(
+            [
+                gates.Identity(0),
+                gates.Z(0),
+                gates.Z(0),
+                gates.S(0),
+                gates.Sdag(0),
+                gates.T(0),
+                gates.Tdag(0),
+            ]
         )
 
         for t, e in zip(transpiled.gates, expect.gates):

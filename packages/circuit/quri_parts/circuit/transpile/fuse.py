@@ -8,6 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from abc import ABC, abstractmethod
+from collections.abc import Sequence
+
 import numpy as np
 
 from quri_parts.circuit import (
@@ -15,12 +18,21 @@ from quri_parts.circuit import (
     QuantumCircuit,
     QuantumGate,
     gate_names,
+    gates,
 )
 
-from .transpiler import CircuitTranspilerProtocol
+from .transpiler import CircuitTranspilerProtocol, GateKindDecomposer
 
 
-class FuseRotationTranspiler(CircuitTranspilerProtocol):
+class TwoGateFuser(CircuitTranspilerProtocol, ABC):
+    @abstractmethod
+    def is_target_pair(self, left: QuantumGate, right: QuantumGate) -> bool:
+        ...
+
+    @abstractmethod
+    def fuse(self, left: QuantumGate, right: QuantumGate) -> Sequence[QuantumGate]:
+        ...
+
     def __call__(
         self, circuit: NonParametricQuantumCircuit
     ) -> NonParametricQuantumCircuit:
@@ -34,22 +46,105 @@ class FuseRotationTranspiler(CircuitTranspilerProtocol):
                 continue
             y = ys.pop(-1)
 
-            if (
-                x.name in [gate_names.RX, gate_names.RY, gate_names.RZ]
-                and x.name == y.name
-                and x.target_indices == y.target_indices
-            ):
-                theta = (x.params[0] + y.params[0]) % (2 * np.pi)
-                ys.append(
-                    QuantumGate(
-                        name=x.name,
-                        target_indices=x.target_indices,
-                        params=(theta,),
-                    )
-                )
+            if self.is_target_pair(y, x):
+                ys.extend(self.fuse(y, x))
             else:
                 ys.extend([y, x])
 
         ret = QuantumCircuit(circuit.qubit_count)
         ret.extend(ys)
         return ret
+
+
+class FuseRotationTranspiler(TwoGateFuser):
+    def is_target_pair(self, left: QuantumGate, right: QuantumGate) -> bool:
+        return (
+            left.name in [gate_names.RX, gate_names.RY, gate_names.RZ]
+            and left.name == right.name
+            and left.target_indices == right.target_indices
+        )
+
+    def fuse(self, left: QuantumGate, right: QuantumGate) -> Sequence[QuantumGate]:
+        theta = (left.params[0] + right.params[0]) % (2.0 * np.pi)
+        return [
+            QuantumGate(
+                name=left.name, target_indices=left.target_indices, params=(theta,)
+            )
+        ]
+
+
+class RX2NamedTranspiler(GateKindDecomposer):
+    def __init__(self, epsilon: float = 1.0e-9):
+        self._epsilon = epsilon
+
+    @property
+    def target_gate_names(self) -> Sequence[str]:
+        return [gate_names.RX]
+
+    def _is_close(self, a: float, b: float) -> bool:
+        return abs(a - b) < self._epsilon
+
+    def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
+        target = gate.target_indices[0]
+        theta = gate.params[0] % (2.0 * np.pi)
+
+        if self._is_close(theta, 0.0):
+            return [gates.Identity(target)]
+        elif self._is_close(theta, np.pi):
+            return [gates.X(target)]
+        else:
+            return [gate]
+
+
+class RY2NamedTranspiler(GateKindDecomposer):
+    def __init__(self, epsilon: float = 1.0e-9):
+        self._epsilon = epsilon
+
+    @property
+    def target_gate_names(self) -> Sequence[str]:
+        return [gate_names.RY]
+
+    def _is_close(self, a: float, b: float) -> bool:
+        return abs(a - b) < self._epsilon
+
+    def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
+        target = gate.target_indices[0]
+        theta = gate.params[0] % (2.0 * np.pi)
+
+        if self._is_close(theta, 0.0):
+            return [gates.Identity(target)]
+        elif self._is_close(theta, np.pi):
+            return [gates.Y(target)]
+        else:
+            return [gate]
+
+
+class RZ2NamedTranspiler(GateKindDecomposer):
+    def __init__(self, epsilon: float = 1.0e-9):
+        self._epsilon = epsilon
+
+    @property
+    def target_gate_names(self) -> Sequence[str]:
+        return [gate_names.RZ]
+
+    def _is_close(self, a: float, b: float) -> bool:
+        return abs(a - b) < self._epsilon
+
+    def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
+        target = gate.target_indices[0]
+        theta = gate.params[0] % (2.0 * np.pi)
+
+        if self._is_close(theta, 0.0):
+            return [gates.Identity(target)]
+        elif self._is_close(theta, np.pi):
+            return [gates.Z(target)]
+        elif self._is_close(theta, np.pi / 2.0):
+            return [gates.S(target)]
+        elif self._is_close(theta, 3.0 * np.pi / 2.0):
+            return [gates.Sdag(target)]
+        elif self._is_close(theta, np.pi / 4.0):
+            return [gates.T(target)]
+        elif self._is_close(theta, 7.0 * np.pi / 4.0):
+            return [gates.Tdag(target)]
+        else:
+            return [gate]
