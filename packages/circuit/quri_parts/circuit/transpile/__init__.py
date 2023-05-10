@@ -149,9 +149,11 @@ RotationSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTrans
 )
 
 
-#: CircuitTranspiler to transpile a QuntumCircuit into another
-#: QuantumCircuit containing only H, X, Y, Z, S, RZ, and CNOT.
 class CliffordRZSetTranspiler(SequentialTranspiler):
+    """CircuitTranspiler to transpile a QuntumCircuit into another
+    QuantumCircuit containing only H, X, Y, Z, S, Sdg, RZ, and CNOT.
+    """
+
     def __init__(self, epsilon: float = 1.0e-9):
         super().__init__(
             [
