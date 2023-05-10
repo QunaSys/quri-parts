@@ -25,6 +25,8 @@ from .transpiler import CircuitTranspilerProtocol, GateKindDecomposer
 
 
 class TwoGateFuser(CircuitTranspilerProtocol, ABC):
+    """Abstract base class of adjacent gates fusing transpilers."""
+
     @abstractmethod
     def is_target_pair(self, left: QuantumGate, right: QuantumGate) -> bool:
         ...
@@ -57,6 +59,9 @@ class TwoGateFuser(CircuitTranspilerProtocol, ABC):
 
 
 class FuseRotationTranspiler(TwoGateFuser):
+    """CircuitTranspiler, which fuses consecutive rotation gates of the same
+    kind acting on the same qubit."""
+
     def is_target_pair(self, left: QuantumGate, right: QuantumGate) -> bool:
         return (
             left.name in [gate_names.RX, gate_names.RY, gate_names.RZ]
@@ -74,6 +79,9 @@ class FuseRotationTranspiler(TwoGateFuser):
 
 
 class RX2NamedTranspiler(GateKindDecomposer):
+    """Convert RX gate to Identity or X gate if it is equivalent to Identity or
+    X gate."""
+
     def __init__(self, epsilon: float = 1.0e-9):
         self._epsilon = epsilon
 
@@ -97,6 +105,9 @@ class RX2NamedTranspiler(GateKindDecomposer):
 
 
 class RY2NamedTranspiler(GateKindDecomposer):
+    """Convert RY gate to Identity or Y gate if it is equivalent to Identity or
+    Y gate."""
+
     def __init__(self, epsilon: float = 1.0e-9):
         self._epsilon = epsilon
 
@@ -120,6 +131,9 @@ class RY2NamedTranspiler(GateKindDecomposer):
 
 
 class RZ2NamedTranspiler(GateKindDecomposer):
+    """Convert RZ gate to Identity, Z, S, Sdag, T, or Tdag gate if it is
+    equivalent to one of these gates."""
+
     def __init__(self, epsilon: float = 1.0e-9):
         self._epsilon = epsilon
 

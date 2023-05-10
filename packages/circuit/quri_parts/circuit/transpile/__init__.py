@@ -152,6 +152,11 @@ RotationSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTrans
 class CliffordRZSetTranspiler(SequentialTranspiler):
     """CircuitTranspiler to transpile a QuntumCircuit into another
     QuantumCircuit containing only H, X, Y, Z, S, Sdg, RZ, and CNOT.
+
+    Since this transpiler involves fusing rotation gates, converting
+    rotation gates to named gates with a certain precision, and removing
+    Identity gates, the action of the circuit before and after the
+    conversion may not be completely equivalent.
     """
 
     def __init__(self, epsilon: float = 1.0e-9):
