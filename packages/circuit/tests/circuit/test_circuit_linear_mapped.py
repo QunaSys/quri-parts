@@ -162,7 +162,6 @@ class TestLinearMappedUnboundParametricQuantumCircuit:
         exp_circuit = circuit.get_mutable_copy()
         exp_circuit.add_H_gate(0)
         assert got_circuit.gates == exp_circuit.gates
-        assert False
 
 
 class TestImmutableLinearMappedUnboundParametricQuantumCircuit:

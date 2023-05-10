@@ -8,9 +8,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from unittest.mock import patch
+
 from quri_parts.circuit import (
     CNOT,
     RX,
+    GateSequence,
     ImmutableBoundParametricQuantumCircuit,
     ImmutableUnboundParametricQuantumCircuit,
     QuantumCircuit,
@@ -40,6 +43,10 @@ def mutable_circuit() -> UnboundParametricQuantumCircuit:
 def immutable_circuit() -> ImmutableUnboundParametricQuantumCircuit:
     q_circuit = mutable_circuit()
     return ImmutableUnboundParametricQuantumCircuit(q_circuit)
+
+
+def dummy_mul(self: QuantumCircuit, gates: GateSequence) -> "QuantumCircuit":
+    return NotImplemented
 
 
 class TestUnboundParametricQuantumCircuit:
@@ -87,22 +94,35 @@ class TestUnboundParametricQuantumCircuit:
         immutable_circuit_2 = circuit_2.freeze()
         assert immutable_circuit_2.depth == 2
 
-    def test_mul_unbound_param_and_non_param(self) -> None:
+    def test_mul(self) -> None:
         circuit = mutable_circuit()
-        circuit2 = QuantumCircuit(2)
-        circuit2.add_H_gate(0)
-        got_circuit = circuit * circuit2
+        qc_circuit = QuantumCircuit(2)
+        qc_circuit.add_H_gate(0)
+        got_circuit = circuit * qc_circuit
         exp_circuit = circuit.get_mutable_copy()
         exp_circuit.add_H_gate(0)
         assert got_circuit.gates == exp_circuit.gates
 
-    def test_mul_unbound_param_circuits(self) -> None:
         circuit = mutable_circuit()
-        circuit2 = UnboundParametricQuantumCircuit(2)
-        circuit2.add_ParametricRX_gate(0)
-        got_circuit = circuit * circuit2
+        up_circuit = UnboundParametricQuantumCircuit(2)
+        up_circuit.add_ParametricRX_gate(0)
+        got_circuit = circuit * up_circuit
         exp_circuit = circuit.get_mutable_copy()
         exp_circuit.add_ParametricRX_gate(0)
+        assert got_circuit.gates == exp_circuit.gates
+
+    @patch.object(QuantumCircuit, "__mul__", dummy_mul)
+    def test_rmul(self) -> None:
+        circuit = mutable_circuit()
+        qc_circuit = QuantumCircuit(2)
+        qc_circuit.add_H_gate(0)
+        got_circuit = qc_circuit * circuit
+        exp_circuit = UnboundParametricQuantumCircuit(2)
+        exp_circuit.add_H_gate(0)
+        for gate in _GATES:
+            exp_circuit.add_gate(gate)
+        exp_circuit.add_ParametricRX_gate(0)
+        exp_circuit.add_ParametricPauliRotation_gate([1], [1])
         assert got_circuit.gates == exp_circuit.gates
 
 

@@ -232,15 +232,6 @@ class UnboundParametricQuantumCircuitBase(UnboundParametricQuantumCircuitProtoco
     def parameter_count(self) -> int:
         return len(self._params)
 
-    def __rmul__(
-        self,
-        gates: Union[GateSequence, "UnboundParametricQuantumCircuitBase"],
-    ) -> "UnboundParametricQuantumCircuit":
-        combined_circuit = UnboundParametricQuantumCircuit(self.qubit_count)
-        combined_circuit.extend(gates)
-        combined_circuit.extend(self)
-        return combined_circuit
-
     def __mul__(
         self,
         gates: Union[GateSequence, "UnboundParametricQuantumCircuitBase"],
@@ -251,6 +242,15 @@ class UnboundParametricQuantumCircuitBase(UnboundParametricQuantumCircuitProtoco
         ):
             return NotImplemented
         return self.combine(gates)
+
+    def __rmul__(
+        self,
+        gates: Union[GateSequence, "UnboundParametricQuantumCircuitBase"],
+    ) -> "UnboundParametricQuantumCircuit":
+        combined_circuit = UnboundParametricQuantumCircuit(self.qubit_count)
+        combined_circuit.extend(gates)
+        combined_circuit.extend(self)
+        return combined_circuit
 
 
 class UnboundParametricQuantumCircuit(
