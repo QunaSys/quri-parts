@@ -151,42 +151,42 @@ RotationSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTrans
 
 #: CircuitTranspiler to transpile a QuntumCircuit into another
 #: QuantumCircuit containing only H, X, Y, Z, S, RZ, and CNOT.
-CliffordRZSetTranspiler: Callable[
-    [float], CircuitTranspiler
-] = lambda epsilon=1.0e-9: SequentialTranspiler(
-    [
-        ParallelDecomposer(
+class CliffordRZSetTranspiler(SequentialTranspiler):
+    def __init__(self, epsilon: float = 1.0e-9):
+        super().__init__(
             [
-                CZ2CNOTHTranspiler(),
-                PauliDecomposeTranspiler(),
-                PauliRotationDecomposeTranspiler(),
-                TOFFOLI2HTTdagCNOTTranspiler(),
+                ParallelDecomposer(
+                    [
+                        CZ2CNOTHTranspiler(),
+                        PauliDecomposeTranspiler(),
+                        PauliRotationDecomposeTranspiler(),
+                        TOFFOLI2HTTdagCNOTTranspiler(),
+                    ]
+                ),
+                ParallelDecomposer(
+                    [
+                        SqrtXdag2RZSqrtXTranspiler(),
+                        SqrtY2RZSqrtXTranspiler(),
+                        SqrtYdag2RZSqrtXTranspiler(),
+                        Sdag2RZTranspiler(),
+                        T2RZTranspiler(),
+                        Tdag2RZTranspiler(),
+                        RX2RZSqrtXTranspiler(),
+                        RY2RZSqrtXTranspiler(),
+                        U1ToRZTranspiler(),
+                        U2ToRZSqrtXTranspiler(),
+                        U3ToRZSqrtXTranspiler(),
+                        SWAP2CNOTTranspiler(),
+                    ]
+                ),
+                SqrtX2RZHTranspiler(),
+                FuseRotationTranspiler(),
+                RX2NamedTranspiler(epsilon),
+                RY2NamedTranspiler(epsilon),
+                RZ2NamedTranspiler(epsilon),
+                IdentityEliminationTranspiler(),
             ]
-        ),
-        ParallelDecomposer(
-            [
-                SqrtXdag2RZSqrtXTranspiler(),
-                SqrtY2RZSqrtXTranspiler(),
-                SqrtYdag2RZSqrtXTranspiler(),
-                Sdag2RZTranspiler(),
-                T2RZTranspiler(),
-                Tdag2RZTranspiler(),
-                RX2RZSqrtXTranspiler(),
-                RY2RZSqrtXTranspiler(),
-                U1ToRZTranspiler(),
-                U2ToRZSqrtXTranspiler(),
-                U3ToRZSqrtXTranspiler(),
-                SWAP2CNOTTranspiler(),
-            ]
-        ),
-        SqrtX2RZHTranspiler(),
-        FuseRotationTranspiler(),
-        RX2NamedTranspiler(epsilon),
-        RY2NamedTranspiler(epsilon),
-        RZ2NamedTranspiler(epsilon),
-        IdentityEliminationTranspiler(),
-    ]
-)
+        )
 
 
 __all__ = [
