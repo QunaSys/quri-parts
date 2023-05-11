@@ -89,6 +89,14 @@ class LinearMappedUnboundParametricQuantumCircuitBase(
     ) -> "LinearMappedUnboundParametricQuantumCircuit":
         return self.combine(gates)
 
+    def __rmul__(
+        self, gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol]
+    ) -> "LinearMappedUnboundParametricQuantumCircuit":
+        combined_circuit = LinearMappedUnboundParametricQuantumCircuit(self.qubit_count)
+        combined_circuit.extend(gates)
+        combined_circuit.extend(self)
+        return combined_circuit
+
     def bind_parameters(
         self, params: Sequence[float]
     ) -> ImmutableBoundParametricQuantumCircuit:

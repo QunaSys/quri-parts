@@ -9,10 +9,12 @@
 # limitations under the License.
 
 from typing import Sequence
+from unittest.mock import patch
 
 from quri_parts.circuit import (
     CNOT,
     RX,
+    GateSequence,
     ImmutableBoundParametricQuantumCircuit,
     ImmutableLinearMappedUnboundParametricQuantumCircuit,
     LinearMappedUnboundParametricQuantumCircuit,
@@ -49,6 +51,10 @@ def immutable_circuit() -> (
 ):
     q_circuit, params = mutable_circuit()
     return ImmutableLinearMappedUnboundParametricQuantumCircuit(q_circuit), params
+
+
+def dummy_mul(self: QuantumCircuit, gates: GateSequence) -> QuantumCircuit:
+    return NotImplemented
 
 
 class TestLinearMappedUnboundParametricQuantumCircuit:
@@ -161,6 +167,35 @@ class TestLinearMappedUnboundParametricQuantumCircuit:
         got_circuit = circuit * qc_circuit
         exp_circuit = circuit.get_mutable_copy()
         exp_circuit.add_H_gate(0)
+        assert got_circuit.gates == exp_circuit.gates
+
+    @patch.object(QuantumCircuit, "__mul__", dummy_mul)
+    @patch.object(UnboundParametricQuantumCircuit, "__mul__", dummy_mul)
+    def test_rmul(self) -> None:
+        circuit, _ = mutable_circuit()
+        qc_circuit = QuantumCircuit(2)
+        qc_circuit.add_H_gate(0)
+        got_circuit = qc_circuit * circuit
+        exp_circuit = LinearMappedUnboundParametricQuantumCircuit(2)
+        exp_circuit.add_H_gate(0)
+        for gate in _GATES:
+            exp_circuit.add_gate(gate)
+        params = exp_circuit.add_parameters("RX", "PauliRotation")
+        exp_circuit.add_ParametricRX_gate(0, params[0])
+        exp_circuit.add_ParametricPauliRotation_gate([1], [1], params[1])
+        assert got_circuit.gates == exp_circuit.gates
+
+        circuit, _ = mutable_circuit()
+        up_circuit = UnboundParametricQuantumCircuit(2)
+        up_circuit.add_H_gate(0)
+        got_circuit = up_circuit * circuit
+        exp_circuit = LinearMappedUnboundParametricQuantumCircuit(2)
+        exp_circuit.add_H_gate(0)
+        for gate in _GATES:
+            exp_circuit.add_gate(gate)
+        params = exp_circuit.add_parameters("RX", "PauliRotation")
+        exp_circuit.add_ParametricRX_gate(0, params[0])
+        exp_circuit.add_ParametricPauliRotation_gate([1], [1], params[1])
         assert got_circuit.gates == exp_circuit.gates
 
 

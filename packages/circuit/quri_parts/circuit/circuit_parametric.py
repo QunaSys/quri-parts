@@ -11,7 +11,7 @@
 from abc import ABC, abstractmethod, abstractproperty
 from collections.abc import Mapping, Sequence
 from functools import cached_property
-from typing import Optional, Protocol, Union, runtime_checkable
+from typing import Optional, Protocol, Union, cast, runtime_checkable
 
 from quri_parts.circuit import gate_names
 
@@ -234,14 +234,13 @@ class UnboundParametricQuantumCircuitBase(UnboundParametricQuantumCircuitProtoco
 
     def __mul__(
         self,
-        gates: Union[GateSequence, "UnboundParametricQuantumCircuitBase"],
+        gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol],
     ) -> "UnboundParametricQuantumCircuit":
-        if not (
-            is_gate_sequence(gates)
-            or isinstance(gates, UnboundParametricQuantumCircuitBase)
-        ):
-            return NotImplemented
-        return self.combine(gates)
+        if isinstance(gates, UnboundParametricQuantumCircuitBase):
+            self.combine(gates)
+        elif is_gate_sequence(gates):
+            return self.combine(cast(GateSequence, gates))
+        return NotImplemented
 
     def __rmul__(
         self,
