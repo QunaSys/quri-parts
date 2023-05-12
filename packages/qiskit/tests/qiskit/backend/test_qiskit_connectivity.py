@@ -102,10 +102,7 @@ class TestQiskitConnectivityGraphV1:
 
         received_graph = device_connectivity_graph(backend)
 
-        edge_list = [(0, 1)]
-        lines = [f"{a} {b}" for (a, b) in edge_list]
-
-        constructed_graph = nx.parse_edgelist(lines, nodetype=int)
+        constructed_graph = nx.parse_edgelist(["0 1"], nodetype=int)
 
         assert nx.is_isomorphic(received_graph, constructed_graph)
 
@@ -129,10 +126,7 @@ class TestQiskitConnectivityGraphV2:
 
         received_graph = device_connectivity_graph(backend)
 
-        edge_list = [(0, 1)]
-        lines = [f"{a} {b}" for (a, b) in edge_list]
-
-        constructed_graph = nx.parse_edgelist(lines, nodetype=int)
+        constructed_graph = nx.parse_edgelist(["0 1"], nodetype=int)
 
         assert nx.is_isomorphic(received_graph, constructed_graph)
 
