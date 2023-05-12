@@ -69,25 +69,23 @@ def quantum_state(
             return cb_state
         else:
             comb_circuit = cb_state.circuit * circuit
-            return circuit_quantum_state(n_qubits, comb_circuit)
+            return _circuit_quantum_state(n_qubits, comb_circuit)
     if bits != 0:
-        raise ValueError("")
-    return quantum_state_vector(n_qubits, vector, circuit)
+        raise ValueError("vector and bits cannot input at the same time")
+    return _quantum_state_vector(n_qubits, vector, circuit)
 
 
-def circuit_quantum_state(
+def _circuit_quantum_state(
     n_qubits: int,
-    circuit: Optional[
-        Union[NonParametricQuantumCircuit, UnboundParametricQuantumCircuitBase]
-    ] = None,
+    circuit: Union[NonParametricQuantumCircuit, UnboundParametricQuantumCircuitBase],
 ) -> QuantumState:
-    if circuit is None or isinstance(circuit, NonParametricQuantumCircuit):
+    if isinstance(circuit, NonParametricQuantumCircuit):
         return GeneralCircuitQuantumState(n_qubits, circuit)
     else:
         return ParametricCircuitQuantumState(n_qubits, circuit)
 
 
-def quantum_state_vector(
+def _quantum_state_vector(
     n_qubits: int,
     vector: Union[StateVectorType, "npt.ArrayLike"],
     circuit: Optional[

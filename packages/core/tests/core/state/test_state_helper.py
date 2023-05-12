@@ -8,6 +8,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from unittest.mock import patch
+
+import pytest
+
 from quri_parts.circuit import H, QuantumCircuit, UnboundParametricQuantumCircuit, Z
 from quri_parts.core.state import (
     ComputationalBasisState,
@@ -17,6 +21,10 @@ from quri_parts.core.state import (
     QuantumStateVector,
     apply_circuit,
     quantum_state,
+)
+from quri_parts.core.state.state_helper import (
+    _circuit_quantum_state,
+    _quantum_state_vector,
 )
 
 
@@ -52,97 +60,56 @@ def b_state_vector() -> ParametricQuantumStateVector:
     return ParametricQuantumStateVector(2, vector=[1.0, 0, 0, 0], circuit=b_circuit())
 
 
-def test_quantum_state_init() -> None:
+def test_circuit_quantum_state() -> None:
     n_qubits = 2
-    state = quantum_state(n_qubits)
+    qc = QuantumCircuit(n_qubits)
+    qc.add_H_gate(1)
+    state1 = _circuit_quantum_state(n_qubits, qc)
+    assert isinstance(state1, GeneralCircuitQuantumState)
 
-    assert isinstance(state, GeneralCircuitQuantumState)
-    assert state.qubit_count == n_qubits
+    param_qc = UnboundParametricQuantumCircuit(n_qubits)
+    param_qc.add_ParametricRX_gate(0)
+    state2 = _circuit_quantum_state(n_qubits, param_qc)
+    assert isinstance(state2, ParametricCircuitQuantumState)
 
 
-def test_quantum_state_with_vector() -> None:
+def test_quantum_state_vector() -> None:
     n_qubits = 2
-    state = quantum_state(n_qubits, [1.0, 0, 0, 0])
+    state1 = _quantum_state_vector(n_qubits, [1.0, 0, 0, 0], None)
+    assert isinstance(state1, QuantumStateVector)
 
-    assert isinstance(state, QuantumStateVector)
-    assert state.qubit_count == n_qubits
+    qc = QuantumCircuit(n_qubits)
+    qc.add_H_gate(1)
+    state2 = _quantum_state_vector(n_qubits, [1.0, 0, 0, 0], qc)
+    assert isinstance(state2, QuantumStateVector)
+
+    param_qc = UnboundParametricQuantumCircuit(n_qubits)
+    param_qc.add_ParametricRX_gate(0)
+    state3 = _quantum_state_vector(n_qubits, [1.0, 0, 0, 0], param_qc)
+    assert isinstance(state3, ParametricQuantumStateVector)
 
 
-def test_quantum_state_with_circuit() -> None:
+@patch("quri_parts.core.state.state_helper._quantum_state_vector")
+@patch("quri_parts.core.state.state_helper._circuit_quantum_state")
+def test_quantum_state(_circuit_quantum_state_mock, _quantum_state_vector_mock) -> None:
     n_qubits = 2
-    circuit = a_circuit()
-    state = quantum_state(n_qubits, circuit=circuit)
+    _circuit_quantum_state_mock.return_value = GeneralCircuitQuantumState(n_qubits)
+    _quantum_state_vector_mock.return_value = QuantumStateVector(n_qubits)
 
-    assert isinstance(state, GeneralCircuitQuantumState)
-    assert state.qubit_count == n_qubits
-    assert state.circuit == circuit
+    state1 = quantum_state(n_qubits, bits=0b01)
+    assert isinstance(state1, ComputationalBasisState)
 
+    circuit = QuantumCircuit(0)
+    state2 = quantum_state(n_qubits, bits=0b01, circuit=circuit)
+    assert isinstance(state2, GeneralCircuitQuantumState)
+    assert _circuit_quantum_state_mock.call_count == 1
 
-def test_quantum_state_with_parametric_circuit() -> None:
-    n_qubits = 2
-    circuit = b_circuit()
-    state = quantum_state(n_qubits, circuit=circuit)
+    state3 = quantum_state(n_qubits, vector=[1.0, 0, 0, 0])
+    assert isinstance(state3, QuantumStateVector)
+    assert _quantum_state_vector_mock.call_count == 1
 
-    assert isinstance(state, ParametricCircuitQuantumState)
-    assert state.qubit_count == n_qubits
-    assert state.parametric_circuit == circuit
-
-
-def test_quantum_state_with_cb() -> None:
-    n_qubits = 2
-    circuit = QuantumCircuit(2)
-    circuit.add_X_gate(0)
-    state = quantum_state(n_qubits, bits=0b01)
-
-    assert isinstance(state, ComputationalBasisState)
-    assert state.circuit == circuit
-
-
-def test_quantum_state_with_vector_and_circuit() -> None:
-    n_qubits = 2
-    circuit = a_circuit()
-    state = quantum_state(n_qubits, [1.0, 0, 0, 0], circuit=circuit)
-    exp_state = a_state_vector()
-
-    assert isinstance(state, QuantumStateVector)
-    assert state.qubit_count == n_qubits
-    assert (state.vector == exp_state.vector).all()
-    assert state.circuit == circuit
-
-
-def test_quantum_state_with_vector_and_parametric_circuit() -> None:
-    n_qubits = 2
-    circuit = b_circuit()
-    state = quantum_state(n_qubits, [1.0, 0, 0, 0], circuit=circuit)
-
-    assert isinstance(state, ParametricQuantumStateVector)
-    assert state.qubit_count == n_qubits
-    assert state.parametric_circuit == circuit
-
-
-def test_quantum_state_with_circuit_and_bits() -> None:
-    n_qubits = 2
-    circuit = a_circuit()
-    state = quantum_state(n_qubits, circuit=circuit, bits=0b01)
-    exp_circuit = QuantumCircuit(2)
-    exp_circuit.add_X_gate(0)
-    exp_circuit.add_H_gate(1)
-
-    assert isinstance(state, GeneralCircuitQuantumState)
-    assert state.qubit_count == n_qubits
-    assert state.circuit == exp_circuit
-
-
-def test_quantum_state_with_parametric_circuit_and_bits() -> None:
-    n_qubits = 2
-    circuit = b_circuit()
-    state = quantum_state(n_qubits, circuit=circuit, bits=0b01)
-
-    assert isinstance(state, ParametricCircuitQuantumState)
-    assert state.qubit_count == n_qubits
-    assert len(state.parametric_circuit.gates) == 4
-    assert state.parametric_circuit.gates[0].name == "X"
-    assert state.parametric_circuit.gates[0].target_indices == (0,)
+    with pytest.raises(ValueError):
+        quantum_state(n_qubits, vector=[1.0, 0, 0, 0], bits=0b01)
 
 
 def test_apply_circuit_empty() -> None:
