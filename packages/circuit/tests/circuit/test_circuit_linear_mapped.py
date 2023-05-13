@@ -188,7 +188,7 @@ class TestLinearMappedUnboundParametricQuantumCircuit:
         circuit, _ = mutable_circuit()
         up_circuit = UnboundParametricQuantumCircuit(2)
         up_circuit.add_H_gate(0)
-        got_circuit = up_circuit * circuit
+        got_circuit2 = up_circuit * circuit
         exp_circuit = LinearMappedUnboundParametricQuantumCircuit(2)
         exp_circuit.add_H_gate(0)
         for gate in _GATES:
@@ -196,7 +196,7 @@ class TestLinearMappedUnboundParametricQuantumCircuit:
         params = exp_circuit.add_parameters("RX", "PauliRotation")
         exp_circuit.add_ParametricRX_gate(0, params[0])
         exp_circuit.add_ParametricPauliRotation_gate([1], [1], params[1])
-        assert got_circuit.gates == exp_circuit.gates
+        assert got_circuit2.gates == exp_circuit.gates
 
 
 class TestImmutableLinearMappedUnboundParametricQuantumCircuit:
