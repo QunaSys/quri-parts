@@ -232,6 +232,17 @@ class UnboundParametricQuantumCircuitBase(UnboundParametricQuantumCircuitProtoco
     def parameter_count(self) -> int:
         return len(self._params)
 
+    def __add__(
+        self,
+        gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol],
+    ) -> "UnboundParametricQuantumCircuit":
+        if isinstance(gates, UnboundParametricQuantumCircuitBase):
+            return self.combine(gates)
+        elif is_gate_sequence(gates):
+            return self.combine(cast(GateSequence, gates))
+        else:
+            return NotImplemented
+
     def __mul__(
         self,
         gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol],
@@ -349,6 +360,32 @@ class UnboundParametricQuantumCircuit(
                 gates = gates.gates
             for g in gates:
                 self.add_gate(g)
+
+    def __iadd__(
+        self,
+        gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol],
+    ) -> "UnboundParametricQuantumCircuit":
+        if isinstance(gates, UnboundParametricQuantumCircuitBase):
+            self.extend(gates)
+            return self
+        elif is_gate_sequence(gates):
+            self.extend(cast(GateSequence, gates))
+            return self
+        else:
+            return NotImplemented
+
+    def __imul__(
+        self,
+        gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol],
+    ) -> "UnboundParametricQuantumCircuit":
+        if isinstance(gates, UnboundParametricQuantumCircuitBase):
+            self.extend(gates)
+            return self
+        elif is_gate_sequence(gates):
+            self.extend(cast(GateSequence, gates))
+            return self
+        else:
+            return NotImplemented
 
     def freeze(self) -> "ImmutableUnboundParametricQuantumCircuit":
         return ImmutableUnboundParametricQuantumCircuit(self)

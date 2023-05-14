@@ -239,13 +239,15 @@ class LinearMappedUnboundParametricQuantumCircuit(
         self,
         gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol],
     ) -> "LinearMappedUnboundParametricQuantumCircuit":
-        return self.combine(gates)
+        self.extend(gates)
+        return self
 
     def __imul__(
         self,
         gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol],
     ) -> "LinearMappedUnboundParametricQuantumCircuit":
-        return self.combine(gates)
+        self.extend(gates)
+        return self
 
     def freeze(self) -> "ImmutableLinearMappedUnboundParametricQuantumCircuit":
         return ImmutableLinearMappedUnboundParametricQuantumCircuit(self)
