@@ -237,10 +237,11 @@ class UnboundParametricQuantumCircuitBase(UnboundParametricQuantumCircuitProtoco
         gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol],
     ) -> "UnboundParametricQuantumCircuit":
         if isinstance(gates, UnboundParametricQuantumCircuitBase):
-            self.combine(gates)
+            return self.combine(gates)
         elif is_gate_sequence(gates):
             return self.combine(cast(GateSequence, gates))
-        return NotImplemented
+        else:
+            return NotImplemented
 
     def __rmul__(
         self,

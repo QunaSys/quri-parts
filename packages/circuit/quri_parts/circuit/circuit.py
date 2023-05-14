@@ -341,6 +341,7 @@ class QuantumCircuit(NonParametricQuantumCircuit, MutableQuantumCircuitProtocol)
     def __iadd__(self, gates: GateSequence) -> "QuantumCircuit":
         if not is_gate_sequence(gates):
             return NotImplemented
+        self.extend(gates)
         return self
 
     def __imul__(self, gates: GateSequence) -> "QuantumCircuit":
