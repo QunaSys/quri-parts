@@ -69,7 +69,7 @@ def convert_gate(
             return _single_qubit_gate_tket[gate.name]
 
         elif gate.name in _special_named_gate_matrix:
-            return cast(OpType, Unitary1qBox(_special_named_gate_matrix[gate.name]))
+            return Unitary1qBox(_special_named_gate_matrix[gate.name])
 
         else:
             return _single_qubit_rotation_gate_tket[gate.name]
@@ -81,13 +81,13 @@ def convert_gate(
         return _three_qubit_gate_tket[gate.name]
 
     elif is_unitary_matrix_gate_name(gate.name):
-        return cast(OpType, Unitary1qBox(gate.unitary_matrix))
+        return Unitary1qBox(gate.unitary_matrix)
 
     elif is_parametric_gate_name(gate.name):
         raise ValueError("Parametric gates are not supported")
     else:
         raise NotImplementedError(
-            f"{gate.name} conversion to Cirq gate not implemented"
+            f"{gate.name} conversion to tket gate not implemented"
         )
 
 
@@ -97,31 +97,30 @@ def convert_circuit(circuit: NonParametricQuantumCircuit) -> Circuit:
         if gate.name in _single_qubit_gate_tket:
             target_qubit = gate.target_indices
             tket_circuit.add_gate(convert_gate(gate), target_qubit)
-            continue
-        if gate.name in _single_qubit_rotation_gate_tket:
+            
+        elif gate.name in _single_qubit_rotation_gate_tket:
             target_qubit = gate.target_indices
             params = array(gate.params) / pi
             tket_circuit.add_gate(convert_gate(gate), params, target_qubit)
-            continue
-        if gate.name in _two_qubit_gate_tket:
+            
+        elif gate.name in _two_qubit_gate_tket:
             if gate.name == gate_names.SWAP:
                 target_qubit = gate.target_indices
                 tket_circuit.add_gate(convert_gate(gate), target_qubit)
-                continue
             else:
                 target_qubit = tuple(gate.target_indices)
                 control_qubit = tuple(gate.control_indices)
                 tket_circuit.add_gate(convert_gate(gate), control_qubit + target_qubit)
-                continue
-        if gate.name in _three_qubit_gate_tket:
+
+        elif gate.name in _three_qubit_gate_tket:
             target_qubit = tuple(gate.target_indices)
             control_qubit = tuple(gate.control_indices)
             tket_circuit.add_gate(convert_gate(gate), control_qubit + target_qubit)
-            continue
-        if gate.name == "UnitaryMatrix" or gate.name in _special_named_gate_matrix:
+            
+        elif gate.name == "UnitaryMatrix" or gate.name in _special_named_gate_matrix:
             target_qubit = gate.target_indices
             tket_circuit.add_unitary1qbox(convert_gate(gate), target_qubit[0])
-            continue
+
         else:
             raise ValueError(f"{gate.name} gate is not supported.")
 
