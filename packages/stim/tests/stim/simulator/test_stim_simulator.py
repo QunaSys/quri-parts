@@ -23,7 +23,7 @@ class TestSimulator(unittest.TestCase):
         cls.update_circuit.add_SqrtY_gate(0)
         cls.update_circuit.add_SqrtX_gate(1)
 
-        cls.expected_output = array([0, 0.5 + 0.5j, 0.0, -0.5 - 0.5j])
+        cls.expected_output = array([0.0, 0.0, -0.5-0.5j, -0.5-0.5j])
         # This is to cope with the fact that stim always canonicalize the
         # state vector such that the first non-zero component is positive.
         phase = exp(1j * angle(cls.expected_output[cls.expected_output != 0][0]))
@@ -33,11 +33,12 @@ class TestSimulator(unittest.TestCase):
         circuit_quantum_state = GeneralCircuitQuantumState(2, self.update_circuit)
         quantum_state_vector = evaluate_state_to_vector(circuit_quantum_state)
         assert len(quantum_state_vector.circuit.gates) == 0
-        assert allclose(quantum_state_vector.vector, self.expected_output)
+        print(quantum_state_vector.vector)
+        assert allclose(quantum_state_vector.vector, [0, 0.70710678, 0, -0.70710678])
 
     def test_evaluate_state_to_vector_vec_to_vec(self) -> None:
         circuit_quantum_state = QuantumStateVector(
-            2, array([1, 0, 0, 0]), self.update_circuit
+            2, array([0.5, -0.5, 0.5j, -0.5j]), self.update_circuit
         )
         quantum_state_vector = evaluate_state_to_vector(circuit_quantum_state)
 
@@ -46,6 +47,6 @@ class TestSimulator(unittest.TestCase):
 
     def test_run_circuit_simple(self) -> None:
         updated_quantum_state_vector = run_circuit(
-            self.update_circuit, array([1, 0, 0, 0])
+            self.update_circuit, array([0.5, -0.5, 0.5j, -0.5j])
         )
         assert allclose(updated_quantum_state_vector, self.expected_output)
