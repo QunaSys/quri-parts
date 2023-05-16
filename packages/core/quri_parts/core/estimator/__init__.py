@@ -76,8 +76,8 @@ class Estimates(Protocol[EstimateValue]):
 
 
 class MatrixEstimates(Protocol[EstimateValue]):
-    """Estimates is an interface for classes representing estimates for a
-    certain quantity.
+    """MatrixEstimates is an interface for classes representing an N x N matrix
+    estimate for a certain quantity.
 
     This interface only contains read-only properties, so an
     implementation can be a (frozen) dataclass or a namedtuple.
@@ -93,8 +93,8 @@ class MatrixEstimates(Protocol[EstimateValue]):
         """Represents the \"error\" of estimate values.
 
         The precise meaning of the \"error\" depends on what type the
-        estimate is. Basically, if we can get N estimate values, this
-        will return N x N x N x N covariance tensor.
+        estimate is. Basically, if we can get N x N estimate values,
+        this will return N x N x N x N error tensor.
         """
         ...
 
@@ -237,7 +237,7 @@ GradientEstimator: TypeAlias = Callable[
 ]
 
 
-#: GradientEstimator represents a function that estimates hessian values
+#: HessianEstimator represents a function that estimates hessian values
 #: of an expectation value of a given :class:`~Operator` for a given parametric state
 #: with given parameter values (the third argument).
 #: This is a generic type and you need to specify what kind of state classes
