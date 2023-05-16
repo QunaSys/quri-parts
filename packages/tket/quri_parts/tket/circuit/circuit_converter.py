@@ -1,5 +1,5 @@
 from collections.abc import Mapping
-from typing import Sequence, cast
+from typing import Sequence
 
 from numpy import array, pi
 from pytket import Circuit, OpType  # type: ignore
@@ -97,12 +97,12 @@ def convert_circuit(circuit: NonParametricQuantumCircuit) -> Circuit:
         if gate.name in _single_qubit_gate_tket:
             target_qubit = gate.target_indices
             tket_circuit.add_gate(convert_gate(gate), target_qubit)
-            
+
         elif gate.name in _single_qubit_rotation_gate_tket:
             target_qubit = gate.target_indices
             params = array(gate.params) / pi
             tket_circuit.add_gate(convert_gate(gate), params, target_qubit)
-            
+
         elif gate.name in _two_qubit_gate_tket:
             if gate.name == gate_names.SWAP:
                 target_qubit = gate.target_indices
@@ -116,7 +116,7 @@ def convert_circuit(circuit: NonParametricQuantumCircuit) -> Circuit:
             target_qubit = tuple(gate.target_indices)
             control_qubit = tuple(gate.control_indices)
             tket_circuit.add_gate(convert_gate(gate), control_qubit + target_qubit)
-            
+
         elif gate.name == "UnitaryMatrix" or gate.name in _special_named_gate_matrix:
             target_qubit = gate.target_indices
             tket_circuit.add_unitary1qbox(convert_gate(gate), target_qubit[0])
