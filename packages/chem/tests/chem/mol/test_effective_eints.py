@@ -1,6 +1,5 @@
 import unittest
 from dataclasses import dataclass
-from typing import cast
 
 import numpy as np
 import numpy.typing as npt
@@ -15,7 +14,7 @@ from quri_parts.chem.mol import (
     MolecularOrbitals,
     SpinMOeIntSet,
     cas,
-    get_active_space_integrals_from_ao_eint,
+    get_active_space_spin_integrals_from_ao_eint,
     to_spin_orbital_integrals,
 )
 
@@ -148,11 +147,10 @@ class TestActiveSpaceIntegrals(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.qp_chem_active_space_integrals = cast(
-            SpinMOeIntSet,
-            get_active_space_integrals_from_ao_eint(
+        cls.qp_chem_active_space_integrals = (
+            get_active_space_spin_integrals_from_ao_eint(
                 active_space_mo=active_space_mo, electron_ao_ints=ao_eint_set
-            ),
+            )
         )
 
         # openfermion active space result.

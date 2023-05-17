@@ -118,7 +118,7 @@ class AOeIntArraySet(AOeIntSet):
         takes additional time to convert ao_eint to mo_eint.
         Performance penalty grows when the full space mo integral is large.
         """
-        spin_mo_eint_set = get_active_space_integrals_from_ao_eint(
+        spin_mo_eint_set = get_active_space_spin_integrals_from_ao_eint(
             active_space_mo, self
         )
         return cast(SpinMOeIntSet, spin_mo_eint_set)
@@ -126,8 +126,8 @@ class AOeIntArraySet(AOeIntSet):
     def to_active_space_spatial_mo_int(
         self, active_space_mo: ActiveSpaceMolecularOrbitals
     ) -> SpatialMOeIntSet:
-        spatial_mo_eint_set = get_active_space_integrals_from_ao_eint(
-            active_space_mo, self, return_spin_integrals=False
+        spatial_mo_eint_set = get_active_space_spatial_integrals_from_ao_eint(
+            active_space_mo, self
         )
         """Computes the active space spatial mo integrals."""
         return cast(SpatialMOeIntSet, spatial_mo_eint_set)
@@ -283,11 +283,10 @@ def spatial_mo_eint_set_to_spin_mo_eint_set(
     )
 
 
-def get_active_space_integrals_from_mo_eint(
+def get_active_space_spatial_integrals_from_mo_eint(
     active_space_mo: ActiveSpaceMolecularOrbitals,
     electron_mo_ints: SpatialMOeIntSet,
-    return_spin_integrals: bool = True,
-) -> Union[SpinMOeIntSet, SpatialMOeIntSet]:
+) -> SpatialMOeIntSet:
     """Compute the active space effective core energy and all the spin space
     electron integrals in the physicist's convention.
 
@@ -334,18 +333,28 @@ def get_active_space_integrals_from_mo_eint(
         mo_2e_int=SpatialMO2eIntArray(array=spatial_2e_integrals_subset),
     )
 
-    if return_spin_integrals:
-        return spatial_mo_eint_set_to_spin_mo_eint_set(spatial_mo_eint_set)
-
     return spatial_mo_eint_set
 
 
-def get_active_space_integrals_from_ao_eint(
+def get_active_space_spin_integrals_from_mo_eint(
+    active_space_mo: ActiveSpaceMolecularOrbitals,
+    electron_mo_ints: SpatialMOeIntSet,
+) -> SpinMOeIntSet:
+    """Compute the active space spin electron integrals from mo electron
+    integrals."""
+    spatial_mo_eint_set = get_active_space_spatial_integrals_from_mo_eint(
+        active_space_mo,
+        electron_mo_ints,
+    )
+    spin_mo_eint_set = spatial_mo_eint_set_to_spin_mo_eint_set(spatial_mo_eint_set)
+    return spin_mo_eint_set
+
+
+def get_active_space_spatial_integrals_from_ao_eint(
     active_space_mo: ActiveSpaceMolecularOrbitals,
     electron_ao_ints: AOeIntArraySet,
-    return_spin_integrals: bool = True,
-) -> Union[SpinMOeIntSet, SpatialMOeIntSet]:
-    """Compute the active space electron integrals from ao electron
+) -> SpatialMOeIntSet:
+    """Compute the active space spatial electron integrals from ao electron
     integrals."""
     mo_coeff = active_space_mo.mo_coeff
     core_energy = electron_ao_ints.constant
@@ -354,10 +363,30 @@ def get_active_space_integrals_from_ao_eint(
     electron_mo_ints = SpatialMOeIntSet(
         const=core_energy, mo_1e_int=mo_1e_int, mo_2e_int=mo_2e_int
     )
-    active_space_integrals = get_active_space_integrals_from_mo_eint(
+    active_space_integrals = get_active_space_spatial_integrals_from_mo_eint(
         active_space_mo=active_space_mo,
         electron_mo_ints=electron_mo_ints,
-        return_spin_integrals=return_spin_integrals,
+    )
+
+    return active_space_integrals
+
+
+def get_active_space_spin_integrals_from_ao_eint(
+    active_space_mo: ActiveSpaceMolecularOrbitals,
+    electron_ao_ints: AOeIntArraySet,
+) -> SpinMOeIntSet:
+    """Compute the active space spin electron integrals from ao electron
+    integrals."""
+    mo_coeff = active_space_mo.mo_coeff
+    core_energy = electron_ao_ints.constant
+    mo_1e_int = electron_ao_ints.ao_1e_int.to_spatial_mo1int(mo_coeff)
+    mo_2e_int = electron_ao_ints.ao_2e_int.to_spatial_mo2int(mo_coeff)
+    electron_mo_ints = SpatialMOeIntSet(
+        const=core_energy, mo_1e_int=mo_1e_int, mo_2e_int=mo_2e_int
+    )
+    active_space_integrals = get_active_space_spin_integrals_from_mo_eint(
+        active_space_mo=active_space_mo,
+        electron_mo_ints=electron_mo_ints,
     )
 
     return active_space_integrals
