@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from itertools import product
-from typing import Sequence, Union, cast
+from typing import Sequence, cast
 
 import numpy as np
 import numpy.typing as npt

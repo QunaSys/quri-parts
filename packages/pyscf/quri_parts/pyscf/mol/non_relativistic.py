@@ -116,18 +116,16 @@ class PySCFAOeIntSet(AOeIntSet):
         active_space_mo: ActiveSpaceMolecularOrbitals,
     ) -> SpinMOeIntSet:
         """Returns the full space spin electon integrals."""
-        spin_mo_eint_set = get_active_space_integrals(active_space_mo, self)
-        return cast(SpinMOeIntSet, spin_mo_eint_set)
+        spin_mo_eint_set = get_active_space_spin_integrals(active_space_mo, self)
+        return spin_mo_eint_set
 
     def to_active_space_spatial_mo_int(
         self,
         active_space_mo: ActiveSpaceMolecularOrbitals,
     ) -> SpatialMOeIntSet:
         """Returns the full space spatial electon integrals."""
-        spatial_mo_eint_set = get_active_space_integrals(
-            active_space_mo, self, return_spin_integrals=False
-        )
-        return cast(SpatialMOeIntSet, spatial_mo_eint_set)
+        spatial_mo_eint_set = get_active_space_spatial_integrals(active_space_mo, self)
+        return spatial_mo_eint_set
 
 
 class PySCFSpatialMO1eInt(SpatialMO1eInt):
@@ -208,11 +206,10 @@ def get_ao_eint_set(
     return ao_e_int_set
 
 
-def get_active_space_integrals(
+def get_active_space_spatial_integrals(
     active_space_mo: ActiveSpaceMolecularOrbitals,
     electron_ints: PySCFAOeIntSet,
-    return_spin_integrals: bool = True,
-) -> Union[SpinMOeIntSet, SpatialMOeIntSet]:
+) -> SpatialMOeIntSet:
     """Computes the active space electron integrals by pyscf.casci.
 
     The output is the spin mo electron integrals in physicists'
@@ -241,8 +238,16 @@ def get_active_space_integrals(
         mo_2e_int=SpatialMO2eIntArray(casci_mo_2e_int),
     )
 
-    if return_spin_integrals:
-        spin_integrals = spatial_mo_eint_set_to_spin_mo_eint_set(spatial_integrals)
-        return spin_integrals
-
     return spatial_integrals
+
+
+def get_active_space_spin_integrals(
+    active_space_mo: ActiveSpaceMolecularOrbitals,
+    electron_ints: PySCFAOeIntSet,
+) -> SpinMOeIntSet:
+    spatial_integrals = get_active_space_spatial_integrals(
+        active_space_mo,
+        electron_ints,
+    )
+    spin_integrals = spatial_mo_eint_set_to_spin_mo_eint_set(spatial_integrals)
+    return spin_integrals
