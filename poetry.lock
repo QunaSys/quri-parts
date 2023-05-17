@@ -3226,21 +3226,6 @@ types-pkg-resources = "*"
 typing-extensions = ">=4.2,<5.0"
 
 [[package]]
-name = "pytket-qiskit"
-version = "0.31.0"
-description = "Extension for pytket, providing translation to and from the Qiskit framework"
-category = "main"
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "pytket_qiskit-0.31.0-py3-none-any.whl", hash = "sha256:30d5f67b5e395c075d630966deb0344ac1b300c6ad112dea0d2b74b16e4dd47e"},
-]
-
-[package.dependencies]
-pytket = ">=1.9,<2.0"
-qiskit = ">=0.39.0,<0.40.0"
-
-[[package]]
 name = "pytz"
 version = "2023.3"
 description = "World timezone definitions, modern and historical"
@@ -3896,7 +3881,7 @@ url = "packages/qiskit"
 [[package]]
 name = "quri-parts-quantinuum"
 version = "0.0.0"
-description = "A plugin to use Honeywell with QIRI Parts"
+description = "A plugin to use Quantinuum with QIRI Parts"
 category = "main"
 optional = false
 python-versions = "^3.9.8"
@@ -3963,7 +3948,6 @@ develop = true
 [package.dependencies]
 numpy = ">=1.22.0"
 pytket = "^1.0.0"
-pytket-qiskit = ">=0.0.0"
 quri-parts-circuit = "*"
 
 [package.source]
