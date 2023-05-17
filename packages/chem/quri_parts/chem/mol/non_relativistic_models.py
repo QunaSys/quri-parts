@@ -198,15 +198,11 @@ def get_effective_active_space_1e_integrals(
         full_idx,
     )
 
-    original_1e_integrals_new = mo_1e_int.copy()
-    original_1e_integrals_new += 2 * trace(
-        mo_2e_int[get_core_array_from_2e_1], axis1=0, axis2=3
-    )
-    original_1e_integrals_new -= 1 * trace(
-        mo_2e_int[get_core_array_from_2e_2], axis1=0, axis2=2
-    )
+    as_1e_integrals = mo_1e_int.copy()
+    as_1e_integrals += 2 * trace(mo_2e_int[get_core_array_from_2e_1], axis1=0, axis2=3)
+    as_1e_integrals -= 1 * trace(mo_2e_int[get_core_array_from_2e_2], axis1=0, axis2=2)
 
-    return cast(npt.NDArray[np.complex128], original_1e_integrals_new)
+    return as_1e_integrals
 
 
 def spatial_mo_1e_int_to_spin_mo_1e_int(

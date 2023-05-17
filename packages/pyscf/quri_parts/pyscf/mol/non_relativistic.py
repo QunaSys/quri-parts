@@ -176,10 +176,14 @@ def ao2int(mo: PySCFMolecularOrbitals) -> PySCFAO2eInt:
 def get_ao_eint_set(
     molecule: PySCFMolecularOrbitals, store_array_on_memory: bool = False
 ) -> Union[PySCFAOeIntSet, AOeIntArraySet]:
-    """Compute the ao electron integrals and store then inside PySCFAOeIntSet.
+    """Returns an instance of either PySCFAOeIntSet or AOeIntArraySet.
 
-    The molecule is stored on memory while the electron integral arrays
-    are not.
+    If store_array_on_memory == True, it computes the ao electron integrals
+    and returns AOeIntArraySet that holds the electron integral arrays on
+    memory.
+
+    If store_array_on_memory == False, it returns a PySCFAOeIntSet object
+    that only holds the pyscf.gto.mole object on memory.
     """
     nuc_energy = get_nuc_energy(molecule)
     ao_1e_int = ao1int(molecule)
