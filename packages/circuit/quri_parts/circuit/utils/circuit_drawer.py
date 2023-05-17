@@ -96,21 +96,26 @@ def draw_circuit(
             circuit_pictures[i][row_idx][0] = "-"
             circuit_pictures[i][row_idx][-1] = "-"
 
+    # Add gate AA to ``circuit_pictures``.
     for idx, gate in enumerate(circuit.gates):
         gate_aa = _generate_gate_aa(gate, idx)
         layer, row_idx, gate_map = _place_check(gate, depth, gate_map)
         circuit_pictures[layer] = _write_gate_string(
             gate_aa, row_idx, circuit_pictures[layer]
         )
+
+    # Join ``circuit_pictures`` into one numpy array of strings.
     interm_layer = _interm_layer(qubit_count)
     circuit_picture = interm_layer
     for i, pict in enumerate(circuit_pictures):
         circuit_picture = np.concatenate([circuit_picture, pict], axis=1)
         if i != len(circuit_pictures) - 1:
             circuit_picture = np.concatenate([circuit_picture, interm_layer], axis=1)
+
+    # Fill in the blanks.
     circuit_picture = _connect_wire(circuit_picture)
 
-    # Divide and fold
+    # Divide and fold.
     if circuit_picture.shape[1] > line_length:
         n_divs = circuit_picture.shape[1] // line_length
         output = circuit_picture[:, :line_length]
@@ -159,14 +164,14 @@ def _generate_gate_aa(
     if gate.name == gate_names.SWAP:
         gate_string = _create_swap_string(gate.target_indices, gate_idx)
     else:
-        # checks if control bit index < target bit index
+        # Checks if control bit index < target bit index.
         if len(c_idxs) != 0 and min(t_idxs) > min(c_idxs):
             is_target_top = False
             gate_string = _create_upper_control_part(gate_string, c_idxs, t_idxs)
         else:
             is_target_top = True
 
-        # generate target part
+        # Generate target part.
         gate_size = max(t_idxs) - min(t_idxs) + 1
         if is_target_top:
             gate_head = "  ___  "
