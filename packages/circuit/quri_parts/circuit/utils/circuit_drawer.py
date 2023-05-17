@@ -46,6 +46,7 @@ _GATE_STR_MAP = {
     gate_names.U3: "U3 ",
     gate_names.CNOT: "CX ",
     gate_names.CZ: "CZ ",
+    gate_names.TOFFOLI: "TOF",
     gate_names.Pauli: " P ",
     gate_names.PauliRotation: "PR ",
     gate_names.UnitaryMatrix: "Mat",
