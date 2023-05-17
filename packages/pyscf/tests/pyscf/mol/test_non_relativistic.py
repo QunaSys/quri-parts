@@ -46,7 +46,7 @@ def compute_integrals(
     )
 
 
-class TestMolecule(unittest.TestCase):
+class ElectronIntegrals:
     """Compare output of AOeIntArraySet and PySCFAOeIntSet."""
 
     molecule: PySCFMolecularOrbitals
@@ -58,17 +58,17 @@ class TestMolecule(unittest.TestCase):
     pyscf_active_space_spatial_integrals: SpatialMOeIntSet
     active_space_spatial_integrals: SpatialMOeIntSet
 
-    def compare_ao1eint(self) -> None:
+    def test_compare_ao1eint(self) -> None:
         chem_ao1eint = self.chem_ao_eint_set.ao_1e_int
         pyscf_ao1eint = self.pyscf_ao_eint_set.ao_1e_int
         assert allclose(chem_ao1eint.array, pyscf_ao1eint.array)
 
-    def compare_ao2eint(self) -> None:
+    def test_compare_ao2eint(self) -> None:
         chem_ao2eint = self.chem_ao_eint_set.ao_2e_int
         pyscf_ao2eint = self.pyscf_ao_eint_set.ao_2e_int
         assert allclose(chem_ao2eint.array, pyscf_ao2eint.array)
 
-    def compare_spin_mo1eint(self) -> None:
+    def test_compare_spin_mo1eint(self) -> None:
         chem_spin_mo1eint = self.chem_ao_eint_set.ao_1e_int.to_mo1int(
             self.molecule.mo_coeff
         )
@@ -77,7 +77,7 @@ class TestMolecule(unittest.TestCase):
         )
         assert allclose(chem_spin_mo1eint.array, pyscf_spin_mo1eint.array)
 
-    def compare_spin_mo2eint(self) -> None:
+    def test_compare_spin_mo2eint(self) -> None:
         chem_spin_mo2eint = self.chem_ao_eint_set.ao_2e_int.to_mo2int(
             self.molecule.mo_coeff
         )
@@ -86,7 +86,7 @@ class TestMolecule(unittest.TestCase):
         )
         assert allclose(chem_spin_mo2eint.array, pyscf_spin_mo2eint.array)
 
-    def compare_spatial_mo1eint(self) -> None:
+    def test_compare_spatial_mo1eint(self) -> None:
         chem_spatial_mo1eint = self.chem_ao_eint_set.ao_1e_int.to_spatial_mo1int(
             self.molecule.mo_coeff
         )
@@ -95,7 +95,7 @@ class TestMolecule(unittest.TestCase):
         )
         assert allclose(chem_spatial_mo1eint.array, pyscf_spatial_mo1eint.array)
 
-    def compare_spatial_mo2eint(self) -> None:
+    def test_compare_spatial_mo2eint(self) -> None:
         chem_spatial_mo2eint = self.chem_ao_eint_set.ao_2e_int.to_spatial_mo2int(
             self.molecule.mo_coeff
         )
@@ -104,57 +104,43 @@ class TestMolecule(unittest.TestCase):
         )
         assert allclose(chem_spatial_mo2eint.array, pyscf_spatial_mo2eint.array)
 
-    def compare_casci_const(self) -> None:
+    def test_compare_casci_const(self) -> None:
         assert allclose(
             self.pyscf_active_space_integrals.const, self.active_space_integrals.const
         )
 
-    def compare_casci_spin_mo_1eint(self) -> None:
+    def test_compare_casci_spin_mo_1eint(self) -> None:
         assert allclose(
             self.pyscf_active_space_integrals.mo_1e_int.array,
             self.active_space_integrals.mo_1e_int.array,
         )
 
-    def compare_casci_spin_mo_2eint(self) -> None:
+    def test_compare_casci_spin_mo_2eint(self) -> None:
         assert allclose(
             self.pyscf_active_space_integrals.mo_2e_int.array,
             self.active_space_integrals.mo_2e_int.array,
         )
 
-    def compare_casci_const_from_spatial(self) -> None:
+    def test_compare_casci_const_from_spatial(self) -> None:
         assert allclose(
             self.pyscf_active_space_spatial_integrals.const,
             self.active_space_spatial_integrals.const,
         )
 
-    def compare_casci_spatial_mo_1eint(self) -> None:
+    def test_compare_casci_spatial_mo_1eint(self) -> None:
         assert allclose(
             self.pyscf_active_space_spatial_integrals.mo_1e_int.array,
             self.active_space_spatial_integrals.mo_1e_int.array,
         )
 
-    def compare_casci_spatial_mo_2eint(self) -> None:
+    def test_compare_casci_spatial_mo_2eint(self) -> None:
         assert allclose(
             self.pyscf_active_space_spatial_integrals.mo_2e_int.array,
             self.active_space_spatial_integrals.mo_2e_int.array,
         )
 
-    def run_test(self) -> None:
-        self.compare_ao1eint()
-        self.compare_ao2eint()
-        self.compare_spin_mo1eint()
-        self.compare_spin_mo2eint()
-        self.compare_spatial_mo1eint()
-        self.compare_spatial_mo2eint()
-        self.compare_casci_const()
-        self.compare_casci_spin_mo_1eint()
-        self.compare_casci_spin_mo_2eint()
-        self.compare_casci_const_from_spatial()
-        self.compare_casci_spatial_mo_1eint()
-        self.compare_casci_spatial_mo_2eint()
 
-
-class TestH2O(TestMolecule):
+class TestH2O(ElectronIntegrals, unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         atom_list = [["O", [0, 0, 0]], ["H", [0, 0, 1]], ["H", [2, 0, 0.5]]]
@@ -177,11 +163,8 @@ class TestH2O(TestMolecule):
             molecule=cls.molecule, active_space_mo=cls.active_space_mo
         )
 
-    def test_integrals(self) -> None:
-        self.run_test()
 
-
-class TestSpinningH2O(TestMolecule):
+class TestSpinningH2O(ElectronIntegrals, unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         atom_list = [["O", [0, 0, 0]], ["H", [0, 0, 1]], ["H", [2, 0, 0.5]]]
@@ -204,11 +187,8 @@ class TestSpinningH2O(TestMolecule):
             molecule=cls.molecule, active_space_mo=cls.active_space_mo
         )
 
-    def test_integrals(self) -> None:
-        self.run_test()
 
-
-class TestCCPVDZH2O(TestMolecule):
+class TestCCPVDZH2O(ElectronIntegrals, unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         atom_list = [["O", [0, 0, 0]], ["H", [0, 0, 1]], ["H", [2, 0, 0.5]]]
@@ -231,11 +211,8 @@ class TestCCPVDZH2O(TestMolecule):
             molecule=cls.molecule, active_space_mo=cls.active_space_mo
         )
 
-    def test_integrals(self) -> None:
-        self.run_test()
 
-
-class TestChargedH2O(TestMolecule):
+class TestChargedH2O(ElectronIntegrals, unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         atom_list = [["O", [0, 0, 0]], ["H", [0, 0, 1]], ["H", [2, 0, 0.5]]]
@@ -257,6 +234,3 @@ class TestChargedH2O(TestMolecule):
         ) = compute_integrals(
             molecule=cls.molecule, active_space_mo=cls.active_space_mo
         )
-
-    def test_integrals(self) -> None:
-        self.run_test()
