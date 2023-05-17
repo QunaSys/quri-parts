@@ -140,7 +140,7 @@ def get_effective_active_space_core_energy(
     core_spatial_orb_idx: Sequence[int],
 ) -> float:
     """Compute the effective active space core energy for a given active space
-    configuration. (for spatial orbital.)
+    configuration.
 
     Args:
         core_energy:
@@ -172,9 +172,10 @@ def get_effective_active_space_1e_integrals(
     mo_1e_int: npt.NDArray[np.complex128],
     mo_2e_int: npt.NDArray[np.complex128],
     core_spatial_orb_idx: Sequence[int],
+    active_spatial_orb_idx: Sequence[int],
 ) -> npt.NDArray[np.complex128]:
-    """Compute the effective active space 1-electron integral for a given
-    active space configuration. (for spatial orbital.)
+    """Compute the effective active space 1-electron spatial integral for a
+    given active space configuration.
 
     Args:
         mo_1e_int:
@@ -202,7 +203,38 @@ def get_effective_active_space_1e_integrals(
     as_1e_integrals += 2 * trace(mo_2e_int[get_core_array_from_2e_1], axis1=0, axis2=3)
     as_1e_integrals -= 1 * trace(mo_2e_int[get_core_array_from_2e_2], axis1=0, axis2=2)
 
-    return as_1e_integrals
+    effective_1e_integrals = np.array(
+        as_1e_integrals[np.ix_(active_spatial_orb_idx, active_spatial_orb_idx)],
+        dtype=np.complex128,
+    )
+
+    return effective_1e_integrals
+
+
+def get_effective_active_space_2e_integrals(
+    mo_2e_int: npt.NDArray[np.complex128],
+    active_spatial_orb_idx: Sequence[int],
+) -> npt.NDArray[np.complex128]:
+    """Compute the effective active space 2-electron spatial integral for a
+    given active space configuration.
+
+    Args:
+        mo_1e_int:
+            The orginal space spatial mo 1-electron integral.
+        mo_2e_int:
+            The orginal space spatial mo 2-electron integral.
+        core_spatial_orb_idx:
+            The core spatial orbital indices.
+    """
+    effective_mo_2e_int = mo_2e_int[
+        np.ix_(
+            active_spatial_orb_idx,
+            active_spatial_orb_idx,
+            active_spatial_orb_idx,
+            active_spatial_orb_idx,
+        )
+    ]
+    return np.array(effective_mo_2e_int, dtype=np.complex128)
 
 
 def spatial_mo_1e_int_to_spin_mo_1e_int(
@@ -313,24 +345,16 @@ def get_active_space_spatial_integrals_from_mo_eint(
         mo_1e_int=mo_1e_int,
         mo_2e_int=mo_2e_int,
         core_spatial_orb_idx=core_spatial_orb_idx,
+        active_spatial_orb_idx=active_spatial_orb_idx,
     )
-
-    spatial_1e_integrals_subset = effective_mo_1e_int[
-        np.ix_(active_spatial_orb_idx, active_spatial_orb_idx)
-    ]
-    spatial_2e_integrals_subset = mo_2e_int[
-        np.ix_(
-            active_spatial_orb_idx,
-            active_spatial_orb_idx,
-            active_spatial_orb_idx,
-            active_spatial_orb_idx,
-        )
-    ]
+    effective_mo_2e_int = get_effective_active_space_2e_integrals(
+        mo_2e_int=mo_2e_int, active_spatial_orb_idx=active_spatial_orb_idx
+    )
 
     spatial_mo_eint_set = SpatialMOeIntSet(
         const=effective_core_energy,
-        mo_1e_int=SpatialMO1eIntArray(array=spatial_1e_integrals_subset),
-        mo_2e_int=SpatialMO2eIntArray(array=spatial_2e_integrals_subset),
+        mo_1e_int=SpatialMO1eIntArray(array=effective_mo_1e_int),
+        mo_2e_int=SpatialMO2eIntArray(array=effective_mo_2e_int),
     )
 
     return spatial_mo_eint_set
