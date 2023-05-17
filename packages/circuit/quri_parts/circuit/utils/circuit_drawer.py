@@ -45,6 +45,9 @@ _GATE_STR_MAP = {
     gate_names.UnitaryMatrix: "Mat",
 }
 
+# Width of a gate
+_GATE_WIDTH = 7
+
 
 def draw_circuit(circuit: NonParametricQuantumCircuit, line_length: int = 80) -> None:
     """Circuit drawer which outputs given circuit as an ASCII art to standart
@@ -57,33 +60,40 @@ def draw_circuit(circuit: NonParametricQuantumCircuit, line_length: int = 80) ->
     """
 
     qubit_count = circuit.qubit_count
-    depth = circuit.depth  # depth of the circuit picture (can be increased lator)
+    depth = circuit.depth  # depth of the circuit
 
     # 2D Boolean array. True if [i,j] is empty.
     gate_map = np.full((qubit_count, depth), True)
 
     # 4 for each qubit.
     vertical_size = qubit_count * 4
-    # 7 for each gate. (depth-1) is for "-" connecting between gates.
-    # The last term is "-" put at the beginning and the end of the circuit.
-    horizontal_size = (depth * 7) + (depth - 1) + 2
 
-    # 2D str array to be printed.
-    circuit_picture = np.full((vertical_size, horizontal_size), " ")
+    # List of 2D str arrays to be printed.
+    # circuit_pictures[i] corresponds to the circuit block at layer i.
+    circuit_pictures = [
+        np.full((vertical_size, _GATE_WIDTH), " ") for _ in range(depth)
+    ]
 
-    # "-" at the beginning and end of the circuit.
-    for i in range(qubit_count):
-        row_idx = (i + 1) * 4 - 2
-        circuit_picture[row_idx][0] = "-"
-        circuit_picture[row_idx][-1] = "-"
+    # "-" at the beginning and end of each block.
+    for i in range(depth):
+        for j in range(qubit_count):
+            row_idx = (j + 1) * 4 - 2
+            circuit_pictures[i][row_idx][0] = "-"
+            circuit_pictures[i][row_idx][-1] = "-"
 
     for idx, gate in enumerate(circuit.gates):
         gate_aa = _generate_gate_aa(gate, idx)
-        upper_left_idx, depth, gate_map, circuit_picture = _place_check(
-            gate, qubit_count, depth, gate_map, circuit_picture
+        layer, row_idx, gate_map = _place_check(gate, depth, gate_map)
+        circuit_pictures[layer] = _write_gate_string(
+            gate_aa, row_idx, circuit_pictures[layer]
         )
-        circuit_picture = _write_gate_string(gate_aa, upper_left_idx, circuit_picture)
-        circuit_picture = _connect_wire(qubit_count, depth, circuit_picture)
+    interm_layer = _interm_layer(qubit_count)
+    circuit_picture = interm_layer
+    for i, pict in enumerate(circuit_pictures):
+        circuit_picture = np.concatenate([circuit_picture, pict], axis=1)
+        if i != len(circuit_pictures) - 1:
+            circuit_picture = np.concatenate([circuit_picture, interm_layer], axis=1)
+    circuit_picture = _connect_wire(circuit_picture)
 
     # Divide and fold
     if circuit_picture.shape[1] > line_length:
@@ -265,55 +275,65 @@ def _create_swap_string(target_indices: Sequence[int], gate_idx: int) -> list[st
 
 def _place_check(
     gate: QuantumGate,
-    qubit_count: int,
     depth: int,
     gate_map: npt.NDArray[np.bool_],
-    circuit_picture: npt.NDArray[np.string_],
-) -> tuple[tuple[int, int], int, npt.NDArray[np.bool_], npt.NDArray[np.string_]]:
+) -> tuple[int, int, npt.NDArray[np.bool_]]:
     gate_indices = (*gate.control_indices, *gate.target_indices)
     min_idx = min(gate_indices)
-    max_idx = max(gate_indices)
-
     row_idx = min_idx * 4
-    for i in range(depth):
-        if all(gate_map[min_idx : max_idx + 1, i]):  # noqa
-            gate_map[min_idx : max_idx + 1, : i + 1] = False  # noqa
-            return (row_idx, i * 8 + 1), depth, gate_map, circuit_picture
+    for i in reversed(range(depth)):
+        if not all(gate_map[gate_indices, i]):  # noqa
+            gate_map[gate_indices, i + 1] = False  # noqa
+            return i + 1, row_idx, gate_map
 
-    # Expand picture and gate_map
-    depth += 1
-    additional_gate_map = np.full(qubit_count, True).reshape(qubit_count, 1)
-    gate_map = np.concatenate([gate_map, additional_gate_map], axis=1)
-
-    additional_c_pic = np.full((qubit_count * 4, 8), " ")
-    circuit_picture = np.concatenate([circuit_picture, additional_c_pic], axis=1)
-
-    for i in range(qubit_count):
-        row = (i + 1) * 4 - 2
-        circuit_picture[row][-1] = "-"
-
-    gate_map[min_idx:max_idx, : depth + 1] = False
-    return (row_idx, depth), depth, gate_map, circuit_picture
+    gate_map[gate_indices, 0] = False
+    return 0, row_idx, gate_map
 
 
 def _write_gate_string(
     gate_string: Sequence[str],
-    upper_left_index: tuple[int, int],
+    row_idx: int,
     circuit_picture: npt.NDArray[np.string_],
 ) -> npt.NDArray[np.string_]:
-    row_idx, col_idx = upper_left_index
-    width = 7
+    rows, cols = circuit_picture.shape
+
+    # Checks if existing circuit block can accomodate ``gate_string``.
+    for i in range(0, circuit_picture.shape[1], _GATE_WIDTH + 1):
+        if np.all(
+            (
+                circuit_picture[
+                    row_idx : row_idx + len(gate_string), 0:_GATE_WIDTH  # noqa
+                ]
+                == " "
+            )
+            | (
+                circuit_picture[
+                    row_idx : row_idx + len(gate_string), 0:_GATE_WIDTH  # noqa
+                ]
+                == "-"
+            )
+        ):
+            for j, line in enumerate(gate_string):
+                circuit_picture[row_idx + j][i : i + _GATE_WIDTH] = list(line)  # noqa
+            return circuit_picture
+
+    # Expand ``circuit_picture``.
+    interm_layer = _interm_layer(circuit_picture.shape[0] // 4)
+    circuit_picture = np.concatenate([circuit_picture, interm_layer], axis=1)
+    add_block = np.full((rows, 7), " ")
+    for i in range(2, rows, 4):
+        add_block[i][0] = "-"
+        add_block[i][-1] = "-"
+    circuit_picture = np.concatenate([circuit_picture, add_block], axis=1)
+
     for i, line in enumerate(gate_string):
-        circuit_picture[row_idx + i][col_idx : col_idx + width] = list(line)  # noqa
+        circuit_picture[row_idx + i][cols : cols + _GATE_WIDTH] = list(line)  # noqa
     return circuit_picture
 
 
-def _connect_wire(
-    qubit_count: int, depth: int, circuit_picture: npt.NDArray[np.string_]
-) -> npt.NDArray[np.string_]:
-    horizontal_size = (depth * 7) + (depth - 1) + 2
-    for i in range(qubit_count):
-        row = (i + 1) * 4 - 2
+def _connect_wire(circuit_picture: npt.NDArray[np.string_]) -> npt.NDArray[np.string_]:
+    horizontal_size = circuit_picture.shape[1]
+    for row in range(2, circuit_picture.shape[0], 4):
         p = 0
         while True:
             char_now = circuit_picture[row][p]
@@ -323,7 +343,7 @@ def _connect_wire(
                 if circuit_picture[row][p + 1] == " ":
                     circuit_picture[row][p + 1] = "-"
                 elif circuit_picture[row][p + 1] == "|":
-                    if circuit_picture[row][p + 5] == "|":
+                    if p + 5 < horizontal_size and circuit_picture[row][p + 5] == "|":
                         p += 5
                     elif circuit_picture[row][p + 3] == "|":
                         p += 3
@@ -334,3 +354,11 @@ def _connect_wire(
             if p + 1 == horizontal_size:
                 break
     return circuit_picture
+
+
+def _interm_layer(qubit_count: int) -> npt.NDArray[np.string_]:
+    arr = np.full((qubit_count * 4, 1), " ")
+    for i in range(qubit_count):
+        row_idx = (i + 1) * 4 - 2
+        arr[row_idx][0] = "-"
+    return arr
