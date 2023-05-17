@@ -258,7 +258,8 @@ def test_eff_2e_integrals() -> None:
 
 
 def test_eff_core_energy_all_active() -> None:
-    # openfermion effective 1e electron integral for spin up H3.
+    # edge case test: test if setting all orbital to active reduces to 
+    # full space core energy
     effective_core_energy = get_effective_active_space_core_energy(
         core_energy=core_energy,
         mo_1e_int=mo_1e_int.array,
@@ -270,7 +271,8 @@ def test_eff_core_energy_all_active() -> None:
 
 
 def test_eff_1e_integrals_all_active() -> None:
-    # openfermion effective 1e electron integral for spin up H3.
+    # edge case test: test if setting all orbital to active reduces to 
+    # full space core energy
     effective_1e_integrals = get_effective_active_space_1e_integrals(
         mo_1e_int=mo_1e_int.array,
         mo_2e_int=mo_2e_int.array,
@@ -282,8 +284,8 @@ def test_eff_1e_integrals_all_active() -> None:
 
 
 def test_eff_2e_integrals_all_active() -> None:
-    # openfermion effective 2e electron integral for spin up H3.
-
+    # edge case test: test if setting all orbital to active reduces to 
+    # full space core energy
     effective_2e_integrals = get_effective_active_space_2e_integrals(
         mo_2e_int=mo_2e_int.array,
         active_spatial_orb_idx=[0, 1, 2],
