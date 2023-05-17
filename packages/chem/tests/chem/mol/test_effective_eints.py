@@ -217,7 +217,7 @@ def test_spatial_to_spin_conversion() -> None:
     assert np.allclose(of_full_space_spin_integrals[1], full_space_spin_integrals[1])
 
 
-def test_test_eff_nuc_energy() -> None:
+def test_eff_nuc_energy() -> None:
     # openfermion effective core energy for spin up H3.
     of_effective_nuc_energy = -1.1870269447600394
 
@@ -231,7 +231,7 @@ def test_test_eff_nuc_energy() -> None:
     assert np.isclose(of_effective_nuc_energy, effective_nuc_energy)
 
 
-def test_test_eff_1e_integrals() -> None:
+def test_eff_1e_integrals() -> None:
     # openfermion effective 1e electron integral for spin up H3.
     of_effective_1e_integrals = array([[-0.33696926]])
 
@@ -245,7 +245,7 @@ def test_test_eff_1e_integrals() -> None:
     assert np.allclose(of_effective_1e_integrals, effective_1e_integrals)
 
 
-def test_test_eff_2e_integrals() -> None:
+def test_eff_2e_integrals() -> None:
     # openfermion effective 2e electron integral for spin up H3.
     of_effective_2e_integrals = array([[[[0.53466412]]]])
 
@@ -255,3 +255,38 @@ def test_test_eff_2e_integrals() -> None:
     )
 
     assert np.allclose(of_effective_2e_integrals, effective_2e_integrals)
+
+
+def test_eff_core_energy_all_active() -> None:
+    # openfermion effective 1e electron integral for spin up H3.
+    effective_core_energy = get_effective_active_space_core_energy(
+        core_energy=core_energy,
+        mo_1e_int=mo_1e_int.array,
+        mo_2e_int=mo_2e_int.array,
+        core_spatial_orb_idx=[],
+    )
+
+    assert np.allclose(core_energy, effective_core_energy)
+
+
+def test_eff_1e_integrals_all_active() -> None:
+    # openfermion effective 1e electron integral for spin up H3.
+    effective_1e_integrals = get_effective_active_space_1e_integrals(
+        mo_1e_int=mo_1e_int.array,
+        mo_2e_int=mo_2e_int.array,
+        core_spatial_orb_idx=[],
+        active_spatial_orb_idx=[0, 1, 2],
+    )
+
+    assert np.allclose(mo_1e_int.array, effective_1e_integrals)
+
+
+def test_eff_2e_integrals_all_active() -> None:
+    # openfermion effective 2e electron integral for spin up H3.
+
+    effective_2e_integrals = get_effective_active_space_2e_integrals(
+        mo_2e_int=mo_2e_int.array,
+        active_spatial_orb_idx=[0, 1, 2],
+    )
+
+    assert np.allclose(mo_2e_int.array, effective_2e_integrals)
