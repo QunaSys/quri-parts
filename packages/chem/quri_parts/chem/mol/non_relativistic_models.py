@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from itertools import product
-from typing import Any, Sequence, Union, cast
+from typing import Sequence, Union, cast
 
 import numpy as np
 import numpy.typing as npt
@@ -143,7 +143,7 @@ def get_effective_active_space_core_energy(
     configuration. (for spatial orbital.)
 
     Args:
-        energy:
+        core_energy:
             The full space core erengy.
         mo_1e_int:
             The full space spatial mo 1-electron integral.
@@ -192,9 +192,9 @@ def get_effective_active_space_1e_integrals(
         np.asarray(core_spatial_orb_idx, dtype=int),
     )
     get_core_array_from_2e_2 = np.ix_(
-        cast(Any, core_spatial_orb_idx),
+        np.asarray(core_spatial_orb_idx, dtype=int),
         full_idx,
-        cast(Any, core_spatial_orb_idx),
+        np.asarray(core_spatial_orb_idx, dtype=int),
         full_idx,
     )
 

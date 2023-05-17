@@ -304,14 +304,14 @@ class AOeIntSet(Protocol):
         self,
         mo: MolecularOrbitals,
     ) -> "SpinMOeIntSet":
-        """Compute the full space spin or spin mo integral."""
+        """Compute the full space spin mo integral."""
         ...
 
     def to_active_space_mo_int(
         self,
         active_space_mo: ActiveSpaceMolecularOrbitals,
     ) -> "SpinMOeIntSet":
-        """Compute the active space spin or spin mo integral."""
+        """Compute the active space spin mo integral."""
         ...
 
 
