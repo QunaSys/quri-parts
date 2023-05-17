@@ -44,8 +44,25 @@ def parameter_shift_hessian_estimates(
     params: Sequence[float],
     estimator: ConcurrentParametricQuantumEstimator[_ParametricStateT],
 ) -> MatrixEstimates[complex]:
-    """Function that returns the hessian of the operator's expectation value
-    with respect to circuit parameters using parameter shift rule."""
+    """Estimate a hessian of an expectation value of a given operator for a
+    parametric state with respect to the state parameter by the parameter shift
+    rule.
+
+    The hessian estimates are configured with arguments as follows.
+
+    Args:
+        op: An operator of which expectation value is estimated.
+        state: A parametric quantum state on which the operator
+            expectation is evaluated.
+        params: Parameter values for which the hessian is estimated.
+        estimator: An estimator that estimates expectation values
+            of the operator for the parametric states.
+
+    Returns:
+        The estimated values (can be accessed with :attr:`.values`) with errors
+        of estimation (can be accessed with :attr:`.error_tensor`). Currently,
+        :attr:`.error_tensor` returns `None`.
+    """
     param_circuit = state.parametric_circuit
     param_mapping = cast(LinearParameterMapping, param_circuit.param_mapping)
     parameter_shift = ShiftedParameters(param_mapping)
