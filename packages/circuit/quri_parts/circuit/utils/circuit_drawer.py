@@ -12,12 +12,18 @@ import warnings
 
 # The implementation is originally from qulacs-visualizer
 # https://github.com/Qulacs-Osaka/qulacs-visualizer
-from typing import Sequence
+from typing import Sequence, Union
 
 import numpy as np
 import numpy.typing as npt
 
-from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate, gate_names
+from quri_parts.circuit import (
+    NonParametricQuantumCircuit,
+    ParametricQuantumGate,
+    QuantumGate,
+    UnboundParametricQuantumCircuitProtocol,
+    gate_names,
+)
 
 _GATE_STR_MAP = {
     gate_names.X: " X ",
@@ -43,16 +49,24 @@ _GATE_STR_MAP = {
     gate_names.Pauli: " P ",
     gate_names.PauliRotation: "PR ",
     gate_names.UnitaryMatrix: "Mat",
+    gate_names.ParametricRX: "PRX",
+    gate_names.ParametricRY: "PRY",
+    gate_names.ParametricRZ: "PRZ",
+    gate_names.ParametricPauliRotation: "PPR",
 }
 
 # Width of a gate
 _GATE_WIDTH = 7
 
 
-def draw_circuit(circuit: NonParametricQuantumCircuit, line_length: int = 80) -> None:
+def draw_circuit(
+    circuit: Union[
+        NonParametricQuantumCircuit, UnboundParametricQuantumCircuitProtocol
+    ],
+    line_length: int = 80,
+) -> None:
     """Circuit drawer which outputs given circuit as an ASCII art to standart
-    streams. Current implementation only supports
-    :class:`NonParametricQuantumCircuit.`
+    streams.
 
     Args:
         circuit: Circuit to be output.
@@ -128,7 +142,9 @@ def draw_circuit(circuit: NonParametricQuantumCircuit, line_length: int = 80) ->
         print("".join(line))
 
 
-def _generate_gate_aa(gate: QuantumGate, gate_idx: int) -> Sequence[str]:
+def _generate_gate_aa(
+    gate: Union[ParametricQuantumGate, QuantumGate], gate_idx: int
+) -> Sequence[str]:
     if gate_idx > 999:
         warnings.warn(
             f"Gate index larger than 999 is not supported. Index {gate_idx}"
@@ -274,7 +290,7 @@ def _create_swap_string(target_indices: Sequence[int], gate_idx: int) -> list[st
 
 
 def _place_check(
-    gate: QuantumGate,
+    gate: Union[ParametricQuantumGate, QuantumGate],
     depth: int,
     gate_map: npt.NDArray[np.bool_],
 ) -> tuple[int, int, npt.NDArray[np.bool_]]:
