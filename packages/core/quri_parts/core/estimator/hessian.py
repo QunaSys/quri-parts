@@ -1,3 +1,13 @@
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#      http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from dataclasses import dataclass
 from typing import Optional, Sequence, TypeVar, Union, cast
 
@@ -34,8 +44,8 @@ def parameter_shift_hessian_estimates(
     params: Sequence[float],
     estimator: ConcurrentParametricQuantumEstimator[_ParametricStateT],
 ) -> MatrixEstimates[complex]:
-    # Function that returns energy hessian w.r.t. circuit parameters using
-    # parameter shift rule
+    """Function that returns the hessian of the operator's expectation value
+    with respect to circuit parameters using parameter shift rule."""
     param_circuit = state.parametric_circuit
     param_mapping = cast(LinearParameterMapping, param_circuit.param_mapping)
     parameter_shift = ShiftedParameters(param_mapping)
@@ -59,15 +69,15 @@ def parameter_shift_hessian_estimates(
     estimates_dict = dict(zip(uniq_g_params_list, estimates))
 
     # Sum up the expectation values with the coefficients multiplied
-    hessian = np.zeros((len(derivatives), len(derivatives)))
+    hessian = np.zeros((len(derivatives), len(derivatives)), dtype=np.complex128)
     for i in range(len(derivatives)):
         for j in range(len(derivatives)):
-            g = 0.0
+            g = 0.0 + 0.0j
             for p, c in shifted_params_and_coeffs_list[i][j]:
-                g += estimates_dict[p].value.real * c
+                g += estimates_dict[p].value * c
             hessian[i, j] = g
 
-    return _MatrixEstimates(cast(list[list[complex]], hessian), None)
+    return _MatrixEstimates(hessian.tolist(), None)
 
 
 def create_parameter_shift_hessian_estimator(
