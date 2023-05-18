@@ -17,19 +17,24 @@ from quri_parts.circuit.transpile import (
     SequentialTranspiler,
 )
 
-from .honeywell_native_transpiler import (
+from .quantinuum_native_transpiler import (
     CNOT2U1qZZRZTranspiler,
+    CNOTRZ2RZZTranspiler,
+    CZ2RZZZTranspiler,
     H2U1qRZTranspiler,
     RX2U1qTranspiler,
     RY2U1qTranspiler,
+    U1qNormalizeWithRZTranspiler,
 )
 
 #: CircuitTranspiler to transpile a QuantumCircuit into another
 #: QuantumCircuit containing only U1q, RZ, ZZ, and RZZ gates.
-#: Note that the converted circuit contains Honeywell native gates.
-HoneywellSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
+#: Note that the converted circuit contains Quantinuum native gates.
+QuantinuumSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
     [
+        CZ2RZZZTranspiler(),
         RotationSetTranspiler(),
+        CNOTRZ2RZZTranspiler(),
         ParallelDecomposer(
             [
                 RX2U1qTranspiler(),
@@ -37,14 +42,18 @@ HoneywellSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTran
                 CNOT2U1qZZRZTranspiler(),
             ]
         ),
+        U1qNormalizeWithRZTranspiler(),
     ]
 )
 
 
 __all__ = [
-    "HoneywellSetTranspiler",
+    "QuantinuumSetTranspiler",
     "CNOT2U1qZZRZTranspiler",
+    "CNOTRZ2RZZTranspiler",
+    "CZ2RZZZTranspiler",
     "H2U1qRZTranspiler",
     "RX2U1qTranspiler",
     "RY2U1qTranspiler",
+    "U1qNormalizeWithRZTranspiler",
 ]
