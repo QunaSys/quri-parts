@@ -3929,7 +3929,7 @@ develop = true
 [package.dependencies]
 quri-parts-circuit = "*"
 quri-parts-core = "*"
-stim = "^1.9.0"
+stim = "^1.11.0"
 
 [package.source]
 type = "directory"
@@ -5023,4 +5023,4 @@ tket = ["quri-parts-tket"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9.8,<3.12"
-content-hash = "e3a08eb42b84281dfe7dbff78ca84f61354d1b76f590e9f39ba6b65f2ab4772b"
+content-hash = "c8ae11d348ce78af6a63ec847e2db52b68ca71e3ae831fa7b352d0d0f7364489"
