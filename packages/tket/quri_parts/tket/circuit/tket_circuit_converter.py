@@ -2,7 +2,7 @@ from collections.abc import Mapping
 from typing import Callable, Sequence, cast
 
 from numpy import array, pi
-from pytket import Circuit, OpType, Qubit  # type: ignore
+from pytket import Circuit, OpType, Qubit
 
 from quri_parts.circuit import (
     NonParametricQuantumCircuit,

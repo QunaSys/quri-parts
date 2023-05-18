@@ -2,7 +2,7 @@ from collections.abc import Mapping
 from typing import Sequence
 
 from numpy import array, pi
-from pytket import Circuit, OpType  # type: ignore
+from pytket import Circuit, OpType
 from pytket.circuit import Unitary1qBox  # type: ignore
 
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate, gate_names
