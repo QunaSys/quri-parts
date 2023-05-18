@@ -1,10 +1,20 @@
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#      http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from collections.abc import Mapping
 from typing import Callable, Type, cast
 
 import numpy as np
-from pytket import Circuit, OpType  # type: ignore
-from pytket import circuit as pytket_circ
-from pytket.circuit import Unitary1qBox  # type: ignore
+from pytket import Circuit, OpType
+from pytket.circuit import Unitary1qBox, Unitary2qBox, Unitary3qBox  # type: ignore
+from scipy.stats import unitary_group
 
 from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
 from quri_parts.tket.circuit import convert_circuit
@@ -153,7 +163,7 @@ def test_convert_three_qubit_gate() -> None:
         assert circuit_equal(converted, expected)
 
 
-def test_convert_unitary_matrix_gate() -> None:
+def test_convert_unitary_matrix_1q_gate() -> None:
     umat = ((1, 0), (0, np.cos(np.pi / 4) + 1j * np.sin(np.pi / 4)))
 
     target_index = 7
@@ -164,7 +174,45 @@ def test_convert_unitary_matrix_gate() -> None:
     qp_circuit.add_gate(qp_gate)
 
     tket_circuit = Circuit(n_qubit)
-    tket_circuit.add_unitary1qbox(pytket_circ.Unitary1qBox(umat), target_index)  # type: ignore  # noqa: E501
+    tket_circuit.add_unitary1qbox(Unitary1qBox(umat), target_index)
+
+    converted = convert_circuit(qp_circuit)
+    expected = tket_circuit
+
+    assert circuit_equal(converted, expected)
+
+
+def test_convert_unitary_matrix_2q_gate() -> None:
+    umat = unitary_group.rvs(4)
+
+    target_indices = (4, 7)
+    n_qubit = 8
+
+    qp_gate = gates.UnitaryMatrix(target_indices, umat)
+    qp_circuit = QuantumCircuit(n_qubit)
+    qp_circuit.add_gate(qp_gate)
+
+    tket_circuit = Circuit(n_qubit)
+    tket_circuit.add_unitary2qbox(Unitary2qBox(umat), *target_indices)
+
+    converted = convert_circuit(qp_circuit)
+    expected = tket_circuit
+
+    assert circuit_equal(converted, expected)
+
+
+def test_convert_unitary_matrix_3q_gate() -> None:
+    umat = unitary_group.rvs(8)
+
+    target_indices = (4, 5, 7)
+    n_qubit = 8
+
+    qp_gate = gates.UnitaryMatrix(target_indices, umat)
+    qp_circuit = QuantumCircuit(n_qubit)
+    qp_circuit.add_gate(qp_gate)
+
+    tket_circuit = Circuit(n_qubit)
+    tket_circuit.add_unitary3qbox(Unitary3qBox(umat), *target_indices)
 
     converted = convert_circuit(qp_circuit)
     expected = tket_circuit

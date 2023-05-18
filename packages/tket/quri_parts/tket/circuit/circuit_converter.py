@@ -1,9 +1,19 @@
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#      http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from collections.abc import Mapping
 from typing import Sequence
 
 from numpy import array, pi
 from pytket import Circuit, OpType
-from pytket.circuit import Unitary1qBox  # type: ignore
+from pytket.circuit import Unitary1qBox, Unitary2qBox, Unitary3qBox  # type: ignore
 
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate, gate_names
 from quri_parts.circuit.gate_names import (
@@ -81,7 +91,14 @@ def convert_gate(
         return _three_qubit_gate_tket[gate.name]
 
     elif is_unitary_matrix_gate_name(gate.name):
-        return Unitary1qBox(gate.unitary_matrix)
+        if len(gate.target_indices) == 1:
+            return Unitary1qBox(gate.unitary_matrix)
+        elif len(gate.target_indices) == 2:
+            return Unitary2qBox(gate.unitary_matrix)
+        elif len(gate.target_indices) == 3:
+            return Unitary3qBox(gate.unitary_matrix)
+        else:
+            raise ValueError("tKet only supports unitary gates up to 3 qubits")
 
     elif is_parametric_gate_name(gate.name):
         raise ValueError("Parametric gates are not supported")
@@ -117,9 +134,22 @@ def convert_circuit(circuit: NonParametricQuantumCircuit) -> Circuit:
             control_qubit = tuple(gate.control_indices)
             tket_circuit.add_gate(convert_gate(gate), control_qubit + target_qubit)
 
-        elif gate.name == "UnitaryMatrix" or gate.name in _special_named_gate_matrix:
+        elif gate.name in _special_named_gate_matrix:
             target_qubit = gate.target_indices
             tket_circuit.add_unitary1qbox(convert_gate(gate), target_qubit[0])
+
+        elif gate.name == "UnitaryMatrix":
+            if len(gate.target_indices) == 1:
+                target_qubit = gate.target_indices
+                tket_circuit.add_unitary1qbox(convert_gate(gate), *target_qubit)
+            elif len(gate.target_indices) == 2:
+                target_qubit = gate.target_indices
+                tket_circuit.add_unitary2qbox(convert_gate(gate), *target_qubit)
+            elif len(gate.target_indices) == 3:
+                target_qubit = gate.target_indices
+                tket_circuit.add_unitary3qbox(convert_gate(gate), *target_qubit)
+            else:
+                raise ValueError("tKet only supports unitary gates up to 3 qubits")
 
         else:
             raise ValueError(f"{gate.name} gate is not supported.")

@@ -1,3 +1,13 @@
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#      http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from collections.abc import Mapping
 from typing import Callable, Sequence, cast
 
@@ -70,9 +80,8 @@ def circuit_from_tket(tket_circuit: Circuit) -> NonParametricQuantumCircuit:
                     target_indices=(qubits[0],),
                 )
             )
-            continue
 
-        if gate_name in [OpType.CX, OpType.CZ]:
+        elif gate_name in [OpType.CX, OpType.CZ]:
             control_bit, target_bit = qubits
             circuit.add_gate(
                 QuantumGate(
@@ -81,9 +90,8 @@ def circuit_from_tket(tket_circuit: Circuit) -> NonParametricQuantumCircuit:
                     target_indices=(target_bit,),
                 )
             )
-            continue
 
-        if gate_name == OpType.SWAP:
+        elif gate_name == OpType.SWAP:
             target_bit_0, target_bit_1 = qubits
             circuit.add_gate(
                 QuantumGate(
@@ -94,9 +102,8 @@ def circuit_from_tket(tket_circuit: Circuit) -> NonParametricQuantumCircuit:
                     ),
                 )
             )
-            continue
 
-        if gate_name in _single_qubit_rotation_gate_tket:
+        elif gate_name in _single_qubit_rotation_gate_tket:
             parameter = array(operation.op.params) * pi
             circuit.add_gate(
                 QuantumGate(
@@ -105,9 +112,8 @@ def circuit_from_tket(tket_circuit: Circuit) -> NonParametricQuantumCircuit:
                     params=tuple(parameter),
                 )
             )
-            continue
 
-        if gate_name in _three_qubit_gate_quri_parts:
+        elif gate_name in _three_qubit_gate_quri_parts:
             c1, c2, t = qubits
             circuit.add_gate(
                 QuantumGate(
@@ -116,12 +122,14 @@ def circuit_from_tket(tket_circuit: Circuit) -> NonParametricQuantumCircuit:
                     control_indices=(c1, c2),
                 )
             )
-            continue
 
-        if gate_name == OpType.Unitary1qBox:
+        elif (
+            gate_name == OpType.Unitary1qBox
+            or gate_name == OpType.Unitary2qBox
+            or gate_name == OpType.Unitary3qBox
+        ):
             matrix = operation.op.get_matrix()
             circuit.add_UnitaryMatrix_gate(target_indices=qubits, unitary_matrix=matrix)
-            continue
 
         else:
             raise ValueError(f"{gate_name} gate is not supported.")
