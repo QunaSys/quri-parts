@@ -9,10 +9,10 @@
 # limitations under the License.
 
 from collections.abc import Mapping
-from typing import Callable, Type, cast
+from typing import Callable, Sequence, Type, cast
 
 import numpy as np
-from pytket import Circuit, OpType
+from pytket import Circuit, OpType, Qubit
 from pytket.circuit import Unitary1qBox, Unitary2qBox, Unitary3qBox  # type: ignore
 from scipy.stats import unitary_group
 
@@ -21,8 +21,30 @@ from quri_parts.tket.circuit import convert_circuit
 
 
 def circuit_equal(c1: Circuit, c2: Circuit) -> bool:
-    # Compare the matrix representation of the circuits, including the global phase.
-    return cast(bool, np.all(c1.get_unitary() == c2.get_unitary()))
+    def qubits_to_idx_list(qubits: Sequence[Qubit]) -> list[int]:
+        get_index_number_from_qubit: Callable[[Qubit], int] = lambda qubit: cast(
+            int, qubit.index[0]
+        )
+        return list(map(get_index_number_from_qubit, qubits))
+
+    is_true = True
+    for gate1, gate2 in zip(c1, c2):
+        qubits_same = qubits_to_idx_list(gate1.qubits) == qubits_to_idx_list(
+            gate2.qubits
+        )
+        if (
+            (type(gate1.op) == Unitary1qBox and type(gate2.op) == Unitary1qBox)
+            or (type(gate1.op) == Unitary2qBox and type(gate2.op) == Unitary2qBox)
+            or (type(gate1.op) == Unitary3qBox and type(gate2.op) == Unitary3qBox)
+        ):
+            matrix_same = np.allclose(gate1.op.get_unitary(), gate2.op.get_unitary())
+            is_true = is_true and qubits_same and matrix_same
+        else:
+            op_same = gate1.op == gate2.op
+            params_same = gate1.op.params == gate2.op.params
+            is_true = is_true and op_same and qubits_same and params_same
+
+    return is_true
 
 
 single_qubit_gate_mapping: Mapping[Callable[[int], QuantumGate], OpType] = {
