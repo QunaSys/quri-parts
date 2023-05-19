@@ -7,6 +7,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import itertools
 from typing import Sequence
 
@@ -75,7 +76,7 @@ def spin_symmetric_excitations(
         range(n_fermions, n_spin_orbitals),
         range(n_fermions, n_spin_orbitals),
     ):
-        if sz[a] == sz[b] == sz[i] == sz[j] and b > a > j > i:
+        if sz[a] == sz[b] == sz[i] == sz[j] and b > a and j > i:
             doubles.append((i, j, b, a))
             continue
         if sz[i] == sz[a] == 0.5 and sz[j] == sz[b] == -0.5:
