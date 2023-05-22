@@ -10,7 +10,7 @@
 
 from dataclasses import dataclass
 from itertools import product
-from typing import Sequence, cast
+from typing import Sequence
 
 import numpy as np
 import numpy.typing as npt
@@ -121,6 +121,18 @@ class AOeIntArraySet(AOeIntSet):
         self,
         active_space_mo: ActiveSpaceMolecularOrbitals,
     ) -> SpinMOeIntSet:
+        """Computes the active space spin mo integrals.
+
+        Note:
+        Does not provide speed advantage compared to PySCFAOeIntSet as it
+        takes additional time to convert ao_eint to mo_eint.
+        Performance penalty grows when the full space mo integral is large.
+        """
+        return get_active_space_spin_integrals_from_ao_eint(active_space_mo, self)
+
+    def to_active_space_spatial_mo_int(
+        self, active_space_mo: ActiveSpaceMolecularOrbitals
+    ) -> SpatialMOeIntSet:
         """Computes the active space spatial mo integrals.
 
         Note:
@@ -128,19 +140,7 @@ class AOeIntArraySet(AOeIntSet):
         takes additional time to convert ao_eint to mo_eint.
         Performance penalty grows when the full space mo integral is large.
         """
-        spin_mo_eint_set = get_active_space_spin_integrals_from_ao_eint(
-            active_space_mo, self
-        )
-        return cast(SpinMOeIntSet, spin_mo_eint_set)
-
-    def to_active_space_spatial_mo_int(
-        self, active_space_mo: ActiveSpaceMolecularOrbitals
-    ) -> SpatialMOeIntSet:
-        spatial_mo_eint_set = get_active_space_spatial_integrals_from_ao_eint(
-            active_space_mo, self
-        )
-        """Computes the active space spatial mo integrals."""
-        return cast(SpatialMOeIntSet, spatial_mo_eint_set)
+        return get_active_space_spatial_integrals_from_ao_eint(active_space_mo, self)
 
 
 def get_effective_active_space_core_energy(

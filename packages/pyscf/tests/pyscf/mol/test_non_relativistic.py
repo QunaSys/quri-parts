@@ -10,7 +10,7 @@
 
 import unittest
 
-from numpy import allclose, array, complex128
+from numpy import allclose, array, complex128, isclose
 from numpy.typing import NDArray
 from pyscf import gto, scf
 
@@ -26,7 +26,7 @@ from quri_parts.pyscf.mol import (
 )
 
 
-class TestSpinningH3(unittest.TestCase):
+class TestH3WithMultiplicity2(unittest.TestCase):
     gto_mol: gto.mole.Mole
     mo_coeff: NDArray[complex128]
     pyscf_mol: PySCFMolecularOrbitals
@@ -194,10 +194,13 @@ class TestSpinningH3(unittest.TestCase):
             ao_2e_int=pyscf_ao_2e_int,
         )
         spatial_as_mo_eint_set = get_active_space_spatial_integrals(asmo, electron_ints)
+        as_mo_nuc_energy = spatial_as_mo_eint_set.const
+        expected_nuc_energy = -1.18702694476004
         as_mo_1e_int = spatial_as_mo_eint_set.mo_1e_int.array
         expected_mo_1e_int = array([[-0.33696926]])
         as_mo_2e_int = spatial_as_mo_eint_set.mo_2e_int.array
         expected_mo_2e_int = array([[[[0.53466412]]]])
 
+        assert isclose(as_mo_nuc_energy, expected_nuc_energy)
         assert allclose(as_mo_1e_int, expected_mo_1e_int)
         assert allclose(as_mo_2e_int, expected_mo_2e_int)

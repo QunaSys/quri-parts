@@ -15,10 +15,10 @@ from .non_relativistic import (
     PySCFAOeIntSet,
     PySCFSpatialMO1eInt,
     PySCFSpatialMO2eInt,
-    ao1int,
-    ao2int,
     get_active_space_spatial_integrals,
     get_active_space_spin_integrals,
+    get_ao_1eint,
+    get_ao_2eint,
     get_ao_eint_set,
 )
 
@@ -33,8 +33,8 @@ __all__ = [
     "PySCFAO2eInt",
     "PySCFSpatialMO1eInt",
     "PySCFSpatialMO2eInt",
-    "ao1int",
-    "ao2int",
+    "get_ao_1eint",
+    "get_ao_2eint",
     "get_ao_eint_set",
     "get_active_space_spatial_integrals",
     "get_active_space_spin_integrals",

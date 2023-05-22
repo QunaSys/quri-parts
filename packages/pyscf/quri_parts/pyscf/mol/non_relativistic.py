@@ -171,12 +171,12 @@ class PySCFSpatialMO2eInt(SpatialMO2eInt):
         return cast(npt.NDArray[np.complex128], mo_int_2e)
 
 
-def ao1int(mo: PySCFMolecularOrbitals) -> PySCFAO1eInt:
+def get_ao_1eint(mo: PySCFMolecularOrbitals) -> PySCFAO1eInt:
     """Returns a PySCFAO1eInt object."""
     return PySCFAO1eInt(mol=mo.mol)
 
 
-def ao2int(mo: PySCFMolecularOrbitals) -> PySCFAO2eInt:
+def get_ao_2eint(mo: PySCFMolecularOrbitals) -> PySCFAO2eInt:
     """Returns a PySCFAO2eInt object."""
     return PySCFAO2eInt(mol=mo.mol)
 
@@ -194,8 +194,8 @@ def get_ao_eint_set(
     that only holds the pyscf.gto.mole object on memory.
     """
     nuc_energy = get_nuc_energy(molecule)
-    ao_1e_int = ao1int(molecule)
-    ao_2e_int = ao2int(molecule)
+    ao_1e_int = get_ao_1eint(molecule)
+    ao_2e_int = get_ao_2eint(molecule)
 
     if store_array_on_memory:
         ao_1e_int_array = AO1eIntArray(ao_1e_int.array)
