@@ -375,16 +375,38 @@ class SpatialMOeIntSet(NamedTuple):
     mo_2e_int: SpatialMO2eInt
 
 
-class SpinMO1eInt(NamedTuple):
-    """Named tuple that stores the array of the 1-electron integrals."""
+class SpinMO1eInt(Protocol):
+    @abstractproperty
+    def array(self) -> npt.NDArray[np.complex128]:
+        ...
 
-    array: npt.NDArray[np.complex128]
+
+class SpinMO2eInt(Protocol):
+    @abstractproperty
+    def array(self) -> npt.NDArray[np.complex128]:
+        ...
 
 
-class SpinMO2eInt(NamedTuple):
-    """Named tuple that stores the array of the 2-electron integrals."""
+class SpinMO1eIntArray(SpinMO1eInt):
+    """Stores the array of the 1-electron integrals."""
 
-    array: npt.NDArray[np.complex128]
+    def __init__(self, array: npt.NDArray[np.complex128]) -> None:
+        self._array = array
+
+    @property
+    def array(self) -> npt.NDArray[np.complex128]:
+        return self._array
+
+
+class SpinMO2eIntArray(SpinMO2eInt):
+    """Stores the array of the 2-electron integrals."""
+
+    def __init__(self, array: npt.NDArray[np.complex128]) -> None:
+        self._array = array
+
+    @property
+    def array(self) -> npt.NDArray[np.complex128]:
+        return self._array
 
 
 class SpinMOeIntSet(NamedTuple):

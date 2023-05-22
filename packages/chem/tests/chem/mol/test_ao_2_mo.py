@@ -16,8 +16,8 @@ from quri_parts.chem.mol import (
     AO2eIntArray,
     SpatialMO1eIntArray,
     SpatialMO2eIntArray,
-    SpinMO1eInt,
-    SpinMO2eInt,
+    SpinMO1eIntArray,
+    SpinMO2eIntArray,
 )
 
 
@@ -59,7 +59,7 @@ class Test1eIntegral:
         )
 
     def test_ao1eint_to_spin_mo1eint(self) -> None:
-        spin_mo_1e_int = SpinMO1eInt(
+        spin_mo_1e_int = SpinMO1eIntArray(
             array(
                 [
                     [-1.53466912, 0.0, 0.0, 0.0, -0.12053411, 0.0],
@@ -135,7 +135,7 @@ class Test2eIntegral:
         # It divides the spin electron integral by a factor of 2,
         # so I multiply it back to make the convention consistent with
         # quri-parts'.
-        spin_mo_2e_int = SpinMO2eInt(
+        spin_mo_2e_int = SpinMO2eIntArray(
             2
             * array(
                 [

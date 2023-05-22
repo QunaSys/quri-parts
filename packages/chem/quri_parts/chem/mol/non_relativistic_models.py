@@ -26,7 +26,9 @@ from .models import (
     SpatialMO2eIntArray,
     SpatialMOeIntSet,
     SpinMO1eInt,
+    SpinMO1eIntArray,
     SpinMO2eInt,
+    SpinMO2eIntArray,
     SpinMOeIntSet,
 )
 
@@ -54,7 +56,7 @@ class AO1eIntArray(AO1eInt):
         h1_mo = self.to_spatial_mo1int(mo_coeff=mo_coeff).array
         n_spin_orb = h1_mo.shape[0] * 2
         h1_mo = spatial_mo_1e_int_to_spin_mo_1e_int(n_spin_orb, h1_mo)
-        return SpinMO1eInt(h1_mo)
+        return SpinMO1eIntArray(h1_mo)
 
 
 class AO2eIntArray(AO2eInt):
@@ -90,7 +92,7 @@ class AO2eIntArray(AO2eInt):
         tensor = self.to_spatial_mo2int(mo_coeff=mo_coeff).array
         n_spin_orb = tensor.shape[0] * 2
         tensor = spatial_mo_2e_int_to_spin_mo_2e_int(n_spin_orb, tensor)
-        return SpinMO2eInt(tensor)
+        return SpinMO2eIntArray(tensor)
 
 
 @dataclass
@@ -320,8 +322,8 @@ def spatial_mo_eint_set_to_spin_mo_eint_set(
 
     return SpinMOeIntSet(
         const=nuc_energy,
-        mo_1e_int=SpinMO1eInt(array=spin_mo_1e_int_array),
-        mo_2e_int=SpinMO2eInt(array=spin_mo_2e_int_array),
+        mo_1e_int=SpinMO1eIntArray(array=spin_mo_1e_int_array),
+        mo_2e_int=SpinMO2eIntArray(array=spin_mo_2e_int_array),
     )
 
 

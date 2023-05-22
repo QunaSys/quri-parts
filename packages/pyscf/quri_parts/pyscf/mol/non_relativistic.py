@@ -58,10 +58,7 @@ class PySCFAO1eInt(AO1eInt):
 
     def to_mo1int(self, mo_coeff: "npt.NDArray[np.complex128]") -> SpinMO1eInt:
         """Returns the corresponding spin mo 1e integrals."""
-        spatial_1e_int = PySCFSpatialMO1eInt(mol=self._mol, mo_coeff=mo_coeff).array
-        n_spin_orb = spatial_1e_int.shape[0] * 2
-        spin_1e_int = spatial_mo_1e_int_to_spin_mo_1e_int(n_spin_orb, spatial_1e_int)
-        return SpinMO1eInt(spin_1e_int)
+        return PySCFSpinMO1eInt(mol=self._mol, mo_coeff=mo_coeff)
 
 
 class PySCFAO2eInt(AO2eInt):
@@ -84,10 +81,7 @@ class PySCFAO2eInt(AO2eInt):
 
     def to_mo2int(self, mo_coeff: "npt.NDArray[np.complex128]") -> SpinMO2eInt:
         """Returns the corresponding spin mo 2e integrals."""
-        spatial_2e_int = PySCFSpatialMO2eInt(mol=self._mol, mo_coeff=mo_coeff).array
-        n_spin_orb = spatial_2e_int.shape[0] * 2
-        spin_2e_int = spatial_mo_2e_int_to_spin_mo_2e_int(n_spin_orb, spatial_2e_int)
-        return SpinMO2eInt(spin_2e_int)
+        return PySCFSpinMO2eInt(mol=self._mol, mo_coeff=mo_coeff)
 
 
 @dataclass
@@ -169,6 +163,36 @@ class PySCFSpatialMO2eInt(SpatialMO2eInt):
         mo_int_2e = ao2mo.restore(1, mo_int_2e, self._mol.nao)
         mo_int_2e = mo_int_2e.transpose(0, 2, 3, 1)
         return cast(npt.NDArray[np.complex128], mo_int_2e)
+
+
+class PySCFSpinMO1eInt(SpinMO1eInt):
+    def __init__(self, mol: gto.Mole, mo_coeff: npt.NDArray[np.complex128]) -> None:
+        self._mol = mol
+        self._mo_coeff = mo_coeff
+
+    @property
+    def array(self) -> "npt.NDArray[np.complex128]":
+        spatial_1e_int = PySCFSpatialMO1eInt(
+            mol=self._mol, mo_coeff=self._mo_coeff
+        ).array
+        n_spin_orb = spatial_1e_int.shape[0] * 2
+        spin_1e_int = spatial_mo_1e_int_to_spin_mo_1e_int(n_spin_orb, spatial_1e_int)
+        return spin_1e_int
+
+
+class PySCFSpinMO2eInt(SpinMO2eInt):
+    def __init__(self, mol: gto.Mole, mo_coeff: npt.NDArray[np.complex128]) -> None:
+        self._mol = mol
+        self._mo_coeff = mo_coeff
+
+    @property
+    def array(self) -> "npt.NDArray[np.complex128]":
+        spatial_2e_int = PySCFSpatialMO2eInt(
+            mol=self._mol, mo_coeff=self._mo_coeff
+        ).array
+        n_spin_orb = spatial_2e_int.shape[0] * 2
+        spin_2e_int = spatial_mo_2e_int_to_spin_mo_2e_int(n_spin_orb, spatial_2e_int)
+        return spin_2e_int
 
 
 def get_ao_1eint(mo: PySCFMolecularOrbitals) -> PySCFAO1eInt:

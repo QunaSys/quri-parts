@@ -25,7 +25,9 @@ from .models import (
     SpatialMO2eIntArray,
     SpatialMOeIntSet,
     SpinMO1eInt,
+    SpinMO1eIntArray,
     SpinMO2eInt,
+    SpinMO2eIntArray,
     SpinMOeIntSet,
     cas,
 )
@@ -64,6 +66,8 @@ __all__ = [
     "SpatialMOeIntSet",
     "SpinMO1eInt",
     "SpinMO2eInt",
+    "SpinMO1eIntArray",
+    "SpinMO2eIntArray",
     "SpinMOeIntSet",
     "convert_to_spin_orbital_indices",
     "get_active_space_spin_integrals_from_ao_eint",

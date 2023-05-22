@@ -22,8 +22,8 @@ from quri_parts.chem.mol import (
     MolecularOrbitals,
     SpatialMO1eIntArray,
     SpatialMO2eIntArray,
-    SpinMO1eInt,
-    SpinMO2eInt,
+    SpinMO1eIntArray,
+    SpinMO2eIntArray,
     cas,
     get_effective_active_space_1e_integrals,
     get_effective_active_space_2e_integrals,
@@ -204,7 +204,7 @@ spatial_mo_2e_int = SpatialMO2eIntArray(
     )
 )
 
-spin_mo_1e_int = SpinMO1eInt(
+spin_mo_1e_int = SpinMO1eIntArray(
     array(
         [
             [-1.53466912, 0.0, 0.0, 0.0, -0.12053411, 0.0],
@@ -217,7 +217,7 @@ spin_mo_1e_int = SpinMO1eInt(
     )
 )
 
-spin_mo_2e_int = SpinMO2eInt(
+spin_mo_2e_int = SpinMO2eIntArray(
     array(
         [
             [
