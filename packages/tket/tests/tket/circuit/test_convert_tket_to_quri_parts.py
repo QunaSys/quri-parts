@@ -10,7 +10,8 @@
 
 import numpy as np
 from pytket import Circuit, OpType
-from pytket.circuit import Unitary1qBox  # type: ignore
+from pytket.circuit import Unitary1qBox, Unitary2qBox, Unitary3qBox  # type: ignore
+from scipy.stats import unitary_group
 
 from quri_parts.circuit import QuantumGate, gates
 from quri_parts.tket.circuit.tket_circuit_converter import circuit_from_tket
@@ -26,7 +27,9 @@ def gate_equal(gate_1: QuantumGate, gate_2: QuantumGate) -> None:
 
 
 def test_circuit_from_tket() -> None:
-    unitary_matrix = [[1, 0], [0, np.cos(np.pi / 4) + 1j * np.sin(np.pi / 4)]]
+    unitary_1q_matrix = [[1, 0], [0, np.cos(np.pi / 4) + 1j * np.sin(np.pi / 4)]]
+    unitary_2q_matrix = unitary_group.rvs(4)
+    unitary_3q_matrix = unitary_group.rvs(8)
 
     tket_circuit = Circuit(4)
     tket_circuit.add_gate(OpType.noop, (0,))
@@ -50,7 +53,9 @@ def test_circuit_from_tket() -> None:
     tket_circuit.CZ(1, 2)
     tket_circuit.SWAP(0, 2)
     tket_circuit.CCX(0, 1, 2)
-    tket_circuit.add_unitary1qbox(Unitary1qBox(unitary_matrix), 2)
+    tket_circuit.add_unitary1qbox(Unitary1qBox(unitary_1q_matrix), 2)
+    tket_circuit.add_unitary2qbox(Unitary2qBox(unitary_2q_matrix), 0, 2)
+    tket_circuit.add_unitary3qbox(Unitary3qBox(unitary_3q_matrix), 0, 2, 3)
 
     qp_circuit = circuit_from_tket(tket_circuit)
 
@@ -76,7 +81,9 @@ def test_circuit_from_tket() -> None:
         gates.CZ(1, 2),
         gates.SWAP(0, 2),
         gates.TOFFOLI(0, 1, 2),
-        gates.UnitaryMatrix([2], unitary_matrix),
+        gates.UnitaryMatrix([2], unitary_1q_matrix),
+        gates.UnitaryMatrix([0, 2], unitary_2q_matrix),
+        gates.UnitaryMatrix([0, 2, 3], unitary_3q_matrix),
     ]
 
     for i, g in enumerate(qp_circuit.gates):
