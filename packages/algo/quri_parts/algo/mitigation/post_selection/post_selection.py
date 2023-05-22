@@ -12,13 +12,17 @@ from typing import Callable, Optional
 
 import numpy as np
 import numpy.typing as npt
+from typing_extensions import TypeAlias
 
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.core.sampling import MeasurementCounts, Sampler
 
+#: Represents a filter function for post-selection.
+PostSelectionFilterFunction: TypeAlias = Callable[[int], bool]
+
 
 def post_selection(
-    filter_fn: Callable[[int], bool], meas_counts: MeasurementCounts
+    filter_fn: PostSelectionFilterFunction, meas_counts: MeasurementCounts
 ) -> MeasurementCounts:
     """Functions that filter out unwanted measurement results from given
     ``meas_counts``."""
@@ -26,7 +30,7 @@ def post_selection(
 
 
 def create_general_post_selection_sampler(
-    sampler: Sampler, filter_fn: Callable[[int], bool]
+    sampler: Sampler, filter_fn: PostSelectionFilterFunction
 ) -> Sampler:
     """Returns `class`:Sampler: that performs post-selection after sampling.
 
