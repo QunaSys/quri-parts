@@ -135,7 +135,7 @@ ao_2e_int = AO2eIntArray(
     )
 )
 
-mo_1e_int = SpatialMO1eIntArray(
+spatial_mo_1e_int = SpatialMO1eIntArray(
     array(
         [
             [-1.53466912, -0.0, -0.12053411],
@@ -145,7 +145,7 @@ mo_1e_int = SpatialMO1eIntArray(
     )
 )
 
-mo_2e_int = SpatialMO2eIntArray(
+spatial_mo_2e_int = SpatialMO2eIntArray(
     array(
         [
             [
@@ -216,11 +216,13 @@ active_space_mo = ActiveSpaceMolecularOrbitals(
 
 def test_spatial_to_spin_conversion() -> None:
     of_full_space_spin_integrals = spinorb_from_spatial(
-        mo_1e_int.array, mo_2e_int.array
+        spatial_mo_1e_int.array, spatial_mo_2e_int.array
     )
 
     full_space_spin_integrals = to_spin_orbital_integrals(
-        2 * mo_1e_int.array.shape[0], mo_1e_int.array, mo_2e_int.array
+        2 * spatial_mo_1e_int.array.shape[0],
+        spatial_mo_1e_int.array,
+        spatial_mo_2e_int.array,
     )
 
     assert np.allclose(of_full_space_spin_integrals[0], full_space_spin_integrals[0])
@@ -233,8 +235,8 @@ def test_eff_nuc_energy() -> None:
 
     effective_nuc_energy = get_effective_active_space_core_energy(
         core_energy=core_energy,
-        mo_1e_int=mo_1e_int.array,
-        mo_2e_int=mo_2e_int.array,
+        mo_1e_int=spatial_mo_1e_int.array,
+        mo_2e_int=spatial_mo_2e_int.array,
         core_spatial_orb_idx=[0],
     )
 
@@ -246,8 +248,8 @@ def test_eff_1e_integrals() -> None:
     of_effective_1e_integrals = array([[-0.33696926]])
 
     effective_1e_integrals = get_effective_active_space_1e_integrals(
-        mo_1e_int=mo_1e_int.array,
-        mo_2e_int=mo_2e_int.array,
+        mo_1e_int=spatial_mo_1e_int.array,
+        mo_2e_int=spatial_mo_2e_int.array,
         core_spatial_orb_idx=[0],
         active_spatial_orb_idx=[1],
     )
@@ -260,7 +262,7 @@ def test_eff_2e_integrals() -> None:
     of_effective_2e_integrals = array([[[[0.53466412]]]])
 
     effective_2e_integrals = get_effective_active_space_2e_integrals(
-        mo_2e_int=mo_2e_int.array,
+        mo_2e_int=spatial_mo_2e_int.array,
         active_spatial_orb_idx=[1],
     )
 
@@ -272,8 +274,8 @@ def test_eff_core_energy_all_active() -> None:
     # full space core energy
     effective_core_energy = get_effective_active_space_core_energy(
         core_energy=core_energy,
-        mo_1e_int=mo_1e_int.array,
-        mo_2e_int=mo_2e_int.array,
+        mo_1e_int=spatial_mo_1e_int.array,
+        mo_2e_int=spatial_mo_2e_int.array,
         core_spatial_orb_idx=[],
     )
 
@@ -284,21 +286,21 @@ def test_eff_1e_integrals_all_active() -> None:
     # edge case test: test if setting all orbital to active reduces to
     # full space 1e int.
     effective_1e_integrals = get_effective_active_space_1e_integrals(
-        mo_1e_int=mo_1e_int.array,
-        mo_2e_int=mo_2e_int.array,
+        mo_1e_int=spatial_mo_1e_int.array,
+        mo_2e_int=spatial_mo_2e_int.array,
         core_spatial_orb_idx=[],
         active_spatial_orb_idx=[0, 1, 2],
     )
 
-    assert np.allclose(mo_1e_int.array, effective_1e_integrals)
+    assert np.allclose(spatial_mo_1e_int.array, effective_1e_integrals)
 
 
 def test_eff_2e_integrals_all_active() -> None:
     # edge case test: test if setting all orbital to active reduces to
     # full space 2e int.
     effective_2e_integrals = get_effective_active_space_2e_integrals(
-        mo_2e_int=mo_2e_int.array,
+        mo_2e_int=spatial_mo_2e_int.array,
         active_spatial_orb_idx=[0, 1, 2],
     )
 
-    assert np.allclose(mo_2e_int.array, effective_2e_integrals)
+    assert np.allclose(spatial_mo_2e_int.array, effective_2e_integrals)

@@ -131,7 +131,7 @@ ao_2e_int = AO2eIntArray(
     )
 )
 
-mo_1e_int = SpatialMO1eIntArray(
+spatial_mo_1e_int = SpatialMO1eIntArray(
     array(
         [
             [-1.53466912, -0.0, -0.12053411],
@@ -141,7 +141,7 @@ mo_1e_int = SpatialMO1eIntArray(
     )
 )
 
-mo_2e_int = SpatialMO2eIntArray(
+spatial_mo_2e_int = SpatialMO2eIntArray(
     array(
         [
             [
@@ -217,8 +217,8 @@ def test_aoeint_set_to_full_space_spatial_mo_int() -> None:
     computed_mo_2e_int = spatial_mo_int.mo_2e_int.array
 
     assert np.isclose(computed_nuc_energy, core_energy)
-    assert np.allclose(computed_mo_1e_int, mo_1e_int.array)
-    assert np.allclose(computed_mo_2e_int, mo_2e_int.array)
+    assert np.allclose(computed_mo_1e_int, spatial_mo_1e_int.array)
+    assert np.allclose(computed_mo_2e_int, spatial_mo_2e_int.array)
 
 
 def test_aoeint_set_to_full_space_spin_mo_int() -> None:
@@ -228,7 +228,7 @@ def test_aoeint_set_to_full_space_spin_mo_int() -> None:
     computed_mo_2e_int = spin_mo_int.mo_2e_int.array
 
     (expected_spin_mo_1eint, expected_spin_mo_2eint) = spinorb_from_spatial(
-        mo_1e_int.array, mo_2e_int.array
+        spatial_mo_1e_int.array, spatial_mo_2e_int.array
     )
 
     assert np.isclose(computed_nuc_energy, core_energy)
