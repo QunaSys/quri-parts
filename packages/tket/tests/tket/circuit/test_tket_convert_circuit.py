@@ -27,24 +27,30 @@ def circuit_equal(c1: Circuit, c2: Circuit) -> bool:
         )
         return list(map(get_index_number_from_qubit, qubits))
 
-    is_true = True
     for gate1, gate2 in zip(c1, c2):
         qubits_same = qubits_to_idx_list(gate1.qubits) == qubits_to_idx_list(
             gate2.qubits
         )
+        if not qubits_same:
+            return False
+
         if (
             (type(gate1.op) == Unitary1qBox and type(gate2.op) == Unitary1qBox)
             or (type(gate1.op) == Unitary2qBox and type(gate2.op) == Unitary2qBox)
             or (type(gate1.op) == Unitary3qBox and type(gate2.op) == Unitary3qBox)
         ):
             matrix_same = np.allclose(gate1.op.get_unitary(), gate2.op.get_unitary())
-            is_true = is_true and qubits_same and matrix_same
+
+            if not matrix_same:
+                return False
+
         else:
             op_same = gate1.op == gate2.op
             params_same = gate1.op.params == gate2.op.params
-            is_true = is_true and op_same and qubits_same and params_same
+            if not (op_same and params_same):
+                return False
 
-    return is_true
+    return True
 
 
 single_qubit_gate_mapping: Mapping[Callable[[int], QuantumGate], OpType] = {

@@ -33,6 +33,7 @@ pytket = "^1.0.0"
 [tool.poetry.group.dev.dependencies]
 quri-parts-circuit = {path = "../circuit", develop = true}
 
+scipy = "^1.9.1"
 pytest = "^7.0.1"
 flake8 = "^4.0.1"
 mypy = ">=0.950"
