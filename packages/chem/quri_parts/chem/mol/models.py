@@ -376,7 +376,8 @@ class SpatialMOeIntSet(NamedTuple):
 
 
 class SpinMO1eInt(Protocol):
-    """Interface protocol for a molecular spin orbital one-electron integral."""
+    """Interface protocol for a molecular spin orbital one-electron
+    integral."""
 
     @abstractproperty
     def array(self) -> npt.NDArray[np.complex128]:
@@ -385,7 +386,8 @@ class SpinMO1eInt(Protocol):
 
 
 class SpinMO2eInt(Protocol):
-    """Interface protocol for a molecular spin orbital two-electron integral."""
+    """Interface protocol for a molecular spin orbital two-electron
+    integral."""
 
     @abstractproperty
     def array(self) -> npt.NDArray[np.complex128]:
