@@ -7,11 +7,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import numpy as np
 from qiskit.providers.fake_provider import FakeBelemV2
 
 from quri_parts.circuit import QuantumCircuit, gate_names, gates
-from quri_parts.qiskit.circuit.transpile import QiskitOptimizationTranspiler
+from quri_parts.qiskit.circuit.transpile import QiskitTranspiler
 
 
 def test_basis_gates() -> None:
@@ -23,7 +24,7 @@ def test_basis_gates() -> None:
             gates.S(2),
         ]
     )
-    target = QiskitOptimizationTranspiler(basis_gates=["x", "sx", "rz", "cx"])(circuit)
+    target = QiskitTranspiler(basis_gates=["x", "sx", "rz", "cx"])(circuit)
 
     expect = QuantumCircuit(3)
     expect.extend(
@@ -49,9 +50,9 @@ def test_optimization() -> None:
             gates.X(0),
         ]
     )
-    target = QiskitOptimizationTranspiler(
-        basis_gates=["h", "x", "t"], optimization_level=2
-    )(circuit)
+    target = QiskitTranspiler(basis_gates=["h", "x", "t"], optimization_level=2)(
+        circuit
+    )
 
     expect = QuantumCircuit(1)
     expect.add_T_gate(0)
@@ -72,7 +73,7 @@ def test_backend() -> None:
             gates.CNOT(2, 0),
         ]
     )
-    target = QiskitOptimizationTranspiler(backend=backend)(circuit)
+    target = QiskitTranspiler(backend=backend)(circuit)
 
     coupling_map = backend.coupling_map.get_edges()
     for gate in target.gates:

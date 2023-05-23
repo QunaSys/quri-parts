@@ -1,3 +1,13 @@
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#      http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from typing import Optional
 
 from qiskit import transpile
@@ -8,7 +18,7 @@ from quri_parts.circuit.transpile import CircuitTranspilerProtocol
 from quri_parts.qiskit.circuit import circuit_from_qiskit, convert_circuit
 
 
-class QiskitOptimizationTranspiler(CircuitTranspilerProtocol):
+class QiskitTranspiler(CircuitTranspilerProtocol):
     """A CircuitTranspiler that uses Qiskit's transpiler to convert circuits to
     backend-compatible circuits, convert gate sets, perform circuit
     optimization, etc.
@@ -19,8 +29,8 @@ class QiskitOptimizationTranspiler(CircuitTranspilerProtocol):
 
     Args:
         backend: Qiskit's Backend instance.
-        basis_gates: Specify the gate set after decomposition as a string of gates.
-            The gate name notation follows Qiskit.
+        basis_gates: Specify the gate set after decomposition as a list of gate name
+            strings. The gate name notation follows Qiskit.
         optimization_level: Specifies the optimization level of the circuit.
     """
 
@@ -48,5 +58,5 @@ class QiskitOptimizationTranspiler(CircuitTranspilerProtocol):
 
 
 __all__ = [
-    "QiskitOptimizationTranspiler",
+    "QiskitTranspiler",
 ]
