@@ -172,6 +172,7 @@ class PySCFSpinMO1eInt(SpinMO1eInt):
 
     @property
     def array(self) -> "npt.NDArray[np.complex128]":
+        """Returns integral as numpy ndarray."""
         spatial_1e_int = PySCFSpatialMO1eInt(
             mol=self._mol, mo_coeff=self._mo_coeff
         ).array
@@ -187,6 +188,7 @@ class PySCFSpinMO2eInt(SpinMO2eInt):
 
     @property
     def array(self) -> "npt.NDArray[np.complex128]":
+        """Returns integral as numpy ndarray."""
         spatial_2e_int = PySCFSpatialMO2eInt(
             mol=self._mol, mo_coeff=self._mo_coeff
         ).array
@@ -215,7 +217,7 @@ def get_ao_eint_set(
     memory.
 
     If store_array_on_memory == False, it returns a PySCFAOeIntSet object
-    that only holds the pyscf.gto.mole object on memory.
+    that only holds the pyscf.gto.Mole object on memory.
     """
     nuc_energy = get_nuc_energy(molecule)
     ao_1e_int = get_ao_1eint(molecule)
@@ -246,7 +248,7 @@ def get_active_space_spatial_integrals(
 ) -> SpatialMOeIntSet:
     """Computes the active space electron integrals by pyscf.casci.
 
-    The output is the spin mo electron integrals in physicists'
+    The output is the spatial mo electron integrals in physicists'
     convention.
     """
     n_active_orb, n_active_ele = (
@@ -279,6 +281,11 @@ def get_active_space_spin_integrals(
     active_space_mo: ActiveSpaceMolecularOrbitals,
     electron_ints: PySCFAOeIntSet,
 ) -> SpinMOeIntSet:
+    """Computes the active space electron integrals by pyscf.casci.
+
+    The output is the spin mo electron integrals in physicists'
+    convention.
+    """
     spatial_integrals = get_active_space_spatial_integrals(
         active_space_mo,
         electron_ints,

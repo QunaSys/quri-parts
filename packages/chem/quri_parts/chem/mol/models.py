@@ -376,14 +376,20 @@ class SpatialMOeIntSet(NamedTuple):
 
 
 class SpinMO1eInt(Protocol):
+    """Interface protocol for a molecular spin orbital one-electron integral."""
+
     @abstractproperty
     def array(self) -> npt.NDArray[np.complex128]:
+        """Returns integral as numpy ndarray."""
         ...
 
 
 class SpinMO2eInt(Protocol):
+    """Interface protocol for a molecular spin orbital two-electron integral."""
+
     @abstractproperty
     def array(self) -> npt.NDArray[np.complex128]:
+        """Returns integral as numpy ndarray."""
         ...
 
 
@@ -395,6 +401,7 @@ class SpinMO1eIntArray(SpinMO1eInt):
 
     @property
     def array(self) -> npt.NDArray[np.complex128]:
+        """Returns integral as numpy ndarray."""
         return self._array
 
 
@@ -406,6 +413,7 @@ class SpinMO2eIntArray(SpinMO2eInt):
 
     @property
     def array(self) -> npt.NDArray[np.complex128]:
+        """Returns integral as numpy ndarray."""
         return self._array
 
 
