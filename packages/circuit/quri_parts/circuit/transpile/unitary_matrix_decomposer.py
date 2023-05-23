@@ -246,6 +246,8 @@ class SingleQubitUnitaryMatrix2RYRZTranspiler(GateDecomposer):
         [1]: Tomonori Shirakawa, Hiroshi Ueda, and Seiji Yunoki,
             Automatic quantum circuit encoding of a given arbitrary quantum state,
             arXiv:2112.14524v1, p.22, (2021).
+        [2]: Main functions are ported from the source code wrtitten by Sota Morisaki
+            in QunaSys intern project.
     """
 
     def is_target_gate(self, gate: QuantumGate) -> bool:
@@ -274,6 +276,8 @@ class TwoQubitUnitaryMatrixKAKTranspiler(GateDecomposer):
         [1]: Tomonori Shirakawa, Hiroshi Ueda, and Seiji Yunoki,
             Automatic quantum circuit encoding of a given arbitrary quantum state,
             arXiv:2112.14524v1, pp.4-5, (2021).
+        [2]: Main functions are ported from the source code wrtitten by Sota Morisaki
+            in QunaSys intern project.
     """
 
     def is_target_gate(self, gate: QuantumGate) -> bool:
