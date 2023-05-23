@@ -74,9 +74,7 @@ def test_backend() -> None:
     )
     target = QiskitOptimizationTranspiler(backend=backend)(circuit)
 
+    coupling_map = backend.coupling_map.get_edges()
     for gate in target.gates:
         if gate.name == gate_names.CNOT:
-            assert (
-                gate.control_indices[0],
-                gate.target_indices[0],
-            ) in backend.coupling_map
+            assert (gate.control_indices[0], gate.target_indices[0]) in coupling_map
