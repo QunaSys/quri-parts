@@ -1,8 +1,6 @@
 from typing import Optional
 
 from qiskit import transpile
-
-# from qiskit.compiler import transpile
 from qiskit.providers import Backend
 
 from quri_parts.circuit import NonParametricQuantumCircuit
