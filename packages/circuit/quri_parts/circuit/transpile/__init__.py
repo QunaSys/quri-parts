@@ -122,8 +122,8 @@ RZSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
 #: (UnitaryMatrix gate for 3 or more qubits are not decomposed.)
 RotationSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
     [
-        SingleQubitUnitaryMatrix2RYRZTranspiler,
-        TwoQubitUnitaryMatrixKAKTranspiler,
+        SingleQubitUnitaryMatrix2RYRZTranspiler(),
+        TwoQubitUnitaryMatrixKAKTranspiler(),
         ParallelDecomposer(
             [
                 PauliDecomposeTranspiler(),
