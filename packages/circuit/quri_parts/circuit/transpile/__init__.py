@@ -82,10 +82,10 @@ from .unitary_matrix_decomposer import (
 #: (UnitaryMatrix gate for 3 or more qubits are not decomposed.)
 RZSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
     [
+        SingleQubitUnitaryMatrix2RYRZTranspiler(),
+        TwoQubitUnitaryMatrixKAKTranspiler(),
         ParallelDecomposer(
             [
-                SingleQubitUnitaryMatrix2RYRZTranspiler,
-                TwoQubitUnitaryMatrixKAKTranspiler,
                 CZ2CNOTHTranspiler(),
                 PauliDecomposeTranspiler(),
                 PauliRotationDecomposeTranspiler(),
@@ -122,10 +122,10 @@ RZSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
 #: (UnitaryMatrix gate for 3 or more qubits are not decomposed.)
 RotationSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
     [
+        SingleQubitUnitaryMatrix2RYRZTranspiler,
+        TwoQubitUnitaryMatrixKAKTranspiler,
         ParallelDecomposer(
             [
-                SingleQubitUnitaryMatrix2RYRZTranspiler,
-                TwoQubitUnitaryMatrixKAKTranspiler,
                 PauliDecomposeTranspiler(),
                 PauliRotationDecomposeTranspiler(),
                 TOFFOLI2HTTdagCNOTTranspiler(),
