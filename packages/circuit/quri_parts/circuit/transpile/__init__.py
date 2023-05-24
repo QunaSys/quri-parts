@@ -79,10 +79,13 @@ from .unitary_matrix_decomposer import (
 
 #: CircuitTranspiler to transpile a QuntumCircuit into another
 #: QuantumCircuit containing only X, SqrtX, CNOT, and RZ.
+#: (UnitaryMatrix gate for 3 or more qubits are not decomposed.)
 RZSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
     [
         ParallelDecomposer(
             [
+                SingleQubitUnitaryMatrix2RYRZTranspiler,
+                TwoQubitUnitaryMatrixKAKTranspiler,
                 CZ2CNOTHTranspiler(),
                 PauliDecomposeTranspiler(),
                 PauliRotationDecomposeTranspiler(),
@@ -116,10 +119,13 @@ RZSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
 
 #: CircuitTranspiler to transpile a QuntumCircuit into another
 #: QuantumCircuit containing only RX, RY, RZ, and CNOT.
+#: (UnitaryMatrix gate for 3 or more qubits are not decomposed.)
 RotationSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
     [
         ParallelDecomposer(
             [
+                SingleQubitUnitaryMatrix2RYRZTranspiler,
+                TwoQubitUnitaryMatrixKAKTranspiler,
                 PauliDecomposeTranspiler(),
                 PauliRotationDecomposeTranspiler(),
                 TOFFOLI2HTTdagCNOTTranspiler(),
