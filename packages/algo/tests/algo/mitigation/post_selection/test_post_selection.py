@@ -8,13 +8,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
-
 from quri_parts.algo.mitigation.post_selection.post_selection import (
-    _inv_bk_trans_mat,
-    create_bk_electron_number_post_selection_sampler,
     create_general_post_selection_sampler,
-    create_jw_electron_number_post_selection_sampler,
     post_selection,
 )
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
@@ -60,80 +55,3 @@ def test_create_general_post_selection_sampler() -> None:
 
     ps_sampler = create_general_post_selection_sampler(_mock_sampler, _filter_fn)
     assert ps_sampler(circuit, 100) == {0b01: 1, 0b10: 10}
-
-
-def test_create_jw_electron_number_post_selection_sampler() -> None:
-    qubit_count = 5
-    n_electrons = 3
-    circuit = QuantumCircuit(qubit_count)
-    ps_sampler = create_jw_electron_number_post_selection_sampler(
-        _mock_sampler, n_electrons
-    )
-    assert ps_sampler(circuit, 100) == {0b111: 20, 0b1110: 100}
-
-    ps_sampler_sz05 = create_jw_electron_number_post_selection_sampler(
-        _mock_sampler, n_electrons, sz=0.5
-    )
-    assert ps_sampler_sz05(circuit, 100) == {0b111: 20}
-
-
-def test_create_bk_electron_number_post_selection_sampler() -> None:
-    qubit_count = 10
-    n_electrons = 2
-    circuit = QuantumCircuit(qubit_count)
-    ps_sampler = create_bk_electron_number_post_selection_sampler(
-        _mock_sampler, qubit_count, n_electrons
-    )
-    assert ps_sampler(circuit, 100) == {0b01: 1, 0b10: 10, 0b111: 20}
-
-    ps_sampler_sz1 = create_bk_electron_number_post_selection_sampler(
-        _mock_sampler, qubit_count, n_electrons, sz=1.0
-    )
-    assert ps_sampler_sz1(circuit, 100) == {0b111: 20}
-
-
-def test_inv_bk_trans_mat() -> None:
-    assert np.array_equal(_inv_bk_trans_mat(0), np.array([1]))
-    assert np.array_equal(_inv_bk_trans_mat(1), np.array([[1, 0], [1, 1]]))
-    assert np.array_equal(
-        _inv_bk_trans_mat(2),
-        np.array([[1, 0, 0, 0], [1, 1, 0, 0], [0, 0, 1, 0], [0, 1, 1, 1]]),
-    )
-    assert np.array_equal(
-        _inv_bk_trans_mat(3),
-        np.array(
-            [
-                [1, 0, 0, 0, 0, 0, 0, 0],
-                [1, 1, 0, 0, 0, 0, 0, 0],
-                [0, 0, 1, 0, 0, 0, 0, 0],
-                [0, 1, 1, 1, 0, 0, 0, 0],
-                [0, 0, 0, 0, 1, 0, 0, 0],
-                [0, 0, 0, 0, 1, 1, 0, 0],
-                [0, 0, 0, 0, 0, 0, 1, 0],
-                [0, 0, 0, 1, 0, 1, 1, 1],
-            ]
-        ),
-    )
-    assert np.array_equal(
-        _inv_bk_trans_mat(4),
-        np.array(
-            [
-                [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
-                [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1],
-            ]
-        ),
-    )
