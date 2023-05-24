@@ -121,8 +121,8 @@ def convert_circuit(circuit: NonParametricQuantumCircuit) -> Circuit:
             tket_circuit.add_gate(convert_gate(gate), params, target_qubit)
 
         elif gate.name in _two_qubit_gate_tket:
-            target_qubit = tuple(gate.target_indices)
-            control_qubit = tuple(gate.control_indices)
+            target_qubit = gate.target_indices
+            control_qubit = gate.control_indices
             tket_circuit.add_gate(convert_gate(gate), (*control_qubit, *target_qubit))
 
         elif gate.name in _three_qubit_gate_tket:
