@@ -12,6 +12,9 @@ from collections.abc import Mapping
 from typing import Any, Optional
 
 import qiskit
+from qiskit.providers.jobstatus import JobStatus
+from qiskit_ibm_runtime import IBMBackend, Sampler, Session
+from qiskit_ibm_runtime.qiskit_runtime_service import QiskitRuntimeService
 
 from quri_parts.backend import (
     BackendError,
@@ -22,17 +25,12 @@ from quri_parts.backend import (
 from quri_parts.backend.qubit_mapping import BackendQubitMapping, QubitMappedSamplingJob
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler, SequentialTranspiler
+from quri_parts.qiskit.backend.sampling import QiskitSamplingJob
 from quri_parts.qiskit.circuit import (
     QiskitCircuitConverter,
     QiskitTranspiler,
     convert_circuit,
 )
-
-from qiskit_ibm_runtime import Sampler, Session, IBMBackend
-from qiskit.providers.jobstatus import JobStatus
-
-
-from quri_parts.qiskit.backend.sampling import QiskitSamplingJob
 
 
 class QiskitRuntimeSamplingBackend(SamplingBackend):
@@ -41,6 +39,9 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
     Args:
         backend: A Qiskit :class:`qiskit_ibm_runtime.ibm_backend` that
             interfaces with IBM quantum backend.
+        service: A Qiskit
+        :class:`qiskit_ibm_runtime.qiskit_runtime_service.QiskitRuntimeService`
+        that interacts with the Qiskit Runtime service.
         circuit_converter: A function converting
             :class:`~quri_parts.circuit.NonParametricQuantumCircuit` to
             a Qiskit :class:`qiskit.circuit.QuantumCircuit`.
@@ -66,6 +67,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
     def __init__(
         self,
         backend: IBMBackend,
+        service: Optional[QiskitRuntimeService] = None,
         circuit_converter: QiskitCircuitConverter = convert_circuit,
         circuit_transpiler: Optional[CircuitTranspiler] = None,
         enable_shots_roundup: bool = True,
@@ -73,6 +75,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         run_kwargs: Mapping[str, Any] = {},
     ):
         self._backend = backend
+        self._service = service
         self._circuit_converter = circuit_converter
 
         self._qubit_mapping = None
@@ -91,27 +94,25 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         self._run_kwargs = run_kwargs
 
         self._min_shots = 1
-        self._max_shots: int = backend.max_shots
+        self._max_shots: Optional[int] = getattr(backend, "max_shots", None)
 
-    def __enter__(self):
-        """
-        The backend passed during `__init__`, is used to construct a session,
-        which will be closed after the `with` scope ends.
-        """
-        session = Session(backend=self._backend)
+        self._session = None
+
+    def __enter__(self) -> Any:
+        """The backend passed during `__init__`, is used to construct a
+        session, which will be closed after the `with` scope ends."""
+        session = Session(service=self._service, backend=self._backend)
         session.__enter__()
 
         self._session = session
+        return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """
-        If the session is created using `with` then the session is closed by
-        the following functionality.
-        """
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:  # type: ignore
+        """If the session is created using `with` then the session is closed by
+        the following functionality."""
         assert self._session is not None
         self._session.close()
         self._session = None
-
 
     def sample(self, circuit: NonParametricQuantumCircuit, n_shots: int) -> SamplingJob:
         if not n_shots >= 1:
@@ -137,21 +138,24 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         qiskit_circuit.measure_all()
         qiskit_circuit = qiskit.transpile(qiskit_circuit, self._backend)
 
-
         qiskit_results = []
         try:
             if self._session is None:
                 # Create a session if there is no session
-                with Session(backend=self._backend) as session:
+                with Session(service=self._service, backend=self._backend) as session:
                     runtime_sampler = Sampler(session=session)
                     for s in shot_dist:
-                        job = runtime_sampler.run(qiskit_circuit, shots=s, **self._run_kwargs)
+                        job = runtime_sampler.run(
+                            qiskit_circuit, shots=s, **self._run_kwargs
+                        )
                         qiskit_results.append(job.result())
             else:
                 # Do not end the session if it has been already created
                 runtime_sampler = Sampler(session=self._session)
                 for s in shot_dist:
-                    job = runtime_sampler.run(qiskit_circuit, shots=s, **self._run_kwargs)
+                    job = runtime_sampler.run(
+                        qiskit_circuit, shots=s, **self._run_kwargs
+                    )
                     qiskit_results.append(job.result())
         except Exception as e:
             for j in qiskit_results:
