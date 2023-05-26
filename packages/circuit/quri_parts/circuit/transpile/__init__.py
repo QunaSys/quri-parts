@@ -170,6 +170,8 @@ class CliffordRZSetTranspiler(SequentialTranspiler):
     def __init__(self, epsilon: float = 1.0e-9):
         super().__init__(
             [
+                SingleQubitUnitaryMatrix2RYRZTranspiler(),
+                TwoQubitUnitaryMatrixKAKTranspiler(),
                 ParallelDecomposer(
                     [
                         CZ2CNOTHTranspiler(),
