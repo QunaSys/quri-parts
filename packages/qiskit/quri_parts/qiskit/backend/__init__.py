@@ -10,10 +10,13 @@
 
 from .connectivity import device_connectivity_graph
 from .sampling import QiskitSamplingBackend, QiskitSamplingJob, QiskitSamplingResult
+from .save_data_models import QiskitSavedDataSamplingJob, QiskitSavedDataSamplingResult
 
 __all__ = [
     "QiskitSamplingBackend",
     "QiskitSamplingJob",
     "QiskitSamplingResult",
     "device_connectivity_graph",
+    "QiskitSavedDataSamplingJob",
+    "QiskitSavedDataSamplingResult",
 ]

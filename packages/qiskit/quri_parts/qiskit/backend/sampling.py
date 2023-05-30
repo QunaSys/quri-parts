@@ -8,13 +8,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
+from collections import defaultdict
 from collections.abc import Mapping, MutableMapping
-from typing import Any, Optional
+from typing import Any, Optional, Sequence, cast
 
 import qiskit
+from pydantic.json import pydantic_encoder
 from qiskit.providers import Job
 from qiskit.providers.backend import Backend, BackendV1, BackendV2
 from qiskit.result import Result
+from typing_extensions import TypeAlias
 
 from quri_parts.backend import (
     BackendError,
@@ -32,6 +36,10 @@ from quri_parts.qiskit.circuit import (
     QiskitTranspiler,
     convert_circuit,
 )
+
+from .save_data_models import QiskitSavedDataSamplingJob, QiskitSavedDataSamplingResult
+
+SavedDataType: TypeAlias = dict[tuple[str, int], list[QiskitSavedDataSamplingJob]]
 
 
 class QiskitSamplingResult(SamplingResult):
@@ -98,6 +106,9 @@ class QiskitSamplingBackend(SamplingBackend):
         enable_shots_roundup: bool = True,
         qubit_mapping: Optional[Mapping[int, int]] = None,
         run_kwargs: Mapping[str, Any] = {},
+        save_data_while_sampling: bool = False,
+        read_from_saved_data: bool = False,
+        saved_data: Optional[Sequence[str]] = None,
     ):
         self._backend = backend
         self._circuit_converter = circuit_converter
@@ -127,6 +138,28 @@ class QiskitSamplingBackend(SamplingBackend):
         if not isinstance(backend, (BackendV1, BackendV2)):
             raise BackendError("Backend not supported.")
 
+        # Attributes related to saved_data
+        if read_from_saved_data:
+            # Consistency check for reading mode.
+            assert (
+                saved_data is not None
+            ), "Saved data must not be None in reading mode."
+            assert (
+                save_data_while_sampling is False
+            ), "Please pick either reading mode and saving mode."
+
+        if save_data_while_sampling:
+            # Consistency check for sampling mode.
+            assert (
+                read_from_saved_data is False
+            ), "Please pick either reading mode and saving mode."
+
+        self.save_data_while_sampling = save_data_while_sampling
+        self.read_from_saved_data = read_from_saved_data
+        self._saved_data = (
+            defaultdict(list) if saved_data is None else self.load_data(saved_data)
+        )
+
     def sample(self, circuit: NonParametricQuantumCircuit, n_shots: int) -> SamplingJob:
         if not n_shots >= 1:
             raise ValueError("n_shots should be a positive integer.")
@@ -150,29 +183,74 @@ class QiskitSamplingBackend(SamplingBackend):
 
         qiskit_circuit = self._circuit_converter(circuit, self._circuit_transpiler)
         qiskit_circuit.measure_all()
-        qiskit_jobs = []
-        try:
-            for s in shot_dist:
-                qiskit_jobs.append(
-                    self._backend.run(
-                        qiskit.transpile(qiskit_circuit, self._backend),
+        transpiled_circuit = qiskit.transpile(qiskit_circuit, self._backend)
+
+        if self.read_from_saved_data:
+            # Reading mode
+            qasm_str = transpiled_circuit.qasm()
+            if (qasm_str, n_shots) in self._saved_data:
+                jobs: Sequence[SamplingJob] = self._saved_data[(qasm_str, n_shots)]
+            else:
+                raise KeyError("This experiment is not in the saved data.")
+
+        else:
+            # Sampling mode
+            qiskit_jobs: list[Job] = []
+            try:
+                for s in shot_dist:
+                    qiskit_job = self._backend.run(
+                        transpiled_circuit,
                         shots=s,
                         **self._run_kwargs,
                     )
-                )
-        except Exception as e:
-            for j in qiskit_jobs:
-                try:
-                    j.cancel()
-                except Exception:
-                    # Ignore cancel errors
-                    pass
-            raise BackendError("Qiskit Device.run failed.") from e
 
-        jobs: list[SamplingJob] = [QiskitSamplingJob(j) for j in qiskit_jobs]
+                    if self.save_data_while_sampling:
+                        circuit_qasm_str = cast(
+                            qiskit.QuantumCircuit, transpiled_circuit
+                        ).qasm()
+                        raw_measurement_cnt = qiskit_job.result().get_counts()
+                        saved_res = QiskitSavedDataSamplingResult(
+                            raw_data=raw_measurement_cnt
+                        )
+                        saved_job = QiskitSavedDataSamplingJob(
+                            circuit_str=circuit_qasm_str,
+                            n_shots=n_shots,
+                            saved_result=saved_res,
+                        )
+                        self._saved_data[(circuit_qasm_str, n_shots)].append(saved_job)
+
+                    qiskit_jobs.append(qiskit_job)
+
+            except Exception as e:
+                for j in qiskit_jobs:
+                    try:
+                        j.cancel()
+                    except Exception:
+                        # Ignore cancel errors
+                        pass
+                raise BackendError("Qiskit Device.run failed.") from e
+
+            jobs: Sequence[SamplingJob] = [QiskitSamplingJob(j) for j in qiskit_jobs]  # type: ignore  # noqa:
+
         if self._qubit_mapping is not None:
             jobs = [QubitMappedSamplingJob(job, self._qubit_mapping) for job in jobs]
         if len(jobs) == 1:
             return jobs[0]
         else:
             return CompositeSamplingJob(jobs)
+
+    def save_data(self) -> Sequence[str]:
+        job_list = []
+        for saved_jobs in self._saved_data.values():
+            for job in saved_jobs:
+                job_list.append(json.dumps(job, default=pydantic_encoder))
+        return job_list
+
+    def load_data(self, saved_data_str_seq: Sequence[str]) -> SavedDataType:
+        saved_data = defaultdict(list)
+        for job_str in saved_data_str_seq:
+            job = QiskitSavedDataSamplingJob(**json.loads(job_str))
+            circuit_str = job.circuit_str
+            n_shots = job.n_shots
+            saved_data[(circuit_str, n_shots)].append(job)
+        return saved_data
