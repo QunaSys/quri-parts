@@ -8,29 +8,68 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Mapping
+from collections.abc import Mapping, MutableMapping
 from typing import Any, Optional
 
 import qiskit
+from qiskit.primitives import SamplerResult
 from qiskit.providers.jobstatus import JobStatus
-from qiskit_ibm_runtime import IBMBackend, Sampler, Session
+from qiskit_ibm_runtime import IBMBackend, RuntimeJob, Sampler, Session
 from qiskit_ibm_runtime.qiskit_runtime_service import QiskitRuntimeService
 
 from quri_parts.backend import (
     BackendError,
     CompositeSamplingJob,
     SamplingBackend,
+    SamplingCounts,
     SamplingJob,
+    SamplingResult,
 )
 from quri_parts.backend.qubit_mapping import BackendQubitMapping, QubitMappedSamplingJob
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler, SequentialTranspiler
-from quri_parts.qiskit.backend.sampling import QiskitSamplingJob
 from quri_parts.qiskit.circuit import (
     QiskitCircuitConverter,
     QiskitTranspiler,
     convert_circuit,
 )
+
+
+class QiskitRuntimeSamplingResult(SamplingResult):
+    """Class for the results by Qiskit sampler job."""
+
+    def __init__(self, qiskit_result: SamplerResult):
+        if not isinstance(qiskit_result, SamplerResult):
+            raise ValueError("Only qiskit_ibm_runtime.RuntimeJob is supported")
+        self._qiskit_result = qiskit_result
+
+    @property
+    def counts(self) -> SamplingCounts:
+        # It must contain only one circuit result
+        if len(self._qiskit_result.quasi_dists) != 1:
+            raise ValueError(
+                "The Result must contain distribution for one circuit but"
+                f"found {len(self._qiskit_result.quasi_dists)}"
+            )
+        assert len(self._qiskit_result.metadata) == 1
+
+        total_count: int = self._qiskit_result.metadata[0]["shots"]
+
+        measurements: MutableMapping[int, int] = {}
+        for result, quasi_prob in self._qiskit_result.quasi_dists[0].items():
+            measurements[result] = quasi_prob * total_count
+        return measurements
+
+
+class QiskitRuntimeSamplingJob(SamplingJob):
+    """A job for a Qiskit sampling measurement."""
+
+    def __init__(self, qiskit_job: RuntimeJob):
+        self._qiskit_job = qiskit_job
+
+    def result(self) -> SamplingResult:
+        qiskit_result: SamplerResult = self._qiskit_job.result()
+        return QiskitRuntimeSamplingResult(qiskit_result)
 
 
 class QiskitRuntimeSamplingBackend(SamplingBackend):
@@ -122,8 +161,10 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             # Splitting the number of shots into pieces.
             shot_dist = [self._max_shots] * (n_shots // self._max_shots)
             remaining = n_shots % self._max_shots
-            if remaining >= self._min_shots or self._enable_shots_roundup:
-                shot_dist.append(max(remaining, self._min_shots))
+            if remaining >= self._min_shots:
+                shot_dist.append(remaining)
+            elif remaining > 0 and self._enable_shots_roundup:
+                shot_dist.append(self._min_shots)
         else:
             if n_shots >= self._min_shots or self._enable_shots_roundup:
                 shot_dist = [max(n_shots, self._min_shots)]
@@ -138,7 +179,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         qiskit_circuit.measure_all()
         qiskit_circuit = qiskit.transpile(qiskit_circuit, self._backend)
 
-        qiskit_results = []
+        qiskit_jobs = []
         try:
             if self._session is None:
                 # Create a session if there is no session
@@ -148,7 +189,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
                         job = runtime_sampler.run(
                             qiskit_circuit, shots=s, **self._run_kwargs
                         )
-                        qiskit_results.append(job.result())
+                        qiskit_jobs.append(job)
             else:
                 # Do not end the session if it has been already created
                 runtime_sampler = Sampler(session=self._session)
@@ -156,9 +197,9 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
                     job = runtime_sampler.run(
                         qiskit_circuit, shots=s, **self._run_kwargs
                     )
-                    qiskit_results.append(job.result())
+                    qiskit_jobs.append(job)
         except Exception as e:
-            for j in qiskit_results:
+            for j in qiskit_jobs:
                 try:
                     j.cancel()
                 except Exception:
@@ -168,14 +209,13 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
 
         # Check if the job is complete.
         while True:
-            if all([not job.running() for job in qiskit_results]):
+            if all([not job.running() for job in qiskit_jobs]):
                 break
-
         # If any job fails then raise an error.
-        if any([job.status != JobStatus.DONE for job in qiskit_results]):
+        if any([job.status() == JobStatus.ERROR for job in qiskit_jobs]):
             raise BackendError("Qiskit Device run failed.")
 
-        jobs: list[SamplingJob] = [QiskitSamplingJob(j) for j in qiskit_results]
+        jobs: list[SamplingJob] = [QiskitRuntimeSamplingJob(j) for j in qiskit_jobs]
         if self._qubit_mapping is not None:
             jobs = [QubitMappedSamplingJob(job, self._qubit_mapping) for job in jobs]
         if len(jobs) == 1:
