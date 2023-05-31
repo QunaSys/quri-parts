@@ -66,21 +66,68 @@ class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
             n_spin_orbitals, n_fermions
         )
 
-        for _ in range(k):
-            s_exc_params = [
-                circuit.add_parameter(f"theta_s_{i}") for i in range(len(s_excs))
+        for x in range(k):
+            (
+                independent_s_exc,
+                independent_s_exc_name,
+                independent_d_exc,
+                independent_d_exc_name,
+            ) = get_independent_excitations(s_excs, d_excs, x)
+
+            independent_s_exc_name = [
+                circuit.add_parameter(name) for name in independent_s_exc_name
             ]
-            d_exc_params = [
-                circuit.add_parameter(f"theta_d_{i}") for i in range(len(d_excs))
+            independent_d_exc_name = [
+                circuit.add_parameter(name) for name in independent_d_exc_name
             ]
+
             for _ in range(trotter_number):
                 add_exp_excitation_gates_trotter_decomposition(
-                    circuit, d_excs, d_exc_params, op_mapper, 1 / trotter_number
+                    circuit,
+                    independent_s_exc,
+                    independent_s_exc_name,
+                    op_mapper,
+                    1 / trotter_number,
                 )
                 add_exp_excitation_gates_trotter_decomposition(
-                    circuit, s_excs, s_exc_params, op_mapper, 1 / trotter_number
+                    circuit,
+                    independent_d_exc,
+                    independent_d_exc_name,
+                    op_mapper,
+                    1 / trotter_number,
                 )
         super().__init__(circuit)
+
+
+def get_independent_excitations(
+    s_exc: SingleExcitation, d_exc: DoubleExcitation, x: int
+):
+    independent_s_exc = []
+    independent_s_exc_name = []
+
+    for exc in s_exc:
+        p, q = exc
+        if (q, p) in independent_s_exc:
+            continue
+        independent_s_exc.append(exc)
+        independent_s_exc_name.append(f"t1_{x}_{q}_{p}")
+
+    independent_d_exc = []
+    independent_d_exc_name = []
+
+    for exc in d_exc:
+        p, q, r, s = exc
+        if (r, s, p, q) in independent_d_exc:
+            continue
+        independent_d_exc.append(exc)
+        independent_d_exc_name.append(f"t2_{x}_{s}_{r}_{q}_{p}")
+
+    return (
+        independent_s_exc,
+        independent_s_exc_name,
+        independent_d_exc,
+        independent_d_exc_name,
+    )
 
 
 def _generalized_single_excitations(
