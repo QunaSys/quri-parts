@@ -1,6 +1,9 @@
+import json
 from collections.abc import MutableMapping
+from typing import Sequence
 
 from pydantic.dataclasses import dataclass
+from pydantic.json import pydantic_encoder
 
 from quri_parts.backend import SamplingCounts, SamplingJob, SamplingResult
 
@@ -30,3 +33,9 @@ class QiskitSavedDataSamplingJob(SamplingJob):
 
     def result(self) -> QiskitSavedDataSamplingResult:
         return self.saved_result
+
+
+def convert_saved_jobs_sequence_to_str(
+    saved_data_seq: Sequence[QiskitSavedDataSamplingJob],
+) -> str:
+    return json.dumps(saved_data_seq, default=pydantic_encoder)

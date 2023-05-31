@@ -9,8 +9,8 @@
 # limitations under the License.
 
 from .connectivity import device_connectivity_graph
+from .job_models import QiskitSavedDataSamplingJob, QiskitSavedDataSamplingResult
 from .sampling import QiskitSamplingBackend, QiskitSamplingJob, QiskitSamplingResult
-from .save_data_models import QiskitSavedDataSamplingJob, QiskitSavedDataSamplingResult
 
 __all__ = [
     "QiskitSamplingBackend",
