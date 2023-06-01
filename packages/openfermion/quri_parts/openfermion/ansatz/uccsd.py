@@ -17,13 +17,12 @@ from quri_parts.chem.utils.excitations import (
 from quri_parts.circuit import (
     ImmutableLinearMappedUnboundParametricQuantumCircuit,
     LinearMappedUnboundParametricQuantumCircuit,
-    Parameter,
 )
 
 from ..transforms import OpenFermionQubitMapping, jordan_wigner
 from ..utils import (
     add_exp_excitation_gates_trotter_decomposition,
-    add_spin_symmetric_exp_excitation_gates_trotter_decomposition,
+    add_exp_pauli_gates_from_linear_mapped_function,
 )
 
 
@@ -127,39 +126,112 @@ def _construct_spin_symmetric_circuit(
     use_singles: bool,
 ) -> LinearMappedUnboundParametricQuantumCircuit:
     n_qubits = fermion_qubit_mapping.n_qubits_required(n_spin_orbitals)
-
-    s_excs, d_excs = spin_symmetric_excitations(n_spin_orbitals, n_fermions)
-
     circuit = LinearMappedUnboundParametricQuantumCircuit(n_qubits)
-    if use_singles:
-        s_exc_params: dict[SingleExcitation, Parameter] = {}
-        s_exc_param_names: dict[SingleExcitation, str] = {}
-        for occ, vir in s_excs:
-            param_name = f"theta_s_{occ//2}_{vir//2}"
-            if param_name not in s_exc_param_names.values():
-                s_exc_params[(occ // 2, vir // 2)] = circuit.add_parameter(param_name)
-            s_exc_param_names[(occ, vir)] = param_name
-
-    d_exc_params: dict[DoubleExcitation, Parameter] = {}
-    d_exc_param_names: dict[DoubleExcitation, str] = {}
-    for occ1, occ2, vir1, vir2 in d_excs:
-        param_name = f"theta_d_{occ1//2}_{occ2//2}_{vir1//2}_{vir2//2}"
-        if param_name not in d_exc_param_names.values():
-            d_exc_params[
-                (occ1 // 2, occ2 // 2, vir1 // 2, vir2 // 2)
-            ] = circuit.add_parameter(param_name)
-        d_exc_param_names[(occ1, occ2, vir1, vir2)] = param_name
 
     op_mapper = fermion_qubit_mapping.get_of_operator_mapper(
         n_spin_orbitals, n_fermions
     )
-    for _ in range(trotter_number):
-        add_spin_symmetric_exp_excitation_gates_trotter_decomposition(
-            circuit, d_excs, d_exc_params, op_mapper, 1 / trotter_number
-        )
+
+    for n in range(trotter_number):
+        (
+            s_params,
+            s_exc_param_fn_map,
+            d_params,
+            d_exc_param_fn_map,
+        ) = spin_symmetric_parameters(n_spin_orbitals, n_fermions, n_th_trotter=n)
+
+        added_parameter_map = {}
+
+        all_param_names = s_params | d_params if use_singles else d_params
+        for param_name in all_param_names:
+            param = circuit.add_parameter(param_name)
+            added_parameter_map[param_name] = param
+
         if use_singles:
-            add_spin_symmetric_exp_excitation_gates_trotter_decomposition(
-                circuit, s_excs, s_exc_params, op_mapper, 1 / trotter_number
+            for exc, fnc_list in s_exc_param_fn_map.items():
+                param_fnc = {
+                    added_parameter_map[name]: coeff for name, coeff in fnc_list
+                }
+                add_exp_pauli_gates_from_linear_mapped_function(
+                    circuit, exc, param_fnc, op_mapper, 1 / trotter_number
+                )
+
+        for d_exc, fnc_list in d_exc_param_fn_map.items():
+            param_fnc = {added_parameter_map[name]: coeff for name, coeff in fnc_list}
+            add_exp_pauli_gates_from_linear_mapped_function(
+                circuit,
+                d_exc,
+                param_fnc,
+                op_mapper,
+                1 / trotter_number,
             )
 
     return circuit
+
+
+def spin_symmetric_parameters(
+    n_spin_orbitals: int, n_fermions: int, n_th_trotter: int
+) -> tuple[
+    set[str],
+    dict[SingleExcitation, list[tuple[str, float]]],
+    set[str],
+    dict[DoubleExcitation, list[tuple[str, float]]],
+]:
+    s_exc, d_exc = spin_symmetric_excitations(n_spin_orbitals, n_fermions)
+
+    s_sz_symmetric_set = set()
+    s_exc_param_fn_map = {}
+    # single excitation
+    for i, a in s_exc:
+        if (i % 2) != (a % 2):
+            continue
+        param_name = f"s_{n_th_trotter}_{i//2}_{a//2}"
+        s_sz_symmetric_set.add(param_name)
+        s_exc_param_fn_map[(i, a)] = [(param_name, 1.0)]
+
+    d_sz_symmetric_set = set()
+    same_spin_recorder = []
+    d_exc_param_fn_map = {}
+
+    # double excitation (mixed spin)
+    for i, j, b, a in d_exc:
+        if i % 2 == j % 2 == b % 2 == a % 2:
+            same_spin_recorder.append((i, j, b, a))
+            continue
+        """Convention: i j b^ a^ contracts with t[i, j, a, b]
+        """
+        if f"d_{n_th_trotter}_{j//2}_{i//2}_{b//2}_{a//2}" not in d_sz_symmetric_set:
+            param_name = f"d_{n_th_trotter}_{i//2}_{j//2}_{a//2}_{b//2}"
+            d_sz_symmetric_set.add(param_name)
+            d_exc_param_fn_map[(i, j, b, a)] = [(param_name, 1.0)]
+        else:
+            d_exc_param_fn_map[(i, j, b, a)] = [
+                (f"d_{n_th_trotter}_{j//2}_{i//2}_{b//2}_{a//2}", 1.0)
+            ]
+
+    # double excitation (single spin)
+    for op in same_spin_recorder:
+        i, j, b, a = op
+        spa_i, spa_j, spa_b, spa_a = str(i // 2), str(j // 2), str(b // 2), str(a // 2)
+        if (
+            m_name := f"d_{n_th_trotter}_{spa_i}_{spa_j}_{spa_b}_{spa_a}"
+        ) in d_sz_symmetric_set and (
+            p_name := f"d_{n_th_trotter}_{spa_i}_{spa_j}_{spa_a}_{spa_b}"
+        ) in d_sz_symmetric_set:
+            d_exc_param_fn_map[op] = [(p_name, 1.0), (m_name, -1.0)]
+        elif (
+            m_name := f"d_{n_th_trotter}_{spa_j}_{spa_i}_{spa_a}_{spa_b}"
+        ) in d_sz_symmetric_set and (
+            p_name := f"d_{n_th_trotter}_{spa_j}_{spa_i}_{spa_b}_{spa_a}"
+        ) in d_sz_symmetric_set:
+            d_exc_param_fn_map[op] = [(p_name, 1.0), (m_name, -1.0)]
+        else:
+            print(d_sz_symmetric_set, d_exc_param_fn_map)
+            raise Exception
+
+    return (
+        s_sz_symmetric_set,
+        s_exc_param_fn_map,
+        d_sz_symmetric_set,
+        d_exc_param_fn_map,
+    )

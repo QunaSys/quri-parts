@@ -8,12 +8,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Sequence, TypeVar, Union, cast
+from typing import Sequence, TypeVar, Union, cast
 
 from openfermion.ops import FermionOperator
 
 from quri_parts.chem.utils.excitations import DoubleExcitation, SingleExcitation
 from quri_parts.circuit import LinearMappedUnboundParametricQuantumCircuit, Parameter
+from quri_parts.core.operator import Operator
 
 from ..transforms import OpenFermionQubitOperatorMapper
 
@@ -42,38 +43,30 @@ def add_exp_excitation_gates_trotter_decomposition(
     return circuit
 
 
-def add_spin_symmetric_exp_excitation_gates_trotter_decomposition(
+def add_exp_pauli_gates_from_linear_mapped_function(
     circuit: LinearMappedUnboundParametricQuantumCircuit,
-    excitation_indices: Sequence[Excitation],
-    params: dict[Excitation, Parameter],
+    exc: Union[SingleExcitation, DoubleExcitation],
+    param_fn: dict[Parameter, float],
     operator_mapper: OpenFermionQubitOperatorMapper,
-    coef: float,
-) -> LinearMappedUnboundParametricQuantumCircuit:
-    """Add parametric Pauli rotation gates as a product of the exponentials of
-    the excitations to the given :attr:`circuit`."""
-    for sorb_indices in excitation_indices:
-        op = _create_operator(sorb_indices, operator_mapper)
-        for pauli, op_coef in op.items():
-            pauli_index_list, pauli_id_list = zip(*pauli)
-            op_coef = op_coef.imag
-            to_spatial_indices: Callable[[int], int] = (
-                lambda spin_orb_idx: spin_orb_idx // 2
-            )
-            spatial_orb_idices = cast(
-                Excitation, tuple(map(to_spatial_indices, sorb_indices))
-            )
-            circuit.add_ParametricPauliRotation_gate(
-                pauli_index_list,
-                pauli_id_list,
-                {params[spatial_orb_idices]: -2.0 * op_coef * coef},
-            )
-    return circuit
+    coeff: float,
+) -> None:
+    qp_operator = _create_operator(exc, operator_mapper)
+    for pauli, op_coeff in qp_operator.items():
+        pauli_index_list, pauli_id_list = zip(*pauli)
+        op_coeff = op_coeff.imag
+        new_param_mapping = {
+            param: -2 * op_coeff.imag * old_coeff * coeff
+            for param, old_coeff in param_fn.items()
+        }
+        circuit.add_ParametricPauliRotation_gate(
+            pauli_index_list, pauli_id_list, new_param_mapping
+        )
 
 
 def _create_operator(
     excitation_indices: Union[SingleExcitation, DoubleExcitation],
     operator_mapper: OpenFermionQubitOperatorMapper,
-) -> FermionOperator:
+) -> Operator:
     op = FermionOperator()
     if len(excitation_indices) == 2:
         op += FermionOperator(
