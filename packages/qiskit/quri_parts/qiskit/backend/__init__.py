@@ -9,8 +9,18 @@
 # limitations under the License.
 
 from .connectivity import device_connectivity_graph
-from .job_models import QiskitSavedDataSamplingJob, QiskitSavedDataSamplingResult
+from .job_models import (
+    QiskitSavedDataSamplingBackend,
+    QiskitSavedDataSamplingJob,
+    QiskitSavedDataSamplingResult,
+)
 from .sampling import QiskitSamplingBackend, QiskitSamplingJob, QiskitSamplingResult
+from .utils import (
+    get_backend_min_max_shot,
+    get_circuit_transpiler,
+    job_processor,
+    shot_distributer,
+)
 
 __all__ = [
     "QiskitSamplingBackend",
@@ -19,4 +29,9 @@ __all__ = [
     "device_connectivity_graph",
     "QiskitSavedDataSamplingJob",
     "QiskitSavedDataSamplingResult",
+    "QiskitSavedDataSamplingBackend",
+    "get_circuit_transpiler",
+    "get_backend_min_max_shot",
+    "shot_distributer",
+    "job_processor",
 ]

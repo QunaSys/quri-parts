@@ -14,7 +14,7 @@ from typing import Any, Optional, Sequence, cast
 
 import qiskit
 from qiskit.providers import Job
-from qiskit.providers.backend import Backend, BackendV1, BackendV2
+from qiskit.providers.backend import Backend
 from qiskit.result import Result
 from typing_extensions import TypeAlias
 
@@ -27,19 +27,20 @@ from quri_parts.backend import (
 )
 from quri_parts.backend.qubit_mapping import BackendQubitMapping
 from quri_parts.circuit import NonParametricQuantumCircuit
-from quri_parts.circuit.transpile import CircuitTranspiler, SequentialTranspiler
-from quri_parts.qiskit.circuit import (
-    QiskitCircuitConverter,
-    QiskitTranspiler,
-    convert_circuit,
-)
+from quri_parts.circuit.transpile import CircuitTranspiler
+from quri_parts.qiskit.circuit import QiskitCircuitConverter, convert_circuit
 
 from .job_models import (
     QiskitSavedDataSamplingJob,
     QiskitSavedDataSamplingResult,
     convert_saved_jobs_sequence_to_str,
 )
-from .utils import job_processor, shot_distributer
+from .utils import (
+    get_backend_min_max_shot,
+    get_circuit_transpiler,
+    job_processor,
+    shot_distributer,
+)
 
 SavedDataType: TypeAlias = dict[tuple[str, int], list[QiskitSavedDataSamplingJob]]
 
@@ -111,32 +112,26 @@ class QiskitSamplingBackend(SamplingBackend):
         save_data_while_sampling: bool = False,
     ):
         self._backend = backend
+
+        # circuit related
         self._circuit_converter = circuit_converter
 
         self._qubit_mapping = None
         if qubit_mapping is not None:
             self._qubit_mapping = BackendQubitMapping(qubit_mapping)
 
-        if circuit_transpiler is None:
-            circuit_transpiler = QiskitTranspiler()
-        if self._qubit_mapping:
-            circuit_transpiler = SequentialTranspiler(
-                [circuit_transpiler, self._qubit_mapping.circuit_transpiler]
-            )
-        self._circuit_transpiler = circuit_transpiler
+        self._circuit_transpiler = get_circuit_transpiler(
+            circuit_transpiler, self._qubit_mapping
+        )
 
+        # shots related
         self._enable_shots_roundup = enable_shots_roundup
+        self._min_shots, self._max_shots = get_backend_min_max_shot(backend)
+
+        # other kwargs
         self._run_kwargs = run_kwargs
 
-        self._min_shots = 1
-        self._max_shots: Optional[int] = None
-        if isinstance(backend, BackendV1):
-            max_shots = backend.configuration().max_shots
-            if max_shots > 0:
-                self._max_shots = max_shots
-
-        if not isinstance(backend, (BackendV1, BackendV2)):
-            raise BackendError("Backend not supported.")
+        # saving mode
         self._save_data_while_sampling = save_data_while_sampling
         self._saved_data: SavedDataType = defaultdict(list)
 
@@ -171,8 +166,8 @@ class QiskitSamplingBackend(SamplingBackend):
                     pass
                 raise BackendError("Qiskit Device.run failed.") from e
 
+            # Saving mode
             if self._save_data_while_sampling:
-                # Saving mode
                 circuit_qasm_str = cast(
                     qiskit.QuantumCircuit, transpiled_circuit
                 ).qasm()

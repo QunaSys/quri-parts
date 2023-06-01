@@ -10,8 +10,12 @@
 
 from typing import Optional, Sequence
 
-from quri_parts.backend import CompositeSamplingJob, SamplingJob
+from qiskit.providers.backend import Backend, BackendV1, BackendV2
+
+from quri_parts.backend import BackendError, CompositeSamplingJob, SamplingJob
 from quri_parts.backend.qubit_mapping import BackendQubitMapping, QubitMappedSamplingJob
+from quri_parts.circuit.transpile import CircuitTranspiler, SequentialTranspiler
+from quri_parts.qiskit.circuit import QiskitTranspiler
 
 
 def shot_distributer(
@@ -37,6 +41,31 @@ def shot_distributer(
                 "supported by the device. Try larger n_shots or use "
                 "enable_shots_roundup=True when creating the backend."
             )
+
+
+def get_backend_min_max_shot(backend: Backend) -> tuple[int, Optional[int]]:
+    if isinstance(backend, BackendV1):
+        max_shots = backend.configuration().max_shots
+        if max_shots > 0:
+            return 1, max_shots
+
+    if not isinstance(backend, (BackendV1, BackendV2)):
+        raise BackendError("Backend not supported.")
+
+    return 1, None
+
+
+def get_circuit_transpiler(
+    circuit_transpiler: Optional[CircuitTranspiler] = None,
+    qubit_mapping: Optional[BackendQubitMapping] = None,
+) -> CircuitTranspiler:
+    if circuit_transpiler is None:
+        circuit_transpiler = QiskitTranspiler()
+    if qubit_mapping:
+        circuit_transpiler = SequentialTranspiler(
+            [circuit_transpiler, qubit_mapping.circuit_transpiler]
+        )
+    return circuit_transpiler
 
 
 def job_processor(
