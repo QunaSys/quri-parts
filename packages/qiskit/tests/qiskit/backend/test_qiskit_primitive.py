@@ -23,12 +23,6 @@ from quri_parts.qiskit.backend.primitive import QiskitRuntimeSamplingJob
 from .mock.ibm_runtime_service_mock import mock_get_backend
 
 
-primitive_api = pytest.mark.skipif(
-    "not config.getoption('--api')",
-    reason="Running when --api tests are enabled",
-)
-
-
 class TestQiskitPrimitive:
     def test_fake_service_call(self) -> None:
         # Checking if fake backend works
@@ -107,7 +101,7 @@ class TestQiskitPrimitive:
         # Checking if the session is closed
         service._api_client.close_session.assert_called_once_with("aaa")
 
-    @primitive_api
+    @pytest.mark.api
     def test_sampler_live_simple(self) -> None:
         service = QiskitRuntimeService()
         backend = service.backend("ibmq_qasm_simulator")
@@ -125,7 +119,7 @@ class TestQiskitPrimitive:
         expected_counts = {1: 10}
         assert counts == expected_counts
 
-    @primitive_api
+    @pytest.mark.api
     def test_sampler_live_composite(self) -> None:
         service = QiskitRuntimeService()
         backend = service.backend("ibmq_qasm_simulator")
@@ -146,7 +140,7 @@ class TestQiskitPrimitive:
         expected_counts = {1: 10}
         assert counts == expected_counts
 
-    @primitive_api
+    @pytest.mark.api
     def test_sampler_live_simple_session(self) -> None:
         service = QiskitRuntimeService()
         backend = service.backend("ibmq_qasm_simulator")
@@ -163,7 +157,7 @@ class TestQiskitPrimitive:
             expected_counts = {1: 10}
             assert counts == expected_counts
 
-    @primitive_api
+    @pytest.mark.api
     def test_sampler_live_composite_session(self) -> None:
         service = QiskitRuntimeService()
         backend = service.backend("ibmq_qasm_simulator")
