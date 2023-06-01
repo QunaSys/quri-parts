@@ -53,7 +53,6 @@ def add_exp_pauli_gates_from_linear_mapped_function(
     qp_operator = _create_operator(exc, operator_mapper)
     for pauli, op_coeff in qp_operator.items():
         pauli_index_list, pauli_id_list = zip(*pauli)
-        op_coeff = op_coeff.imag
         new_param_mapping = {
             param: -2 * op_coeff.imag * old_coeff * coeff
             for param, old_coeff in param_fn.items()

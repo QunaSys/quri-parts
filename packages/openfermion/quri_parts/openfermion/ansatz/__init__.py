@@ -9,6 +9,6 @@
 # limitations under the License.
 
 from .kupccgsd import KUpCCGSD
-from .uccsd import TrotterSingletUCCSD
+from .uccsd import TrotterSingletUCCSD, spin_symmetric_parameters
 
-__all__ = ["KUpCCGSD", "TrotterSingletUCCSD"]
+__all__ = ["KUpCCGSD", "TrotterSingletUCCSD", "spin_symmetric_parameters"]

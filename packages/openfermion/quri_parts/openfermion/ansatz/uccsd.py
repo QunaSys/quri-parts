@@ -207,7 +207,7 @@ def spin_symmetric_parameters(
         else:
             d_exc_param_fn_map[(i, j, b, a)] = [(f"d_{j//2}_{i//2}_{b//2}_{a//2}", 1.0)]
 
-    # double excitation (single spin)
+    # double excitation (same spin)
     for op in same_spin_recorder:
         i, j, b, a = op
         spa_i, spa_j, spa_b, spa_a = str(i // 2), str(j // 2), str(b // 2), str(a // 2)
