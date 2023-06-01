@@ -132,21 +132,21 @@ def _construct_spin_symmetric_circuit(
         n_spin_orbitals, n_fermions
     )
 
-    for n in range(trotter_number):
-        (
-            s_params,
-            s_exc_param_fn_map,
-            d_params,
-            d_exc_param_fn_map,
-        ) = spin_symmetric_parameters(n_spin_orbitals, n_fermions, n_th_trotter=n)
+    (
+        s_params,
+        s_exc_param_fn_map,
+        d_params,
+        d_exc_param_fn_map,
+    ) = spin_symmetric_parameters(n_spin_orbitals, n_fermions)
 
-        added_parameter_map = {}
+    added_parameter_map = {}
 
-        all_param_names = s_params | d_params if use_singles else d_params
-        for param_name in all_param_names:
-            param = circuit.add_parameter(param_name)
-            added_parameter_map[param_name] = param
+    all_param_names = s_params | d_params if use_singles else d_params
+    for param_name in all_param_names:
+        param = circuit.add_parameter(param_name)
+        added_parameter_map[param_name] = param
 
+    for _ in range(trotter_number):
         if use_singles:
             for exc, fnc_list in s_exc_param_fn_map.items():
                 param_fnc = {
@@ -170,7 +170,7 @@ def _construct_spin_symmetric_circuit(
 
 
 def spin_symmetric_parameters(
-    n_spin_orbitals: int, n_fermions: int, n_th_trotter: int
+    n_spin_orbitals: int, n_fermions: int
 ) -> tuple[
     set[str],
     dict[SingleExcitation, list[tuple[str, float]]],
@@ -185,7 +185,7 @@ def spin_symmetric_parameters(
     for i, a in s_exc:
         if (i % 2) != (a % 2):
             continue
-        param_name = f"s_{n_th_trotter}_{i//2}_{a//2}"
+        param_name = f"s_{i//2}_{a//2}"
         s_sz_symmetric_set.add(param_name)
         s_exc_param_fn_map[(i, a)] = [(param_name, 1.0)]
 
@@ -200,29 +200,25 @@ def spin_symmetric_parameters(
             continue
         """Convention: i j b^ a^ contracts with t[i, j, a, b]
         """
-        if f"d_{n_th_trotter}_{j//2}_{i//2}_{b//2}_{a//2}" not in d_sz_symmetric_set:
-            param_name = f"d_{n_th_trotter}_{i//2}_{j//2}_{a//2}_{b//2}"
+        if f"d_{j//2}_{i//2}_{b//2}_{a//2}" not in d_sz_symmetric_set:
+            param_name = f"d_{i//2}_{j//2}_{a//2}_{b//2}"
             d_sz_symmetric_set.add(param_name)
             d_exc_param_fn_map[(i, j, b, a)] = [(param_name, 1.0)]
         else:
-            d_exc_param_fn_map[(i, j, b, a)] = [
-                (f"d_{n_th_trotter}_{j//2}_{i//2}_{b//2}_{a//2}", 1.0)
-            ]
+            d_exc_param_fn_map[(i, j, b, a)] = [(f"d_{j//2}_{i//2}_{b//2}_{a//2}", 1.0)]
 
     # double excitation (single spin)
     for op in same_spin_recorder:
         i, j, b, a = op
         spa_i, spa_j, spa_b, spa_a = str(i // 2), str(j // 2), str(b // 2), str(a // 2)
-        if (
-            m_name := f"d_{n_th_trotter}_{spa_i}_{spa_j}_{spa_b}_{spa_a}"
-        ) in d_sz_symmetric_set and (
-            p_name := f"d_{n_th_trotter}_{spa_i}_{spa_j}_{spa_a}_{spa_b}"
+        if (m_name := f"d_{spa_i}_{spa_j}_{spa_b}_{spa_a}") in d_sz_symmetric_set and (
+            p_name := f"d_{spa_i}_{spa_j}_{spa_a}_{spa_b}"
         ) in d_sz_symmetric_set:
             d_exc_param_fn_map[op] = [(p_name, 1.0), (m_name, -1.0)]
         elif (
-            m_name := f"d_{n_th_trotter}_{spa_j}_{spa_i}_{spa_a}_{spa_b}"
+            m_name := f"d_{spa_j}_{spa_i}_{spa_a}_{spa_b}"
         ) in d_sz_symmetric_set and (
-            p_name := f"d_{n_th_trotter}_{spa_j}_{spa_i}_{spa_b}_{spa_a}"
+            p_name := f"d_{spa_j}_{spa_i}_{spa_b}_{spa_a}"
         ) in d_sz_symmetric_set:
             d_exc_param_fn_map[op] = [(p_name, 1.0), (m_name, -1.0)]
         else:
