@@ -190,7 +190,7 @@ class RXFactory:
 
 
 RX = RXFactory()
-r"""RX gate equivalant to :math:`\exp(-i\theta X/2)` represented by matrix.
+r"""RX gate equivalant to :math:`\exp(-i\theta X/2)` represented by matrix
 :math:`\begin{pmatrix} \cos\frac{\theta}{2} & -i\sin\frac{\theta}{2} \\
 -i\sin\frac{\theta}{2} & \cos\frac{\theta}{2} \end{pmatrix}`
 """
