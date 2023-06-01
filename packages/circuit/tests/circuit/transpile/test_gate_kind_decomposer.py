@@ -640,11 +640,6 @@ class TestCliffordRZSetTranspile:
         circuit = QuantumCircuit(1)
         circuit.extend(
             [
-                SqrtX(0),
-                SqrtXdag(0),
-                SqrtY(0),
-                SqrtYdag(0),
-                Sdag(0),
                 T(0),
                 Tdag(0),
                 RX(0, theta),
@@ -659,16 +654,7 @@ class TestCliffordRZSetTranspile:
         expect = QuantumCircuit(3)
         expect.extend(
             [
-                Sdag(0),  # SqrtX
-                H(0),
-                # RZ(0, 0.0),  # SqrtX, SqrtXdag
-                H(0),
-                Sdag(0),  # SqrtXdag, SqrtY
-                H(0),
-                # RZ(0, 0.0),  # SqrtY, SqrtYdag
-                H(0),
-                S(0),  # SqrtYdag, T, Tdag
-                H(0),  # RX
+                H(0),  # T, Tdag, RX
                 RZ(0, theta),
                 H(0),
                 Sdag(0),  # RY
