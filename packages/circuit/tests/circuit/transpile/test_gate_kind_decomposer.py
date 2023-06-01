@@ -654,20 +654,21 @@ class TestCliffordRZSetTranspile:
         expect = QuantumCircuit(3)
         expect.extend(
             [
-                H(0),  # T, Tdag, RX
-                RZ(0, theta),
-                H(0),
-                Sdag(0),  # RY
-                H(0),
-                RZ(0, theta),
-                H(0),
-                RZ(0, (-np.pi / 2.0 + 2.0 * lam) % (2.0 * np.pi)),  # RY, U1, U2
-                H(0),
-                RZ(0, (phi + lam - np.pi / 2.0) % (2.0 * np.pi)),  # U2, U3
-                H(0),
-                RZ(0, theta),
-                H(0),
-                RZ(0, (phi + np.pi / 2.0) % (2.0 * np.pi)),
+                S(0),  # T, Tdag, RX
+                SqrtX(0),
+                RZ(0, theta + np.pi),
+                SqrtX(0),
+                S(0),
+                SqrtX(0),  # RY
+                RZ(0, theta + np.pi),
+                SqrtX(0),
+                RZ(0, np.pi / 2.0 + 2.0 * lam),  # U1, U2
+                SqrtX(0),
+                RZ(0, phi + lam + np.pi / 2.0),  # U2, U3
+                SqrtX(0),
+                RZ(0, theta + np.pi),
+                SqrtX(0),
+                RZ(0, phi + 3.0 * np.pi),
             ]
         )
 
