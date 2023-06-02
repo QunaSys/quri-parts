@@ -142,7 +142,9 @@ def _construct_spin_symmetric_circuit(
     added_parameter_map = {}
 
     all_param_names = s_params | d_params if use_singles else d_params
-    for param_name in all_param_names:
+    all_param_names_list = sorted(list(all_param_names))
+
+    for param_name in all_param_names_list:
         param = circuit.add_parameter(param_name)
         added_parameter_map[param_name] = param
 

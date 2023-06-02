@@ -12,13 +12,20 @@ import pytest
 
 from quri_parts.chem.utils.excitations import excitations
 from quri_parts.circuit import LinearMappedUnboundParametricQuantumCircuit
-from quri_parts.openfermion.ansatz.uccsd import TrotterSingletUCCSD, _construct_circuit
+from quri_parts.openfermion.ansatz.uccsd import (
+    TrotterSingletUCCSD,
+    _construct_circuit,
+    _construct_spin_symmetric_circuit,
+)
 from quri_parts.openfermion.transforms import (
     bravyi_kitaev,
     jordan_wigner,
     symmetry_conserving_bravyi_kitaev,
 )
-from quri_parts.openfermion.utils import add_exp_excitation_gates_trotter_decomposition
+from quri_parts.openfermion.utils import (
+    add_exp_excitation_gates_trotter_decomposition,
+    add_exp_pauli_gates_from_linear_mapped_function,
+)
 
 
 class TestConstructCircuit:
@@ -122,6 +129,127 @@ class TestConstructCircuit:
         assert bound_circuit == expected_bound_circuit
 
 
+class TestConstructSpinSymmetricCircuit:
+    def test_construct_circuit_w_singles_trotter1(self) -> None:
+        n_spin_orbitals = 8
+        n_electrons = 4
+        fermion_qubit_mapping = jordan_wigner
+        trotter_number = 1
+        use_singles = True
+
+        circuit = _construct_spin_symmetric_circuit(
+            n_spin_orbitals,
+            n_electrons,
+            fermion_qubit_mapping,
+            trotter_number,
+            use_singles,
+        )
+        expected_circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
+        d_0_0_2_2 = expected_circuit.add_parameter("d_0_0_2_2")
+        d_0_0_2_3 = expected_circuit.add_parameter("d_0_0_2_3")
+        d_0_0_3_3 = expected_circuit.add_parameter("d_0_0_3_3")
+        d_0_1_2_2 = expected_circuit.add_parameter("d_0_1_2_2")
+        d_0_1_2_3 = expected_circuit.add_parameter("d_0_1_2_3")
+        d_0_1_3_2 = expected_circuit.add_parameter("d_0_1_3_2")
+        d_0_1_3_3 = expected_circuit.add_parameter("d_0_1_3_3")
+        d_1_1_2_2 = expected_circuit.add_parameter("d_1_1_2_2")
+        d_1_1_2_3 = expected_circuit.add_parameter("d_1_1_2_3")
+        d_1_1_3_3 = expected_circuit.add_parameter("d_1_1_3_3")
+        s_0_2 = expected_circuit.add_parameter("s_0_2")
+        s_0_3 = expected_circuit.add_parameter("s_0_3")
+        s_1_2 = expected_circuit.add_parameter("s_1_2")
+        s_1_3 = expected_circuit.add_parameter("s_1_3")
+
+        op_mapper = fermion_qubit_mapping.get_of_operator_mapper()
+
+        add_exp_pauli_gates_from_linear_mapped_function(
+            expected_circuit, (0, 4), {s_0_2: 1}, op_mapper, 1
+        )
+        add_exp_pauli_gates_from_linear_mapped_function(
+            expected_circuit, (0, 6), {s_0_3: 1}, op_mapper, 1
+        )
+        add_exp_pauli_gates_from_linear_mapped_function(
+            expected_circuit, (1, 5), {s_0_2: 1}, op_mapper, 1
+        )
+        add_exp_pauli_gates_from_linear_mapped_function(
+            expected_circuit, (1, 7), {s_0_3: 1}, op_mapper, 1
+        )
+        add_exp_pauli_gates_from_linear_mapped_function(
+            expected_circuit, (2, 4), {s_1_2: 1}, op_mapper, 1
+        )
+        add_exp_pauli_gates_from_linear_mapped_function(
+            expected_circuit, (2, 6), {s_1_3: 1}, op_mapper, 1
+        )
+        add_exp_pauli_gates_from_linear_mapped_function(
+            expected_circuit, (3, 5), {s_1_2: 1}, op_mapper, 1
+        )
+        add_exp_pauli_gates_from_linear_mapped_function(
+            expected_circuit, (3, 7), {s_1_3: 1}, op_mapper, 1
+        )
+
+        add_exp_pauli_gates_from_linear_mapped_function(
+            expected_circuit, (0, 1, 5, 4), {d_0_0_2_2: 1}, op_mapper, 1
+        )
+        add_exp_pauli_gates_from_linear_mapped_function(
+            expected_circuit, (0, 1, 7, 4), {d_0_0_2_3: 1}, op_mapper, 1
+        )
+        add_exp_pauli_gates_from_linear_mapped_function(
+            expected_circuit, (0, 1, 5, 6), {d_0_0_2_3: 1}, op_mapper, 1
+        )
+        add_exp_pauli_gates_from_linear_mapped_function(
+            expected_circuit, (0, 1, 7, 6), {d_0_0_3_3: 1}, op_mapper, 1
+        )
+        add_exp_pauli_gates_from_linear_mapped_function(
+            expected_circuit, (0, 3, 5, 4), {d_0_1_2_2: 1}, op_mapper, 1
+        )
+        add_exp_pauli_gates_from_linear_mapped_function(
+            expected_circuit, (0, 3, 7, 4), {d_0_1_2_3: 1}, op_mapper, 1
+        )
+        add_exp_pauli_gates_from_linear_mapped_function(
+            expected_circuit, (0, 3, 5, 6), {d_0_1_3_2: 1}, op_mapper, 1
+        )
+        add_exp_pauli_gates_from_linear_mapped_function(
+            expected_circuit, (0, 3, 7, 6), {d_0_1_3_3: 1}, op_mapper, 1
+        )
+        add_exp_pauli_gates_from_linear_mapped_function(
+            expected_circuit, (2, 1, 5, 4), {d_0_1_2_2: 1}, op_mapper, 1
+        )
+        add_exp_pauli_gates_from_linear_mapped_function(
+            expected_circuit, (2, 1, 7, 4), {d_0_1_3_2: 1}, op_mapper, 1
+        )
+        add_exp_pauli_gates_from_linear_mapped_function(
+            expected_circuit, (2, 1, 5, 6), {d_0_1_2_3: 1}, op_mapper, 1
+        )
+        add_exp_pauli_gates_from_linear_mapped_function(
+            expected_circuit, (2, 1, 7, 6), {d_0_1_3_3: 1}, op_mapper, 1
+        )
+        add_exp_pauli_gates_from_linear_mapped_function(
+            expected_circuit, (2, 3, 5, 4), {d_1_1_2_2: 1}, op_mapper, 1
+        )
+        add_exp_pauli_gates_from_linear_mapped_function(
+            expected_circuit, (2, 3, 7, 4), {d_1_1_2_3: 1}, op_mapper, 1
+        )
+        add_exp_pauli_gates_from_linear_mapped_function(
+            expected_circuit, (2, 3, 5, 6), {d_1_1_2_3: 1}, op_mapper, 1
+        )
+        add_exp_pauli_gates_from_linear_mapped_function(
+            expected_circuit, (2, 3, 7, 6), {d_1_1_3_3: 1}, op_mapper, 1
+        )
+        add_exp_pauli_gates_from_linear_mapped_function(
+            expected_circuit, (0, 2, 6, 4), {d_0_1_2_3: 1, d_0_1_3_2: -1}, op_mapper, 1
+        )
+        add_exp_pauli_gates_from_linear_mapped_function(
+            expected_circuit, (1, 3, 7, 5), {d_0_1_2_3: 1, d_0_1_3_2: -1}, op_mapper, 1
+        )
+
+        assert circuit.parameter_count == expected_circuit.parameter_count == 14
+        assert circuit._circuit.gates == expected_circuit._circuit.gates
+        param_vals = [0.1 * (i + 1) for i in range(circuit.parameter_count)]
+        bound_circuit = circuit.bind_parameters(param_vals)
+        expected_bound_circuit = expected_circuit.bind_parameters(param_vals)
+        assert bound_circuit == expected_bound_circuit
+
+
 class TestTrotterSingletUCCSD:
     def test_trotter_singlet_uccsd_w_singles_jw(self) -> None:
         n_spin_orbitals = 4
@@ -198,3 +326,52 @@ class TestTrotterSingletUCCSD:
             TrotterSingletUCCSD(4, 3)
         with pytest.raises(ValueError):
             TrotterSingletUCCSD(4, 4)
+
+    def test_spin_symmetric_uccsd_trotter_1(self) -> None:
+        n_spin_orbitals = 8
+        n_electrons = 4
+        trotter_number = 1
+        ansatz = TrotterSingletUCCSD(
+            n_spin_orbitals,
+            n_electrons,
+            trotter_number=trotter_number,
+            spin_symmetric=True,
+        )
+        expected_ansatz = _construct_spin_symmetric_circuit(
+            n_spin_orbitals,
+            n_electrons,
+            jordan_wigner,
+            trotter_number=trotter_number,
+            use_singles=True,
+        )
+        assert ansatz.parameter_count == expected_ansatz.parameter_count
+        assert ansatz._circuit.gates == expected_ansatz._circuit.gates
+        param_vals = [0.1 * (i + 1) for i in range(ansatz.parameter_count)]
+        bound_ansatz = ansatz.bind_parameters(param_vals)
+        expected_bound_ansatz = expected_ansatz.bind_parameters(param_vals)
+        assert bound_ansatz == expected_bound_ansatz
+
+    def test_spin_symmetric_uccsd_trotter_2(self) -> None:
+        n_spin_orbitals = 8
+        n_electrons = 4
+        trotter_number = 1
+        ansatz = TrotterSingletUCCSD(
+            n_spin_orbitals,
+            n_electrons,
+            trotter_number=trotter_number,
+            spin_symmetric=True,
+            fermion_qubit_mapping=bravyi_kitaev,
+        )
+        expected_ansatz = _construct_spin_symmetric_circuit(
+            n_spin_orbitals,
+            n_electrons,
+            bravyi_kitaev,
+            trotter_number=trotter_number,
+            use_singles=True,
+        )
+        assert ansatz.parameter_count == expected_ansatz.parameter_count
+        assert ansatz._circuit.gates == expected_ansatz._circuit.gates
+        param_vals = [0.1 * (i + 1) for i in range(ansatz.parameter_count)]
+        bound_ansatz = ansatz.bind_parameters(param_vals)
+        expected_bound_ansatz = expected_ansatz.bind_parameters(param_vals)
+        assert bound_ansatz == expected_bound_ansatz

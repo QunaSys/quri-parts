@@ -18,6 +18,7 @@ from quri_parts.openfermion.transforms import (
 from quri_parts.openfermion.utils.add_exp_excitation_gates_trotter_decomposition import (  # noqa
     _create_operator,
     add_exp_excitation_gates_trotter_decomposition,
+    add_exp_pauli_gates_from_linear_mapped_function,
 )
 
 
@@ -320,3 +321,111 @@ class TestAddExpExcitationGatesTrotterDecomposition:
         bound_circuit = circuit.bind_parameters(param_vals)
         expected_bound_circuit = expected_circuit.bind_parameters(param_vals)
         assert bound_circuit == expected_bound_circuit
+
+
+class TestAddExpPauliGatesFromLinearMappedFunctions:
+    def test_jw(self) -> None:
+        n_spin_orbitals = 6
+        jw_mapper = jordan_wigner.get_of_operator_mapper()
+
+        circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
+        param1 = circuit.add_parameter("param1")
+        param2 = circuit.add_parameter("param2")
+        add_exp_pauli_gates_from_linear_mapped_function(
+            circuit, (0, 1, 2, 3), {param1: 4}, jw_mapper, coeff=0.5
+        )
+        add_exp_pauli_gates_from_linear_mapped_function(
+            circuit, (2, 3, 4, 5), {param2: -2}, jw_mapper, coeff=0.4
+        )
+        add_exp_pauli_gates_from_linear_mapped_function(
+            circuit, (0, 1, 3, 4), {param1: 1, param2: -3}, jw_mapper, coeff=-2
+        )
+
+        expected_circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
+        param1 = expected_circuit.add_parameter("param1")
+        param2 = expected_circuit.add_parameter("param2")
+
+        # param 1
+        expected_circuit.add_ParametricPauliRotation_gate(
+            (0, 1, 3, 2), (1, 1, 1, 2), {param1: -0.5}
+        )
+        expected_circuit.add_ParametricPauliRotation_gate(
+            (3, 0, 1, 2), (1, 2, 2, 2), {param1: 0.5}
+        )
+        expected_circuit.add_ParametricPauliRotation_gate(
+            (1, 3, 0, 2), (1, 1, 2, 1), {param1: 0.5}
+        )
+        expected_circuit.add_ParametricPauliRotation_gate(
+            (0, 3, 1, 2), (1, 1, 2, 1), {param1: 0.5}
+        )
+        expected_circuit.add_ParametricPauliRotation_gate(
+            (1, 0, 3, 2), (1, 2, 2, 2), {param1: -0.5}
+        )
+        expected_circuit.add_ParametricPauliRotation_gate(
+            (0, 3, 1, 2), (1, 2, 2, 2), {param1: -0.5}
+        )
+        expected_circuit.add_ParametricPauliRotation_gate(
+            (0, 1, 2, 3), (1, 1, 1, 2), {param1: -0.5}
+        )
+        expected_circuit.add_ParametricPauliRotation_gate(
+            (0, 1, 2, 3), (2, 2, 1, 2), {param1: 0.5}
+        )
+
+        # param 2
+        expected_circuit.add_ParametricPauliRotation_gate(
+            (3, 5, 2, 4), (1, 1, 1, 2), {param2: 0.2}
+        )
+        expected_circuit.add_ParametricPauliRotation_gate(
+            (3, 5, 4, 2), (2, 1, 2, 2), {param2: -0.2}
+        )
+        expected_circuit.add_ParametricPauliRotation_gate(
+            (3, 4, 5, 2), (1, 1, 1, 2), {param2: -0.2}
+        )
+        expected_circuit.add_ParametricPauliRotation_gate(
+            (5, 3, 4, 2), (1, 2, 1, 1), {param2: -0.2}
+        )
+        expected_circuit.add_ParametricPauliRotation_gate(
+            (3, 5, 4, 2), (1, 2, 2, 2), {param2: 0.2}
+        )
+        expected_circuit.add_ParametricPauliRotation_gate(
+            (3, 2, 4, 5), (2, 1, 2, 2), {param2: 0.2}
+        )
+        expected_circuit.add_ParametricPauliRotation_gate(
+            (3, 4, 2, 5), (1, 1, 1, 2), {param2: 0.2}
+        )
+        expected_circuit.add_ParametricPauliRotation_gate(
+            (5, 3, 4, 2), (2, 2, 1, 2), {param2: -0.2}
+        )
+
+        # param1, param 2
+        expected_circuit.add_ParametricPauliRotation_gate(
+            (0, 1, 4, 3), (1, 1, 1, 2), {param1: 1 * 0.5, param2: -3 * 0.5}
+        )
+        expected_circuit.add_ParametricPauliRotation_gate(
+            (0, 1, 4, 3), (2, 2, 1, 2), {param1: -1 * 0.5, param2: 3 * 0.5}
+        )
+        expected_circuit.add_ParametricPauliRotation_gate(
+            (1, 0, 4, 3), (1, 2, 1, 1), {param1: -1 * 0.5, param2: 3 * 0.5}
+        )
+        expected_circuit.add_ParametricPauliRotation_gate(
+            (0, 1, 4, 3), (1, 2, 1, 1), {param1: -1 * 0.5, param2: 3 * 0.5}
+        )
+        expected_circuit.add_ParametricPauliRotation_gate(
+            (1, 0, 3, 4), (1, 2, 2, 2), {param1: 1 * 0.5, param2: -3 * 0.5}
+        )
+        expected_circuit.add_ParametricPauliRotation_gate(
+            (0, 3, 1, 4), (1, 2, 2, 2), {param1: 1 * 0.5, param2: -3 * 0.5}
+        )
+        expected_circuit.add_ParametricPauliRotation_gate(
+            (0, 1, 3, 4), (1, 1, 1, 2), {param1: 1 * 0.5, param2: -3 * 0.5}
+        )
+        expected_circuit.add_ParametricPauliRotation_gate(
+            (3, 0, 1, 4), (1, 2, 2, 2), {param1: -1 * 0.5, param2: 3 * 0.5}
+        )
+
+        assert circuit.parameter_count == expected_circuit.parameter_count
+        assert circuit._circuit.gates == expected_circuit._circuit.gates
+        param_vals = [0.1 * (i + 1) for i in range(circuit.parameter_count)]
+        bound_circuit = circuit.bind_parameters(param_vals)
+        expected_bound_circuit = expected_circuit.bind_parameters(param_vals)
+        assert set(bound_circuit.gates) == set(expected_bound_circuit.gates)
