@@ -17,7 +17,8 @@ def single_excitation_checks(
     s_exc_param_fn_map: dict[SingleExcitation, list[tuple[str, float]]],
 ) -> None:
     for (i, a), param_fn in s_exc_param_fn_map.items():
-        assert i%2 == a%2
+        assert i % 2 == a % 2
+
 
 def double_excitation_checks(
     d_sz_symmetric_set: set[str],
