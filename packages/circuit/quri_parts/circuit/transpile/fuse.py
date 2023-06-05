@@ -80,7 +80,12 @@ class FuseRotationTranspiler(TwoGateFuser):
 
 class NormalizeRotationTranspiler(GateKindDecomposer):
     """Normalize the parameters of the rotation gates (RX, RY, and RZ) so that
-    they are in the specified range (0 to 2PI by default)."""
+    they are in the specified range (0 to 2PI by default).
+
+    Args:
+        cycle_range: Specify a range of width 2PI in the form of (lower limit,
+        upper limit).
+    """
 
     def __init__(self, cycle_range: tuple[float, float] = (0.0, np.pi * 2.0)):
         if not cycle_range[1] > cycle_range[0]:  # Do not accept 0 width.
