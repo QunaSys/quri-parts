@@ -30,7 +30,7 @@ from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.qiskit.circuit import QiskitCircuitConverter, convert_circuit
 
-from .job_models import (
+from .saved_sampling import (
     QiskitSavedDataSamplingJob,
     QiskitSavedDataSamplingResult,
     convert_saved_jobs_sequence_to_str,
@@ -39,7 +39,7 @@ from .utils import (
     get_backend_min_max_shot,
     get_circuit_transpiler,
     job_processor,
-    shot_distributer,
+    distribute_backend_shots,
 )
 
 SavedDataType: TypeAlias = dict[tuple[str, int], list[QiskitSavedDataSamplingJob]]
@@ -139,7 +139,7 @@ class QiskitSamplingBackend(SamplingBackend):
         if not n_shots >= 1:
             raise ValueError("n_shots should be a positive integer.")
 
-        shot_dist = shot_distributer(
+        shot_dist = distribute_backend_shots(
             n_shots, self._min_shots, self._max_shots, self._enable_shots_roundup
         )
 
@@ -157,30 +157,28 @@ class QiskitSamplingBackend(SamplingBackend):
                     shots=s,
                     **self._run_kwargs,
                 )
+                # Saving mode
+                if self._save_data_while_sampling:
+                    circuit_qasm_str = transpiled_circuit.qasm()
+                    raw_measurement_cnt = qiskit_job.result().get_counts()
+                    saved_res = QiskitSavedDataSamplingResult(raw_data=raw_measurement_cnt)
+                    saved_job = QiskitSavedDataSamplingJob(
+                        circuit_str=circuit_qasm_str,
+                        n_shots=s,
+                        saved_result=saved_res,
+                    )
+                    self._saved_data[(circuit_qasm_str, s)].append(saved_job)
+
+                jobs.append(QiskitSamplingJob(qiskit_job))
 
             except Exception as e:
-                try:
-                    qiskit_job.cancel()
-                except Exception:
-                    # Ignore cancel errors
-                    pass
+                for j in qiskit_job:
+                    try:
+                        j.cancel()
+                    except Exception:
+                        # Ignore cancel errors
+                        pass
                 raise BackendError("Qiskit Device.run failed.") from e
-
-            # Saving mode
-            if self._save_data_while_sampling:
-                circuit_qasm_str = cast(
-                    qiskit.QuantumCircuit, transpiled_circuit
-                ).qasm()
-                raw_measurement_cnt = qiskit_job.result().get_counts()
-                saved_res = QiskitSavedDataSamplingResult(raw_data=raw_measurement_cnt)
-                saved_job = QiskitSavedDataSamplingJob(
-                    circuit_str=circuit_qasm_str,
-                    n_shots=s,
-                    saved_result=saved_res,
-                )
-                self._saved_data[(circuit_qasm_str, s)].append(saved_job)
-
-            jobs.append(QiskitSamplingJob(qiskit_job))
 
         return job_processor(jobs=jobs, qubit_mapping=self._qubit_mapping)
 

@@ -34,7 +34,7 @@ from .utils import (
     get_backend_min_max_shot,
     get_circuit_transpiler,
     job_processor,
-    shot_distributer,
+    distribute_backend_shots,
 )
 
 SavedDataType: TypeAlias = dict[tuple[str, int], list["QiskitSavedDataSamplingJob"]]
@@ -106,7 +106,7 @@ class QiskitSavedDataSamplingBackend(SamplingBackend):
         if not n_shots >= 1:
             raise ValueError("n_shots should be a positive integer.")
 
-        shot_dist = shot_distributer(
+        shot_dist = distribute_backend_shots(
             n_shots, self._min_shots, self._max_shots, self._enable_shots_roundup
         )
 

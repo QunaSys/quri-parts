@@ -18,7 +18,7 @@ from quri_parts.circuit.transpile import CircuitTranspiler, SequentialTranspiler
 from quri_parts.qiskit.circuit import QiskitTranspiler
 
 
-def shot_distributer(
+def distribute_backend_shots(
     n_shots: int,
     min_shots: int,
     max_shots: Optional[int],
