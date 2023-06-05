@@ -78,6 +78,30 @@ class FuseRotationTranspiler(TwoGateFuser):
         ]
 
 
+class NormalizeRotationTranspiler(GateKindDecomposer):
+    """Normalize the parameters of the rotation gates (RX, RY, and RZ) so that
+    they are in the specified range (0 to 2PI by default)."""
+
+    def __init__(self, cycle_range: tuple[float, float] = (0.0, np.pi * 2.0)):
+        if not cycle_range[1] > cycle_range[0]:
+            raise ValueError("Specify (lower limit, upper limit) for cycle_range.")
+        self._width = cycle_range[1] - cycle_range[0]
+        self._upper = cycle_range[1]
+
+    @property
+    def target_gate_names(self) -> Sequence[str]:
+        return [gate_names.RX, gate_names.RY, gate_names.RZ]
+
+    def _normalize(self, theta: float) -> float:
+        t = theta % self._width
+        t = t - self._width if t > self._upper else t
+        return t
+
+    def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
+        theta = self._normalize(gate.params[0])
+        return [gate._replace(params=(theta,))]
+
+
 class RX2NamedTranspiler(GateKindDecomposer):
     """Convert RX gate to Identity or X gate if it is equivalent to Identity or
     X gate."""

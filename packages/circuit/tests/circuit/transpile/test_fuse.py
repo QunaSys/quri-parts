@@ -13,6 +13,7 @@ import numpy as np
 from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
 from quri_parts.circuit.transpile import (
     FuseRotationTranspiler,
+    NormalizeRotationTranspiler,
     RX2NamedTranspiler,
     RY2NamedTranspiler,
     RZ2NamedTranspiler,
@@ -60,6 +61,66 @@ class TestFuseRotation:
                 gates.CNOT(0, 2),
                 gates.X(2),
                 gates.RZ(2, np.pi),
+            ]
+        )
+
+        for t, e in zip(transpiled.gates, expect.gates):
+            assert _gates_close(t, e)
+
+
+class TestNormalizeRotation:
+    def test_normalize_2pi(self) -> None:
+        circuit = QuantumCircuit(1)
+        circuit.extend(
+            [
+                gates.RX(0, 5.0 * np.pi),
+                gates.RY(0, -3.0 * np.pi),
+                gates.RZ(0, 7.0 / 2.0 * np.pi),
+                gates.RX(0, 3.0 / np.pi),
+                gates.RY(0, 2.0 * np.pi),
+                gates.RZ(0, 0.0),
+            ]
+        )
+        transpiled = NormalizeRotationTranspiler()(circuit)
+
+        expect = QuantumCircuit(1)
+        expect.extend(
+            [
+                gates.RX(0, np.pi),
+                gates.RY(0, np.pi),
+                gates.RZ(0, 3.0 / 2.0 * np.pi),
+                gates.RX(0, 3.0 / np.pi),
+                gates.RY(0, 0.0),
+                gates.RZ(0, 0.0),
+            ]
+        )
+
+        for t, e in zip(transpiled.gates, expect.gates):
+            assert _gates_close(t, e)
+
+    def test_normalize_pi(self) -> None:
+        circuit = QuantumCircuit(1)
+        circuit.extend(
+            [
+                gates.RX(0, 3.0 / 2.0 * np.pi),
+                gates.RY(0, -3.0 / 4.0 * np.pi),
+                gates.RZ(0, 7.0 / 2.0 * np.pi),
+                gates.RX(0, np.pi),
+                gates.RY(0, -np.pi),
+                gates.RZ(0, 0.0),
+            ]
+        )
+        transpiled = NormalizeRotationTranspiler((-np.pi, np.pi))(circuit)
+
+        expect = QuantumCircuit(1)
+        expect.extend(
+            [
+                gates.RX(0, -np.pi / 2.0),
+                gates.RY(0, -3.0 / 4.0 * np.pi),
+                gates.RZ(0, -np.pi / 2.0),
+                gates.RX(0, np.pi),
+                gates.RY(0, np.pi),
+                gates.RZ(0, 0.0),
             ]
         )
 
