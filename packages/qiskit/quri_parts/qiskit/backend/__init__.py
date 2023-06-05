@@ -9,17 +9,17 @@
 # limitations under the License.
 
 from .connectivity import device_connectivity_graph
+from .sampling import QiskitSamplingBackend, QiskitSamplingJob, QiskitSamplingResult
 from .saved_sampling import (
     QiskitSavedDataSamplingBackend,
     QiskitSavedDataSamplingJob,
     QiskitSavedDataSamplingResult,
 )
-from .sampling import QiskitSamplingBackend, QiskitSamplingJob, QiskitSamplingResult
 from .utils import (
+    distribute_backend_shots,
     get_backend_min_max_shot,
     get_circuit_transpiler,
     job_processor,
-    distribute_backend_shots,
 )
 
 __all__ = [

@@ -10,7 +10,7 @@
 
 from collections import defaultdict
 from collections.abc import Mapping, MutableMapping
-from typing import Any, Optional, Sequence, cast
+from typing import Any, Optional, Sequence
 
 import qiskit
 from qiskit.providers import Job
@@ -36,13 +36,11 @@ from .saved_sampling import (
     convert_saved_jobs_sequence_to_str,
 )
 from .utils import (
+    distribute_backend_shots,
     get_backend_min_max_shot,
     get_circuit_transpiler,
     job_processor,
-    distribute_backend_shots,
 )
-
-SavedDataType: TypeAlias = dict[tuple[str, int], list[QiskitSavedDataSamplingJob]]
 
 
 class QiskitSamplingResult(SamplingResult):
@@ -71,6 +69,9 @@ class QiskitSamplingJob(SamplingJob):
     def result(self) -> SamplingResult:
         qiskit_result: Result = self._qiskit_job.result()
         return QiskitSamplingResult(qiskit_result)
+
+
+SavedDataType: TypeAlias = dict[tuple[str, int], list[QiskitSamplingJob]]
 
 
 class QiskitSamplingBackend(SamplingBackend):
@@ -157,19 +158,13 @@ class QiskitSamplingBackend(SamplingBackend):
                     shots=s,
                     **self._run_kwargs,
                 )
+
+                qiskit_sampling_job = QiskitSamplingJob(qiskit_job)
                 # Saving mode
                 if self._save_data_while_sampling:
                     circuit_qasm_str = transpiled_circuit.qasm()
-                    raw_measurement_cnt = qiskit_job.result().get_counts()
-                    saved_res = QiskitSavedDataSamplingResult(raw_data=raw_measurement_cnt)
-                    saved_job = QiskitSavedDataSamplingJob(
-                        circuit_str=circuit_qasm_str,
-                        n_shots=s,
-                        saved_result=saved_res,
-                    )
-                    self._saved_data[(circuit_qasm_str, s)].append(saved_job)
-
-                jobs.append(QiskitSamplingJob(qiskit_job))
+                    self._saved_data[(circuit_qasm_str, s)].append(qiskit_sampling_job)
+                jobs.append(qiskit_sampling_job)
 
             except Exception as e:
                 for j in qiskit_job:
@@ -185,9 +180,23 @@ class QiskitSamplingBackend(SamplingBackend):
     @property
     def jobs(self) -> Sequence[QiskitSavedDataSamplingJob]:
         job_list = []
-        for saved_jobs in self._saved_data.values():
-            for job in saved_jobs:
-                job_list.append(job)
+        for (
+            circuit_qasm_str,
+            n_shots,
+        ), qiskit_sampling_jobs in self._saved_data.items():
+            for qiskit_sampling_job in qiskit_sampling_jobs:
+                raw_measurement_cnt = (
+                    qiskit_sampling_job._qiskit_job.result().get_counts()
+                )
+                saved_sampling_result = QiskitSavedDataSamplingResult(
+                    raw_data=raw_measurement_cnt
+                )
+                saved_sampling_job = QiskitSavedDataSamplingJob(
+                    circuit_str=circuit_qasm_str,
+                    n_shots=n_shots,
+                    saved_result=saved_sampling_result,
+                )
+                job_list.append(saved_sampling_job)
         return job_list
 
     @property

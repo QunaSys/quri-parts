@@ -31,10 +31,10 @@ from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.qiskit.circuit import QiskitCircuitConverter, convert_circuit
 
 from .utils import (
+    distribute_backend_shots,
     get_backend_min_max_shot,
     get_circuit_transpiler,
     job_processor,
-    distribute_backend_shots,
 )
 
 SavedDataType: TypeAlias = dict[tuple[str, int], list["QiskitSavedDataSamplingJob"]]
