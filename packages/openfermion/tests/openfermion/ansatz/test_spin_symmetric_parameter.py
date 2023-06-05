@@ -18,6 +18,9 @@ def single_excitation_checks(
 ) -> None:
     for (i, a), param_fn in s_exc_param_fn_map.items():
         assert i % 2 == a % 2
+        assert param_fn[0][0] in s_sz_symmetric_set
+        assert param_fn[0][1] == 1
+        assert param_fn[0][0] == f's_{i//2}_{a//2}'
 
 
 def double_excitation_checks(
