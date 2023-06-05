@@ -83,7 +83,7 @@ class NormalizeRotationTranspiler(GateKindDecomposer):
     they are in the specified range (0 to 2PI by default)."""
 
     def __init__(self, cycle_range: tuple[float, float] = (0.0, np.pi * 2.0)):
-        if not cycle_range[1] > cycle_range[0]:
+        if not cycle_range[1] > cycle_range[0]:  # Do not accept 0 width.
             raise ValueError("Specify (lower limit, upper limit) for cycle_range.")
         self._width = cycle_range[1] - cycle_range[0]
         self._upper = cycle_range[1]
@@ -94,7 +94,8 @@ class NormalizeRotationTranspiler(GateKindDecomposer):
 
     def _normalize(self, theta: float) -> float:
         t = theta % self._width
-        t = t - self._width if t > self._upper else t
+        # For boundary, take lower limit.
+        t = t - self._width if not t < self._upper else t
         return t
 
     def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:

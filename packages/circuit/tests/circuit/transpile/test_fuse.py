@@ -118,8 +118,8 @@ class TestNormalizeRotation:
                 gates.RX(0, -np.pi / 2.0),
                 gates.RY(0, -3.0 / 4.0 * np.pi),
                 gates.RZ(0, -np.pi / 2.0),
-                gates.RX(0, np.pi),
-                gates.RY(0, np.pi),
+                gates.RX(0, -np.pi),
+                gates.RY(0, -np.pi),
                 gates.RZ(0, 0.0),
             ]
         )
