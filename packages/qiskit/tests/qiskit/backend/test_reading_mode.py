@@ -10,79 +10,61 @@
 
 import json
 
+from qiskit import transpile
 from qiskit_aer import AerSimulator
 
-from quri_parts.qiskit.backend import QiskitSavedDataSamplingBackend
 from quri_parts.circuit import QuantumCircuit
 from quri_parts.core.sampling import create_sampler_from_sampling_backend
+from quri_parts.qiskit.backend import QiskitSavedDataSamplingBackend
+from quri_parts.qiskit.circuit import convert_circuit
 
+backend = AerSimulator()
 
-circuit1_qasm_str = """
-OPENQASM 2.0;
-include "qelib1.inc";
-qreg q[4];
-creg meas[4];
-u2(0,-2.9115927) q[0];
-u3(0.58079633,0,-pi) q[1];
-u2(0,-2.2715927) q[2];
-u2(-0.16,-pi) q[3];
-barrier q[0],q[1],q[2],q[3];
-measure q[0] -> meas[0];
-measure q[1] -> meas[1];
-measure q[2] -> meas[2];
-measure q[3] -> meas[3];
-"""
+qp_circuit1 = QuantumCircuit(4)
+qp_circuit1.add_H_gate(0)
+qp_circuit1.add_H_gate(1)
+qp_circuit1.add_H_gate(2)
+qp_circuit1.add_H_gate(3)
+qp_circuit1.add_RX_gate(0, 0.23)
+qp_circuit1.add_RY_gate(1, -0.99)
+qp_circuit1.add_RX_gate(2, 0.87)
+qp_circuit1.add_RZ_gate(3, -0.16)
 
-circuit2_qasm_str = """
-OPENQASM 2.0;
-include "qelib1.inc";
-qreg q[4];
-creg meas[4];
-u2(0,0.47788651) q[0];
-u3(1.1017311,-pi,0) q[1];
-u2(0,0.46024395) q[2];
-u2(-1.2301973,-pi) q[3];
-barrier q[0],q[1],q[2],q[3];
-measure q[0] -> meas[0];
-measure q[1] -> meas[1];
-measure q[2] -> meas[2];
-measure q[3] -> meas[3];
-"""
+qp_circuit2 = QuantumCircuit(4)
+qp_circuit2.add_H_gate(0)
+qp_circuit2.add_H_gate(1)
+qp_circuit2.add_H_gate(2)
+qp_circuit2.add_H_gate(3)
+qp_circuit2.add_RX_gate(0, 123)
+qp_circuit2.add_RY_gate(1, 456)
+qp_circuit2.add_RX_gate(2, 789)
+qp_circuit2.add_RZ_gate(3, -1283)
 
+qp_circuit3 = QuantumCircuit(4)
+qp_circuit3.add_H_gate(0)
+qp_circuit3.add_H_gate(1)
+qp_circuit3.add_H_gate(2)
+qp_circuit3.add_H_gate(3)
+qp_circuit3.add_RX_gate(0, 0.998)
+qp_circuit3.add_RY_gate(1, 1.928)
+qp_circuit3.add_RX_gate(2, -10.39)
+qp_circuit3.add_RZ_gate(3, -0.1023)
 
-circuit3_qasm_str = """
-OPENQASM 2.0;
-include "qelib1.inc";
-qreg q[4];
-creg meas[4];
-u2(0,-2.1435927) q[0];
-u3(2.784389,-pi,0) q[1];
-u2(0,-0.96522204) q[2];
-u2(-0.1023,-pi) q[3];
-barrier q[0],q[1],q[2],q[3];
-measure q[0] -> meas[0];
-measure q[1] -> meas[1];
-measure q[2] -> meas[2];
-measure q[3] -> meas[3];
-"""
+circuit1_qasm_str = transpile(
+    convert_circuit(qp_circuit1).measure_all(inplace=False), backend
+).qasm()
+
+circuit2_qasm_str = transpile(
+    convert_circuit(qp_circuit2).measure_all(inplace=False), backend
+).qasm()
+
+circuit3_qasm_str = transpile(
+    convert_circuit(qp_circuit3).measure_all(inplace=False), backend
+).qasm()
 
 saved_data_list = [
     {
-        "circuit_str": """
-     OPENQASM 2.0;
-     include "qelib1.inc";
-     qreg q[4];
-     creg meas[4];
-     u2(0,-2.9115927) q[0];
-     u3(0.58079633,0,-pi) q[1];
-     u2(0,-2.2715927) q[2];
-     u2(-0.16,-pi) q[3];
-     barrier q[0],q[1],q[2],q[3];
-     measure q[0] -> meas[0];
-     measure q[1] -> meas[1];
-     measure q[2] -> meas[2];
-     measure q[3] -> meas[3];
-     """,
+        "circuit_str": circuit1_qasm_str,
         "n_shots": 1000000,
         "saved_result": {
             "raw_data": {
@@ -106,21 +88,7 @@ saved_data_list = [
         },
     },
     {
-        "circuit_str": """
-    OPENQASM 2.0;
-    include "qelib1.inc";
-    qreg q[4];
-    creg meas[4];
-    u2(0,-2.9115927) q[0];
-    u3(0.58079633,0,-pi) q[1];
-    u2(0,-2.2715927) q[2];
-    u2(-0.16,-pi) q[3];
-    barrier q[0],q[1],q[2],q[3];
-    measure q[0] -> meas[0];
-    measure q[1] -> meas[1];
-    measure q[2] -> meas[2];
-    measure q[3] -> meas[3];
-    """,
+        "circuit_str": circuit1_qasm_str,
         "n_shots": 1000000,
         "saved_result": {
             "raw_data": {
@@ -144,21 +112,7 @@ saved_data_list = [
         },
     },
     {
-        "circuit_str": """
-    OPENQASM 2.0;
-    include "qelib1.inc";
-    qreg q[4];
-    creg meas[4];
-    u2(0,-2.9115927) q[0];
-    u3(0.58079633,0,-pi) q[1];
-    u2(0,-2.2715927) q[2];
-    u2(-0.16,-pi) q[3];
-    barrier q[0],q[1],q[2],q[3];
-    measure q[0] -> meas[0];
-    measure q[1] -> meas[1];
-    measure q[2] -> meas[2];
-    measure q[3] -> meas[3];
-    """,
+        "circuit_str": circuit1_qasm_str,
         "n_shots": 1000000,
         "saved_result": {
             "raw_data": {
@@ -182,40 +136,12 @@ saved_data_list = [
         },
     },
     {
-        "circuit_str": """
-    OPENQASM 2.0;
-    include "qelib1.inc";
-    qreg q[4];
-    creg meas[4];
-    u2(0,-2.9115927) q[0];
-    u3(0.58079633,0,-pi) q[1];
-    u2(0,-2.2715927) q[2];
-    u2(-0.16,-pi) q[3];
-    barrier q[0],q[1],q[2],q[3];
-    measure q[0] -> meas[0];
-    measure q[1] -> meas[1];
-    measure q[2] -> meas[2];
-    measure q[3] -> meas[3];
-    """,
+        "circuit_str": circuit1_qasm_str,
         "n_shots": 1,
         "saved_result": {"raw_data": {"0001": 1}},
     },
     {
-        "circuit_str": """
-   OPENQASM 2.0;
-   include "qelib1.inc";
-   qreg q[4];
-   creg meas[4];
-   u2(0,0.47788651) q[0];
-   u3(1.1017311,-pi,0) q[1];
-   u2(0,0.46024395) q[2];
-   u2(-1.2301973,-pi) q[3];
-   barrier q[0],q[1],q[2],q[3];
-   measure q[0] -> meas[0];
-   measure q[1] -> meas[1];
-   measure q[2] -> meas[2];
-   measure q[3] -> meas[3];
-   """,
+        "circuit_str": circuit2_qasm_str,
         "n_shots": 1000000,
         "saved_result": {
             "raw_data": {
@@ -239,21 +165,7 @@ saved_data_list = [
         },
     },
     {
-        "circuit_str": """
-   OPENQASM 2.0;
-   include "qelib1.inc";
-   qreg q[4];
-   creg meas[4];
-   u2(0,0.47788651) q[0];
-   u3(1.1017311,-pi,0) q[1];
-   u2(0,0.46024395) q[2];
-   u2(-1.2301973,-pi) q[3];
-   barrier q[0],q[1],q[2],q[3];
-   measure q[0] -> meas[0];
-   measure q[1] -> meas[1];
-   measure q[2] -> meas[2];
-   measure q[3] -> meas[3];
-   """,
+        "circuit_str": circuit2_qasm_str,
         "n_shots": 1000000,
         "saved_result": {
             "raw_data": {
@@ -277,21 +189,7 @@ saved_data_list = [
         },
     },
     {
-        "circuit_str": """
-    OPENQASM 2.0;
-    include "qelib1.inc";
-    qreg q[4];
-    creg meas[4];
-    u2(0,0.47788651) q[0];
-    u3(1.1017311,-pi,0) q[1];
-    u2(0,0.46024395) q[2];
-    u2(-1.2301973,-pi) q[3];
-    barrier q[0],q[1],q[2],q[3];
-    measure q[0] -> meas[0];
-    measure q[1] -> meas[1];
-    measure q[2] -> meas[2];
-    measure q[3] -> meas[3];
-    """,
+        "circuit_str": circuit2_qasm_str,
         "n_shots": 1000000,
         "saved_result": {
             "raw_data": {
@@ -315,21 +213,7 @@ saved_data_list = [
         },
     },
     {
-        "circuit_str": """
-    OPENQASM 2.0;
-    include "qelib1.inc";
-    qreg q[4];
-    creg meas[4];
-    u2(0,0.47788651) q[0];
-    u3(1.1017311,-pi,0) q[1];
-    u2(0,0.46024395) q[2];
-    u2(-1.2301973,-pi) q[3];
-    barrier q[0],q[1],q[2],q[3];
-    measure q[0] -> meas[0];
-    measure q[1] -> meas[1];
-    measure q[2] -> meas[2];
-    measure q[3] -> meas[3];
-    """,
+        "circuit_str": circuit2_qasm_str,
         "n_shots": 1000000,
         "saved_result": {
             "raw_data": {
@@ -353,40 +237,12 @@ saved_data_list = [
         },
     },
     {
-        "circuit_str": """
-    OPENQASM 2.0;
-    include "qelib1.inc";
-    qreg q[4];
-    creg meas[4];
-    u2(0,0.47788651) q[0];
-    u3(1.1017311,-pi,0) q[1];
-    u2(0,0.46024395) q[2];
-    u2(-1.2301973,-pi) q[3];
-    barrier q[0],q[1],q[2],q[3];
-    measure q[0] -> meas[0];
-    measure q[1] -> meas[1];
-    measure q[2] -> meas[2];
-    measure q[3] -> meas[3];
-    """,
+        "circuit_str": circuit2_qasm_str,
         "n_shots": 1,
         "saved_result": {"raw_data": {"0000": 1}},
     },
     {
-        "circuit_str": """
-    OPENQASM 2.0;
-    include "qelib1.inc";
-    qreg q[4];
-    creg meas[4];
-    u2(0,-2.1435927) q[0];
-    u3(2.784389,-pi,0) q[1];
-    u2(0,-0.96522204) q[2];
-    u2(-0.1023,-pi) q[3];
-    barrier q[0],q[1],q[2],q[3];
-    measure q[0] -> meas[0];
-    measure q[1] -> meas[1];
-    measure q[2] -> meas[2];
-    measure q[3] -> meas[3];
-    """,
+        "circuit_str": circuit3_qasm_str,
         "n_shots": 4000,
         "saved_result": {
             "raw_data": {
@@ -410,21 +266,7 @@ saved_data_list = [
         },
     },
     {
-        "circuit_str": """
-    OPENQASM 2.0;
-    include "qelib1.inc";
-    qreg q[4];
-    creg meas[4];
-    u2(0,-2.9115927) q[0];
-    u3(0.58079633,0,-pi) q[1];
-    u2(0,-2.2715927) q[2];
-    u2(-0.16,-pi) q[3];
-    barrier q[0],q[1],q[2],q[3];
-    measure q[0] -> meas[0];
-    measure q[1] -> meas[1];
-    measure q[2] -> meas[2];
-    measure q[3] -> meas[3];
-    """,
+        "circuit_str": circuit1_qasm_str,
         "n_shots": 200000,
         "saved_result": {
             "raw_data": {
@@ -448,21 +290,7 @@ saved_data_list = [
         },
     },
     {
-        "circuit_str": """
-    OPENQASM 2.0;
-    include "qelib1.inc";
-    qreg q[4];
-    creg meas[4];
-    u2(0,0.47788651) q[0];
-    u3(1.1017311,-pi,0) q[1];
-    u2(0,0.46024395) q[2];
-    u2(-1.2301973,-pi) q[3];
-    barrier q[0],q[1],q[2],q[3];
-    measure q[0] -> meas[0];
-    measure q[1] -> meas[1];
-    measure q[2] -> meas[2];
-    measure q[3] -> meas[3];
-    """,
+        "circuit_str": circuit2_qasm_str,
         "n_shots": 8000,
         "saved_result": {
             "raw_data": {
@@ -486,21 +314,7 @@ saved_data_list = [
         },
     },
     {
-        "circuit_str": """
-    OPENQASM 2.0;
-    include "qelib1.inc";
-    qreg q[4];
-    creg meas[4];
-    u2(0,-2.1435927) q[0];
-    u3(2.784389,-pi,0) q[1];
-    u2(0,-0.96522204) q[2];
-    u2(-0.1023,-pi) q[3];
-    barrier q[0],q[1],q[2],q[3];
-    measure q[0] -> meas[0];
-    measure q[1] -> meas[1];
-    measure q[2] -> meas[2];
-    measure q[3] -> meas[3];
-    """,
+        "circuit_str": circuit3_qasm_str,
         "n_shots": 1000000,
         "saved_result": {
             "raw_data": {
@@ -524,21 +338,7 @@ saved_data_list = [
         },
     },
     {
-        "circuit_str": """
-    OPENQASM 2.0;
-    include "qelib1.inc";
-    qreg q[4];
-    creg meas[4];
-    u2(0,-2.1435927) q[0];
-    u3(2.784389,-pi,0) q[1];
-    u2(0,-0.96522204) q[2];
-    u2(-0.1023,-pi) q[3];
-    barrier q[0],q[1],q[2],q[3];
-    measure q[0] -> meas[0];
-    measure q[1] -> meas[1];
-    measure q[2] -> meas[2];
-    measure q[3] -> meas[3];
-    """,
+        "circuit_str": circuit3_qasm_str,
         "n_shots": 500000,
         "saved_result": {
             "raw_data": {
@@ -567,51 +367,222 @@ backend = AerSimulator()
 saved_data_str = json.dumps(saved_data_list)
 
 
+saved_data_backend = QiskitSavedDataSamplingBackend(
+    backend=backend, saved_data=saved_data_str
+)
+sampler = create_sampler_from_sampling_backend(saved_data_backend)
+
+
 class TestQiskitSavedDataSamplingBackend:
-    saved_data_backend = QiskitSavedDataSamplingBackend(
-        backend=backend, saved_data=saved_data_str
-    )
-    qp_circuit1 = QuantumCircuit(4)
-    qp_circuit1.add_H_gate(0)
-    qp_circuit1.add_H_gate(1)
-    qp_circuit1.add_H_gate(2)
-    qp_circuit1.add_H_gate(3)
-    qp_circuit1.add_RX_gate(0, 0.23)
-    qp_circuit1.add_RY_gate(1, -0.99)
-    qp_circuit1.add_RX_gate(2, 0.87)
-    qp_circuit1.add_RZ_gate(3, -0.16)
-
-
-    qp_circuit2 = QuantumCircuit(4)
-    qp_circuit2.add_H_gate(0)
-    qp_circuit2.add_H_gate(1)
-    qp_circuit2.add_H_gate(2)
-    qp_circuit2.add_H_gate(3)
-    qp_circuit2.add_RX_gate(0, 123)
-    qp_circuit2.add_RY_gate(1, 456)
-    qp_circuit2.add_RX_gate(2, 789)
-    qp_circuit2.add_RZ_gate(3, -1283)
-
-
-    qp_circuit3 = QuantumCircuit(4)
-    qp_circuit3.add_H_gate(0)
-    qp_circuit3.add_H_gate(1)
-    qp_circuit3.add_H_gate(2)
-    qp_circuit3.add_H_gate(3)
-    qp_circuit3.add_RX_gate(0, 0.998)
-    qp_circuit3.add_RY_gate(1, 1.928)
-    qp_circuit3.add_RX_gate(2, -10.39)
-    qp_circuit3.add_RZ_gate(3, -0.1023)
-
     n_shots_1 = int(2e6)
     n_shots_2 = int(4e6)
     n_shots_3 = int(4000)
     n_shots_4 = int(1.2e6)
     n_shots_5 = int(8000)
     n_shots_6 = int(1.5e6)
-    
-    sampler = create_sampler_from_sampling_backend()
-    
+
+    def test_initial_replay_memory(self) -> None:
+        assert saved_data_backend._replay_memory == {
+            (circuit1_qasm_str, 1000000): 0,
+            (circuit1_qasm_str, 1): 0,
+            (circuit2_qasm_str, 1000000): 0,
+            (circuit2_qasm_str, 1): 0,
+            (circuit3_qasm_str, 4000): 0,
+            (circuit1_qasm_str, 200000): 0,
+            (circuit2_qasm_str, 8000): 0,
+            (circuit3_qasm_str, 1000000): 0,
+            (circuit3_qasm_str, 500000): 0,
+        }
+
     def test_run_1(self) -> None:
-        self.sampler(self.qp_circuit1, self.n_shots_1)
-        self.saved_data_backend._replay_memory
+        result_1 = sampler(qp_circuit1, self.n_shots_1)
+        assert result_1 == {
+            2: 20628,
+            14: 20602,
+            10: 20377,
+            11: 20695,
+            5: 229943,
+            9: 229427,
+            8: 228891,
+            4: 229248,
+            12: 229565,
+            7: 20593,
+            6: 20429,
+            3: 20351,
+            1: 229439,
+            15: 20540,
+            13: 229276,
+            0: 229997,
+        }
+        assert saved_data_backend._replay_memory == {
+            (circuit1_qasm_str, 1000000): 2,
+            (circuit1_qasm_str, 1): 1,
+            (circuit2_qasm_str, 1000000): 0,
+            (circuit2_qasm_str, 1): 0,
+            (circuit3_qasm_str, 4000): 0,
+            (circuit1_qasm_str, 200000): 0,
+            (circuit2_qasm_str, 8000): 0,
+            (circuit3_qasm_str, 1000000): 0,
+            (circuit3_qasm_str, 500000): 0,
+        }
+
+    def test_run_2(self) -> None:
+        result_2 = sampler(qp_circuit2, self.n_shots_2)
+        assert result_2 == {
+            11: 137170,
+            14: 136785,
+            6: 137671,
+            12: 362385,
+            4: 363799,
+            3: 137239,
+            1: 362436,
+            9: 362543,
+            8: 362465,
+            13: 362902,
+            15: 136908,
+            7: 136936,
+            5: 363818,
+            2: 137560,
+            0: 362534,
+            10: 136850,
+        }
+        assert saved_data_backend._replay_memory == {
+            (circuit1_qasm_str, 1000000): 2,
+            (circuit1_qasm_str, 1): 1,
+            (circuit2_qasm_str, 1000000): 4,
+            (circuit2_qasm_str, 1): 1,
+            (circuit3_qasm_str, 4000): 0,
+            (circuit1_qasm_str, 200000): 0,
+            (circuit2_qasm_str, 8000): 0,
+            (circuit3_qasm_str, 1000000): 0,
+            (circuit3_qasm_str, 500000): 0,
+        }
+
+    def test_run_3(self) -> None:
+        result_3 = sampler(qp_circuit3, self.n_shots_3)
+        assert result_3 == {
+            5: 15,
+            0: 16,
+            9: 10,
+            10: 497,
+            8: 13,
+            14: 508,
+            11: 464,
+            2: 466,
+            7: 494,
+            13: 16,
+            15: 492,
+            3: 487,
+            1: 17,
+            12: 16,
+            4: 14,
+            6: 475,
+        }
+
+        assert saved_data_backend._replay_memory == {
+            (circuit1_qasm_str, 1000000): 2,
+            (circuit1_qasm_str, 1): 1,
+            (circuit2_qasm_str, 1000000): 4,
+            (circuit2_qasm_str, 1): 1,
+            (circuit3_qasm_str, 4000): 1,
+            (circuit1_qasm_str, 200000): 0,
+            (circuit2_qasm_str, 8000): 0,
+            (circuit3_qasm_str, 1000000): 0,
+            (circuit3_qasm_str, 500000): 0,
+        }
+
+    def test_run_4(self) -> None:
+        result_4 = sampler(qp_circuit1, self.n_shots_4)
+        assert result_4 == {
+            2: 12482,
+            6: 12202,
+            10: 12317,
+            11: 12327,
+            5: 137363,
+            0: 137452,
+            3: 12271,
+            1: 137511,
+            12: 137217,
+            4: 137669,
+            9: 138132,
+            14: 12433,
+            8: 137505,
+            13: 138600,
+            15: 12246,
+            7: 12273,
+        }
+        assert saved_data_backend._replay_memory == {
+            (circuit1_qasm_str, 1000000): 3,
+            (circuit1_qasm_str, 1): 1,
+            (circuit2_qasm_str, 1000000): 4,
+            (circuit2_qasm_str, 1): 1,
+            (circuit3_qasm_str, 4000): 1,
+            (circuit1_qasm_str, 200000): 1,
+            (circuit2_qasm_str, 8000): 0,
+            (circuit3_qasm_str, 1000000): 0,
+            (circuit3_qasm_str, 500000): 0,
+        }
+
+    def test_run_5(self) -> None:
+        result_5 = sampler(qp_circuit2, self.n_shots_5)
+        assert result_5 == {
+            11: 259,
+            10: 263,
+            14: 271,
+            7: 264,
+            15: 264,
+            13: 758,
+            6: 281,
+            3: 287,
+            1: 768,
+            12: 726,
+            4: 688,
+            9: 702,
+            8: 712,
+            0: 741,
+            2: 272,
+            5: 744,
+        }
+        assert saved_data_backend._replay_memory == {
+            (circuit1_qasm_str, 1000000): 3,
+            (circuit1_qasm_str, 1): 1,
+            (circuit2_qasm_str, 1000000): 4,
+            (circuit2_qasm_str, 1): 1,
+            (circuit3_qasm_str, 4000): 1,
+            (circuit1_qasm_str, 200000): 1,
+            (circuit2_qasm_str, 8000): 1,
+            (circuit3_qasm_str, 1000000): 0,
+            (circuit3_qasm_str, 500000): 0,
+        }
+
+    def test_run_6(self) -> None:
+        result_6 = sampler(qp_circuit3, self.n_shots_6)
+        assert result_6 == {
+            8: 5844,
+            5: 6009,
+            0: 5877,
+            9: 5967,
+            15: 181393,
+            13: 5947,
+            10: 181413,
+            3: 181372,
+            1: 5964,
+            6: 181502,
+            4: 5974,
+            12: 6083,
+            14: 181453,
+            2: 182627,
+            11: 181011,
+            7: 181564,
+        }
+        assert saved_data_backend._replay_memory == {
+            (circuit1_qasm_str, 1000000): 3,
+            (circuit1_qasm_str, 1): 1,
+            (circuit2_qasm_str, 1000000): 4,
+            (circuit2_qasm_str, 1): 1,
+            (circuit3_qasm_str, 4000): 1,
+            (circuit1_qasm_str, 200000): 1,
+            (circuit2_qasm_str, 8000): 1,
+            (circuit3_qasm_str, 1000000): 1,
+            (circuit3_qasm_str, 500000): 1,
+        }
