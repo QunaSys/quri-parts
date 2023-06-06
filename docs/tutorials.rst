@@ -12,3 +12,4 @@ Tutorials
     tutorials/sampling_real
     tutorials/noise_error
     tutorials/error_mitigation
+    tutorials/chemistry
