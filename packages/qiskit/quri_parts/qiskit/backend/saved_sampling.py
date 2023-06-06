@@ -20,12 +20,12 @@ from qiskit.providers.backend import Backend
 from typing_extensions import TypeAlias
 
 from quri_parts.backend import (
+    CompositeSamplingJob,
     SamplingBackend,
     SamplingCounts,
     SamplingJob,
     SamplingResult,
 )
-from quri_parts.backend.qubit_mapping import BackendQubitMapping
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.qiskit.circuit import QiskitCircuitConverter, convert_circuit
@@ -33,8 +33,7 @@ from quri_parts.qiskit.circuit import QiskitCircuitConverter, convert_circuit
 from .utils import (
     distribute_backend_shots,
     get_backend_min_max_shot,
-    get_circuit_transpiler,
-    job_processor,
+    get_qubit_mapper_and_circuit_transpiler,
 )
 
 SavedDataType: TypeAlias = dict[tuple[str, int], list["QiskitSavedDataSamplingJob"]]
@@ -83,13 +82,10 @@ class QiskitSavedDataSamplingBackend(SamplingBackend):
         # circuit related
         self._circuit_converter = circuit_converter
 
-        self._qubit_mapping = None
-        if qubit_mapping is not None:
-            self._qubit_mapping = BackendQubitMapping(qubit_mapping)
-
-        self._circuit_transpiler = get_circuit_transpiler(
-            circuit_transpiler, self._qubit_mapping
-        )
+        (
+            self._qubit_mapping,
+            self._circuit_transpiler,
+        ) = get_qubit_mapper_and_circuit_transpiler(qubit_mapping, circuit_transpiler)
 
         # shots related
         self._enable_shots_roundup = enable_shots_roundup
@@ -128,7 +124,8 @@ class QiskitSavedDataSamplingBackend(SamplingBackend):
             else:
                 raise KeyError("This experiment is not in the saved data.")
 
-        return job_processor(jobs=jobs, qubit_mapping=self._qubit_mapping)
+        jobs = [self._qubit_mapping(job) for job in jobs]
+        return jobs[0] if len(jobs) == 0 else CompositeSamplingJob(jobs)
 
     def _load_data(self, json_str: str) -> SavedDataType:
         saved_data = defaultdict(list)

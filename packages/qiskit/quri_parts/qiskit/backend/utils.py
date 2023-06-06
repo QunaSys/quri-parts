@@ -8,11 +8,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Sequence
+from typing import Callable, Mapping, Optional, Sequence
 
 from qiskit.providers.backend import Backend, BackendV1, BackendV2
 
-from quri_parts.backend import BackendError, CompositeSamplingJob, SamplingJob
+from quri_parts.backend import BackendError, SamplingJob
 from quri_parts.backend.qubit_mapping import BackendQubitMapping, QubitMappedSamplingJob
 from quri_parts.circuit.transpile import CircuitTranspiler, SequentialTranspiler
 from quri_parts.qiskit.circuit import QiskitTranspiler
@@ -55,26 +55,26 @@ def get_backend_min_max_shot(backend: Backend) -> tuple[int, Optional[int]]:
     return 1, None
 
 
-def get_circuit_transpiler(
+def get_qubit_mapper_and_circuit_transpiler(
+    qubit_mapping: Optional[Mapping[int, int]] = None,
     circuit_transpiler: Optional[CircuitTranspiler] = None,
-    qubit_mapping: Optional[BackendQubitMapping] = None,
-) -> CircuitTranspiler:
+) -> tuple[Callable[[SamplingJob], SamplingJob], CircuitTranspiler]:
     if circuit_transpiler is None:
         circuit_transpiler = QiskitTranspiler()
+
     if qubit_mapping:
+        mapper = BackendQubitMapping(qubit_mapping)
         circuit_transpiler = SequentialTranspiler(
-            [circuit_transpiler, qubit_mapping.circuit_transpiler]
+            [circuit_transpiler, mapper.circuit_transpiler]
         )
-    return circuit_transpiler
-
-
-def job_processor(
-    jobs: Sequence[SamplingJob],
-    qubit_mapping: Optional[BackendQubitMapping] = None,
-) -> SamplingJob:
-    if qubit_mapping is not None:
-        jobs = [QubitMappedSamplingJob(job, qubit_mapping) for job in jobs]
-    if len(jobs) == 1:
-        return jobs[0]
+        composite_job_qubit_mapper: Callable[
+            [SamplingJob], SamplingJob
+        ] = lambda job: QubitMappedSamplingJob(
+            job, mapper
+        )  # noqa: E731
+        return composite_job_qubit_mapper, circuit_transpiler
     else:
-        return CompositeSamplingJob(jobs)
+        simple_job_qubit_mapper: Callable[
+            [SamplingJob], SamplingJob
+        ] = lambda job: job  # noqa: E731
+        return simple_job_qubit_mapper, circuit_transpiler

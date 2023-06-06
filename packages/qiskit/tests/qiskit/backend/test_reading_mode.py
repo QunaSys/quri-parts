@@ -18,6 +18,7 @@ from quri_parts.core.sampling import create_sampler_from_sampling_backend
 from quri_parts.qiskit.backend import QiskitSavedDataSamplingBackend
 from quri_parts.qiskit.circuit import convert_circuit
 
+# Build json string
 backend = AerSimulator()
 
 qp_circuit1 = QuantumCircuit(4)
@@ -363,10 +364,9 @@ saved_data_list = [
     },
 ]
 
-backend = AerSimulator()
 saved_data_str = json.dumps(saved_data_list)
 
-
+# Set up sampling backend and sampler.
 saved_data_backend = QiskitSavedDataSamplingBackend(
     backend=backend, saved_data=saved_data_str
 )

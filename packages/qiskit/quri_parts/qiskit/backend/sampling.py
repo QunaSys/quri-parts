@@ -20,12 +20,12 @@ from typing_extensions import TypeAlias
 
 from quri_parts.backend import (
     BackendError,
+    CompositeSamplingJob,
     SamplingBackend,
     SamplingCounts,
     SamplingJob,
     SamplingResult,
 )
-from quri_parts.backend.qubit_mapping import BackendQubitMapping
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.qiskit.circuit import QiskitCircuitConverter, convert_circuit
@@ -38,8 +38,7 @@ from .saved_sampling import (
 from .utils import (
     distribute_backend_shots,
     get_backend_min_max_shot,
-    get_circuit_transpiler,
-    job_processor,
+    get_qubit_mapper_and_circuit_transpiler,
 )
 
 
@@ -117,13 +116,10 @@ class QiskitSamplingBackend(SamplingBackend):
         # circuit related
         self._circuit_converter = circuit_converter
 
-        self._qubit_mapping = None
-        if qubit_mapping is not None:
-            self._qubit_mapping = BackendQubitMapping(qubit_mapping)
-
-        self._circuit_transpiler = get_circuit_transpiler(
-            circuit_transpiler, self._qubit_mapping
-        )
+        (
+            self._qubit_mapping,
+            self._circuit_transpiler,
+        ) = get_qubit_mapper_and_circuit_transpiler(qubit_mapping, circuit_transpiler)
 
         # shots related
         self._enable_shots_roundup = enable_shots_roundup
@@ -175,7 +171,8 @@ class QiskitSamplingBackend(SamplingBackend):
                         pass
                 raise BackendError("Qiskit Device.run failed.") from e
 
-        return job_processor(jobs=jobs, qubit_mapping=self._qubit_mapping)
+        jobs = [self._qubit_mapping(job) for job in jobs]
+        return jobs[0] if len(jobs) == 0 else CompositeSamplingJob(jobs)
 
     @property
     def jobs(self) -> Sequence[QiskitSavedDataSamplingJob]:

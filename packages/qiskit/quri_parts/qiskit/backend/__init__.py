@@ -18,8 +18,7 @@ from .saved_sampling import (
 from .utils import (
     distribute_backend_shots,
     get_backend_min_max_shot,
-    get_circuit_transpiler,
-    job_processor,
+    get_qubit_mapper_and_circuit_transpiler,
 )
 
 __all__ = [
@@ -30,8 +29,7 @@ __all__ = [
     "QiskitSavedDataSamplingJob",
     "QiskitSavedDataSamplingResult",
     "QiskitSavedDataSamplingBackend",
-    "get_circuit_transpiler",
+    "get_qubit_mapper_and_circuit_transpiler",
     "get_backend_min_max_shot",
     "distribute_backend_shots",
-    "job_processor",
 ]
