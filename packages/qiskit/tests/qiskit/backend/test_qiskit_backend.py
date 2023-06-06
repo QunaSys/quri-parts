@@ -236,9 +236,7 @@ class TestSavingMode:
         expected_measurement_counter: Counter[int] = Counter()
         for saved_job_seq in self.backend._saved_data.values():
             for job in saved_job_seq:
-                expected_measurement_counter += cast(
-                    Counter[int], job.result().counts
-                )
+                expected_measurement_counter += cast(Counter[int], job.result().counts)
 
         assert expected_measurement_counter == measurement_counter
 
