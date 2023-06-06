@@ -8,16 +8,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+import json
+from collections import Counter
+from typing import Optional, cast
 
 import pytest
 import qiskit
+from pydantic.json import pydantic_encoder
 from qiskit_aer import AerSimulator
 
 from quri_parts.backend import CompositeSamplingJob
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
-from quri_parts.qiskit.backend import QiskitSamplingBackend
+from quri_parts.qiskit.backend import (
+    QiskitSamplingBackend,
+    QiskitSavedDataSamplingJob,
+    QiskitSavedDataSamplingResult,
+)
+from quri_parts.qiskit.circuit import convert_circuit
 
 
 def circuit_converter(
@@ -197,45 +205,86 @@ class TestQiskitSamplingBackend:
         assert sum(counts.values()) == 1000
 
 
-# class TestSavingMode:
-#     device = AerSimulator()
-#     backend = QiskitSamplingBackend(device, save_data_while_sampling=True)
+class TestSavingMode:
+    device = AerSimulator()
+    backend = QiskitSamplingBackend(device, save_data_while_sampling=True)
 
-#     qp_circuit = QuantumCircuit(4)
-#     qp_circuit.add_H_gate(0)
-#     qp_circuit.add_H_gate(1)
-#     qp_circuit.add_H_gate(2)
-#     qp_circuit.add_H_gate(3)
-#     qp_circuit.add_RX_gate(0, 0.23)
-#     qp_circuit.add_RY_gate(1, -0.99)
-#     qp_circuit.add_RX_gate(2, 0.87)
-#     qp_circuit.add_RZ_gate(3, -0.16)
+    qp_circuit = QuantumCircuit(4)
+    qp_circuit.add_H_gate(0)
+    qp_circuit.add_H_gate(1)
+    qp_circuit.add_H_gate(2)
+    qp_circuit.add_H_gate(3)
+    qp_circuit.add_RX_gate(0, 0.23)
+    qp_circuit.add_RY_gate(1, -0.99)
+    qp_circuit.add_RX_gate(2, 0.87)
+    qp_circuit.add_RZ_gate(3, -0.16)
 
-#     qiskit_transpiled_circuit = qiskit.transpile(
-#         convert_circuit(qp_circuit).measure_all(False), device
-#     )
-#     circuit_qasm = qiskit_transpiled_circuit.qasm()
+    qiskit_transpiled_circuit = qiskit.transpile(
+        convert_circuit(qp_circuit).measure_all(False), device
+    )
+    circuit_qasm = qiskit_transpiled_circuit.qasm()
 
-#     def test_saving_mode(self) -> None:
-#         sampling_result = self.backend.sample(self.qp_circuit, int(2e6))
-#         measurement_counter = sampling_result.result().counts
+    def test_saving_mode(self) -> None:
+        sampling_result = self.backend.sample(self.qp_circuit, int(2e6))
+        measurement_counter = sampling_result.result().counts
 
-#         assert set(self.backend._saved_data.keys()) == {
-#             (self.circuit_qasm, int(1e6)),
-#             (self.circuit_qasm, 1),
-#         }
+        assert set(self.backend._saved_data.keys()) == {
+            (self.circuit_qasm, int(1e6)),
+            (self.circuit_qasm, 1),
+        }
 
-#         expected_measurement_counter: Counter[int] = Counter()
-#         for saved_job_seq in self.backend._saved_data.values():
-#             for job in saved_job_seq:
-#                 expected_measurement_counter += cast(Counter[int], job.result().counts)  # noqa: E501
+        expected_measurement_counter: Counter[int] = Counter()
+        for saved_job_seq in self.backend._saved_data.values():
+            for job in saved_job_seq:
+                expected_measurement_counter += cast(
+                    Counter[int], job.result().counts
+                )
 
-#         assert expected_measurement_counter == measurement_counter
+        assert expected_measurement_counter == measurement_counter
 
-#     def test_jobs_property(self) -> None:
-#         expected_jobs_property = []
-#         for saved_job_seq in self.backend._saved_data.values():
-#             for job in saved_job_seq:
-#                 expected_jobs_property.append(job)
+    def test_jobs_and_jobs_json(self) -> None:
+        raw_data_0 = (
+            self.backend._saved_data[(self.circuit_qasm, int(1e6))][0]
+            ._qiskit_job.result()
+            .get_counts()
+        )
+        raw_data_1 = (
+            self.backend._saved_data[(self.circuit_qasm, int(1e6))][1]
+            ._qiskit_job.result()
+            .get_counts()
+        )
+        raw_data_2 = (
+            self.backend._saved_data[(self.circuit_qasm, 1)][0]
+            ._qiskit_job.result()
+            .get_counts()
+        )
 
-#         assert self.backend.jobs == expected_jobs_property
+        expected_saved_data_0 = QiskitSavedDataSamplingJob(
+            circuit_str=self.circuit_qasm,
+            n_shots=int(1e6),
+            saved_result=QiskitSavedDataSamplingResult(raw_data=raw_data_0),
+        )
+
+        expected_saved_data_1 = QiskitSavedDataSamplingJob(
+            circuit_str=self.circuit_qasm,
+            n_shots=int(1e6),
+            saved_result=QiskitSavedDataSamplingResult(raw_data=raw_data_1),
+        )
+
+        expected_saved_data_2 = QiskitSavedDataSamplingJob(
+            circuit_str=self.circuit_qasm,
+            n_shots=1,
+            saved_result=QiskitSavedDataSamplingResult(raw_data=raw_data_2),
+        )
+
+        expected_saved_data_seq = [
+            expected_saved_data_0,
+            expected_saved_data_1,
+            expected_saved_data_2,
+        ]
+
+        assert self.backend.jobs == expected_saved_data_seq
+        expected_json_str = json.dumps(
+            expected_saved_data_seq, default=pydantic_encoder
+        )
+        assert self.backend.jobs_json == expected_json_str
