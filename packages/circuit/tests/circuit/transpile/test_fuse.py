@@ -115,11 +115,16 @@ class TestRotation2Named:
         circuit.extend(
             [
                 gates.RZ(0, 0.0),
-                gates.RZ(0, np.pi),
-                gates.RZ(0, -np.pi),
-                gates.RZ(0, np.pi / 2.0),
-                gates.RZ(0, -np.pi / 2.0),
                 gates.RZ(0, np.pi / 4.0),
+                gates.RZ(0, np.pi / 2.0),
+                gates.RZ(0, np.pi * 3.0 / 4.0),
+                gates.RZ(0, np.pi),
+                gates.RZ(0, np.pi * 5.0 / 4.0),
+                gates.RZ(0, np.pi * 3.0 / 2.0),
+                gates.RZ(0, np.pi * 7.0 / 4.0),
+                gates.RZ(0, np.pi * 2.0),
+                gates.RZ(0, -np.pi),
+                gates.RZ(0, -np.pi / 2.0),
                 gates.RZ(0, -np.pi / 4.0),
             ]
         )
@@ -129,11 +134,18 @@ class TestRotation2Named:
         expect.extend(
             [
                 gates.Identity(0),
-                gates.Z(0),
-                gates.Z(0),
-                gates.S(0),
-                gates.Sdag(0),
                 gates.T(0),
+                gates.S(0),
+                gates.S(0),
+                gates.T(0),
+                gates.Z(0),
+                gates.Z(0),
+                gates.T(0),
+                gates.Sdag(0),
+                gates.Tdag(0),
+                gates.Identity(0),
+                gates.Z(0),
+                gates.Sdag(0),
                 gates.Tdag(0),
             ]
         )

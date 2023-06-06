@@ -150,14 +150,18 @@ class RZ2NamedTranspiler(GateKindDecomposer):
 
         if self._is_close(theta, 0.0) or self._is_close(theta, 2.0 * np.pi):
             return [gates.Identity(target)]
-        elif self._is_close(theta, np.pi):
-            return [gates.Z(target)]
-        elif self._is_close(theta, np.pi / 2.0):
-            return [gates.S(target)]
-        elif self._is_close(theta, 3.0 * np.pi / 2.0):
-            return [gates.Sdag(target)]
         elif self._is_close(theta, np.pi / 4.0):
             return [gates.T(target)]
+        elif self._is_close(theta, np.pi / 2.0):
+            return [gates.S(target)]
+        elif self._is_close(theta, 3.0 * np.pi / 4.0):
+            return [gates.S(target), gates.T(target)]
+        elif self._is_close(theta, np.pi):
+            return [gates.Z(target)]
+        elif self._is_close(theta, 5.0 * np.pi / 4.0):
+            return [gates.Z(target), gates.T(target)]
+        elif self._is_close(theta, 3.0 * np.pi / 2.0):
+            return [gates.Sdag(target)]
         elif self._is_close(theta, 7.0 * np.pi / 4.0):
             return [gates.Tdag(target)]
         else:
