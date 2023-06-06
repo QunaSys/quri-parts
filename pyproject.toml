@@ -42,6 +42,7 @@ quri-parts-quantinuum = { version = "*", optional = true }
 quri-parts-ionq = { version = "*", optional = true }
 quri-parts-itensor = { version = "*", optional = true }
 quri-parts-pyscf = { version = "*", optional = true }
+qiskit-ibm-runtime = "0.9.4"
 
 [tool.poetry.extras]
 qulacs = ["quri-parts-qulacs"]

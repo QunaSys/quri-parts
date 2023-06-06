@@ -106,7 +106,7 @@ class TestQiskitPrimitive:
         service = QiskitRuntimeService()
         backend = service.backend("ibmq_qasm_simulator")
 
-        sampler = QiskitRuntimeSamplingBackend(backend=backend)
+        sampler = QiskitRuntimeSamplingBackend(backend=backend, service=service)
 
         circuit = QuantumCircuit(2)
         circuit.add_X_gate(0)
@@ -124,7 +124,7 @@ class TestQiskitPrimitive:
         service = QiskitRuntimeService()
         backend = service.backend("ibmq_qasm_simulator")
 
-        sampler = QiskitRuntimeSamplingBackend(backend=backend)
+        sampler = QiskitRuntimeSamplingBackend(backend=backend, service=service)
 
         # Setting the max shots for the sake of testing
         sampler._max_shots = 5

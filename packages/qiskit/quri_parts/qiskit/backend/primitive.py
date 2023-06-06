@@ -34,6 +34,8 @@ from quri_parts.qiskit.circuit import (
     convert_circuit,
 )
 
+from qiskit_ibm_runtime import QiskitRuntimeService, Session, Estimator, Options
+
 
 class QiskitRuntimeSamplingResult(SamplingResult):
     """Class for the results by Qiskit sampler job."""
@@ -99,6 +101,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             you want to map qubits 0, 1, 2, 3 to backend qubits as 0 → 4, 1 → 2,
             2 → 5, 3 → 0, then the ``qubit_mapping`` should be
             ``{0: 4, 1: 2, 2: 5, 3: 0}``.
+        sampler_options: Options for providing sampler
         run_kwargs: Additional keyword arguments for
             :meth:`qiskit.providers.backend.Backend.run` method.
     """
@@ -111,6 +114,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         circuit_transpiler: Optional[CircuitTranspiler] = None,
         enable_shots_roundup: bool = True,
         qubit_mapping: Optional[Mapping[int, int]] = None,
+        sampler_options: Mapping[str, Any] = {},
         run_kwargs: Mapping[str, Any] = {},
     ):
         self._backend = backend
@@ -136,6 +140,12 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         self._max_shots: Optional[int] = getattr(backend, "max_shots", None)
 
         self._session = None
+
+        options = Options()
+        options.resilience_level = sampler_options.get("resilience_level", 0)
+        options.optimization_level = sampler_options.get("optimization_level", 0)
+
+        self._qiskit_sampler_options = options
 
     def __enter__(self) -> Any:
         """The backend passed during `__init__`, is used to construct a
@@ -184,7 +194,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             if self._session is None:
                 # Create a session if there is no session
                 with Session(service=self._service, backend=self._backend) as session:
-                    runtime_sampler = Sampler(session=session)
+                    runtime_sampler = Sampler(session=session, options=self._qiskit_sampler_options)
                     for s in shot_dist:
                         job = runtime_sampler.run(
                             qiskit_circuit, shots=s, **self._run_kwargs
@@ -192,7 +202,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
                         qiskit_jobs.append(job)
             else:
                 # Do not end the session if it has been already created
-                runtime_sampler = Sampler(session=self._session)
+                runtime_sampler = Sampler(session=self._session, options=self._qiskit_sampler_options)
                 for s in shot_dist:
                     job = runtime_sampler.run(
                         qiskit_circuit, shots=s, **self._run_kwargs
@@ -207,10 +217,6 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
                     pass
             raise BackendError("Qiskit Device run failed.") from e
 
-        # Check if the job is complete.
-        while True:
-            if all([not job.running() for job in qiskit_jobs]):
-                break
         # If any job fails then raise an error.
         if any([job.status() == JobStatus.ERROR for job in qiskit_jobs]):
             raise BackendError("Qiskit Device run failed.")

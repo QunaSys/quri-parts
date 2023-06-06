@@ -45,7 +45,7 @@ class QiskitSamplingResult(SamplingResult):
     @property
     def counts(self) -> SamplingCounts:
         qiskit_counts = self._qiskit_result.get_counts()
-        measurements: MutableMapping[int, int] = {}
+        measurements: MutableMapping[int, float] = {}
         for result in qiskit_counts:
             measurements[int(result, 2)] = qiskit_counts[result]
         return measurements
