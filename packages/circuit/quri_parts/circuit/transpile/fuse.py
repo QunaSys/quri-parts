@@ -98,8 +98,12 @@ class RX2NamedTranspiler(GateKindDecomposer):
 
         if self._is_close(theta, 0.0) or self._is_close(theta, 2.0 * np.pi):
             return [gates.Identity(target)]
+        elif self._is_close(theta, np.pi / 2.0):
+            return [gates.SqrtX(target)]
         elif self._is_close(theta, np.pi):
             return [gates.X(target)]
+        elif self._is_close(theta, np.pi * 3.0 / 2.0):
+            return [gates.SqrtXdag(target)]
         else:
             return [gate]
 
@@ -124,8 +128,12 @@ class RY2NamedTranspiler(GateKindDecomposer):
 
         if self._is_close(theta, 0.0) or self._is_close(theta, 2.0 * np.pi):
             return [gates.Identity(target)]
+        elif self._is_close(theta, np.pi / 2.0):
+            return [gates.SqrtY(target)]
         elif self._is_close(theta, np.pi):
             return [gates.Y(target)]
+        elif self._is_close(theta, np.pi * 3.0 / 2.0):
+            return [gates.SqrtYdag(target)]
         else:
             return [gate]
 

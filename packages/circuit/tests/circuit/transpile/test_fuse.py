@@ -73,7 +73,9 @@ class TestRotation2Named:
         circuit.extend(
             [
                 gates.RX(0, 0.0),
+                gates.RX(0, np.pi / 2.0),
                 gates.RX(0, np.pi),
+                gates.RX(0, np.pi * 3.0 / 2.0),
             ]
         )
         transpiled = RX2NamedTranspiler()(circuit)
@@ -82,7 +84,9 @@ class TestRotation2Named:
         expect.extend(
             [
                 gates.Identity(0),
+                gates.SqrtX(0),
                 gates.X(0),
+                gates.SqrtXdag(0),
             ]
         )
 
@@ -94,7 +98,9 @@ class TestRotation2Named:
         circuit.extend(
             [
                 gates.RY(0, 0.0),
+                gates.RY(0, np.pi / 2.0),
                 gates.RY(0, np.pi),
+                gates.RY(0, np.pi * 3.0 / 2.0),
             ]
         )
         transpiled = RY2NamedTranspiler()(circuit)
@@ -103,7 +109,9 @@ class TestRotation2Named:
         expect.extend(
             [
                 gates.Identity(0),
+                gates.SqrtY(0),
                 gates.Y(0),
+                gates.SqrtYdag(0),
             ]
         )
 
