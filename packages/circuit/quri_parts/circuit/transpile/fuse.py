@@ -79,8 +79,8 @@ class FuseRotationTranspiler(TwoGateFuser):
 
 
 class RX2NamedTranspiler(GateKindDecomposer):
-    """Convert RX gate to Identity or X gate if it is equivalent to Identity or
-    X gate."""
+    """Convert RX gate to Identity or X gate if it is equivalent to Identity,
+    X, SqrtX, or SqrtXdag gate."""
 
     def __init__(self, epsilon: float = 1.0e-9):
         self._epsilon = epsilon
@@ -109,8 +109,8 @@ class RX2NamedTranspiler(GateKindDecomposer):
 
 
 class RY2NamedTranspiler(GateKindDecomposer):
-    """Convert RY gate to Identity or Y gate if it is equivalent to Identity or
-    Y gate."""
+    """Convert RY gate to Identity or Y gate if it is equivalent to Identity,
+    Y, SqrtY, or SqrtYdag gate."""
 
     def __init__(self, epsilon: float = 1.0e-9):
         self._epsilon = epsilon
@@ -140,7 +140,7 @@ class RY2NamedTranspiler(GateKindDecomposer):
 
 class RZ2NamedTranspiler(GateKindDecomposer):
     """Convert RZ gate to Identity, Z, S, Sdag, T, or Tdag gate if it is
-    equivalent to one of these gates."""
+    equivalent to a sequence of these gates."""
 
     def __init__(self, epsilon: float = 1.0e-9):
         self._epsilon = epsilon
