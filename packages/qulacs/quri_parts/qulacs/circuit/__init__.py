@@ -11,7 +11,6 @@
 from collections.abc import Mapping, Sequence
 from typing import Callable, Union, cast
 
-import numpy as np
 import qulacs
 from numpy.typing import ArrayLike
 from typing_extensions import assert_never
