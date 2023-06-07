@@ -145,6 +145,10 @@ class TestConstructSpinSymmetricCircuit:
             use_singles,
         )
         expected_circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
+        s_0_2 = expected_circuit.add_parameter("s_0_2")
+        s_0_3 = expected_circuit.add_parameter("s_0_3")
+        s_1_2 = expected_circuit.add_parameter("s_1_2")
+        s_1_3 = expected_circuit.add_parameter("s_1_3")
         d_0_0_2_2 = expected_circuit.add_parameter("d_0_0_2_2")
         d_0_0_2_3 = expected_circuit.add_parameter("d_0_0_2_3")
         d_0_0_3_3 = expected_circuit.add_parameter("d_0_0_3_3")
@@ -155,10 +159,6 @@ class TestConstructSpinSymmetricCircuit:
         d_1_1_2_2 = expected_circuit.add_parameter("d_1_1_2_2")
         d_1_1_2_3 = expected_circuit.add_parameter("d_1_1_2_3")
         d_1_1_3_3 = expected_circuit.add_parameter("d_1_1_3_3")
-        s_0_2 = expected_circuit.add_parameter("s_0_2")
-        s_0_3 = expected_circuit.add_parameter("s_0_3")
-        s_1_2 = expected_circuit.add_parameter("s_1_2")
-        s_1_3 = expected_circuit.add_parameter("s_1_3")
 
         op_mapper = fermion_qubit_mapping.get_of_operator_mapper()
 
@@ -247,7 +247,7 @@ class TestConstructSpinSymmetricCircuit:
         param_vals = [0.1 * (i + 1) for i in range(circuit.parameter_count)]
         bound_circuit = circuit.bind_parameters(param_vals)
         expected_bound_circuit = expected_circuit.bind_parameters(param_vals)
-        assert bound_circuit == expected_bound_circuit
+        assert bound_circuit.gates == expected_bound_circuit.gates
 
 
 class TestTrotterSingletUCCSD:

@@ -13,7 +13,7 @@ from quri_parts.openfermion.ansatz import spin_symmetric_parameters
 
 
 def single_excitation_checks(
-    s_sz_symmetric_set: set[str],
+    s_sz_symmetric_set: list[str],
     s_exc_param_fn_map: dict[SingleExcitation, list[tuple[str, float]]],
 ) -> None:
     for (i, a), param_fn in s_exc_param_fn_map.items():
@@ -24,7 +24,7 @@ def single_excitation_checks(
 
 
 def double_excitation_checks(
-    d_sz_symmetric_set: set[str],
+    d_sz_symmetric_set: list[str],
     d_exc_param_fn_map: dict[DoubleExcitation, list[tuple[str, float]]],
 ) -> None:
     recovered_d_sz_symmetric_set = set()
@@ -49,7 +49,7 @@ def double_excitation_checks(
         else:
             assert False
 
-    assert recovered_d_sz_symmetric_set == d_sz_symmetric_set
+    assert recovered_d_sz_symmetric_set == set(d_sz_symmetric_set)
 
 
 def test_parameter_4_2() -> None:

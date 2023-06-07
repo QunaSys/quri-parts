@@ -141,10 +141,9 @@ def _construct_spin_symmetric_circuit(
 
     added_parameter_map = {}
 
-    all_param_names = s_params | d_params if use_singles else d_params
-    all_param_names_list = sorted(list(all_param_names))
+    all_param_names = s_params + d_params if use_singles else d_params
 
-    for param_name in all_param_names_list:
+    for param_name in all_param_names:
         param = circuit.add_parameter(param_name)
         added_parameter_map[param_name] = param
 
@@ -174,24 +173,26 @@ def _construct_spin_symmetric_circuit(
 def spin_symmetric_parameters(
     n_spin_orbitals: int, n_fermions: int
 ) -> tuple[
-    set[str],
+    list[str],
     dict[SingleExcitation, list[tuple[str, float]]],
-    set[str],
+    list[str],
     dict[DoubleExcitation, list[tuple[str, float]]],
 ]:
     s_exc, d_exc = spin_symmetric_excitations(n_spin_orbitals, n_fermions)
 
-    s_sz_symmetric_set = set()
+    s_sz_symmetric_set = []
     s_exc_param_fn_map = {}
+
     # single excitation
     for i, a in s_exc:
         if (i % 2) != (a % 2):
             continue
         param_name = f"s_{i//2}_{a//2}"
-        s_sz_symmetric_set.add(param_name)
+        if param_name not in s_sz_symmetric_set:
+            s_sz_symmetric_set.append(param_name)
         s_exc_param_fn_map[(i, a)] = [(param_name, 1.0)]
 
-    d_sz_symmetric_set = set()
+    d_sz_symmetric_set = []
     same_spin_recorder = []
     d_exc_param_fn_map = {}
 
@@ -204,7 +205,7 @@ def spin_symmetric_parameters(
         """
         if f"d_{j//2}_{i//2}_{b//2}_{a//2}" not in d_sz_symmetric_set:
             param_name = f"d_{i//2}_{j//2}_{a//2}_{b//2}"
-            d_sz_symmetric_set.add(param_name)
+            d_sz_symmetric_set.append(param_name)
             d_exc_param_fn_map[(i, j, b, a)] = [(param_name, 1.0)]
         else:
             d_exc_param_fn_map[(i, j, b, a)] = [(f"d_{j//2}_{i//2}_{b//2}_{a//2}", 1.0)]
