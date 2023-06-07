@@ -53,7 +53,7 @@ def immutable_circuit() -> (
     return ImmutableLinearMappedUnboundParametricQuantumCircuit(q_circuit), params
 
 
-def dummy_mul(self: QuantumCircuit, gates: GateSequence) -> QuantumCircuit:
+def dummy_add(self: QuantumCircuit, gates: GateSequence) -> QuantumCircuit:
     return NotImplemented
 
 
@@ -142,12 +142,12 @@ class TestLinearMappedUnboundParametricQuantumCircuit:
         circuit.add_ParametricRY_gate(1, {params[0]: 1.0, params[1]: 1.0})
         assert not circuit.has_trivial_parameter_mapping
 
-    def test_mul(self) -> None:
+    def test_add(self) -> None:
         circuit, _ = mutable_circuit()
         lm_circuit = LinearMappedUnboundParametricQuantumCircuit(2)
         param = lm_circuit.add_parameter("RX")
         lm_circuit.add_ParametricRX_gate(0, {param: 1.0})
-        got_circuit = circuit * lm_circuit
+        got_circuit = circuit + lm_circuit
         exp_circuit = circuit.get_mutable_copy()
         exp_param = exp_circuit.add_parameter("RX")
         exp_circuit.add_ParametricRX_gate(0, {exp_param: 1.0})
@@ -156,7 +156,7 @@ class TestLinearMappedUnboundParametricQuantumCircuit:
         circuit, _ = mutable_circuit()
         up_circuit = UnboundParametricQuantumCircuit(2)
         up_circuit.add_H_gate(0)
-        got_circuit = circuit * up_circuit
+        got_circuit = circuit + up_circuit
         exp_circuit = circuit.get_mutable_copy()
         exp_circuit.add_H_gate(0)
         assert got_circuit.gates == exp_circuit.gates
@@ -164,18 +164,18 @@ class TestLinearMappedUnboundParametricQuantumCircuit:
         circuit, _ = mutable_circuit()
         qc_circuit = QuantumCircuit(2)
         qc_circuit.add_H_gate(0)
-        got_circuit = circuit * qc_circuit
+        got_circuit = circuit + qc_circuit
         exp_circuit = circuit.get_mutable_copy()
         exp_circuit.add_H_gate(0)
         assert got_circuit.gates == exp_circuit.gates
 
-    @patch.object(QuantumCircuit, "__mul__", dummy_mul)
-    @patch.object(UnboundParametricQuantumCircuit, "__mul__", dummy_mul)
-    def test_rmul(self) -> None:
+    @patch.object(QuantumCircuit, "__add__", dummy_add)
+    @patch.object(UnboundParametricQuantumCircuit, "__add__", dummy_add)
+    def test_radd(self) -> None:
         circuit, _ = mutable_circuit()
         qc_circuit = QuantumCircuit(2)
         qc_circuit.add_H_gate(0)
-        got_circuit = qc_circuit * circuit
+        got_circuit = qc_circuit + circuit
         exp_circuit = LinearMappedUnboundParametricQuantumCircuit(2)
         exp_circuit.add_H_gate(0)
         for gate in _GATES:
@@ -188,7 +188,7 @@ class TestLinearMappedUnboundParametricQuantumCircuit:
         circuit, _ = mutable_circuit()
         up_circuit = UnboundParametricQuantumCircuit(2)
         up_circuit.add_H_gate(0)
-        got_circuit2 = up_circuit * circuit
+        got_circuit2 = up_circuit + circuit
         exp_circuit = LinearMappedUnboundParametricQuantumCircuit(2)
         exp_circuit.add_H_gate(0)
         for gate in _GATES:

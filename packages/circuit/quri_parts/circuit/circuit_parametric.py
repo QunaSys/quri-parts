@@ -11,7 +11,7 @@
 from abc import ABC, abstractmethod, abstractproperty
 from collections.abc import Mapping, Sequence
 from functools import cached_property
-from typing import Optional, Protocol, Union, cast, runtime_checkable
+from typing import Optional, Protocol, Union, runtime_checkable
 
 from quri_parts.circuit import gate_names
 
@@ -130,6 +130,12 @@ class UnboundParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
         """Returns the parameter mapping of the circuit."""
         ...
 
+    def __add__(
+        self, gates: Union[GateSequence, "UnboundParametricQuantumCircuitProtocol"]
+    ) -> "UnboundParametricQuantumCircuitProtocol":
+        """Returns a new combined circuit with the given gates added."""
+        ...
+
 
 class MutableUnboundParametricQuantumCircuitProtocol(
     UnboundParametricQuantumCircuitProtocol, MutableQuantumCircuitProtocol, Protocol
@@ -239,22 +245,11 @@ class UnboundParametricQuantumCircuitBase(UnboundParametricQuantumCircuitProtoco
         if isinstance(gates, UnboundParametricQuantumCircuitBase):
             return self.combine(gates)
         elif is_gate_sequence(gates):
-            return self.combine(cast(GateSequence, gates))
-        else:
-            return NotImplemented
-
-    def __mul__(
-        self,
-        gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol],
-    ) -> "UnboundParametricQuantumCircuit":
-        if isinstance(gates, UnboundParametricQuantumCircuitBase):
             return self.combine(gates)
-        elif is_gate_sequence(gates):
-            return self.combine(cast(GateSequence, gates))
         else:
             return NotImplemented
 
-    def __rmul__(
+    def __radd__(
         self,
         gates: Union[GateSequence, "UnboundParametricQuantumCircuitBase"],
     ) -> "UnboundParametricQuantumCircuit":
@@ -369,20 +364,7 @@ class UnboundParametricQuantumCircuit(
             self.extend(gates)
             return self
         elif is_gate_sequence(gates):
-            self.extend(cast(GateSequence, gates))
-            return self
-        else:
-            return NotImplemented
-
-    def __imul__(
-        self,
-        gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol],
-    ) -> "UnboundParametricQuantumCircuit":
-        if isinstance(gates, UnboundParametricQuantumCircuitBase):
             self.extend(gates)
-            return self
-        elif is_gate_sequence(gates):
-            self.extend(cast(GateSequence, gates))
             return self
         else:
             return NotImplemented

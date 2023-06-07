@@ -10,7 +10,7 @@
 
 from abc import ABC, abstractmethod, abstractproperty
 from collections.abc import Sequence
-from typing import Optional, Protocol, Union
+from typing import Optional, Protocol, TypeGuard, Union
 
 from typing_extensions import TypeAlias
 
@@ -49,7 +49,9 @@ from .gates import (
 GateSequence: TypeAlias = Union["NonParametricQuantumCircuit", Sequence[QuantumGate]]
 
 
-def is_gate_sequence(gates: Union["QuantumCircuitProtocol", GateSequence]) -> bool:
+def is_gate_sequence(
+    gates: Union["QuantumCircuitProtocol", GateSequence]
+) -> TypeGuard[GateSequence]:
     return isinstance(gates, (NonParametricQuantumCircuit, Sequence))
 
 
@@ -281,11 +283,6 @@ class NonParametricQuantumCircuit(QuantumCircuitProtocol, ABC):
             return NotImplemented
         return self.combine(gates)
 
-    def __mul__(self, gates: GateSequence) -> "QuantumCircuit":
-        if not is_gate_sequence(gates):
-            return NotImplemented
-        return self.combine(gates)
-
 
 class QuantumCircuit(NonParametricQuantumCircuit, MutableQuantumCircuitProtocol):
     """A mutable quantum circuit having only non-parametric gates."""
@@ -339,12 +336,6 @@ class QuantumCircuit(NonParametricQuantumCircuit, MutableQuantumCircuitProtocol)
         return self.freeze() == other.freeze()
 
     def __iadd__(self, gates: GateSequence) -> "QuantumCircuit":
-        if not is_gate_sequence(gates):
-            return NotImplemented
-        self.extend(gates)
-        return self
-
-    def __imul__(self, gates: GateSequence) -> "QuantumCircuit":
         if not is_gate_sequence(gates):
             return NotImplemented
         self.extend(gates)

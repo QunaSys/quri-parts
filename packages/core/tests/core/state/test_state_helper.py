@@ -34,7 +34,7 @@ from quri_parts.core.state.state_helper import (
 )
 
 
-def dummy_mul(self: QuantumCircuit, gates: GateSequence) -> "QuantumCircuit":
+def dummy_add(self: QuantumCircuit, gates: GateSequence) -> "QuantumCircuit":
     return QuantumCircuit(self.qubit_count)
 
 
@@ -92,21 +92,21 @@ def test_quantum_state(
         quantum_state(n_qubits, vector=[1.0, 0, 0, 0], bits=0b01)
 
 
-@patch.object(UnboundParametricQuantumCircuitBase, "__mul__", dummy_mul)
-@patch.object(ImmutableQuantumCircuit, "__mul__", dummy_mul)
+@patch.object(UnboundParametricQuantumCircuitBase, "__add__", dummy_add)
+@patch.object(ImmutableQuantumCircuit, "__add__", dummy_add)
 @patch("quri_parts.core.state.state_helper.quantum_state")
 def test_apply_circuit(quantum_state_mock: Mock) -> None:
     n_qubits = 2
     quantum_state_mock.return_value = GeneralCircuitQuantumState(n_qubits)
     state1 = apply_circuit(
-        GeneralCircuitQuantumState(n_qubits), QuantumCircuit(n_qubits)
+        QuantumCircuit(n_qubits), GeneralCircuitQuantumState(n_qubits)
     )
     assert isinstance(state1, GeneralCircuitQuantumState)
     assert quantum_state_mock.call_count == 1
 
     quantum_state_mock.reset_mock(return_value=True)
     quantum_state_mock.return_value = QuantumStateVector(n_qubits)
-    state2 = apply_circuit(QuantumStateVector(n_qubits), QuantumCircuit(n_qubits))
+    state2 = apply_circuit(QuantumCircuit(n_qubits), QuantumStateVector(n_qubits))
     assert isinstance(state2, QuantumStateVector)
     assert quantum_state_mock.call_count == 1
 
@@ -115,10 +115,10 @@ def test_apply_circuit(quantum_state_mock: Mock) -> None:
         n_qubits, UnboundParametricQuantumCircuit(n_qubits)
     )
     state3 = apply_circuit(
+        UnboundParametricQuantumCircuit(n_qubits),
         ParametricCircuitQuantumState(
             n_qubits, UnboundParametricQuantumCircuit(n_qubits)
         ),
-        UnboundParametricQuantumCircuit(n_qubits),
     )
     assert isinstance(state3, ParametricCircuitQuantumState)
     assert quantum_state_mock.call_count == 1
@@ -128,10 +128,10 @@ def test_apply_circuit(quantum_state_mock: Mock) -> None:
         n_qubits, UnboundParametricQuantumCircuit(n_qubits), [1.0, 0, 0, 0]
     )
     state4 = apply_circuit(
+        UnboundParametricQuantumCircuit(n_qubits),
         ParametricQuantumStateVector(
             n_qubits, UnboundParametricQuantumCircuit(n_qubits), [1.0, 0, 0, 0]
         ),
-        UnboundParametricQuantumCircuit(n_qubits),
     )
     assert isinstance(state4, ParametricQuantumStateVector)
     assert quantum_state_mock.call_count == 1

@@ -26,31 +26,31 @@ from .state_vector_parametric import ParametricQuantumStateVector
 
 
 def apply_circuit(
-    state: QuantumState,
     circuit: Union[NonParametricQuantumCircuit, UnboundParametricQuantumCircuitBase],
+    state: QuantumState,
 ) -> QuantumState:
     """Returns a new state with the circuit applied.
 
     The original state is not changed.
     """
     if isinstance(state, GeneralCircuitQuantumState):
-        combined_circuit = state.circuit * circuit
+        combined_circuit = state.circuit + circuit
         return quantum_state(state.qubit_count, circuit=combined_circuit)
     elif isinstance(state, QuantumStateVector):
-        combined_circuit = state.circuit * circuit
+        combined_circuit = state.circuit + circuit
         return quantum_state(
             state.qubit_count, vector=state.vector, circuit=combined_circuit
         )
     elif isinstance(state, ParametricCircuitQuantumState):
         combined_circuit = (
             cast(UnboundParametricQuantumCircuitBase, state.parametric_circuit)
-            * circuit
+            + circuit
         )
         return quantum_state(state.qubit_count, circuit=combined_circuit)
     elif isinstance(state, ParametricQuantumStateVector):
         combined_circuit = (
             cast(UnboundParametricQuantumCircuitBase, state.parametric_circuit)
-            * circuit
+            + circuit
         )
         return quantum_state(
             state.qubit_count, vector=state.vector, circuit=combined_circuit
@@ -77,7 +77,7 @@ def quantum_state(
         if circuit is None:
             return cb_state
         else:
-            comb_circuit = cb_state.circuit * circuit
+            comb_circuit = cb_state.circuit + circuit
             return _circuit_quantum_state(n_qubits, comb_circuit)
     if bits != 0:
         raise ValueError("vector and bits cannot input at the same time")

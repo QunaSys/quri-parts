@@ -45,7 +45,7 @@ def immutable_circuit() -> ImmutableUnboundParametricQuantumCircuit:
     return ImmutableUnboundParametricQuantumCircuit(q_circuit)
 
 
-def dummy_mul(self: QuantumCircuit, gates: GateSequence) -> "QuantumCircuit":
+def dummy_add(self: QuantumCircuit, gates: GateSequence) -> "QuantumCircuit":
     return NotImplemented
 
 
@@ -94,11 +94,11 @@ class TestUnboundParametricQuantumCircuit:
         immutable_circuit_2 = circuit_2.freeze()
         assert immutable_circuit_2.depth == 2
 
-    def test_mul(self) -> None:
+    def test_add(self) -> None:
         circuit = mutable_circuit()
         qc_circuit = QuantumCircuit(2)
         qc_circuit.add_H_gate(0)
-        got_circuit = circuit * qc_circuit
+        got_circuit = circuit + qc_circuit
         exp_circuit = circuit.get_mutable_copy()
         exp_circuit.add_H_gate(0)
         assert got_circuit.gates == exp_circuit.gates
@@ -106,17 +106,17 @@ class TestUnboundParametricQuantumCircuit:
         circuit = mutable_circuit()
         up_circuit = UnboundParametricQuantumCircuit(2)
         up_circuit.add_ParametricRX_gate(0)
-        got_circuit = circuit * up_circuit
+        got_circuit = circuit + up_circuit
         exp_circuit = circuit.get_mutable_copy()
         exp_circuit.add_ParametricRX_gate(0)
         assert got_circuit.gates == exp_circuit.gates
 
-    @patch.object(QuantumCircuit, "__mul__", dummy_mul)
-    def test_rmul(self) -> None:
+    @patch.object(QuantumCircuit, "__add__", dummy_add)
+    def test_radd(self) -> None:
         circuit = mutable_circuit()
         qc_circuit = QuantumCircuit(2)
         qc_circuit.add_H_gate(0)
-        got_circuit = qc_circuit * circuit
+        got_circuit = qc_circuit + circuit
         exp_circuit = UnboundParametricQuantumCircuit(2)
         exp_circuit.add_H_gate(0)
         for gate in _GATES:

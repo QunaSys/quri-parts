@@ -83,13 +83,7 @@ class LinearMappedUnboundParametricQuantumCircuitBase(
     ) -> "LinearMappedUnboundParametricQuantumCircuit":
         return self.combine(gates)
 
-    def __mul__(
-        self,
-        gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol],
-    ) -> "LinearMappedUnboundParametricQuantumCircuit":
-        return self.combine(gates)
-
-    def __rmul__(
+    def __radd__(
         self, gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol]
     ) -> "LinearMappedUnboundParametricQuantumCircuit":
         combined_circuit = LinearMappedUnboundParametricQuantumCircuit(self.qubit_count)
@@ -236,13 +230,6 @@ class LinearMappedUnboundParametricQuantumCircuit(
                 self.add_gate(gate)
 
     def __iadd__(
-        self,
-        gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol],
-    ) -> "LinearMappedUnboundParametricQuantumCircuit":
-        self.extend(gates)
-        return self
-
-    def __imul__(
         self,
         gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol],
     ) -> "LinearMappedUnboundParametricQuantumCircuit":
