@@ -21,12 +21,15 @@ from quri_parts.circuit import (
     UnboundParametricQuantumCircuit,
     gates,
 )
+from quri_parts.circuit.transpile import TwoQubitUnitaryMatrixKAKTranspiler
+from quri_parts.core.state import GeneralCircuitQuantumState
 from quri_parts.qulacs.circuit import (
     _dense_matrix_gate_qulacs,
     convert_circuit,
     convert_gate,
     convert_parametric_circuit,
 )
+from quri_parts.qulacs.simulator import evaluate_state_to_vector
 
 
 def gates_equal(g1: qulacs.QuantumGateBase, g2: qulacs.QuantumGateBase) -> bool:
@@ -267,3 +270,43 @@ def test_convert_linear_mapped_parametric_circuit() -> None:
     assert converted.get_gate_count() == len(expected_gates)
     for i, expected in enumerate(expected_gates):
         assert gates_equal(converted.get_gate(i), expected)
+
+
+def test_evaluate_unitary_matrix_gate() -> None:
+    mat = np.array(
+        [
+            [
+                -0.49129658 - 0.32626995j,
+                -0.23207563 - 0.34878751j,
+                0.32329374 + 0.38457672j,
+                -0.20428823 + 0.42721421j,
+            ],
+            [
+                0.36888385 + 0.18498913j,
+                -0.61818051 - 0.55072754j,
+                -0.2504549 + 0.15424426j,
+                0.23324722 - 0.05772828j,
+            ],
+            [
+                -0.32706534 + 0.52224283j,
+                0.00083222 - 0.02941108j,
+                0.07782081 + 0.42201915j,
+                -0.30453727 - 0.58525703j,
+            ],
+            [
+                0.05659607 - 0.31459003j,
+                0.01587114 - 0.37137934j,
+                0.57414051 - 0.38375694j,
+                0.06483192 - 0.52777419j,
+            ],
+        ]
+    )
+
+    circuit = QuantumCircuit(2)
+    circuit.add_TwoQubitUnitaryMatrix_gate(0, 1, mat)
+    transpiled = TwoQubitUnitaryMatrixKAKTranspiler()(circuit)
+
+    target = evaluate_state_to_vector(GeneralCircuitQuantumState(2, circuit)).vector
+    expect = evaluate_state_to_vector(GeneralCircuitQuantumState(2, transpiled)).vector
+
+    np.allclose(target / target[0], expect / expect[0])
