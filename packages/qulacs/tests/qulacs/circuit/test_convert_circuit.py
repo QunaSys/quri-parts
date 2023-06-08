@@ -309,7 +309,7 @@ def test_evaluate_2qubit_unitary_matrix_gate() -> None:
 
     target = evaluate_state_to_vector(GeneralCircuitQuantumState(4, circuit)).vector
     expect = evaluate_state_to_vector(GeneralCircuitQuantumState(4, transpiled)).vector
-    np.allclose(
+    assert np.allclose(
         target / (target[0] / abs(target[0])), expect / (expect[0] / abs(expect[0]))
     )
 
