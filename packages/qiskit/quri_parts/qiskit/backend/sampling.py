@@ -8,7 +8,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections import defaultdict
 from collections.abc import Mapping, MutableMapping
 from typing import Any, Optional, Sequence
 
@@ -70,7 +69,7 @@ class QiskitSamplingJob(SamplingJob):
         return QiskitSamplingResult(qiskit_result)
 
 
-SavedDataType: TypeAlias = dict[tuple[str, int], list[QiskitSamplingJob]]
+SavedDataType: TypeAlias = list[tuple[str, int, QiskitSamplingJob]]
 
 
 class QiskitSamplingBackend(SamplingBackend):
@@ -130,7 +129,7 @@ class QiskitSamplingBackend(SamplingBackend):
 
         # saving mode
         self._save_data_while_sampling = save_data_while_sampling
-        self._saved_data: SavedDataType = defaultdict(list)
+        self._saved_data: SavedDataType = []
 
     def sample(self, circuit: NonParametricQuantumCircuit, n_shots: int) -> SamplingJob:
         if not n_shots >= 1:
@@ -157,7 +156,7 @@ class QiskitSamplingBackend(SamplingBackend):
                 qiskit_sampling_job = QiskitSamplingJob(qiskit_job)
                 # Saving mode
                 if self._save_data_while_sampling:
-                    self._saved_data[(circuit_qasm_str, s)].append(qiskit_sampling_job)
+                    self._saved_data.append((circuit_qasm_str, s, qiskit_sampling_job))
                 jobs.append(qiskit_sampling_job)
 
         except Exception as e:
@@ -169,29 +168,27 @@ class QiskitSamplingBackend(SamplingBackend):
                     pass
             raise BackendError("Qiskit Device.run failed.") from e
 
-        jobs = [self._qubit_mapping(job) for job in jobs]
-        return jobs[0] if len(jobs) == 0 else CompositeSamplingJob(jobs)
+        qubit_mapped_jobs = [self._qubit_mapping(job) for job in jobs]
+        return (
+            qubit_mapped_jobs[0]
+            if len(qubit_mapped_jobs) == 0
+            else CompositeSamplingJob(qubit_mapped_jobs)
+        )
 
     @property
     def jobs(self) -> Sequence[QiskitSavedDataSamplingJob]:
         job_list = []
-        for (
-            circuit_qasm_str,
-            n_shots,
-        ), qiskit_sampling_jobs in self._saved_data.items():
-            for qiskit_sampling_job in qiskit_sampling_jobs:
-                raw_measurement_cnt = (
-                    qiskit_sampling_job._qiskit_job.result().get_counts()
-                )
-                saved_sampling_result = QiskitSavedDataSamplingResult(
-                    raw_data=raw_measurement_cnt
-                )
-                saved_sampling_job = QiskitSavedDataSamplingJob(
-                    circuit_str=circuit_qasm_str,
-                    n_shots=n_shots,
-                    saved_result=saved_sampling_result,
-                )
-                job_list.append(saved_sampling_job)
+        for circuit_qasm_str, n_shots, qiskit_sampling_job in self._saved_data:
+            raw_measurement_cnt = qiskit_sampling_job._qiskit_job.result().get_counts()
+            saved_sampling_result = QiskitSavedDataSamplingResult(
+                raw_data=raw_measurement_cnt
+            )
+            saved_sampling_job = QiskitSavedDataSamplingJob(
+                circuit_str=circuit_qasm_str,
+                n_shots=n_shots,
+                saved_result=saved_sampling_result,
+            )
+            job_list.append(saved_sampling_job)
         return job_list
 
     @property
