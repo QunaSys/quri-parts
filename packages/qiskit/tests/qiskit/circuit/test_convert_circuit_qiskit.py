@@ -12,6 +12,7 @@ from collections.abc import Mapping
 from typing import Callable, Type, cast
 
 import numpy as np
+import numpy.typing as npt
 import qiskit.circuit.library as qgate
 import qiskit.quantum_info as qi
 from qiskit import Aer
@@ -227,7 +228,7 @@ def test_convert_kak_unitary_matrix() -> None:
     circuit.add_TwoQubitUnitaryMatrix_gate(0, 1, umat)
     transpiled = TwoQubitUnitaryMatrixKAKTranspiler()(circuit)
 
-    def get_unitary(circuit: QuantumCircuit) -> np.ndarray[np.complex128]:
+    def get_unitary(circuit: QuantumCircuit) -> npt.NDArray[np.complex128]:
         sim = Aer.get_backend("unitary_simulator")
         return sim.run(circuit).result().get_unitary(circuit).data
 
