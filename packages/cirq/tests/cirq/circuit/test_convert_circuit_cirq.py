@@ -235,4 +235,6 @@ def test_convert_kak_unitary_matrix() -> None:
 
     target = convert_circuit(circuit).unitary()
     expect = convert_circuit(transpiled).unitary()
-    np.allclose(target / target[0, 0], expect / expect[0, 0])
+    np.allclose(
+        target / (target[0] / abs(target[0])), expect / (expect[0] / abs(expect[0]))
+    )
