@@ -66,13 +66,13 @@ class _QulacsLinearMappedUnboundParametricCircuit(
     def __init__(self, circuit: LinearMappedUnboundParametricQuantumCircuit):
         super().__init__(circuit)
         (
-            self.__qulacs_circuit,
+            self._qulacs_circuit,
             self._qulacs_param_mapper,
         ) = qlc.convert_parametric_circuit(circuit)
 
     @property
     def qulacs_circuit(self) -> QulacsParametricQuantumCircuit:
-        return self.__qulacs_circuit.copy()
+        return self._qulacs_circuit.copy()
 
     @property
     def param_mapper(self) -> Callable[[Sequence[float]], Sequence[float]]:

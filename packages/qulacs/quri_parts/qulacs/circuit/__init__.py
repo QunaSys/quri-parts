@@ -16,6 +16,7 @@ from numpy.typing import ArrayLike
 from typing_extensions import assert_never
 
 from quri_parts.circuit import (
+    ImmutableLinearMappedUnboundParametricQuantumCircuit,
     ImmutableUnboundParametricQuantumCircuit,
     LinearMappedUnboundParametricQuantumCircuitBase,
     NonParametricQuantumCircuit,
@@ -210,6 +211,7 @@ def convert_parametric_circuit(
     circuit: Union[
         UnboundParametricQuantumCircuitProtocol,
         ImmutableUnboundParametricQuantumCircuit,
+        ImmutableLinearMappedUnboundParametricQuantumCircuit,
     ],
 ) -> tuple[
     qulacs.ParametricQuantumCircuit, Callable[[Sequence[float]], Sequence[float]]
