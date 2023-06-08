@@ -15,7 +15,6 @@ import qiskit
 from qiskit.providers import Job
 from qiskit.providers.backend import Backend
 from qiskit.result import Result
-from typing_extensions import TypeAlias
 
 from quri_parts.backend import (
     BackendError,
@@ -32,7 +31,7 @@ from quri_parts.qiskit.circuit import QiskitCircuitConverter, convert_circuit
 from .saved_sampling import (
     QiskitSavedDataSamplingJob,
     QiskitSavedDataSamplingResult,
-    convert_saved_jobs_sequence_to_str,
+    encode_saved_data_job_sequence_to_json,
 )
 from .utils import (
     distribute_backend_shots,
@@ -67,9 +66,6 @@ class QiskitSamplingJob(SamplingJob):
     def result(self) -> SamplingResult:
         qiskit_result: Result = self._qiskit_job.result()
         return QiskitSamplingResult(qiskit_result)
-
-
-SavedDataType: TypeAlias = list[tuple[str, int, QiskitSamplingJob]]
 
 
 class QiskitSamplingBackend(SamplingBackend):
@@ -129,7 +125,7 @@ class QiskitSamplingBackend(SamplingBackend):
 
         # saving mode
         self._save_data_while_sampling = save_data_while_sampling
-        self._saved_data: SavedDataType = []
+        self._saved_data: list[tuple[str, int, QiskitSamplingJob]] = []
 
     def sample(self, circuit: NonParametricQuantumCircuit, n_shots: int) -> SamplingJob:
         if not n_shots >= 1:
@@ -193,4 +189,4 @@ class QiskitSamplingBackend(SamplingBackend):
 
     @property
     def jobs_json(self) -> str:
-        return convert_saved_jobs_sequence_to_str(self.jobs)
+        return encode_saved_data_job_sequence_to_json(self.jobs)

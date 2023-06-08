@@ -128,16 +128,25 @@ class QiskitSavedDataSamplingBackend(SamplingBackend):
 
     def _load_data(self, json_str: str) -> SavedDataType:
         saved_data = defaultdict(list)
-        saved_data_seq = json.loads(json_str)
-        for job_dict in saved_data_seq:
-            job = QiskitSavedDataSamplingJob(**job_dict)
+        saved_data_seq = decode_json_to_saved_data_sequence(json_str)
+        for job in saved_data_seq:
             circuit_str = job.circuit_str
             n_shots = job.n_shots
             saved_data[(circuit_str, n_shots)].append(job)
         return saved_data
 
 
-def convert_saved_jobs_sequence_to_str(
+def decode_json_to_saved_data_sequence(
+    json_str: str,
+) -> Sequence[QiskitSavedDataSamplingJob]:
+    saved_jobs = []
+    saved_data_seq = json.loads(json_str)
+    for job_dict in saved_data_seq:
+        saved_jobs.append(QiskitSavedDataSamplingJob(**job_dict))
+    return saved_jobs
+
+
+def encode_saved_data_job_sequence_to_json(
     saved_data_seq: Sequence[QiskitSavedDataSamplingJob],
 ) -> str:
     return json.dumps(saved_data_seq, default=pydantic_encoder)
