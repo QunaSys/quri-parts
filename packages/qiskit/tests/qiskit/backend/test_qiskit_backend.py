@@ -230,7 +230,6 @@ class TestSavingMode:
 
         assert set(self.backend._saved_data.keys()) == {
             (self.circuit_qasm, int(1e6)),
-            (self.circuit_qasm, 1),
         }
 
         expected_measurement_counter: Counter[int] = Counter()
@@ -251,11 +250,6 @@ class TestSavingMode:
             ._qiskit_job.result()
             .get_counts()
         )
-        raw_data_2 = (
-            self.backend._saved_data[(self.circuit_qasm, 1)][0]
-            ._qiskit_job.result()
-            .get_counts()
-        )
 
         expected_saved_data_0 = QiskitSavedDataSamplingJob(
             circuit_str=self.circuit_qasm,
@@ -269,16 +263,9 @@ class TestSavingMode:
             saved_result=QiskitSavedDataSamplingResult(raw_data=raw_data_1),
         )
 
-        expected_saved_data_2 = QiskitSavedDataSamplingJob(
-            circuit_str=self.circuit_qasm,
-            n_shots=1,
-            saved_result=QiskitSavedDataSamplingResult(raw_data=raw_data_2),
-        )
-
         expected_saved_data_seq = [
             expected_saved_data_0,
             expected_saved_data_1,
-            expected_saved_data_2,
         ]
 
         assert self.backend.jobs == expected_saved_data_seq

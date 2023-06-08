@@ -137,11 +137,6 @@ saved_data_list = [
         },
     },
     {
-        "circuit_str": circuit1_qasm_str,
-        "n_shots": 1,
-        "saved_result": {"raw_data": {"0001": 1}},
-    },
-    {
         "circuit_str": circuit2_qasm_str,
         "n_shots": 1000000,
         "saved_result": {
@@ -236,11 +231,6 @@ saved_data_list = [
                 "0000": 90812,
             }
         },
-    },
-    {
-        "circuit_str": circuit2_qasm_str,
-        "n_shots": 1,
-        "saved_result": {"raw_data": {"0000": 1}},
     },
     {
         "circuit_str": circuit3_qasm_str,
@@ -384,9 +374,7 @@ class TestQiskitSavedDataSamplingBackend:
     def test_initial_replay_memory(self) -> None:
         assert saved_data_backend._replay_memory == {
             (circuit1_qasm_str, 1000000): 0,
-            (circuit1_qasm_str, 1): 0,
             (circuit2_qasm_str, 1000000): 0,
-            (circuit2_qasm_str, 1): 0,
             (circuit3_qasm_str, 4000): 0,
             (circuit1_qasm_str, 200000): 0,
             (circuit2_qasm_str, 8000): 0,
@@ -409,16 +397,14 @@ class TestQiskitSavedDataSamplingBackend:
             7: 20593,
             6: 20429,
             3: 20351,
-            1: 229439,
+            1: 229438,
             15: 20540,
             13: 229276,
             0: 229997,
         }
         assert saved_data_backend._replay_memory == {
             (circuit1_qasm_str, 1000000): 2,
-            (circuit1_qasm_str, 1): 1,
             (circuit2_qasm_str, 1000000): 0,
-            (circuit2_qasm_str, 1): 0,
             (circuit3_qasm_str, 4000): 0,
             (circuit1_qasm_str, 200000): 0,
             (circuit2_qasm_str, 8000): 0,
@@ -443,14 +429,12 @@ class TestQiskitSavedDataSamplingBackend:
             7: 136936,
             5: 363818,
             2: 137560,
-            0: 362534,
+            0: 362533,
             10: 136850,
         }
         assert saved_data_backend._replay_memory == {
             (circuit1_qasm_str, 1000000): 2,
-            (circuit1_qasm_str, 1): 1,
             (circuit2_qasm_str, 1000000): 4,
-            (circuit2_qasm_str, 1): 1,
             (circuit3_qasm_str, 4000): 0,
             (circuit1_qasm_str, 200000): 0,
             (circuit2_qasm_str, 8000): 0,
@@ -481,9 +465,7 @@ class TestQiskitSavedDataSamplingBackend:
 
         assert saved_data_backend._replay_memory == {
             (circuit1_qasm_str, 1000000): 2,
-            (circuit1_qasm_str, 1): 1,
             (circuit2_qasm_str, 1000000): 4,
-            (circuit2_qasm_str, 1): 1,
             (circuit3_qasm_str, 4000): 1,
             (circuit1_qasm_str, 200000): 0,
             (circuit2_qasm_str, 8000): 0,
@@ -513,9 +495,7 @@ class TestQiskitSavedDataSamplingBackend:
         }
         assert saved_data_backend._replay_memory == {
             (circuit1_qasm_str, 1000000): 3,
-            (circuit1_qasm_str, 1): 1,
             (circuit2_qasm_str, 1000000): 4,
-            (circuit2_qasm_str, 1): 1,
             (circuit3_qasm_str, 4000): 1,
             (circuit1_qasm_str, 200000): 1,
             (circuit2_qasm_str, 8000): 0,
@@ -545,9 +525,7 @@ class TestQiskitSavedDataSamplingBackend:
         }
         assert saved_data_backend._replay_memory == {
             (circuit1_qasm_str, 1000000): 3,
-            (circuit1_qasm_str, 1): 1,
             (circuit2_qasm_str, 1000000): 4,
-            (circuit2_qasm_str, 1): 1,
             (circuit3_qasm_str, 4000): 1,
             (circuit1_qasm_str, 200000): 1,
             (circuit2_qasm_str, 8000): 1,
@@ -577,9 +555,7 @@ class TestQiskitSavedDataSamplingBackend:
         }
         assert saved_data_backend._replay_memory == {
             (circuit1_qasm_str, 1000000): 3,
-            (circuit1_qasm_str, 1): 1,
             (circuit2_qasm_str, 1000000): 4,
-            (circuit2_qasm_str, 1): 1,
             (circuit3_qasm_str, 4000): 1,
             (circuit1_qasm_str, 200000): 1,
             (circuit2_qasm_str, 8000): 1,

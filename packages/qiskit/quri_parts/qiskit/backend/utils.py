@@ -41,6 +41,7 @@ def distribute_backend_shots(
                 "supported by the device. Try larger n_shots or use "
                 "enable_shots_roundup=True when creating the backend."
             )
+    return shot_dist
 
 
 def get_backend_min_max_shot(backend: Backend) -> tuple[int, Optional[int]]:
