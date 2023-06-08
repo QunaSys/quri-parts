@@ -230,7 +230,10 @@ def test_convert_kak_unitary_matrix() -> None:
 
     def get_unitary(circuit: QuantumCircuit) -> npt.NDArray[np.complex128]:
         sim = Aer.get_backend("unitary_simulator")
-        return sim.run(circuit).result().get_unitary(circuit).data
+        return cast(
+            npt.NDArray[np.complex128],
+            sim.run(circuit).result().get_unitary(circuit).data,
+        )
 
     target = get_unitary(convert_circuit(circuit))
     expect = get_unitary(convert_circuit(transpiled))
