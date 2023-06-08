@@ -109,11 +109,10 @@ class QiskitSavedDataSamplingBackend(SamplingBackend):
         qiskit_circuit = self._circuit_converter(circuit, self._circuit_transpiler)
         qiskit_circuit.measure_all()
         transpiled_circuit = qiskit.transpile(qiskit_circuit, self._backend)
-
+        qasm_str = transpiled_circuit.qasm()
         jobs: list[SamplingJob] = []
 
         for s in shot_dist:
-            qasm_str = transpiled_circuit.qasm()
             if (key := (qasm_str, s)) in self._saved_data:
                 data_position = self._replay_memory[key]
                 try:

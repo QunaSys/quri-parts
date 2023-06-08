@@ -143,33 +143,31 @@ class QiskitSamplingBackend(SamplingBackend):
         qiskit_circuit = self._circuit_converter(circuit, self._circuit_transpiler)
         qiskit_circuit.measure_all()
         transpiled_circuit = qiskit.transpile(qiskit_circuit, self._backend)
+        circuit_qasm_str = transpiled_circuit.qasm()
 
-        jobs: list[SamplingJob] = []
-
-        for s in shot_dist:
-            try:
+        jobs: list[QiskitSamplingJob] = []
+        try:
+            for s in shot_dist:
                 # Sampling mode
                 qiskit_job = self._backend.run(
                     transpiled_circuit,
                     shots=s,
                     **self._run_kwargs,
                 )
-
                 qiskit_sampling_job = QiskitSamplingJob(qiskit_job)
                 # Saving mode
                 if self._save_data_while_sampling:
-                    circuit_qasm_str = transpiled_circuit.qasm()
                     self._saved_data[(circuit_qasm_str, s)].append(qiskit_sampling_job)
                 jobs.append(qiskit_sampling_job)
 
-            except Exception as e:
-                for j in qiskit_job:
-                    try:
-                        j.cancel()
-                    except Exception:
-                        # Ignore cancel errors
-                        pass
-                raise BackendError("Qiskit Device.run failed.") from e
+        except Exception as e:
+            for qiskit_sampling_job in jobs:
+                try:
+                    qiskit_sampling_job._qiskit_job.cancel()
+                except Exception:
+                    # Ignore cancel errors
+                    pass
+            raise BackendError("Qiskit Device.run failed.") from e
 
         jobs = [self._qubit_mapping(job) for job in jobs]
         return jobs[0] if len(jobs) == 0 else CompositeSamplingJob(jobs)
