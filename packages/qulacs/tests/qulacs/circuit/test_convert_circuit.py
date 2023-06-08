@@ -275,10 +275,6 @@ def test_convert_linear_mapped_parametric_circuit() -> None:
         assert gates_equal(converted.get_gate(i), expected)
 
 
-def _phase_c(c: complex) -> complex:
-    return c / abs(c)
-
-
 def test_evaluate_2qubit_unitary_matrix_gate() -> None:
     umat = [
         [
@@ -313,7 +309,7 @@ def test_evaluate_2qubit_unitary_matrix_gate() -> None:
 
     target = evaluate_state_to_vector(GeneralCircuitQuantumState(2, circuit)).vector
     expect = evaluate_state_to_vector(GeneralCircuitQuantumState(2, transpiled)).vector
-    np.allclose(
+    assert np.allclose(
         target / (target[0] / abs(target[0])), expect / (expect[0] / abs(expect[0]))
     )
 
@@ -330,6 +326,6 @@ def test_evaluate_1qubit_unitary_matrix_gate() -> None:
 
     target = evaluate_state_to_vector(GeneralCircuitQuantumState(1, circuit)).vector
     expect = evaluate_state_to_vector(GeneralCircuitQuantumState(1, transpiled)).vector
-    np.allclose(
+    assert np.allclose(
         target / (target[0] / abs(target[0])), expect / (expect[0] / abs(expect[0]))
     )
