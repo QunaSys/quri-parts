@@ -303,13 +303,13 @@ def test_evaluate_2qubit_unitary_matrix_gate() -> None:
         ],
     ]
 
-    circuit = QuantumCircuit(2)
-    circuit.add_TwoQubitUnitaryMatrix_gate(0, 1, umat)
+    circuit = QuantumCircuit(4)
+    circuit.add_TwoQubitUnitaryMatrix_gate(2, 1, umat)
     transpiled = TwoQubitUnitaryMatrixKAKTranspiler()(circuit)
 
-    target = evaluate_state_to_vector(GeneralCircuitQuantumState(2, circuit)).vector
-    expect = evaluate_state_to_vector(GeneralCircuitQuantumState(2, transpiled)).vector
-    assert np.allclose(
+    target = evaluate_state_to_vector(GeneralCircuitQuantumState(4, circuit)).vector
+    expect = evaluate_state_to_vector(GeneralCircuitQuantumState(4, transpiled)).vector
+    np.allclose(
         target / (target[0] / abs(target[0])), expect / (expect[0] / abs(expect[0]))
     )
 
@@ -320,12 +320,12 @@ def test_evaluate_1qubit_unitary_matrix_gate() -> None:
         [0.27844775 + 0.53479869j, -0.08669519 - 0.7930581j],
     ]
 
-    circuit = QuantumCircuit(1)
-    circuit.add_SingleQubitUnitaryMatrix_gate(0, umat)
+    circuit = QuantumCircuit(4)
+    circuit.add_SingleQubitUnitaryMatrix_gate(2, umat)
     transpiled = SingleQubitUnitaryMatrix2RYRZTranspiler()(circuit)
 
-    target = evaluate_state_to_vector(GeneralCircuitQuantumState(1, circuit)).vector
-    expect = evaluate_state_to_vector(GeneralCircuitQuantumState(1, transpiled)).vector
+    target = evaluate_state_to_vector(GeneralCircuitQuantumState(4, circuit)).vector
+    expect = evaluate_state_to_vector(GeneralCircuitQuantumState(4, transpiled)).vector
     assert np.allclose(
         target / (target[0] / abs(target[0])), expect / (expect[0] / abs(expect[0]))
     )
