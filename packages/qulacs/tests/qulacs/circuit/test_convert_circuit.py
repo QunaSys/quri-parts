@@ -304,7 +304,7 @@ def test_evaluate_2qubit_unitary_matrix_gate() -> None:
     ]
 
     circuit = QuantumCircuit(4)
-    circuit.add_TwoQubitUnitaryMatrix_gate(2, 1, umat)
+    circuit.add_TwoQubitUnitaryMatrix_gate(3, 1, umat)
     transpiled = TwoQubitUnitaryMatrixKAKTranspiler()(circuit)
 
     target = evaluate_state_to_vector(GeneralCircuitQuantumState(4, circuit)).vector
