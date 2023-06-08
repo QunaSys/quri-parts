@@ -271,7 +271,7 @@ def test_convert_kak_unitary_matrix() -> None:
     transpiled = TwoQubitUnitaryMatrixKAKTranspiler()(circuit)
 
     target = convert_circuit(circuit).to_unitary()
-    expect = convert_circuit(transpiled).to_unitary
+    expect = convert_circuit(transpiled).to_unitary()
     np.allclose(
         target / (target[0] / abs(target[0])), expect / (expect[0] / abs(expect[0]))
     )
