@@ -229,8 +229,8 @@ def test_convert_kak_unitary_matrix() -> None:
         ],
     ]
 
-    circuit = QuantumCircuit(2)
-    circuit.add_TwoQubitUnitaryMatrix_gate(0, 1, umat)
+    circuit = QuantumCircuit(4)
+    circuit.add_TwoQubitUnitaryMatrix_gate(3, 1, umat)
     transpiled = TwoQubitUnitaryMatrixKAKTranspiler()(circuit)
 
     target = convert_circuit(circuit).unitary()
