@@ -128,8 +128,6 @@ def _dense_matrix_gate_qulacs(
 ) -> qulacs.QuantumGateBase:
     # We need to disable type check due to an error in qulacs type annotation
     # https://github.com/qulacs/qulacs/issues/537
-    # if not isinstance(t, int):
-    #     t = tuple(reversed(t))
     return cast(
         qulacs.QuantumGateBase,
         qulacs.gate.DenseMatrix(t, unitary_matrix),  # type: ignore
