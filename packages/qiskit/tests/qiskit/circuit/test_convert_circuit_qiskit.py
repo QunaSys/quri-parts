@@ -227,10 +227,10 @@ def test_convert_kak_unitary_matrix() -> None:
     circuit.add_TwoQubitUnitaryMatrix_gate(0, 1, umat)
     transpiled = TwoQubitUnitaryMatrixKAKTranspiler()(circuit)
 
-    def get_unitary(circuit) -> list[list[complex]]:
+    def get_unitary(circuit: QuantumCircuit) -> np.ndarray[np.complex128]:
         sim = Aer.get_backend("unitary_simulator")
         return sim.run(circuit).result().get_unitary(circuit).data
 
-    target = np.array(get_unitary(convert_circuit(circuit)))
-    expect = np.array(get_unitary(convert_circuit(transpiled)))
+    target = get_unitary(convert_circuit(circuit))
+    expect = get_unitary(convert_circuit(transpiled))
     np.allclose(target / target[0, 0], expect / expect[0, 0])
