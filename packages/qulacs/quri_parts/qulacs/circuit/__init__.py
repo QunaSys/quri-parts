@@ -16,6 +16,7 @@ from numpy.typing import ArrayLike
 from typing_extensions import assert_never
 
 from quri_parts.circuit import (
+    ImmutableUnboundParametricQuantumCircuit,
     LinearMappedUnboundParametricQuantumCircuitBase,
     NonParametricQuantumCircuit,
     QuantumGate,
@@ -38,6 +39,13 @@ from quri_parts.circuit.gate_names import (
 )
 
 from .. import cast_to_list
+from .compiled_circuit import (
+    _QulacsCircuit,
+    _QulacsLinearMappedUnboundParametricCircuit,
+    _QulacsUnboundParametricCircuit,
+    compile_circuit,
+    compile_parametric_circuit,
+)
 
 _single_qubit_gate_qulacs: Mapping[
     SingleQubitGateNameType, Callable[[int], qulacs.QuantumGateBase]
@@ -190,6 +198,8 @@ def convert_gate(
 
 
 def convert_circuit(circuit: NonParametricQuantumCircuit) -> qulacs.QuantumCircuit:
+    if isinstance(circuit, _QulacsCircuit):
+        return circuit.qulacs_circuit
     qulacs_circuit = qulacs.QuantumCircuit(circuit.qubit_count)
     for gate in circuit.gates:
         qulacs_circuit.add_gate(convert_gate(gate))
@@ -197,12 +207,19 @@ def convert_circuit(circuit: NonParametricQuantumCircuit) -> qulacs.QuantumCircu
 
 
 def convert_parametric_circuit(
-    circuit: UnboundParametricQuantumCircuitProtocol,
+    circuit: Union[
+        UnboundParametricQuantumCircuitProtocol,
+        ImmutableUnboundParametricQuantumCircuit,
+    ],
 ) -> tuple[
     qulacs.ParametricQuantumCircuit, Callable[[Sequence[float]], Sequence[float]]
 ]:
     param_circuit: UnboundParametricQuantumCircuitBase
     param_mapper: Callable[[Sequence[float]], Sequence[float]]
+    if isinstance(circuit, _QulacsLinearMappedUnboundParametricCircuit) or isinstance(
+        circuit, _QulacsUnboundParametricCircuit
+    ):
+        return circuit.qulacs_circuit, circuit.param_mapper
     if isinstance(circuit, LinearMappedUnboundParametricQuantumCircuitBase):
         param_mapping = circuit.param_mapping
         param_circuit = circuit.primitive_circuit()
@@ -247,4 +264,10 @@ def convert_parametric_circuit(
     return qulacs_circuit, param_mapper
 
 
-__all__ = ["convert_gate", "convert_circuit", "convert_parametric_circuit"]
+__all__ = [
+    "convert_gate",
+    "convert_circuit",
+    "convert_parametric_circuit",
+    "compile_circuit",
+    "compile_parametric_circuit",
+]
