@@ -26,6 +26,9 @@ from quri_parts.openfermion.utils import (
     add_exp_excitation_gates_trotter_decomposition,
     add_exp_pauli_gates_from_linear_mapped_function,
 )
+from quri_parts.openfermion.utils.add_exp_excitation_gates_trotter_decomposition import (  # noqa: E501
+    _create_operator,
+)
 
 
 class TestConstructCircuit:
@@ -162,84 +165,110 @@ class TestConstructSpinSymmetricCircuit:
 
         op_mapper = fermion_qubit_mapping.get_of_operator_mapper()
 
+        operator_0_4 = _create_operator((0, 4), op_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            expected_circuit, (0, 4), {s_0_2: 1}, op_mapper, 1
+            expected_circuit, {s_0_2: 1}, operator_0_4, 1
         )
+        operator_0_6 = _create_operator((0, 6), op_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            expected_circuit, (0, 6), {s_0_3: 1}, op_mapper, 1
+            expected_circuit, {s_0_3: 1}, operator_0_6, 1
         )
+        operator_1_5 = _create_operator((1, 5), op_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            expected_circuit, (1, 5), {s_0_2: 1}, op_mapper, 1
+            expected_circuit, {s_0_2: 1}, operator_1_5, 1
         )
+        operator_1_7 = _create_operator((1, 7), op_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            expected_circuit, (1, 7), {s_0_3: 1}, op_mapper, 1
+            expected_circuit, {s_0_3: 1}, operator_1_7, 1
         )
+        operator_2_4 = _create_operator((2, 4), op_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            expected_circuit, (2, 4), {s_1_2: 1}, op_mapper, 1
+            expected_circuit, {s_1_2: 1}, operator_2_4, 1
         )
+        operator_2_6 = _create_operator((2, 6), op_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            expected_circuit, (2, 6), {s_1_3: 1}, op_mapper, 1
+            expected_circuit, {s_1_3: 1}, operator_2_6, 1
         )
+        operator_3_5 = _create_operator((3, 5), op_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            expected_circuit, (3, 5), {s_1_2: 1}, op_mapper, 1
+            expected_circuit, {s_1_2: 1}, operator_3_5, 1
         )
+        operator_3_7 = _create_operator((3, 7), op_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            expected_circuit, (3, 7), {s_1_3: 1}, op_mapper, 1
+            expected_circuit, {s_1_3: 1}, operator_3_7, 1
         )
 
+        operator_0_1_5_4 = _create_operator((0, 1, 5, 4), op_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            expected_circuit, (0, 1, 5, 4), {d_0_0_2_2: 1}, op_mapper, 1
+            expected_circuit, {d_0_0_2_2: 1}, operator_0_1_5_4, 1
         )
+        operator_0_1_7_4 = _create_operator((0, 1, 7, 4), op_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            expected_circuit, (0, 1, 7, 4), {d_0_0_2_3: 1}, op_mapper, 1
+            expected_circuit, {d_0_0_2_3: 1}, operator_0_1_7_4, 1
         )
+        operator_0_1_5_6 = _create_operator((0, 1, 5, 6), op_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            expected_circuit, (0, 1, 5, 6), {d_0_0_2_3: 1}, op_mapper, 1
+            expected_circuit, {d_0_0_2_3: 1}, operator_0_1_5_6, 1
         )
+        operator_0_1_7_6 = _create_operator((0, 1, 7, 6), op_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            expected_circuit, (0, 1, 7, 6), {d_0_0_3_3: 1}, op_mapper, 1
+            expected_circuit, {d_0_0_3_3: 1}, operator_0_1_7_6, 1
         )
+        operator_0_3_5_4 = _create_operator((0, 3, 5, 4), op_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            expected_circuit, (0, 3, 5, 4), {d_0_1_2_2: 1}, op_mapper, 1
+            expected_circuit, {d_0_1_2_2: 1}, operator_0_3_5_4, 1
         )
+        operator_0_3_7_4 = _create_operator((0, 3, 7, 4), op_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            expected_circuit, (0, 3, 7, 4), {d_0_1_2_3: 1}, op_mapper, 1
+            expected_circuit, {d_0_1_2_3: 1}, operator_0_3_7_4, 1
         )
+        operator_0_3_5_6 = _create_operator((0, 3, 5, 6), op_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            expected_circuit, (0, 3, 5, 6), {d_0_1_3_2: 1}, op_mapper, 1
+            expected_circuit, {d_0_1_3_2: 1}, operator_0_3_5_6, 1
         )
+        operator_0_3_7_6 = _create_operator((0, 3, 7, 6), op_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            expected_circuit, (0, 3, 7, 6), {d_0_1_3_3: 1}, op_mapper, 1
+            expected_circuit, {d_0_1_3_3: 1}, operator_0_3_7_6, 1
         )
+        operator_2_1_5_4 = _create_operator((2, 1, 5, 4), op_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            expected_circuit, (2, 1, 5, 4), {d_0_1_2_2: 1}, op_mapper, 1
+            expected_circuit, {d_0_1_2_2: 1}, operator_2_1_5_4, 1
         )
+        operator_2_1_7_4 = _create_operator((2, 1, 7, 4), op_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            expected_circuit, (2, 1, 7, 4), {d_0_1_3_2: 1}, op_mapper, 1
+            expected_circuit, {d_0_1_3_2: 1}, operator_2_1_7_4, 1
         )
+        operator_2_1_5_6 = _create_operator((2, 1, 5, 6), op_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            expected_circuit, (2, 1, 5, 6), {d_0_1_2_3: 1}, op_mapper, 1
+            expected_circuit, {d_0_1_2_3: 1}, operator_2_1_5_6, 1
         )
+        operator_2_1_7_6 = _create_operator((2, 1, 7, 6), op_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            expected_circuit, (2, 1, 7, 6), {d_0_1_3_3: 1}, op_mapper, 1
+            expected_circuit, {d_0_1_3_3: 1}, operator_2_1_7_6, 1
         )
+        operator_2_3_5_4 = _create_operator((2, 3, 5, 4), op_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            expected_circuit, (2, 3, 5, 4), {d_1_1_2_2: 1}, op_mapper, 1
+            expected_circuit, {d_1_1_2_2: 1}, operator_2_3_5_4, 1
         )
+        operator_2_3_7_4 = _create_operator((2, 3, 7, 4), op_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            expected_circuit, (2, 3, 7, 4), {d_1_1_2_3: 1}, op_mapper, 1
+            expected_circuit, {d_1_1_2_3: 1}, operator_2_3_7_4, 1
         )
+        operator_2_3_5_6 = _create_operator((2, 3, 5, 6), op_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            expected_circuit, (2, 3, 5, 6), {d_1_1_2_3: 1}, op_mapper, 1
+            expected_circuit, {d_1_1_2_3: 1}, operator_2_3_5_6, 1
         )
+        operator_2_3_7_6 = _create_operator((2, 3, 7, 6), op_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            expected_circuit, (2, 3, 7, 6), {d_1_1_3_3: 1}, op_mapper, 1
+            expected_circuit, {d_1_1_3_3: 1}, operator_2_3_7_6, 1
         )
+        operator_0_2_6_4 = _create_operator((0, 2, 6, 4), op_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            expected_circuit, (0, 2, 6, 4), {d_0_1_2_3: 1, d_0_1_3_2: -1}, op_mapper, 1
+            expected_circuit, {d_0_1_2_3: 1, d_0_1_3_2: -1}, operator_0_2_6_4, 1
         )
+        operator_1_3_7_5 = _create_operator((1, 3, 7, 5), op_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            expected_circuit, (1, 3, 7, 5), {d_0_1_2_3: 1, d_0_1_3_2: -1}, op_mapper, 1
+            expected_circuit, {d_0_1_2_3: 1, d_0_1_3_2: -1}, operator_1_3_7_5, 1
         )
 
         assert circuit.parameter_count == expected_circuit.parameter_count == 14

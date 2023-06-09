@@ -45,16 +45,17 @@ def add_exp_excitation_gates_trotter_decomposition(
 
 def add_exp_pauli_gates_from_linear_mapped_function(
     circuit: LinearMappedUnboundParametricQuantumCircuit,
-    exc: Union[SingleExcitation, DoubleExcitation],
     param_fn: dict[Parameter, float],
-    operator_mapper: OpenFermionQubitOperatorMapper,
+    qp_operator: Operator,
     coeff: float,
 ) -> None:
-    qp_operator = _create_operator(exc, operator_mapper)
     for pauli, op_coeff in qp_operator.items():
+        if str(pauli) == "I":
+            # This corresponds to a global phase.
+            continue
         pauli_index_list, pauli_id_list = zip(*pauli)
         new_param_mapping = {
-            param: -2 * op_coeff.imag * old_coeff * coeff
+            param: -2 * op_coeff.real * old_coeff * coeff
             for param, old_coeff in param_fn.items()
         }
         circuit.add_ParametricPauliRotation_gate(

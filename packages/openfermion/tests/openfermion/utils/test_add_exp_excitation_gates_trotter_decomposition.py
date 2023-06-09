@@ -331,14 +331,18 @@ class TestAddExpPauliGatesFromLinearMappedFunctions:
         circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
         param1 = circuit.add_parameter("param1")
         param2 = circuit.add_parameter("param2")
+
+        operator_1 = _create_operator((0, 1, 2, 3), jw_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            circuit, (0, 1, 2, 3), {param1: 4}, jw_mapper, coeff=0.5
+            circuit, {param1: 4}, operator_1, coeff=0.5
         )
+        operator_2 = _create_operator((2, 3, 4, 5), jw_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            circuit, (2, 3, 4, 5), {param2: -2}, jw_mapper, coeff=0.4
+            circuit, {param2: -2}, operator_2, coeff=0.4
         )
+        operator_3 = _create_operator((0, 1, 3, 4), jw_mapper) * -1j
         add_exp_pauli_gates_from_linear_mapped_function(
-            circuit, (0, 1, 3, 4), {param1: 1, param2: -3}, jw_mapper, coeff=-2
+            circuit, {param1: 1, param2: -3}, operator_3, coeff=-2.0
         )
 
         expected_circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)

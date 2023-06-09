@@ -24,6 +24,7 @@ from ..utils import (
     add_exp_excitation_gates_trotter_decomposition,
     add_exp_pauli_gates_from_linear_mapped_function,
 )
+from ..utils.add_exp_excitation_gates_trotter_decomposition import _create_operator
 
 
 class TrotterSingletUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
@@ -179,17 +180,18 @@ def _construct_spin_symmetric_circuit(
                 param_fnc = {
                     added_parameter_map[name]: coeff for name, coeff in fnc_list
                 }
+                real_operator = _create_operator(exc, op_mapper) * -1j
                 add_exp_pauli_gates_from_linear_mapped_function(
-                    circuit, exc, param_fnc, op_mapper, 1 / trotter_number
+                    circuit, param_fnc, real_operator, 1 / trotter_number
                 )
 
         for d_exc, fnc_list in d_exc_param_fn_map.items():
             param_fnc = {added_parameter_map[name]: coeff for name, coeff in fnc_list}
+            real_operator = _create_operator(d_exc, op_mapper) * -1j
             add_exp_pauli_gates_from_linear_mapped_function(
                 circuit,
-                d_exc,
                 param_fnc,
-                op_mapper,
+                real_operator,
                 1 / trotter_number,
             )
 
@@ -227,8 +229,7 @@ def spin_symmetric_parameters(
         if i % 2 == j % 2 == b % 2 == a % 2:
             same_spin_recorder.append((i, j, b, a))
             continue
-        """Convention: i j b^ a^ contracts with t[i, j, a, b]
-        """
+        # Convention: i j b^ a^ contracts with t[i, j, a, b]
         if f"d_{j//2}_{i//2}_{b//2}_{a//2}" not in d_sz_symmetric_set:
             param_name = f"d_{i//2}_{j//2}_{a//2}_{b//2}"
             d_sz_symmetric_set.append(param_name)
