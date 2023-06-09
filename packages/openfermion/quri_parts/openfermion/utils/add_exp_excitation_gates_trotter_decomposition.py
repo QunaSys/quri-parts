@@ -47,7 +47,7 @@ def add_exp_pauli_gates_from_linear_mapped_function(
     circuit: LinearMappedUnboundParametricQuantumCircuit,
     param_fn: dict[Parameter, float],
     qp_operator: Operator,
-    coeff: float,
+    coeff: float = 1,
 ) -> None:
     for pauli, op_coeff in qp_operator.items():
         if str(pauli) == "I":
