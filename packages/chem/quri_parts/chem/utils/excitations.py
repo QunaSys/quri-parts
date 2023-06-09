@@ -78,10 +78,8 @@ def spin_symmetric_excitations(
     ):
         if sz[a] == sz[b] == sz[i] == sz[j] and b > a and j > i:
             doubles.append((i, j, b, a))
-            continue
-        if sz[i] == sz[a] == 0.5 and sz[j] == sz[b] == -0.5:
+        elif sz[i] == sz[a] == 0.5 and sz[j] == sz[b] == -0.5:
             doubles.append((i, j, b, a))
-            continue
         else:
             continue
 
