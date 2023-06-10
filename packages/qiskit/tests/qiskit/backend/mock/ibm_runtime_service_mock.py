@@ -9,11 +9,12 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# The functionality of `mock_get_backend` contained in the file has been
+# modified from the original.
 """Mock for qiskit_ibm_runtime.QiskitRuntimeService."""
 
 from unittest.mock import MagicMock
 
-import qiskit_ibm_runtime
 from qiskit.test import mock as backend_mocks
 from qiskit_ibm_runtime import QiskitRuntimeService
 
@@ -46,5 +47,4 @@ def mock_get_backend(backend: str) -> QiskitRuntimeService:
     fake_backend = getattr(backend_mocks, backend)()
     mock_qiskit_runtime_service.backend.return_value = fake_backend
     mock_qiskit_runtime_service.return_value = mock_qiskit_runtime_service
-    qiskit_ibm_runtime.QiskitRuntimeService = mock_qiskit_runtime_service
     return mock_qiskit_runtime_service

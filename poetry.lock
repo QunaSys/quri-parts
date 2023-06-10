@@ -3484,21 +3484,21 @@ dask = ["dask", "distributed"]
 
 [[package]]
 name = "qiskit-ibm-runtime"
-version = "0.9.0"
+version = "0.9.4"
 description = "IBM Quantum client for Qiskit Runtime."
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "qiskit-ibm-runtime-0.9.0.tar.gz", hash = "sha256:f5b63efbb34e09e8aaf5e123ab8af42286d9250883a2bafb8ebdd73540899882"},
-    {file = "qiskit_ibm_runtime-0.9.0-py3-none-any.whl", hash = "sha256:270261468974de3a65852fd4de21d4cf3891f665dca48be5753893faa8838697"},
+    {file = "qiskit-ibm-runtime-0.9.4.tar.gz", hash = "sha256:5aa69ee8199556306378644e8dc773c901424bf2d49e5d68ff74b4c34bb1ddd5"},
+    {file = "qiskit_ibm_runtime-0.9.4-py3-none-any.whl", hash = "sha256:5d216c15b0f9217a567cf07a9660b458efe3e9d2b87addfa1aa6beabf6c16e8f"},
 ]
 
 [package.dependencies]
 ibm-platform-services = ">=0.22.6"
 numpy = "<1.24"
 python-dateutil = ">=2.8.0"
-qiskit-terra = ">=0.23.1"
+qiskit-terra = ">=0.24.0"
 requests = ">=2.19"
 requests-ntlm = ">=1.1.0"
 typing-extensions = ">=4.0.0"
@@ -3871,8 +3871,8 @@ develop = true
 
 [package.dependencies]
 numpy = ">=1.22.0"
-qiskit = "0.43.0"
-qiskit-ibm-runtime = "0.9.0"
+qiskit = "^0.43.0"
+qiskit-ibm-runtime = "^0.9.4"
 quri-parts-circuit = "*"
 
 [package.source]
@@ -4906,4 +4906,4 @@ stim = ["quri-parts-stim"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9.8,<3.12"
-content-hash = "c8ae11d348ce78af6a63ec847e2db52b68ca71e3ae831fa7b352d0d0f7364489"
+content-hash = "6aed5a4550122d3997dcc5f1e18358dc091feaf67a3d0b152174f71612f03ece"

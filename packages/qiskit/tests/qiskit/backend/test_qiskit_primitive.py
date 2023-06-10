@@ -9,10 +9,10 @@
 # limitations under the License.
 
 from unittest.mock import MagicMock
-import pytest
 
+import pytest
 from qiskit.test.reference_circuits import ReferenceCircuits
-from qiskit_ibm_runtime import QiskitRuntimeService, Sampler, Session
+from qiskit_ibm_runtime import Options, QiskitRuntimeService, Sampler, Session
 from qiskit_ibm_runtime.runtime_job import JobStatus, RuntimeJob
 
 from quri_parts.backend import CompositeSamplingJob
@@ -177,3 +177,50 @@ class TestQiskitPrimitive:
 
             expected_counts = {1: 10}
             assert counts == expected_counts
+
+    def test_sampler_options_dict(self) -> None:
+        runtime_service = mock_get_backend("FakeVigo")
+        service = runtime_service()
+        backend = service.backend()
+
+        options_dict = {"resilience_level": 1, "optimization_level": 2}
+
+        sampler = QiskitRuntimeSamplingBackend(
+            backend=backend, service=service, sampler_options=options_dict
+        )
+
+        saved_options = sampler._qiskit_sampler_options
+
+        assert isinstance(saved_options, Options)
+        assert saved_options.resilience_level == 1
+        assert saved_options.optimization_level == 2
+
+    def test_sampler_options_qiskit_options(self) -> None:
+        runtime_service = mock_get_backend("FakeVigo")
+        service = runtime_service()
+        backend = service.backend()
+
+        qiskit_options = Options()
+        qiskit_options.resilience_level = 1
+        qiskit_options.optimization_level = 2
+
+        sampler = QiskitRuntimeSamplingBackend(
+            backend=backend, service=service, sampler_options=qiskit_options
+        )
+
+        saved_options = sampler._qiskit_sampler_options
+
+        assert isinstance(saved_options, Options)
+        assert saved_options.resilience_level == 1
+        assert saved_options.optimization_level == 2
+
+    def test_sampler_options_none(self) -> None:
+        runtime_service = mock_get_backend("FakeVigo")
+        service = runtime_service()
+        backend = service.backend()
+
+        sampler = QiskitRuntimeSamplingBackend(
+            backend=backend, service=service, sampler_options=None
+        )
+
+        assert sampler._qiskit_sampler_options is None
