@@ -10,9 +10,9 @@
 
 from abc import ABC, abstractmethod, abstractproperty
 from collections.abc import Sequence
-from typing import Optional, Protocol, TypeGuard, Union
+from typing import Optional, Protocol, Union
 
-from typing_extensions import TypeAlias
+from typing_extensions import TypeAlias, TypeGuard
 
 from .gate import ParametricQuantumGate, QuantumGate
 from .gates import (
