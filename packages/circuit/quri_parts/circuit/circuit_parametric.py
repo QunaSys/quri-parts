@@ -136,6 +136,12 @@ class UnboundParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
         """Returns a new combined circuit with the given gates added."""
         ...
 
+    def __radd__(
+        self, gates: Union[GateSequence, "UnboundParametricQuantumCircuitProtocol"]
+    ) -> "UnboundParametricQuantumCircuitProtocol":
+        """Returns a new combined circuit with the given gates added."""
+        ...
+
 
 class MutableUnboundParametricQuantumCircuitProtocol(
     UnboundParametricQuantumCircuitProtocol, MutableQuantumCircuitProtocol, Protocol
@@ -251,12 +257,17 @@ class UnboundParametricQuantumCircuitBase(UnboundParametricQuantumCircuitProtoco
 
     def __radd__(
         self,
-        gates: Union[GateSequence, "UnboundParametricQuantumCircuitBase"],
+        gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol],
     ) -> "UnboundParametricQuantumCircuit":
-        combined_circuit = UnboundParametricQuantumCircuit(self.qubit_count)
-        combined_circuit.extend(gates)
-        combined_circuit.extend(self)
-        return combined_circuit
+        if isinstance(gates, UnboundParametricQuantumCircuitBase) or is_gate_sequence(
+            gates
+        ):
+            combined_circuit = UnboundParametricQuantumCircuit(self.qubit_count)
+            combined_circuit.extend(gates)
+            combined_circuit.extend(self)
+            return combined_circuit
+        else:
+            return NotImplemented
 
 
 class UnboundParametricQuantumCircuit(
