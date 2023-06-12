@@ -19,7 +19,7 @@ from quri_parts.core.operator import Operator, pauli_label, truncate
 from quri_parts.openfermion.ansatz.uccsd import (
     UCCSD,
     _construct_circuit,
-    _construct_spin_symmetric_circuit,
+    _construct_singlet_excitation_circuit,
 )
 from quri_parts.openfermion.transforms import (
     OpenFermionQubitMapping,
@@ -145,7 +145,7 @@ class TestConstructSpinSymmetricCircuit:
         trotter_number = 1
         use_singles = True
 
-        circuit = _construct_spin_symmetric_circuit(
+        circuit = _construct_singlet_excitation_circuit(
             n_spin_orbitals,
             n_electrons,
             fermion_qubit_mapping,
@@ -417,9 +417,9 @@ class TestSingletUCCSD:
             n_spin_orbitals,
             n_electrons,
             trotter_number=trotter_number,
-            spin_symmetric=True,
+            singlet_excitation=True,
         )
-        expected_ansatz = _construct_spin_symmetric_circuit(
+        expected_ansatz = _construct_singlet_excitation_circuit(
             n_spin_orbitals,
             n_electrons,
             jordan_wigner,
@@ -449,10 +449,10 @@ class TestSingletUCCSD:
             n_spin_orbitals,
             n_electrons,
             trotter_number=trotter_number,
-            spin_symmetric=True,
+            singlet_excitation=True,
             fermion_qubit_mapping=bravyi_kitaev,
         )
-        expected_ansatz = _construct_spin_symmetric_circuit(
+        expected_ansatz = _construct_singlet_excitation_circuit(
             n_spin_orbitals,
             n_electrons,
             bravyi_kitaev,

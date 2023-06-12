@@ -82,7 +82,7 @@ class UCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
         fermion_qubit_mapping: OpenFermionQubitMapping = jordan_wigner,
         trotter_number: int = 1,
         use_singles: bool = True,
-        spin_symmetric: bool = False,
+        singlet_excitation: bool = False,
     ):
         n_vir_sorbs = n_spin_orbitals - n_fermions
 
@@ -93,14 +93,14 @@ class UCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
             raise ValueError("Number of virtual orbitals must be a non-zero integer.")
 
         circuit = (
-            _construct_spin_symmetric_circuit(
+            _construct_singlet_excitation_circuit(
                 n_spin_orbitals,
                 n_fermions,
                 fermion_qubit_mapping,
                 trotter_number,
                 use_singles,
             )
-            if spin_symmetric
+            if singlet_excitation
             else _construct_circuit(
                 n_spin_orbitals,
                 n_fermions,
@@ -145,7 +145,7 @@ def _construct_circuit(
     return circuit
 
 
-def _construct_spin_symmetric_circuit(
+def _construct_singlet_excitation_circuit(
     n_spin_orbitals: int,
     n_fermions: int,
     fermion_qubit_mapping: OpenFermionQubitMapping,
