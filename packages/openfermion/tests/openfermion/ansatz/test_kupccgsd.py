@@ -184,3 +184,59 @@ class TestkUpCCGSD:
         bound_ansatz = ansatz.bind_parameters(param_vals)
         expected_bound_ansatz = expected_ansatz.bind_parameters(param_vals)
         assert bound_ansatz == expected_bound_ansatz
+
+    def test_singlet_excited_kupccgsd_k1_trotter1(self) -> None:
+        n_spin_orbitals = 4
+        n_electrons = 2
+        ansatz = KUpCCGSD(
+            n_spin_orbitals,
+            n_electrons,
+            spin_symmetric=True
+        )
+        expected_ansatz = LinearMappedUnboundParametricQuantumCircuit(
+            n_spin_orbitals
+        )
+        params = expected_ansatz.add_parameters(*[f"param{i}" for i in range(2)])
+        expected_ansatz.add_ParametricPauliRotation_gate(
+            (0, 1, 2), (2, 3, 1), {params[0]: -1}
+        )
+        expected_ansatz.add_ParametricPauliRotation_gate(
+            (0, 1, 2), (1, 3, 2), {params[0]: +1}
+        )
+        expected_ansatz.add_ParametricPauliRotation_gate(
+            (2, 1, 3), (3, 2, 1), {params[0]: -1}
+        )
+        expected_ansatz.add_ParametricPauliRotation_gate(
+            (2, 1, 3), (3, 1, 2), {params[0]: +1}
+        )
+        expected_ansatz.add_ParametricPauliRotation_gate(
+            (0, 1, 3, 2), (1, 1, 1, 2), {params[1]: -0.25}
+        )
+        expected_ansatz.add_ParametricPauliRotation_gate(
+            (3, 0, 1, 2), (1, 2, 2, 2), {params[1]: +0.25}
+        )
+        expected_ansatz.add_ParametricPauliRotation_gate(
+            (1, 3, 0, 2), (1, 1, 2, 1), {params[1]: +0.25}
+        )
+        expected_ansatz.add_ParametricPauliRotation_gate(
+            (0, 3, 1, 2), (1, 1, 2, 1), {params[1]: +0.25}
+        )
+        expected_ansatz.add_ParametricPauliRotation_gate(
+            (1, 0, 3, 2), (1, 2, 2, 2), {params[1]: -0.25}
+        )
+        expected_ansatz.add_ParametricPauliRotation_gate(
+            (0, 3, 1, 2), (1, 2, 2, 2), {params[1]: -0.25}
+        )
+        expected_ansatz.add_ParametricPauliRotation_gate(
+            (0, 1, 2, 3), (1, 1, 1, 2), {params[1]: -0.25}
+        )
+        expected_ansatz.add_ParametricPauliRotation_gate(
+            (0, 1, 2, 3), (2, 2, 1, 2), {params[1]: +0.25}
+        )
+
+        assert ansatz.parameter_count == expected_ansatz.parameter_count
+        assert ansatz._circuit.gates == expected_ansatz._circuit.gates
+        param_vals = [0.1 * (i + 1) for i in range(ansatz.parameter_count)]
+        bound_ansatz = ansatz.bind_parameters(param_vals)
+        expected_bound_ansatz = expected_ansatz.bind_parameters(param_vals)
+        assert bound_ansatz == expected_bound_ansatz
