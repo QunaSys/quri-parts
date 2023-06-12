@@ -105,7 +105,7 @@ class NormalizeRotationTranspiler(GateKindDecomposer):
     def _normalize(self, theta: float) -> float:
         t = theta % (np.pi * 2.0)
         # For boundary, take lower limit.
-        t = t - self._width if not t < self._upper else t
+        t = t - (np.pi * 2.0) if not t < self._upper else t
         return t
 
     def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
