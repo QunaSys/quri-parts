@@ -27,7 +27,7 @@ from ..utils import (
 from ..utils.add_exp_excitation_gates_trotter_decomposition import _create_operator
 
 
-class TrotterSingletUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
+class UCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
     """Unitary coupled-cluster singles and doubles (UCCSD) ansatz. The ansatz
     consists of the exponentials of single excitation and double excitation
     operator decomposed by first-order Trotter product formula. Note that the ansatz

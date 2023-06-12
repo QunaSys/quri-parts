@@ -8,16 +8,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Sequence
+
 import pytest
+from openfermion import FermionOperator
 
 from quri_parts.chem.utils.excitations import excitations
 from quri_parts.circuit import LinearMappedUnboundParametricQuantumCircuit
+from quri_parts.core.operator import Operator, pauli_label, truncate
 from quri_parts.openfermion.ansatz.uccsd import (
-    TrotterSingletUCCSD,
+    UCCSD,
     _construct_circuit,
     _construct_spin_symmetric_circuit,
 )
 from quri_parts.openfermion.transforms import (
+    OpenFermionQubitMapping,
     bravyi_kitaev,
     jordan_wigner,
     symmetry_conserving_bravyi_kitaev,
@@ -279,14 +284,12 @@ class TestConstructSpinSymmetricCircuit:
         assert bound_circuit.gates == expected_bound_circuit.gates
 
 
-class TestTrotterSingletUCCSD:
+class TestUCCSD:
     def test_trotter_singlet_uccsd_w_singles_jw(self) -> None:
         n_spin_orbitals = 4
         n_electrons = 2
         trotter_number = 1
-        ansatz = TrotterSingletUCCSD(
-            n_spin_orbitals, n_electrons, trotter_number=trotter_number
-        )
+        ansatz = UCCSD(n_spin_orbitals, n_electrons, trotter_number=trotter_number)
         expected_ansatz = _construct_circuit(
             n_spin_orbitals,
             n_electrons,
@@ -305,7 +308,7 @@ class TestTrotterSingletUCCSD:
         n_spin_orbitals = 4
         n_electrons = 2
         trotter_number = 1
-        ansatz = TrotterSingletUCCSD(
+        ansatz = UCCSD(
             n_spin_orbitals,
             n_electrons,
             bravyi_kitaev,
@@ -330,7 +333,7 @@ class TestTrotterSingletUCCSD:
         n_spin_orbitals = 4
         n_electrons = 2
         trotter_number = 2
-        ansatz = TrotterSingletUCCSD(
+        ansatz = UCCSD(
             n_spin_orbitals,
             n_electrons,
             symmetry_conserving_bravyi_kitaev,
@@ -352,15 +355,65 @@ class TestTrotterSingletUCCSD:
 
     def test_singlet_uccsd_invalid_input(self) -> None:
         with pytest.raises(ValueError):
-            TrotterSingletUCCSD(4, 3)
+            UCCSD(4, 3)
         with pytest.raises(ValueError):
-            TrotterSingletUCCSD(4, 4)
+            UCCSD(4, 4)
 
-    def test_spin_symmetric_uccsd_trotter_1(self) -> None:
+
+class TestSingletUCCSD:
+    @staticmethod
+    def check_is_singlet(
+        uccsd_ansatz: UCCSD,
+        n_spin_orbs: int,
+        n_fermions: int,
+        parameters: Sequence[float],
+        operator_mapping: OpenFermionQubitMapping,
+    ) -> bool:
+        # Build spin operators
+        Sx = 0
+        for i in range(0, 8, 2):
+            Sx += 0.5 * FermionOperator([(i + 1, 1)]) * FermionOperator([(i, 0)])
+            Sx += 0.5 * FermionOperator([(i, 1)]) * FermionOperator([(i + 1, 0)])
+
+        Sy = 0
+        for i in range(0, 8, 2):
+            Sy += -0.5j * FermionOperator([(i, 1)]) * FermionOperator([(i + 1, 0)])
+            Sy += 0.5j * FermionOperator([(i + 1, 1)]) * FermionOperator([(i, 0)])
+
+        Sz = 0
+        for i in range(8):
+            Sz += (
+                (-1) ** (i % 2) * FermionOperator([(i, 1)]) * FermionOperator([(i, 0)])
+            )
+
+        operator_mapper = operator_mapping.get_of_operator_mapper(
+            n_spin_orbs, n_fermions
+        )
+        s2_operator = operator_mapper(Sx * Sx + Sy * Sy + Sz * Sz)
+
+        # Sum all exponents together
+        pauli_map = {1: "X", 2: "Y", 3: "Z"}
+        bound_ansatz = uccsd_ansatz.bind_parameters(parameters)
+
+        uccsd_excitation_generator = Operator({})
+        for g in bound_ansatz.gates:
+            pauli_str = ""
+            for idx, pauli in zip(g.target_indices, g.pauli_ids):
+                pauli_str = pauli_str + (pauli_map[pauli] + str(idx)) + " "
+            uccsd_excitation_generator.add_term(pauli_label(pauli_str), g.params[0])
+
+        commutator = (
+            uccsd_excitation_generator * s2_operator
+            - s2_operator * uccsd_excitation_generator
+        )
+        commutator = truncate(commutator, atol=1e-15)
+        return len(commutator) == 0
+
+    def test_sinlget_excited_uccsd_trotter_1(self) -> None:
         n_spin_orbitals = 8
         n_electrons = 4
         trotter_number = 1
-        ansatz = TrotterSingletUCCSD(
+        ansatz = UCCSD(
             n_spin_orbitals,
             n_electrons,
             trotter_number=trotter_number,
@@ -380,11 +433,19 @@ class TestTrotterSingletUCCSD:
         expected_bound_ansatz = expected_ansatz.bind_parameters(param_vals)
         assert bound_ansatz == expected_bound_ansatz
 
-    def test_spin_symmetric_uccsd_trotter_2(self) -> None:
+        assert self.check_is_singlet(
+            ansatz,
+            n_spin_orbitals,
+            n_electrons,
+            param_vals,
+            operator_mapping=jordan_wigner,
+        )
+
+    def test_sinlget_excited_uccsd_trotter_2(self) -> None:
         n_spin_orbitals = 8
         n_electrons = 4
         trotter_number = 1
-        ansatz = TrotterSingletUCCSD(
+        ansatz = UCCSD(
             n_spin_orbitals,
             n_electrons,
             trotter_number=trotter_number,
@@ -404,3 +465,11 @@ class TestTrotterSingletUCCSD:
         bound_ansatz = ansatz.bind_parameters(param_vals)
         expected_bound_ansatz = expected_ansatz.bind_parameters(param_vals)
         assert bound_ansatz == expected_bound_ansatz
+
+        assert self.check_is_singlet(
+            ansatz,
+            n_spin_orbitals,
+            n_electrons,
+            param_vals,
+            operator_mapping=bravyi_kitaev,
+        )
