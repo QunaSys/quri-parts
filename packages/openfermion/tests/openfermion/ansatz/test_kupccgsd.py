@@ -13,6 +13,7 @@ from quri_parts.openfermion.ansatz.kupccgsd import (
     KUpCCGSD,
     _generalized_pair_double_excitations,
     _generalized_single_excitations,
+    get_independent_excitations,
 )
 from quri_parts.openfermion.transforms import symmetry_conserving_bravyi_kitaev
 
@@ -69,6 +70,21 @@ def test_generalized_pair_double_excitations() -> None:
         (4, 5, 0, 1),
         (4, 5, 2, 3),
     ]
+
+
+def test_get_independent_excitations() -> None:
+    s_exc = _generalized_single_excitations(4, 0)
+    d_exc = _generalized_pair_double_excitations(4)
+    (
+        single_excitation_parameters,
+        single_excitation_parameter_names,
+        double_excitation_parameters,
+        double_excitation_parameter_names,
+    ) = get_independent_excitations(s_exc, d_exc, 1)
+    assert set(single_excitation_parameters) == {(0, 2), (1, 3)}
+    assert set(single_excitation_parameter_names) == {"t1_1_2_0", "t1_1_3_1"}
+    assert set(double_excitation_parameters) == {(0, 1, 2, 3)}
+    assert set(double_excitation_parameter_names) == {"t2_1_3_2_1_0"}
 
 
 class TestkUpCCGSD:
@@ -188,14 +204,8 @@ class TestkUpCCGSD:
     def test_singlet_excited_kupccgsd_k1_trotter1(self) -> None:
         n_spin_orbitals = 4
         n_electrons = 2
-        ansatz = KUpCCGSD(
-            n_spin_orbitals,
-            n_electrons,
-            spin_symmetric=True
-        )
-        expected_ansatz = LinearMappedUnboundParametricQuantumCircuit(
-            n_spin_orbitals
-        )
+        ansatz = KUpCCGSD(n_spin_orbitals, n_electrons, spin_symmetric=True)
+        expected_ansatz = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
         params = expected_ansatz.add_parameters(*[f"param{i}" for i in range(2)])
         expected_ansatz.add_ParametricPauliRotation_gate(
             (0, 1, 2), (2, 3, 1), {params[0]: -1}
@@ -240,3 +250,82 @@ class TestkUpCCGSD:
         bound_ansatz = ansatz.bind_parameters(param_vals)
         expected_bound_ansatz = expected_ansatz.bind_parameters(param_vals)
         assert bound_ansatz == expected_bound_ansatz
+
+        param_name_set = set()
+        for param in ansatz.param_mapping.in_params:
+            param_name_set.add(param.name)
+        assert param_name_set == {"spatialt1_0_1_0", "t2_0_3_2_1_0"}
+
+    def test_singlet_excited_kupccgsd_k2_trotter2_scbk(self) -> None:
+        n_spin_orbitals = 4
+        n_electrons = 2
+        k = 2
+        ansatz = KUpCCGSD(
+            n_spin_orbitals,
+            n_electrons,
+            k,
+            fermion_qubit_mapping=symmetry_conserving_bravyi_kitaev,
+            trotter_number=2,
+            spin_symmetric=True,
+        )
+        expected_ansatz = LinearMappedUnboundParametricQuantumCircuit(
+            n_spin_orbitals - 2
+        )
+        params = expected_ansatz.add_parameters(*[f"param{i}" for i in range(4)])
+        for i in range(k):
+            expected_ansatz.add_ParametricPauliRotation_gate(
+                qubit_indices=(0,),
+                pauli_ids=(2,),
+                angle={params[i * 2 + 0]: -1},
+            )
+            expected_ansatz.add_ParametricPauliRotation_gate(
+                qubit_indices=(1,),
+                pauli_ids=(2,),
+                angle={params[i * 2 + 0]: -1},
+            )
+            expected_ansatz.add_ParametricPauliRotation_gate(
+                qubit_indices=(0, 1),
+                pauli_ids=(1, 2),
+                angle={params[i * 2 + 1]: 0.5},
+            )
+            expected_ansatz.add_ParametricPauliRotation_gate(
+                qubit_indices=(1, 0),
+                pauli_ids=(1, 2),
+                angle={params[i * 2 + 1]: 0.5},
+            )
+            expected_ansatz.add_ParametricPauliRotation_gate(
+                qubit_indices=(0,),
+                pauli_ids=(2,),
+                angle={params[i * 2 + 0]: -1},
+            )
+            expected_ansatz.add_ParametricPauliRotation_gate(
+                qubit_indices=(1,),
+                pauli_ids=(2,),
+                angle={params[i * 2 + 0]: -1},
+            )
+            expected_ansatz.add_ParametricPauliRotation_gate(
+                qubit_indices=(0, 1),
+                pauli_ids=(1, 2),
+                angle={params[i * 2 + 1]: 0.5},
+            )
+            expected_ansatz.add_ParametricPauliRotation_gate(
+                qubit_indices=(1, 0),
+                pauli_ids=(1, 2),
+                angle={params[i * 2 + 1]: 0.5},
+            )
+        assert ansatz.parameter_count == expected_ansatz.parameter_count
+        assert ansatz._circuit.gates == expected_ansatz._circuit.gates
+        param_vals = [0.1 * (i + 1) for i in range(ansatz.parameter_count)]
+        bound_ansatz = ansatz.bind_parameters(param_vals)
+        expected_bound_ansatz = expected_ansatz.bind_parameters(param_vals)
+        assert bound_ansatz == expected_bound_ansatz
+
+        param_name_set = set()
+        for param in ansatz.param_mapping.in_params:
+            param_name_set.add(param.name)
+        assert param_name_set == {
+            "spatialt1_0_1_0",
+            "t2_0_3_2_1_0",
+            "spatialt1_1_1_0",
+            "t2_1_3_2_1_0",
+        }
