@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Mapping, MutableMapping
+from collections.abc import Mapping
 from typing import Any, Optional, Sequence
 
 import qiskit
@@ -34,6 +34,7 @@ from .saved_sampling import (
     encode_saved_data_job_sequence_to_json,
 )
 from .utils import (
+    convert_qiskit_sampling_count_to_qp_sampling_count,
     distribute_backend_shots,
     get_backend_min_max_shot,
     get_qubit_mapper_and_circuit_transpiler,
@@ -51,10 +52,7 @@ class QiskitSamplingResult(SamplingResult):
     @property
     def counts(self) -> SamplingCounts:
         qiskit_counts = self._qiskit_result.get_counts()
-        measurements: MutableMapping[int, int] = {}
-        for result in qiskit_counts:
-            measurements[int(result, 2)] = qiskit_counts[result]
-        return measurements
+        return convert_qiskit_sampling_count_to_qp_sampling_count(qiskit_counts)
 
 
 class QiskitSamplingJob(SamplingJob):

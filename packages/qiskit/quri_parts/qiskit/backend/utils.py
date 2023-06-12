@@ -8,11 +8,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Mapping, Optional, Sequence
+from typing import Callable, Mapping, MutableMapping, Optional, Sequence
 
 from qiskit.providers.backend import Backend, BackendV1, BackendV2
 
-from quri_parts.backend import BackendError, SamplingJob
+from quri_parts.backend import BackendError, SamplingCounts, SamplingJob
 from quri_parts.backend.qubit_mapping import BackendQubitMapping, QubitMappedSamplingJob
 from quri_parts.circuit.transpile import CircuitTranspiler, SequentialTranspiler
 from quri_parts.qiskit.circuit import QiskitTranspiler
@@ -79,3 +79,12 @@ def get_qubit_mapper_and_circuit_transpiler(
             [SamplingJob], SamplingJob
         ] = lambda job: job  # noqa: E731
         return simple_job_qubit_mapper, circuit_transpiler
+
+
+def convert_qiskit_sampling_count_to_qp_sampling_count(
+    qiskit_counts: Mapping[str, int]
+) -> SamplingCounts:
+    measurements: MutableMapping[int, int] = {}
+    for result in qiskit_counts:
+        measurements[int(result, 2)] = qiskit_counts[result]
+    return measurements

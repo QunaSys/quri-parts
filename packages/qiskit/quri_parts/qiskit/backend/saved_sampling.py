@@ -10,7 +10,6 @@
 
 import json
 from collections import defaultdict
-from collections.abc import MutableMapping
 from typing import Any, Mapping, Optional, Sequence
 
 import qiskit
@@ -31,6 +30,7 @@ from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.qiskit.circuit import QiskitCircuitConverter, convert_circuit
 
 from .utils import (
+    convert_qiskit_sampling_count_to_qp_sampling_count,
     distribute_backend_shots,
     get_backend_min_max_shot,
     get_qubit_mapper_and_circuit_transpiler,
@@ -50,10 +50,7 @@ class QiskitSavedDataSamplingResult(SamplingResult):
     def counts(self) -> SamplingCounts:
         """Convert the raw data to format that conforms to rest of the
         codes."""
-        measurements: MutableMapping[int, int] = {}
-        for result in self.raw_data:
-            measurements[int(result, 2)] = self.raw_data[result]
-        return measurements
+        return convert_qiskit_sampling_count_to_qp_sampling_count(self.raw_data)
 
 
 @dataclass
