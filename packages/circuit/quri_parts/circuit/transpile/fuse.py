@@ -103,7 +103,7 @@ class NormalizeRotationTranspiler(GateKindDecomposer):
         return [gate_names.RX, gate_names.RY, gate_names.RZ]
 
     def _normalize(self, theta: float) -> float:
-        t = theta % (2.0 * np.pi)
+        t = theta % (np.pi * 2.0)
         # For boundary, take lower limit.
         t = t - self._width if not t < self._upper else t
         return t
