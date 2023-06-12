@@ -84,13 +84,18 @@ class NormalizeRotationTranspiler(GateKindDecomposer):
 
     Args:
         cycle_range: Specify a range of width 2PI in the form of (lower limit,
-        upper limit).
+        upper limit). Lower limit is inclusive and upper limit is exclusive.
     """
 
-    def __init__(self, cycle_range: tuple[float, float] = (0.0, np.pi * 2.0)):
+    def __init__(
+        self,
+        cycle_range: tuple[float, float] = (0.0, np.pi * 2.0),
+        epsilon: float = 1.0e-9,
+    ):
         if not cycle_range[1] > cycle_range[0]:  # Do not accept 0 width.
             raise ValueError("Specify (lower limit, upper limit) for cycle_range.")
-        self._width = cycle_range[1] - cycle_range[0]
+        if abs(cycle_range[1] - cycle_range[0] - np.pi * 2.0) > epsilon:
+            raise ValueError("The width of the cycle range must be 2PI.")
         self._upper = cycle_range[1]
 
     @property
@@ -98,7 +103,7 @@ class NormalizeRotationTranspiler(GateKindDecomposer):
         return [gate_names.RX, gate_names.RY, gate_names.RZ]
 
     def _normalize(self, theta: float) -> float:
-        t = theta % self._width
+        t = theta % (2.0 * np.pi)
         # For boundary, take lower limit.
         t = t - self._width if not t < self._upper else t
         return t
