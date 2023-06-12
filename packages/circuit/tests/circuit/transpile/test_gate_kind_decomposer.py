@@ -461,9 +461,8 @@ class TestRZSetTranspile:
                 CNOT(1, 2),
                 RZ(2, -np.pi / 4.0),  # Tdag
                 CNOT(0, 2),
-                RZ(1, np.pi / 4.0),  # T
-                RZ(2, np.pi / 4.0),  # T
-                RZ(2, np.pi / 2.0),  # H
+                RZ(1, np.pi / 4.0),  # T, H
+                RZ(2, np.pi * 3.0 / 4.0),
                 SqrtX(2),
                 RZ(2, np.pi / 2.0),
                 CNOT(0, 1),
