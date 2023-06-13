@@ -56,7 +56,7 @@ def get_backend_min_max_shot(backend: Backend) -> tuple[int, Optional[int]]:
     return 1, None
 
 
-def get_qubit_mapper_and_circuit_transpiler(
+def get_job_mapper_and_circuit_transpiler(
     qubit_mapping: Optional[Mapping[int, int]] = None,
     circuit_transpiler: Optional[CircuitTranspiler] = None,
 ) -> tuple[Callable[[SamplingJob], SamplingJob], CircuitTranspiler]:

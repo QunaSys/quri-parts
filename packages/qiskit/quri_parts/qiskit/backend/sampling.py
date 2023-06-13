@@ -37,7 +37,7 @@ from .utils import (
     convert_qiskit_sampling_count_to_qp_sampling_count,
     distribute_backend_shots,
     get_backend_min_max_shot,
-    get_qubit_mapper_and_circuit_transpiler,
+    get_job_mapper_and_circuit_transpiler,
 )
 
 
@@ -110,9 +110,9 @@ class QiskitSamplingBackend(SamplingBackend):
         self._circuit_converter = circuit_converter
 
         (
-            self._qubit_mapping,
+            self._job_mapper,
             self._circuit_transpiler,
-        ) = get_qubit_mapper_and_circuit_transpiler(qubit_mapping, circuit_transpiler)
+        ) = get_job_mapper_and_circuit_transpiler(qubit_mapping, circuit_transpiler)
 
         # shots related
         self._enable_shots_roundup = enable_shots_roundup
@@ -141,7 +141,6 @@ class QiskitSamplingBackend(SamplingBackend):
         jobs: list[QiskitSamplingJob] = []
         try:
             for s in shot_dist:
-                # Sampling mode
                 qiskit_job = self._backend.run(
                     transpiled_circuit,
                     shots=s,
@@ -162,7 +161,7 @@ class QiskitSamplingBackend(SamplingBackend):
                     pass
             raise BackendError("Qiskit Device.run failed.") from e
 
-        qubit_mapped_jobs = [self._qubit_mapping(job) for job in jobs]
+        qubit_mapped_jobs = [self._job_mapper(job) for job in jobs]
         return (
             qubit_mapped_jobs[0]
             if len(qubit_mapped_jobs) == 0

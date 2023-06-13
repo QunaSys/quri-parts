@@ -33,7 +33,7 @@ from .utils import (
     convert_qiskit_sampling_count_to_qp_sampling_count,
     distribute_backend_shots,
     get_backend_min_max_shot,
-    get_qubit_mapper_and_circuit_transpiler,
+    get_job_mapper_and_circuit_transpiler,
 )
 
 SavedDataType: TypeAlias = dict[tuple[str, int], list["QiskitSavedDataSamplingJob"]]
@@ -80,9 +80,9 @@ class QiskitSavedDataSamplingBackend(SamplingBackend):
         self._circuit_converter = circuit_converter
 
         (
-            self._qubit_mapping,
+            self._job_mapper,
             self._circuit_transpiler,
-        ) = get_qubit_mapper_and_circuit_transpiler(qubit_mapping, circuit_transpiler)
+        ) = get_job_mapper_and_circuit_transpiler(qubit_mapping, circuit_transpiler)
 
         # shots related
         self._enable_shots_roundup = enable_shots_roundup
@@ -120,7 +120,7 @@ class QiskitSavedDataSamplingBackend(SamplingBackend):
             else:
                 raise KeyError("This experiment is not in the saved data.")
 
-        jobs = [self._qubit_mapping(job) for job in jobs]
+        jobs = [self._job_mapper(job) for job in jobs]
         return jobs[0] if len(jobs) == 0 else CompositeSamplingJob(jobs)
 
     def _load_data(self, json_str: str) -> SavedDataType:
