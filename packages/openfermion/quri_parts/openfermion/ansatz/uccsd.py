@@ -82,6 +82,7 @@ class UCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
         fermion_qubit_mapping: OpenFermionQubitMapping = jordan_wigner,
         trotter_number: int = 1,
         use_singles: bool = True,
+        delta_sz: int = 0,
         singlet_excitation: bool = False,
     ):
         n_vir_sorbs = n_spin_orbitals - n_fermions
@@ -91,6 +92,9 @@ class UCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
 
         if n_vir_sorbs <= 0:
             raise ValueError("Number of virtual orbitals must be a non-zero integer.")
+
+        if delta_sz != 0 and singlet_excitation:
+            raise ValueError("Singlet excitation is only allowed when ΔSz = 0")
 
         circuit = (
             _construct_singlet_excitation_circuit(
@@ -107,6 +111,7 @@ class UCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
                 fermion_qubit_mapping,
                 trotter_number,
                 use_singles,
+                delta_sz,
             )
         )
 
@@ -119,10 +124,11 @@ def _construct_circuit(
     fermion_qubit_mapping: OpenFermionQubitMapping,
     trotter_number: int,
     use_singles: bool,
+    delta_sz: int = 0,
 ) -> LinearMappedUnboundParametricQuantumCircuit:
     n_qubits = fermion_qubit_mapping.n_qubits_required(n_spin_orbitals)
 
-    s_excs, d_excs = excitations(n_spin_orbitals, n_fermions, delta_sz=0)
+    s_excs, d_excs = excitations(n_spin_orbitals, n_fermions, delta_sz=delta_sz)
 
     circuit = LinearMappedUnboundParametricQuantumCircuit(n_qubits)
     if use_singles:
@@ -164,7 +170,7 @@ def _construct_singlet_excitation_circuit(
         s_exc_param_fn_map,
         d_params,
         d_exc_param_fn_map,
-    ) = spin_symmetric_parameters(n_spin_orbitals, n_fermions)
+    ) = singlet_excitation_parameters(n_spin_orbitals, n_fermions)
 
     added_parameter_map = {}
 
@@ -198,7 +204,7 @@ def _construct_singlet_excitation_circuit(
     return circuit
 
 
-def spin_symmetric_parameters(
+def singlet_excitation_parameters(
     n_spin_orbitals: int, n_fermions: int
 ) -> tuple[
     list[str],

@@ -9,6 +9,6 @@
 # limitations under the License.
 
 from .kupccgsd import KUpCCGSD
-from .uccsd import UCCSD, spin_symmetric_parameters
+from .uccsd import UCCSD, singlet_excitation_parameters
 
-__all__ = ["KUpCCGSD", "UCCSD", "spin_symmetric_parameters"]
+__all__ = ["KUpCCGSD", "UCCSD", "singlet_excitation_parameters"]

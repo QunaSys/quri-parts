@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from quri_parts.chem.utils.excitations import DoubleExcitation, SingleExcitation
-from quri_parts.openfermion.ansatz import spin_symmetric_parameters
+from quri_parts.openfermion.ansatz import singlet_excitation_parameters
 
 
 def single_excitation_checks(
@@ -62,7 +62,7 @@ def test_parameter_4_2() -> None:
         s_exc_param_fn_map,
         d_sz_symmetric_set,
         d_exc_param_fn_map,
-    ) = spin_symmetric_parameters(2 * (n_occ + n_vir), n_occ * 2)
+    ) = singlet_excitation_parameters(2 * (n_occ + n_vir), n_occ * 2)
 
     assert len(s_sz_symmetric_set) == n_occ * n_vir
     assert (
@@ -84,7 +84,7 @@ def test_parameter_8_4() -> None:
         s_exc_param_fn_map,
         d_sz_symmetric_set,
         d_exc_param_fn_map,
-    ) = spin_symmetric_parameters(2 * (n_occ + n_vir), n_occ * 2)
+    ) = singlet_excitation_parameters(2 * (n_occ + n_vir), n_occ * 2)
 
     assert len(s_sz_symmetric_set) == n_occ * n_vir
     assert (
@@ -106,7 +106,7 @@ def test_parameter_12_6() -> None:
         s_exc_param_fn_map,
         d_sz_symmetric_set,
         d_exc_param_fn_map,
-    ) = spin_symmetric_parameters(2 * (n_occ + n_vir), n_occ * 2)
+    ) = singlet_excitation_parameters(2 * (n_occ + n_vir), n_occ * 2)
 
     assert len(s_sz_symmetric_set) == n_occ * n_vir
     assert (
