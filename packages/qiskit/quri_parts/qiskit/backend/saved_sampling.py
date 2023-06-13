@@ -64,6 +64,73 @@ class QiskitSavedDataSamplingJob(SamplingJob):
 
 
 class QiskitSavedDataSamplingBackend(SamplingBackend):
+    """A Qiskit backend for replaying saved sampling experiment. When a sampler
+    is created with a QiskitSavedDataSamplingBackend object, the sequence of
+    (circuit, n_shots) pairs should be passed in to the sampler the same order
+    as the orginal experiment.
+
+    Example:
+        # 1. Sampling experiment
+        # 1-a: Sampling mode with data saving
+        >>> backend_device = AerSimulator()
+        >>> sampling_backend = QiskitSamplingBackend(
+        ...     backend_device, save_data_while_sampling=True
+        ... )
+        >>> sampler = create_sampler_from_sampling_backend(sampling_backend)
+
+        # 1-b: Perform sampling experiments
+        >>> sampling_count_1 = sampler(circuit_1, n_shots_1)
+        >>> sampling_count_2 = sampler(circuit_2, n_shots_2)
+        >>> sampling_count_3 = sampler(circuit_3, n_shots_3)
+
+        # 1-c: Dump sampling data
+        >>> experiment_json_str = sampling_backend.jobs_json()
+
+        # 2. Replay sampling experiment
+        # 2-a: Create sampling backend and sampler with saved data.
+        >>> saved_data_sampling_backend = QiskitSavedDataSamplingBackend(
+        ...     backend = backend_device,
+        ...     saved_data = experiment_json_str
+        ... )
+
+        >>> saved_data_sampler = create_sampler_from_sampling_backend(
+        ...    saved_data_sampling_backend
+        ... )
+
+        # 2-b: Replay sampling experiment.
+        # (circuit, n_shots) pairs are passed in to the `saved_data_sampler`
+        # the same order as they were passed in to the `sampler`.
+        >>> replayed_sampling_count_1 = sampler(circuit_1, n_shots_1)
+        >>> replayed_sampling_count_2 = sampler(circuit_2, n_shots_2)
+        >>> replayed_sampling_count_3 = sampler(circuit_3, n_shots_3)
+
+    Args:
+        backend: A Qiskit :class:`qiskit.providers.backend.Backend`
+            for circuit execution.
+        saved_data: A json string output by the `.json_str` property of
+            `:class:`~quri_parts.qiskit.backend.QiskitSamplingBackend`.
+        circuit_converter: A function converting
+            :class:`~quri_parts.circuit.NonParametricQuantumCircuit` to
+            a Qiskit :class:`qiskit.circuit.QuantumCircuit`.
+        circuit_transpiler: A transpiler applied to the circuit before running it.
+            :class:`~QiskitTranspiler` is used when not specified.
+        enable_shots_roundup: If True, when a number of shots specified to
+            :meth:`~sample` is smaller than the minimum number of shots supported by
+            the device, it is rounded up to the minimum. In this case, it is possible
+            that shots more than specified are used. If it is strictly not allowed to
+            exceed the specified shot count, set this argument to False.
+        qubit_mapping: If specified, indices of qubits in the circuit are remapped
+            before running it on the backend. It can be used when you want to use
+            specific backend qubits, e.g. those with high fidelity.
+            The mapping should be specified with "from" qubit
+            indices as keys and "to" qubit indices as values. For example, if
+            you want to map qubits 0, 1, 2, 3 to backend qubits as 0 → 4, 1 → 2,
+            2 → 5, 3 → 0, then the ``qubit_mapping`` should be
+            ``{0: 4, 1: 2, 2: 5, 3: 0}``.
+        run_kwargs: Additional keyword arguments for
+            :meth:`qiskit.providers.backend.Backend.run` method.
+    """
+
     def __init__(
         self,
         backend: Backend,

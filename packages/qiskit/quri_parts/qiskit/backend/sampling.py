@@ -92,6 +92,9 @@ class QiskitSamplingBackend(SamplingBackend):
             ``{0: 4, 1: 2, 2: 5, 3: 0}``.
         run_kwargs: Additional keyword arguments for
             :meth:`qiskit.providers.backend.Backend.run` method.
+        save_data_while_sampling: If True, the circuit, n_shots and the
+            sampling counts will be saved. Please use the `.jobs` or `.jobs_json`
+            to access the saved data.
     """
 
     def __init__(
@@ -170,6 +173,8 @@ class QiskitSamplingBackend(SamplingBackend):
 
     @property
     def jobs(self) -> Sequence[QiskitSavedDataSamplingJob]:
+        """Convert saved data to a list of QiskitSavedDataSamplingJob
+        objects."""
         job_list = []
         for circuit_qasm_str, n_shots, qiskit_sampling_job in self._saved_data:
             raw_measurement_cnt = qiskit_sampling_job._qiskit_job.result().get_counts()
@@ -186,4 +191,6 @@ class QiskitSamplingBackend(SamplingBackend):
 
     @property
     def jobs_json(self) -> str:
+        """Encodes the list of QiskitSavedDataSamplingJob objects to a json
+        string."""
         return encode_saved_data_job_sequence_to_json(self.jobs)
