@@ -10,7 +10,7 @@
 
 from abc import ABC
 from collections.abc import Iterable, Sequence
-from typing import Optional, Union, cast
+from typing import Optional, Union
 
 from .circuit import GateSequence, NonParametricQuantumCircuit
 from .circuit_parametric import (
@@ -73,22 +73,31 @@ class LinearMappedUnboundParametricQuantumCircuitBase(
         gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol],
     ) -> "LinearMappedUnboundParametricQuantumCircuit":
         circuit = LinearMappedUnboundParametricQuantumCircuit(self.qubit_count)
-        circuit.extend(self)
-        circuit.extend(gates)
+        try:
+            circuit.extend(self)
+            circuit.extend(gates)
+        except ValueError:
+            return NotImplemented
         return circuit
 
     def __add__(
         self,
         gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol],
     ) -> "LinearMappedUnboundParametricQuantumCircuit":
-        return self.combine(gates)
+        try:
+            return self.combine(gates)
+        except ValueError:
+            return NotImplemented
 
     def __radd__(
         self, gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol]
     ) -> "LinearMappedUnboundParametricQuantumCircuit":
         combined_circuit = LinearMappedUnboundParametricQuantumCircuit(self.qubit_count)
-        combined_circuit.extend(gates)
-        combined_circuit.extend(self)
+        try:
+            combined_circuit.extend(gates)
+            combined_circuit.extend(self)
+        except ValueError:
+            return NotImplemented
         return combined_circuit
 
     def bind_parameters(
@@ -212,9 +221,12 @@ class LinearMappedUnboundParametricQuantumCircuit(
                     f"Qubit count not match (self={self.qubit_count}, "
                     f"other={gates.qubit_count})."
                 )
-            self._param_mapping = self._param_mapping.combine(
-                cast(LinearParameterMapping, gates.param_mapping)
-            )
+            if isinstance(gates.param_mapping, LinearParameterMapping):
+                self._param_mapping = self._param_mapping.combine(gates.param_mapping)
+            else:
+                raise ValueError(
+                    f"Unsupported parameter mapping type: {type(gates.param_mapping)}"
+                )
             self._circuit.extend(gates.primitive_circuit())
         else:
             if isinstance(gates, NonParametricQuantumCircuit):
@@ -231,7 +243,10 @@ class LinearMappedUnboundParametricQuantumCircuit(
         self,
         gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol],
     ) -> "LinearMappedUnboundParametricQuantumCircuit":
-        self.extend(gates)
+        try:
+            self.extend(gates)
+        except ValueError:
+            return NotImplemented
         return self
 
     def freeze(self) -> "ImmutableLinearMappedUnboundParametricQuantumCircuit":
