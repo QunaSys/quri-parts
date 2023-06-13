@@ -78,7 +78,7 @@ class UnboundParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
         ...
 
     @abstractmethod
-    def primitive_circuit(self) -> "UnboundParametricQuantumCircuitProtocol":
+    def primitive_circuit(self) -> "ImmutableUnboundParametricQuantumCircuit":
         r"""Returns the parametric circuit where each gate has an independent
         parameter.
 
@@ -196,7 +196,7 @@ class UnboundParametricQuantumCircuitBase(UnboundParametricQuantumCircuitProtoco
             self._params, self._params, dict(zip(self._params, self._params))
         )
 
-    def primitive_circuit(self) -> "UnboundParametricQuantumCircuitProtocol":
+    def primitive_circuit(self) -> "ImmutableUnboundParametricQuantumCircuit":
         return self.freeze()
 
     def get_mutable_copy(self) -> "UnboundParametricQuantumCircuit":

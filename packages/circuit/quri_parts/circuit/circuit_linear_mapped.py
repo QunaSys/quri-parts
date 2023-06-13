@@ -215,9 +215,7 @@ class LinearMappedUnboundParametricQuantumCircuit(
             self._param_mapping = self._param_mapping.combine(
                 cast(LinearParameterMapping, gates.param_mapping)
             )
-            self._circuit.extend(
-                cast(UnboundParametricQuantumCircuitBase, gates.primitive_circuit())
-            )
+            self._circuit.extend(gates.primitive_circuit())
         else:
             if isinstance(gates, NonParametricQuantumCircuit):
                 if self.qubit_count != gates.qubit_count:
