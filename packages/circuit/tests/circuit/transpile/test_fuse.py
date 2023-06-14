@@ -131,6 +131,8 @@ class TestNormalizeRotation:
         circuit = QuantumCircuit(1)
         circuit.extend(
             [
+                gates.RZ(0, -2.0 * np.pi),
+                gates.RY(0, -np.pi),
                 gates.RX(0, 0.0),
                 gates.RY(0, np.pi),
                 gates.RZ(0, 2.0 * np.pi),
@@ -141,6 +143,8 @@ class TestNormalizeRotation:
         expect = QuantumCircuit(1)
         expect.extend(
             [
+                gates.RZ(0, 4.0 * np.pi),
+                gates.RY(0, 3.0 * np.pi),
                 gates.RX(0, 4.0 * np.pi),
                 gates.RY(0, 3.0 * np.pi),
                 gates.RZ(0, 4.0 * np.pi),
@@ -154,6 +158,8 @@ class TestNormalizeRotation:
         circuit = QuantumCircuit(1)
         circuit.extend(
             [
+                gates.RZ(0, -2.0 * np.pi),
+                gates.RY(0, -np.pi),
                 gates.RX(0, 0.0),
                 gates.RY(0, np.pi),
                 gates.RZ(0, 2.0 * np.pi),
@@ -164,6 +170,8 @@ class TestNormalizeRotation:
         expect = QuantumCircuit(1)
         expect.extend(
             [
+                gates.RZ(0, -4.0 * np.pi),
+                gates.RY(0, -5.0 * np.pi),
                 gates.RX(0, -4.0 * np.pi),
                 gates.RY(0, -5.0 * np.pi),
                 gates.RZ(0, -4.0 * np.pi),
