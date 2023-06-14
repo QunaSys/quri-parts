@@ -60,7 +60,7 @@ class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
         fermion_qubit_mapping: OpenFermionQubitMapping = jordan_wigner,
         trotter_number: int = 1,
         delta_sz: int = 0,
-        spin_symmetric: bool = False,
+        singlet_excitation: bool = False,
     ):
         s_excs = _generalized_single_excitations(n_spin_orbitals, delta_sz)
         d_excs = _generalized_pair_double_excitations(n_spin_orbitals)
@@ -72,10 +72,13 @@ class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
             n_spin_orbitals, n_fermions
         )
 
-        if not spin_symmetric:
+        if not singlet_excitation:
             _construct_circuit(circuit, s_excs, d_excs, k, trotter_number, op_mapper)
         else:
-            _construct_spin_symmetric_circuit(
+            assert delta_sz == 0, ValueError(
+                "delta_sz should be 0 when singlet_excitation is True"
+            )
+            _construct_singlet_excitation_circuit(
                 circuit, s_excs, d_excs, k, trotter_number, op_mapper
             )
 
@@ -122,7 +125,7 @@ def _construct_circuit(
             )
 
 
-def _construct_spin_symmetric_circuit(
+def _construct_singlet_excitation_circuit(
     circuit: LinearMappedUnboundParametricQuantumCircuit,
     s_excs: Sequence[SingleExcitation],
     d_excs: Sequence[DoubleExcitation],
@@ -181,7 +184,7 @@ def get_independent_excitations(
             # if p^ q is in s_excs, q^ p is also in s_exc.
             continue
         independent_s_exc.append(s_exc)
-        independent_s_exc_name.append(f"t1_{x}_{q}_{p}")
+        independent_s_exc_name.append(f"s_{x}_{q}_{p}")
 
     independent_d_exc = []
     independent_d_exc_name = []
@@ -192,7 +195,7 @@ def get_independent_excitations(
             # if q^ p^ s r is in d_excs, s^ r^ q p is also in d_excs.
             continue
         independent_d_exc.append(d_exc)
-        independent_d_exc_name.append(f"t2_{x}_{s}_{r}_{q}_{p}")
+        independent_d_exc_name.append(f"d_{x}_{s}_{r}_{q}_{p}")
 
     return (
         independent_s_exc,

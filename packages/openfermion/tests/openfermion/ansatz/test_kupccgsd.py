@@ -201,10 +201,12 @@ class TestkUpCCGSD:
         expected_bound_ansatz = expected_ansatz.bind_parameters(param_vals)
         assert bound_ansatz == expected_bound_ansatz
 
+
+class TestSingletExcitedKUpCCGSD:
     def test_singlet_excited_kupccgsd_k1_trotter1(self) -> None:
         n_spin_orbitals = 4
         n_electrons = 2
-        ansatz = KUpCCGSD(n_spin_orbitals, n_electrons, spin_symmetric=True)
+        ansatz = KUpCCGSD(n_spin_orbitals, n_electrons, singlet_excitation=True)
         expected_ansatz = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
         params = expected_ansatz.add_parameters(*[f"param{i}" for i in range(2)])
         expected_ansatz.add_ParametricPauliRotation_gate(
@@ -266,7 +268,7 @@ class TestkUpCCGSD:
             k,
             fermion_qubit_mapping=symmetry_conserving_bravyi_kitaev,
             trotter_number=2,
-            spin_symmetric=True,
+            singlet_excitation=True,
         )
         expected_ansatz = LinearMappedUnboundParametricQuantumCircuit(
             n_spin_orbitals - 2
