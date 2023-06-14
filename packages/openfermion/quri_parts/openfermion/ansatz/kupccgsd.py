@@ -184,7 +184,7 @@ def get_independent_excitations(
             # if p^ q is in s_excs, q^ p is also in s_exc.
             continue
         independent_s_exc.append(s_exc)
-        independent_s_exc_name.append(f"s_{x}_{q}_{p}")
+        independent_s_exc_name.append(f"t1_{x}_{q}_{p}")
 
     independent_d_exc = []
     independent_d_exc_name = []
@@ -195,7 +195,7 @@ def get_independent_excitations(
             # if q^ p^ s r is in d_excs, s^ r^ q p is also in d_excs.
             continue
         independent_d_exc.append(d_exc)
-        independent_d_exc_name.append(f"d_{x}_{s}_{r}_{q}_{p}")
+        independent_d_exc_name.append(f"t2_{x}_{s}_{r}_{q}_{p}")
 
     return (
         independent_s_exc,
