@@ -27,11 +27,7 @@ from quri_parts.core.operator import zero
 from quri_parts.core.state import ParametricQuantumStateVector, QuantumStateVector
 from quri_parts.core.utils.concurrent import execute_concurrently
 from quri_parts.qulacs import QulacsParametricStateT, QulacsStateT
-from quri_parts.qulacs.circuit.compiled_circuit import (
-    _QulacsCircuit,
-    _QulacsLinearMappedUnboundParametricCircuit,
-    _QulacsUnboundParametricCircuit,
-)
+from quri_parts.qulacs.circuit.compiled_circuit import _QulacsCircuit
 
 from . import cast_to_list
 from .circuit import convert_circuit, convert_parametric_circuit
@@ -166,29 +162,14 @@ def create_qulacs_vector_concurrent_estimator(
 
 
 def _sequential_parametric_estimate(
-    op_state_copy: tuple[Estimatable, QulacsParametricStateT, bool],
+    op_state: tuple[Estimatable, QulacsParametricStateT],
     params: Sequence[Sequence[float]],
 ) -> Sequence[Estimate[complex]]:
-    operator, state, copy = op_state_copy
+    operator, state = op_state
     n_qubits = state.qubit_count
     op = convert_operator(operator, n_qubits)
     parametric_circuit = state.parametric_circuit
-    if (
-        isinstance(
-            parametric_circuit,
-            (
-                _QulacsLinearMappedUnboundParametricCircuit,
-                _QulacsUnboundParametricCircuit,
-            ),
-        )
-        and not copy
-    ):
-        qulacs_circuit, param_mapper = (
-            parametric_circuit._qulacs_circuit,
-            parametric_circuit.param_mapper,
-        )
-    else:
-        qulacs_circuit, param_mapper = convert_parametric_circuit(parametric_circuit)
+    qulacs_circuit, param_mapper = convert_parametric_circuit(parametric_circuit)
 
     estimates = []
     for param in params:
@@ -208,7 +189,7 @@ def create_qulacs_vector_parametric_estimator() -> (
     def estimator(
         operator: Estimatable, state: QulacsParametricStateT, param: Sequence[float]
     ) -> Estimate[complex]:
-        ests = _sequential_parametric_estimate((operator, state, True), [param])
+        ests = _sequential_parametric_estimate((operator, state), [param])
         return ests[0]
 
     return estimator
@@ -222,10 +203,9 @@ def create_qulacs_vector_concurrent_parametric_estimator(
         state: QulacsParametricStateT,
         params: Sequence[Sequence[float]],
     ) -> Sequence[Estimate[complex]]:
-        copy_circuit = concurrency > 1
         return execute_concurrently(
             _sequential_parametric_estimate,
-            (operator, state, copy_circuit),
+            (operator, state),
             params,
             executor,
             concurrency,

@@ -16,8 +16,6 @@ from numpy.typing import ArrayLike
 from typing_extensions import assert_never
 
 from quri_parts.circuit import (
-    ImmutableLinearMappedUnboundParametricQuantumCircuit,
-    ImmutableUnboundParametricQuantumCircuit,
     LinearMappedUnboundParametricQuantumCircuitBase,
     NonParametricQuantumCircuit,
     QuantumGate,
@@ -41,7 +39,6 @@ from quri_parts.circuit.gate_names import (
 
 from .. import cast_to_list
 from .compiled_circuit import (
-    _QulacsCircuit,
     _QulacsLinearMappedUnboundParametricCircuit,
     _QulacsUnboundParametricCircuit,
     compile_circuit,
@@ -199,8 +196,6 @@ def convert_gate(
 
 
 def convert_circuit(circuit: NonParametricQuantumCircuit) -> qulacs.QuantumCircuit:
-    if isinstance(circuit, _QulacsCircuit):
-        return circuit.qulacs_circuit
     qulacs_circuit = qulacs.QuantumCircuit(circuit.qubit_count)
     for gate in circuit.gates:
         qulacs_circuit.add_gate(convert_gate(gate))
@@ -208,11 +203,7 @@ def convert_circuit(circuit: NonParametricQuantumCircuit) -> qulacs.QuantumCircu
 
 
 def convert_parametric_circuit(
-    circuit: Union[
-        UnboundParametricQuantumCircuitProtocol,
-        ImmutableUnboundParametricQuantumCircuit,
-        ImmutableLinearMappedUnboundParametricQuantumCircuit,
-    ],
+    circuit: UnboundParametricQuantumCircuitProtocol,
 ) -> tuple[
     qulacs.ParametricQuantumCircuit, Callable[[Sequence[float]], Sequence[float]]
 ]:
