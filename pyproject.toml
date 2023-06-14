@@ -42,6 +42,7 @@ quri-parts-quantinuum = { version = "*", optional = true }
 quri-parts-ionq = { version = "*", optional = true }
 quri-parts-itensor = { version = "*", optional = true }
 quri-parts-pyscf = { version = "*", optional = true }
+quri-parts-tket = { version = "*", optional = true }
 
 [tool.poetry.extras]
 qulacs = ["quri-parts-qulacs"]
@@ -55,6 +56,7 @@ quantinuum = ["quri-parts-quantinuum"]
 ionq = ["quri-parts-ionq"]
 itensor = ["quri-parts-itensor"]
 pyscf = ["quri-parts-pyscf"]
+tket = ["quri-parts-tket"]
 
 [tool.poetry.group.dev.dependencies]
 quri-parts-circuit = {path = "packages/circuit", develop = true}
@@ -72,21 +74,22 @@ quri-parts-quantinuum = {path = "packages/quantinuum", develop = true}
 quri-parts-ionq = {path = "packages/ionq", develop = true}
 quri-parts-itensor = {path = "packages/itensor", develop = true}
 quri-parts-pyscf = {path = "packages/pyscf", develop = true}
+quri-parts-tket = {path = "packages/tket", develop = true}
 
 pytest = "^7.0.1"
-flake8 = "^4.0.1"
+flake8 = ">=4.0.1,<7.0.0"
 mypy = ">=0.950"
 # Exclude docformatter 1.6.0 to avoid this issue: https://github.com/PyCQA/docformatter/issues/161
 docformatter = "^1.4,!=1.6.0"
 isort = "^5.10.1"
 
-Sphinx = "^4.4.0"
-furo = "^2022.2.23"
+Sphinx = ">=4.4,<7.0"
+furo = ">=2022.2.23,<2024.0.0"
 sphinx-autobuild = "^2021.3.14"
-nbsphinx = "^0.8.9"
+nbsphinx = ">=0.8.9,<0.10.0"
 ipython = "^8.4.0"
 notebook = "^6.4.12"
-myst-parser = "^0.18.1"
+myst-parser = ">=0.18.1,<1.1.0"
 black = "^23.1.0"
 
 [tool.black]
