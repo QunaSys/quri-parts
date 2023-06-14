@@ -147,9 +147,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         self._session = None
 
         if isinstance(sampler_options, dict):
-            options = Options()
-            options.resilience_level = sampler_options.get("resilience_level", 0)
-            options.optimization_level = sampler_options.get("optimization_level", 0)
+            options = Options(**sampler_options)
             self._qiskit_sampler_options = options
         elif isinstance(sampler_options, Options):
             self._qiskit_sampler_options = sampler_options
