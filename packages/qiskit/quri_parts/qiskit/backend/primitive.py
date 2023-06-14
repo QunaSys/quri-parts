@@ -9,11 +9,11 @@
 # limitations under the License.
 
 from collections.abc import Mapping, MutableMapping
-from typing import Any, Dict, Optional, Union
+from types import TracebackType
+from typing import Any, Dict, Optional, Type, Union
 
 import qiskit
 from qiskit.primitives import SamplerResult
-from qiskit.providers.jobstatus import JobStatus
 from qiskit_ibm_runtime import (
     IBMBackend,
     Options,
@@ -46,7 +46,7 @@ class QiskitRuntimeSamplingResult(SamplingResult):
 
     def __init__(self, qiskit_result: SamplerResult):
         if not isinstance(qiskit_result, SamplerResult):
-            raise ValueError("Only qiskit_ibm_runtime.RuntimeJob is supported")
+            raise ValueError("Only qiskit_ibm_runtime.SamplerResult is supported")
         self._qiskit_result = qiskit_result
 
     @property
@@ -158,6 +158,14 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         else:
             raise ValueError("Invalid type for sampler_options")
 
+    def close(self) -> Any:
+        """Close the IBM session.
+
+        This will terminate all unfinished jobs.
+        """
+        assert self._session is not None
+        self._session.close()
+
     def __enter__(self) -> Any:
         """The backend passed during `__init__`, is used to construct a
         session, which will be closed after the `with` scope ends."""
@@ -167,11 +175,16 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         self._session = session
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:  # type: ignore
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> None:
         """If the session is created using `with` then the session is closed by
         the following functionality."""
         assert self._session is not None
-        self._session.close()
+        self._session.__exit__(exc_type, exc_val, exc_tb)
         self._session = None
 
     def sample(self, circuit: NonParametricQuantumCircuit, n_shots: int) -> SamplingJob:
@@ -182,10 +195,11 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             # Splitting the number of shots into pieces.
             shot_dist = [self._max_shots] * (n_shots // self._max_shots)
             remaining = n_shots % self._max_shots
-            if remaining >= self._min_shots:
-                shot_dist.append(remaining)
-            elif remaining > 0 and self._enable_shots_roundup:
-                shot_dist.append(self._min_shots)
+            if remaining > 0:
+                if remaining >= self._min_shots:
+                    shot_dist.append(remaining)
+                elif self._enable_shots_roundup:
+                    shot_dist.append(self._min_shots)
         else:
             if n_shots >= self._min_shots or self._enable_shots_roundup:
                 shot_dist = [max(n_shots, self._min_shots)]
@@ -231,10 +245,6 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
                     # Ignore cancel errors
                     pass
             raise BackendError("Qiskit Device run failed.") from e
-
-        # If any job fails then raise an error.
-        if any([job.status() == JobStatus.ERROR for job in qiskit_jobs]):
-            raise BackendError("Qiskit Device run failed.")
 
         jobs: list[SamplingJob] = [QiskitRuntimeSamplingJob(j) for j in qiskit_jobs]
         if self._qubit_mapping is not None:

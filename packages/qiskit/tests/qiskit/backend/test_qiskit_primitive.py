@@ -95,6 +95,7 @@ class TestQiskitPrimitive:
         with QiskitRuntimeSamplingBackend(backend=backend, service=service) as sampler:
             circuit = QuantumCircuit(5)
             job = sampler.sample(circuit, 10)
+            sampler.close()
 
         assert isinstance(job, QiskitRuntimeSamplingJob)
 

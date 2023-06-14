@@ -4906,4 +4906,4 @@ stim = ["quri-parts-stim"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9.8,<3.12"
-content-hash = "6aed5a4550122d3997dcc5f1e18358dc091feaf67a3d0b152174f71612f03ece"
+content-hash = "c8ae11d348ce78af6a63ec847e2db52b68ca71e3ae831fa7b352d0d0f7364489"
