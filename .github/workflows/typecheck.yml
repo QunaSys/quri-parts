@@ -1,16 +1,17 @@
-name: Test
+name: Type check
 
 on:
   pull_request:
     paths:
       - packages/**/*.py
       - poetry.lock
-      - .github/workflows/test.yml
+      - mypy.ini
+      - .github/workflows/typecheck.yml
   push:
     branches: [main]
 
 jobs:
-  test:
+  typecheck:
     runs-on: ubuntu-latest
 
     steps:
@@ -28,8 +29,10 @@ jobs:
         python-version: '3.9'
 
     - run: |
-        poetry install --only main,dev
+        poetry install --only main,dev,typecheck
 
-    - run: poetry run julia -e 'using Pkg; Pkg.add("PythonCall")'
+    - name: Cache mypy cache
+      uses: AustinScola/mypy-cache-github-action@v1.0.0
 
-    - run: poetry run pytest
+    - run: poetry run mypy .
+      if: success() || failure()
