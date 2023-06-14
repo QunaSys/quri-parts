@@ -127,6 +127,52 @@ class TestNormalizeRotation:
         for t, e in zip(transpiled.gates, expect.gates):
             assert _gates_close(t, e)
 
+    def test_normalize_5pi(self) -> None:
+        circuit = QuantumCircuit(1)
+        circuit.extend(
+            [
+                gates.RX(0, 0.0),
+                gates.RY(0, np.pi),
+                gates.RZ(0, 2.0 * np.pi),
+            ]
+        )
+        transpiled = NormalizeRotationTranspiler((3.0 * np.pi, 5.0 * np.pi))(circuit)
+
+        expect = QuantumCircuit(1)
+        expect.extend(
+            [
+                gates.RX(0, 4.0 * np.pi),
+                gates.RY(0, 3.0 * np.pi),
+                gates.RZ(0, 4.0 * np.pi),
+            ]
+        )
+
+        for t, e in zip(transpiled.gates, expect.gates):
+            assert _gates_close(t, e)
+
+    def test_normalize_minus3pi(self) -> None:
+        circuit = QuantumCircuit(1)
+        circuit.extend(
+            [
+                gates.RX(0, 0.0),
+                gates.RY(0, np.pi),
+                gates.RZ(0, 2.0 * np.pi),
+            ]
+        )
+        transpiled = NormalizeRotationTranspiler((-5.0 * np.pi, -3.0 * np.pi))(circuit)
+
+        expect = QuantumCircuit(1)
+        expect.extend(
+            [
+                gates.RX(0, -4.0 * np.pi),
+                gates.RY(0, -5.0 * np.pi),
+                gates.RZ(0, -4.0 * np.pi),
+            ]
+        )
+
+        for t, e in zip(transpiled.gates, expect.gates):
+            assert _gates_close(t, e)
+
 
 class TestRotation2Named:
     def test_rx2named(self) -> None:

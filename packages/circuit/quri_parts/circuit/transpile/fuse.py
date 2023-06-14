@@ -8,6 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import math
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
 
@@ -96,7 +97,7 @@ class NormalizeRotationTranspiler(GateKindDecomposer):
             raise ValueError("Specify (lower limit, upper limit) for cycle_range.")
         if abs(cycle_range[1] - cycle_range[0] - np.pi * 2.0) > epsilon:
             raise ValueError("The width of the cycle range must be 2PI.")
-        self._upper = cycle_range[1]
+        self._lower, self._upper = cycle_range
 
     @property
     def target_gate_names(self) -> Sequence[str]:
@@ -104,8 +105,8 @@ class NormalizeRotationTranspiler(GateKindDecomposer):
 
     def _normalize(self, theta: float) -> float:
         t = theta % (np.pi * 2.0)
-        # For boundary, take lower limit.
-        t = t - (np.pi * 2.0) if not t < self._upper else t
+        n = math.ceil((self._lower - t) / (2.0 * np.pi))
+        t += 2.0 * np.pi * n
         return t
 
     def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
