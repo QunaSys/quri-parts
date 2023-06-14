@@ -8,6 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import math
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
 
@@ -76,6 +77,41 @@ class FuseRotationTranspiler(TwoGateFuser):
                 name=left.name, target_indices=left.target_indices, params=(theta,)
             )
         ]
+
+
+class NormalizeRotationTranspiler(GateKindDecomposer):
+    """Normalize the parameters of the rotation gates (RX, RY, and RZ) so that
+    they are in the specified range (0 to 2PI by default).
+
+    Args:
+        cycle_range: Specify a range of width 2PI in the form of (lower limit,
+        upper limit). Lower limit is inclusive and upper limit is exclusive.
+    """
+
+    def __init__(
+        self,
+        cycle_range: tuple[float, float] = (0.0, np.pi * 2.0),
+        epsilon: float = 1.0e-9,
+    ):
+        if not cycle_range[1] > cycle_range[0]:  # Do not accept 0 width.
+            raise ValueError("Specify (lower limit, upper limit) for cycle_range.")
+        if abs(cycle_range[1] - cycle_range[0] - np.pi * 2.0) > epsilon:
+            raise ValueError("The width of the cycle range must be 2PI.")
+        self._lower, self._upper = cycle_range
+
+    @property
+    def target_gate_names(self) -> Sequence[str]:
+        return [gate_names.RX, gate_names.RY, gate_names.RZ]
+
+    def _normalize(self, theta: float) -> float:
+        t = theta % (np.pi * 2.0)
+        n = math.ceil((self._lower - t) / (2.0 * np.pi))
+        t += 2.0 * np.pi * n
+        return t
+
+    def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
+        theta = self._normalize(gate.params[0])
+        return [gate._replace(params=(theta,))]
 
 
 class RX2NamedTranspiler(GateKindDecomposer):
