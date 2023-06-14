@@ -41,20 +41,39 @@ SavedDataType: TypeAlias = dict[tuple[str, int], list["QiskitSavedDataSamplingJo
 
 @dataclass
 class QiskitSavedDataSamplingResult(SamplingResult):
-    """Raw_data takes in saved raw data in `qiskit_result.get_counts()`
-    format."""
+    """An objects that holds a sampling count from qiskit backend output and
+    converts it into quri-parts sampling count.
+
+    The `raw_data` should take in the output of
+    `qiskit_result.get_counts()`, which is a counter that uses str as
+    its key.
+    """
 
     raw_data: dict[str, int]
 
     @property
     def counts(self) -> SamplingCounts:
-        """Convert the raw data to format that conforms to rest of the
-        codes."""
+        """Convert the raw data to quri-parts sampling count.
+
+        The quri-parts sampling count is a counter that uses int as its
+        key.
+        """
         return convert_qiskit_sampling_count_to_qp_sampling_count(self.raw_data)
 
 
 @dataclass
 class QiskitSavedDataSamplingJob(SamplingJob):
+    """An object that represents a saved sampling job.
+
+    Args:
+        circuit_str: A string that represents the circuit used in a sampling job.
+            Note that it should take in the qasm string of a qiskit quantum circuit.
+            It can be accessed by `qiskit_circuit.qasm()`.
+        n_shots: The total shots of a sampling job.
+        saved_result: A `QiskitSavedDataSamplingResult` instance that represents the
+            result when (circuit_str, n_shots) is passed into the sampler.
+    """
+
     circuit_str: str
     n_shots: int
     saved_result: QiskitSavedDataSamplingResult
