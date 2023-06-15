@@ -5,6 +5,7 @@ on:
     paths:
       - packages/**/*.py
       - pyproject.toml
+      - poetry.lock
       - .flake8
       - .github/workflows/lint.yml
   push:
