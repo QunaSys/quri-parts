@@ -104,10 +104,7 @@ class NormalizeRotationTranspiler(GateKindDecomposer):
         return [gate_names.RX, gate_names.RY, gate_names.RZ]
 
     def _normalize(self, theta: float) -> float:
-        t = theta % (np.pi * 2.0)
-        n = math.ceil((self._lower - t) / (2.0 * np.pi))
-        t += 2.0 * np.pi * n
-        return t
+        return ((theta - self._lower) % (np.pi * 2.0)) + self._lower
 
     def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
         theta = self._normalize(gate.params[0])
