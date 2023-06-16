@@ -1,5 +1,5 @@
 from copy import copy
-from typing import Callable, Sequence, Union
+from typing import Callable, Sequence, Union, overload
 
 from qulacs import ParametricQuantumCircuit as QulacsParametricQuantumCircuit
 from qulacs import QuantumCircuit as QulacsQuantumCircuit
@@ -17,6 +17,20 @@ from quri_parts.circuit import (
 
 def compile_circuit(circuit: NonParametricQuantumCircuit) -> "_QulacsCircuit":
     return _QulacsCircuit(circuit)
+
+
+@overload
+def compile_parametric_circuit(
+    circuit: UnboundParametricQuantumCircuit,
+) -> "_QulacsUnboundParametricCircuit":
+    ...
+
+
+@overload
+def compile_parametric_circuit(
+    circuit: LinearMappedUnboundParametricQuantumCircuit,
+) -> "_QulacsLinearMappedUnboundParametricCircuit":
+    ...
 
 
 def compile_parametric_circuit(

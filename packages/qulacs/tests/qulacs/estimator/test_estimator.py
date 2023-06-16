@@ -15,11 +15,7 @@ from typing import Union
 import numpy as np
 import pytest
 
-from quri_parts.circuit import (
-    QuantumCircuit,
-    UnboundParametricQuantumCircuit,
-    UnboundParametricQuantumCircuitProtocol,
-)
+from quri_parts.circuit import QuantumCircuit, UnboundParametricQuantumCircuit
 from quri_parts.circuit.noise import BitFlipNoise, NoiseModel
 from quri_parts.core.operator import Operator, PauliLabel, pauli_label
 from quri_parts.core.state import (
@@ -30,7 +26,12 @@ from quri_parts.core.state import (
     QuantumStateVector,
     StateVectorType,
 )
-from quri_parts.qulacs.circuit.compiled_circuit import _QulacsCircuit, compile_circuit
+from quri_parts.qulacs.circuit.compiled_circuit import (
+    _QulacsCircuit,
+    _QulacsUnboundParametricCircuit,
+    compile_circuit,
+    compile_parametric_circuit,
+)
 from quri_parts.qulacs.estimator import (
     _Estimate,
     create_qulacs_density_matrix_concurrent_estimator,
@@ -326,7 +327,7 @@ class TestVectorConcurrentEstimator:
         ]
 
 
-def parametric_circuit() -> UnboundParametricQuantumCircuitProtocol:
+def parametric_circuit() -> UnboundParametricQuantumCircuit:
     circuit = UnboundParametricQuantumCircuit(6)
 
     circuit.add_RX_gate(0, -math.pi / 4)
@@ -344,7 +345,9 @@ def parametric_circuit() -> UnboundParametricQuantumCircuitProtocol:
 
 
 def create_parametric_vector_state(
-    qubit_count: int, circuit: UnboundParametricQuantumCircuitProtocol, bits: int
+    qubit_count: int,
+    circuit: Union[UnboundParametricQuantumCircuit, _QulacsUnboundParametricCircuit],
+    bits: int,
 ) -> ParametricQuantumStateVector:
     return ParametricQuantumStateVector(
         qubit_count, circuit, create_vector(qubit_count, bits)
@@ -355,32 +358,51 @@ class TestVectorParametricEstimator:
     def test_estimate_pauli_label(self) -> None:
         pauli = pauli_label("Y0 X2 Y5")
         state = ParametricCircuitQuantumState(6, parametric_circuit())
+        compiled_circuit = compile_parametric_circuit(parametric_circuit())
+        compiled_state = ParametricCircuitQuantumState(6, compiled_circuit)
         estimator = create_qulacs_vector_parametric_estimator()
 
         params = [0.0, 0.0, 0.0, 0.0]
         estimate = estimator(pauli, state, params)
         assert estimate.value == pytest.approx((1 / math.sqrt(2)) ** 3)
         assert estimate.error == 0
+        estimate_with_compiled_state = estimator(pauli, compiled_state, params)
+        assert estimate_with_compiled_state.value == pytest.approx(
+            (1 / math.sqrt(2)) ** 3
+        )
+        assert estimate_with_compiled_state.error == 0
 
         params = [-math.pi / 4, 0, 0, 0]
         estimate = estimator(pauli, state, params)
         assert estimate.value == pytest.approx(0.5)
         assert estimate.error == 0
+        estimate_with_compiled_state = estimator(pauli, compiled_state, params)
+        assert estimate_with_compiled_state.value == pytest.approx(0.5)
+        assert estimate_with_compiled_state.error == 0
 
         params = [0, -math.pi / 4, 0, 0]
         estimate = estimator(pauli, state, params)
         assert estimate.value == pytest.approx(0.5)
         assert estimate.error == 0
+        estimate_with_compiled_state = estimator(pauli, compiled_state, params)
+        assert estimate_with_compiled_state.value == pytest.approx(0.5)
+        assert estimate_with_compiled_state.error == 0
 
         params = [0, 0, -math.pi / 4, 0]
         estimate = estimator(pauli, state, params)
         assert estimate.value == pytest.approx(0.5)
         assert estimate.error == 0
+        estimate_with_compiled_state = estimator(pauli, compiled_state, params)
+        assert estimate_with_compiled_state.value == pytest.approx(0.5)
+        assert estimate_with_compiled_state.error == 0
 
         params = [0, 0, 0, -math.pi / 4]
         estimate = estimator(pauli, state, params)
         assert estimate.value == pytest.approx(0)
         assert estimate.error == 0
+        estimate_with_compiled_state = estimator(pauli, compiled_state, params)
+        assert estimate_with_compiled_state.value == pytest.approx(0)
+        assert estimate_with_compiled_state.error == 0
 
     def test_estimate_operator(self) -> None:
         operator = Operator(
@@ -390,6 +412,8 @@ class TestVectorParametricEstimator:
             }
         )
         state = ParametricCircuitQuantumState(6, parametric_circuit())
+        compiled_circuit = compile_parametric_circuit(parametric_circuit())
+        compiled_state = ParametricCircuitQuantumState(6, compiled_circuit)
         estimator = create_qulacs_vector_parametric_estimator()
 
         params = [0.0, 0.0, 0.0, 0.0]
@@ -398,56 +422,99 @@ class TestVectorParametricEstimator:
             0.25 * ((1 / math.sqrt(2)) ** 3) + 0.5j * (-1 / math.sqrt(2))
         )
         assert estimate.error == 0
+        estimate_with_compiled_state = estimator(operator, compiled_state, params)
+        assert estimate_with_compiled_state.value == pytest.approx(
+            0.25 * ((1 / math.sqrt(2)) ** 3) + 0.5j * (-1 / math.sqrt(2))
+        )
+        assert estimate_with_compiled_state.error == 0
 
         params = [-math.pi / 4, 0, 0, 0]
         estimate = estimator(operator, state, params)
         assert estimate.value == pytest.approx(0.25 * 0.5 + 0.5j * (-1 / math.sqrt(2)))
         assert estimate.error == 0
+        estimate_with_compiled_state = estimator(operator, compiled_state, params)
+        assert estimate_with_compiled_state.value == pytest.approx(
+            0.25 * 0.5 + 0.5j * (-1 / math.sqrt(2))
+        )
+        assert estimate_with_compiled_state.error == 0
 
         params = [0, -math.pi / 4, 0, 0]
         estimate = estimator(operator, state, params)
         assert estimate.value == pytest.approx(0.25 * 0.5 + 0.5j * (-1))
         assert estimate.error == 0
+        estimate_with_compiled_state = estimator(operator, compiled_state, params)
+        assert estimate_with_compiled_state.value == pytest.approx(
+            0.25 * 0.5 + 0.5j * (-1)
+        )
+        assert estimate_with_compiled_state.error == 0
 
         params = [0, 0, -math.pi / 4, 0]
         estimate = estimator(operator, state, params)
         assert estimate.value == pytest.approx(0.25 * 0.5 + 0.5j * (-1 / math.sqrt(2)))
         assert estimate.error == 0
+        estimate_with_compiled_state = estimator(operator, compiled_state, params)
+        assert estimate_with_compiled_state.value == pytest.approx(
+            0.25 * 0.5 + 0.5j * (-1 / math.sqrt(2))
+        )
+        assert estimate_with_compiled_state.error == 0
 
         params = [0, 0, 0, -math.pi / 4]
         estimate = estimator(operator, state, params)
         assert estimate.value == pytest.approx(0 + 0.5j * (-0.5))
         assert estimate.error == 0
+        estimate_with_compiled_state = estimator(operator, compiled_state, params)
+        assert estimate_with_compiled_state.value == pytest.approx(0 + 0.5j * (-0.5))
+        assert estimate_with_compiled_state.error == 0
 
     def test_estimate_vector(self) -> None:
         pauli = pauli_label("Y0 X2 Y5")
         state = create_parametric_vector_state(6, parametric_circuit(), 0b100000)
+        compiled_state = create_parametric_vector_state(
+            6, compile_parametric_circuit(parametric_circuit()), 0b100000
+        )
         estimator = create_qulacs_vector_parametric_estimator()
 
         params = [0.0, 0.0, 0.0, 0.0]
         estimate = estimator(pauli, state, params)
         assert estimate.value == pytest.approx(-((1 / math.sqrt(2)) ** 3))
         assert estimate.error == 0
+        estimate_with_compiled_state = estimator(pauli, compiled_state, params)
+        assert estimate_with_compiled_state.value == pytest.approx(
+            -((1 / math.sqrt(2)) ** 3)
+        )
+        assert estimate_with_compiled_state.error == 0
 
         params = [-math.pi / 4, 0, 0, 0]
         estimate = estimator(pauli, state, params)
         assert estimate.value == pytest.approx(-0.5)
         assert estimate.error == 0
+        estimate_with_compiled_state = estimator(pauli, compiled_state, params)
+        assert estimate_with_compiled_state.value == pytest.approx(-0.5)
+        assert estimate_with_compiled_state.error == 0
 
         params = [0, -math.pi / 4, 0, 0]
         estimate = estimator(pauli, state, params)
         assert estimate.value == pytest.approx(-0.5)
         assert estimate.error == 0
+        estimate_with_compiled_state = estimator(pauli, compiled_state, params)
+        assert estimate_with_compiled_state.value == pytest.approx(-0.5)
+        assert estimate_with_compiled_state.error == 0
 
         params = [0, 0, -math.pi / 4, 0]
         estimate = estimator(pauli, state, params)
         assert estimate.value == pytest.approx(-0.5)
         assert estimate.error == 0
+        estimate_with_compiled_state = estimator(pauli, compiled_state, params)
+        assert estimate_with_compiled_state.value == pytest.approx(-0.5)
+        assert estimate_with_compiled_state.error == 0
 
         params = [0, 0, 0, -math.pi / 4]
         estimate = estimator(pauli, state, params)
         assert estimate.value == pytest.approx(0)
         assert estimate.error == 0
+        estimate_with_compiled_state = estimator(pauli, compiled_state, params)
+        assert estimate_with_compiled_state.value == pytest.approx(0)
+        assert estimate_with_compiled_state.error == 0
 
 
 class TestVectorConcurrentParametricEstimator:
@@ -459,6 +526,9 @@ class TestVectorConcurrentParametricEstimator:
             }
         )
         state = ParametricCircuitQuantumState(6, parametric_circuit())
+        compiled_state = ParametricCircuitQuantumState(
+            6, compile_parametric_circuit(parametric_circuit())
+        )
         params = [
             [0.0, 0.0, 0.0, 0.0],
             [-math.pi / 4, 0, 0, 0],
@@ -472,10 +542,16 @@ class TestVectorConcurrentParametricEstimator:
                 executor, concurrency=2
             )
             result = list(estimator(operator, state, params))
+            result_with_compiled_state = list(
+                estimator(operator, compiled_state, params)
+            )
 
         assert len(result) == 5
         for r in result:
             assert r.error == 0
+        for r in result_with_compiled_state:
+            assert r.error == 0
+
         assert result[0].value == pytest.approx(
             0.25 * ((1 / math.sqrt(2)) ** 3) + 0.5j * (-1 / math.sqrt(2))
         )
@@ -483,6 +559,20 @@ class TestVectorConcurrentParametricEstimator:
         assert result[2].value == pytest.approx(0.25 * 0.5 + 0.5j * (-1))
         assert result[3].value == pytest.approx(0.25 * 0.5 + 0.5j * (-1 / math.sqrt(2)))
         assert result[4].value == pytest.approx(0 + 0.5j * (-0.5))
+
+        assert result_with_compiled_state[0].value == pytest.approx(
+            0.25 * ((1 / math.sqrt(2)) ** 3) + 0.5j * (-1 / math.sqrt(2))
+        )
+        assert result_with_compiled_state[1].value == pytest.approx(
+            0.25 * 0.5 + 0.5j * (-1 / math.sqrt(2))
+        )
+        assert result_with_compiled_state[2].value == pytest.approx(
+            0.25 * 0.5 + 0.5j * (-1)
+        )
+        assert result_with_compiled_state[3].value == pytest.approx(
+            0.25 * 0.5 + 0.5j * (-1 / math.sqrt(2))
+        )
+        assert result_with_compiled_state[4].value == pytest.approx(0 + 0.5j * (-0.5))
 
     def test_concurrent_estimate_vector(self) -> None:
         operator = Operator(
@@ -492,6 +582,12 @@ class TestVectorConcurrentParametricEstimator:
             }
         )
         state = create_parametric_vector_state(6, parametric_circuit(), 0b100000)
+        compiled_state = create_parametric_vector_state(
+            6, compile_parametric_circuit(parametric_circuit()), 0b100000
+        )
+        assert isinstance(
+            compiled_state.parametric_circuit, _QulacsUnboundParametricCircuit
+        )
         params = [
             [0.0, 0.0, 0.0, 0.0],
             [-math.pi / 4, 0, 0, 0],
@@ -505,10 +601,16 @@ class TestVectorConcurrentParametricEstimator:
                 executor, concurrency=2
             )
             result = list(estimator(operator, state, params))
+            result_with_compiled_circuit = list(
+                estimator(operator, compiled_state, params)
+            )
 
         assert len(result) == 5
         for r in result:
             assert r.error == 0
+        for r in result_with_compiled_circuit:
+            assert r.error == 0
+
         assert result[0].value == pytest.approx(
             0.25 * (-((1 / math.sqrt(2)) ** 3)) + 0.5j * (-1 / math.sqrt(2))
         )
@@ -520,6 +622,20 @@ class TestVectorConcurrentParametricEstimator:
             0.25 * (-0.5) + 0.5j * (-1 / math.sqrt(2))
         )
         assert result[4].value == pytest.approx(0 + 0.5j * (-0.5))
+
+        assert result_with_compiled_circuit[0].value == pytest.approx(
+            0.25 * (-((1 / math.sqrt(2)) ** 3)) + 0.5j * (-1 / math.sqrt(2))
+        )
+        assert result_with_compiled_circuit[1].value == pytest.approx(
+            0.25 * (-0.5) + 0.5j * (-1 / math.sqrt(2))
+        )
+        assert result_with_compiled_circuit[2].value == pytest.approx(
+            0.25 * (-0.5) + 0.5j * (-1)
+        )
+        assert result_with_compiled_circuit[3].value == pytest.approx(
+            0.25 * (-0.5) + 0.5j * (-1 / math.sqrt(2))
+        )
+        assert result_with_compiled_circuit[4].value == pytest.approx(0 + 0.5j * (-0.5))
 
 
 class TestDensityMatrixEstimatorWithNoiseModel:
