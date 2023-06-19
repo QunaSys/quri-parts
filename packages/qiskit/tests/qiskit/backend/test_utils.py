@@ -70,7 +70,7 @@ class TestGetJobMapperAndCircuitTranspiler:
     raw_data = {"00": 1, "01": 2, "10": 3, "11": 4}
     saved_result = QiskitSavedDataSamplingResult(raw_data=raw_data)
     saved_job = QiskitSavedDataSamplingJob(
-        circuit_str="test_circuit_str", n_shots=10, saved_result=saved_result
+        circuit_qasm="test_circuit_str", n_shots=10, saved_result=saved_result
     )
     circuit = QuantumCircuit(2)
 

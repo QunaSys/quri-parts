@@ -74,7 +74,7 @@ class QiskitSavedDataSamplingJob(SamplingJob):
             result when (circuit_str, n_shots) is passed into the sampler.
     """
 
-    circuit_str: str
+    circuit_qasm: str
     n_shots: int
     saved_result: QiskitSavedDataSamplingResult
 
@@ -213,9 +213,9 @@ class QiskitSavedDataSamplingBackend(SamplingBackend):
         saved_data = defaultdict(list)
         saved_data_seq = decode_json_to_saved_data_sequence(json_str)
         for job in saved_data_seq:
-            circuit_str = job.circuit_str
+            circuit_qasm = job.circuit_qasm
             n_shots = job.n_shots
-            saved_data[(circuit_str, n_shots)].append(job)
+            saved_data[(circuit_qasm, n_shots)].append(job)
         return saved_data
 
 

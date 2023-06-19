@@ -182,7 +182,7 @@ class QiskitSamplingBackend(SamplingBackend):
                 raw_data=raw_measurement_cnt
             )
             saved_sampling_job = QiskitSavedDataSamplingJob(
-                circuit_str=circuit_qasm_str,
+                circuit_qasm=circuit_qasm_str,
                 n_shots=n_shots,
                 saved_result=saved_sampling_result,
             )

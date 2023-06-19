@@ -182,7 +182,7 @@ class TestQiskitSavedDataSamplingBackend:
 
     saved_data_list = [
         {
-            "circuit_str": circuit1_qasm_str,
+            "circuit_qasm": circuit1_qasm_str,
             "n_shots": 1000000,
             "saved_result": {
                 "raw_data": {
@@ -206,7 +206,7 @@ class TestQiskitSavedDataSamplingBackend:
             },
         },
         {
-            "circuit_str": circuit1_qasm_str,
+            "circuit_qasm": circuit1_qasm_str,
             "n_shots": 1000000,
             "saved_result": {
                 "raw_data": {
@@ -230,7 +230,7 @@ class TestQiskitSavedDataSamplingBackend:
             },
         },
         {
-            "circuit_str": circuit1_qasm_str,
+            "circuit_qasm": circuit1_qasm_str,
             "n_shots": 1000000,
             "saved_result": {
                 "raw_data": {
@@ -254,7 +254,7 @@ class TestQiskitSavedDataSamplingBackend:
             },
         },
         {
-            "circuit_str": circuit2_qasm_str,
+            "circuit_qasm": circuit2_qasm_str,
             "n_shots": 1000000,
             "saved_result": {
                 "raw_data": {
@@ -278,7 +278,7 @@ class TestQiskitSavedDataSamplingBackend:
             },
         },
         {
-            "circuit_str": circuit2_qasm_str,
+            "circuit_qasm": circuit2_qasm_str,
             "n_shots": 1000000,
             "saved_result": {
                 "raw_data": {
@@ -302,7 +302,7 @@ class TestQiskitSavedDataSamplingBackend:
             },
         },
         {
-            "circuit_str": circuit2_qasm_str,
+            "circuit_qasm": circuit2_qasm_str,
             "n_shots": 1000000,
             "saved_result": {
                 "raw_data": {
@@ -326,7 +326,7 @@ class TestQiskitSavedDataSamplingBackend:
             },
         },
         {
-            "circuit_str": circuit2_qasm_str,
+            "circuit_qasm": circuit2_qasm_str,
             "n_shots": 1000000,
             "saved_result": {
                 "raw_data": {
@@ -350,7 +350,7 @@ class TestQiskitSavedDataSamplingBackend:
             },
         },
         {
-            "circuit_str": circuit3_qasm_str,
+            "circuit_qasm": circuit3_qasm_str,
             "n_shots": 4000,
             "saved_result": {
                 "raw_data": {
@@ -374,7 +374,7 @@ class TestQiskitSavedDataSamplingBackend:
             },
         },
         {
-            "circuit_str": circuit1_qasm_str,
+            "circuit_qasm": circuit1_qasm_str,
             "n_shots": 200000,
             "saved_result": {
                 "raw_data": {
@@ -398,7 +398,7 @@ class TestQiskitSavedDataSamplingBackend:
             },
         },
         {
-            "circuit_str": circuit2_qasm_str,
+            "circuit_qasm": circuit2_qasm_str,
             "n_shots": 8000,
             "saved_result": {
                 "raw_data": {
@@ -422,7 +422,7 @@ class TestQiskitSavedDataSamplingBackend:
             },
         },
         {
-            "circuit_str": circuit3_qasm_str,
+            "circuit_qasm": circuit3_qasm_str,
             "n_shots": 1000000,
             "saved_result": {
                 "raw_data": {
@@ -446,7 +446,7 @@ class TestQiskitSavedDataSamplingBackend:
             },
         },
         {
-            "circuit_str": circuit3_qasm_str,
+            "circuit_qasm": circuit3_qasm_str,
             "n_shots": 500000,
             "saved_result": {
                 "raw_data": {

@@ -246,13 +246,13 @@ class TestSavingMode:
         raw_data_1 = self.backend._saved_data[1][2]._qiskit_job.result().get_counts()
 
         expected_saved_data_0 = QiskitSavedDataSamplingJob(
-            circuit_str=self.circuit_qasm,
+            circuit_qasm=self.circuit_qasm,
             n_shots=1000,
             saved_result=QiskitSavedDataSamplingResult(raw_data=raw_data_0),
         )
 
         expected_saved_data_1 = QiskitSavedDataSamplingJob(
-            circuit_str=self.circuit_qasm,
+            circuit_qasm=self.circuit_qasm,
             n_shots=1000,
             saved_result=QiskitSavedDataSamplingResult(raw_data=raw_data_1),
         )
