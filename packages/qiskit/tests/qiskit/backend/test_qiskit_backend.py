@@ -208,6 +208,7 @@ class TestQiskitSamplingBackend:
 class TestSavingMode:
     device = AerSimulator()
     backend = QiskitSamplingBackend(device, save_data_while_sampling=True)
+    backend._max_shots = 1000
 
     qp_circuit = QuantumCircuit(4)
     qp_circuit.add_H_gate(0)
@@ -225,40 +226,42 @@ class TestSavingMode:
     circuit_qasm = qiskit_transpiled_circuit.qasm()
 
     def test_saving_mode(self) -> None:
-        sampling_result = self.backend.sample(self.qp_circuit, int(2e6))
+        sampling_result = self.backend.sample(self.qp_circuit, 2000)
         measurement_counter = sampling_result.result().counts
 
+        # Check if the circuit string and n_shots are distribited correctly
         expected_measurement_counter: Counter[int] = Counter()
         for qasm_str, n_shots, saved_job in self.backend._saved_data:
             expected_measurement_counter += cast(
                 Counter[int], saved_job.result().counts
             )
             assert qasm_str == self.circuit_qasm
-            assert n_shots == int(1e6)
+            assert n_shots == 1000
 
+        # Check if the saved data counter sums up to the correct counter.
         assert expected_measurement_counter == measurement_counter
 
-    def test_jobs_and_jobs_json(self) -> None:
+        # Construct the saved data objects
         raw_data_0 = self.backend._saved_data[0][2]._qiskit_job.result().get_counts()
         raw_data_1 = self.backend._saved_data[1][2]._qiskit_job.result().get_counts()
 
         expected_saved_data_0 = QiskitSavedDataSamplingJob(
             circuit_str=self.circuit_qasm,
-            n_shots=int(1e6),
+            n_shots=1000,
             saved_result=QiskitSavedDataSamplingResult(raw_data=raw_data_0),
         )
 
         expected_saved_data_1 = QiskitSavedDataSamplingJob(
             circuit_str=self.circuit_qasm,
-            n_shots=int(1e6),
+            n_shots=1000,
             saved_result=QiskitSavedDataSamplingResult(raw_data=raw_data_1),
         )
 
+        # Check the jobs and jobs_json properties.
         expected_saved_data_seq = [
             expected_saved_data_0,
             expected_saved_data_1,
         ]
-
         assert self.backend.jobs == expected_saved_data_seq
         expected_json_str = json.dumps(
             expected_saved_data_seq, default=pydantic_encoder
