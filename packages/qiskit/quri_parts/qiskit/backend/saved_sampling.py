@@ -83,10 +83,10 @@ class QiskitSavedDataSamplingJob(SamplingJob):
 
 
 class QiskitSavedDataSamplingBackend(SamplingBackend):
-    """A Qiskit backend for replaying saved sampling experiment. When a sampler
-    is created with a QiskitSavedDataSamplingBackend object, the sequence of
-    (circuit, n_shots) pairs should be passed in to the sampler the same order
-    as the orginal experiment.
+    """A Qiskit backend for replaying saved sampling experiments. When a
+    sampler is created with a QiskitSavedDataSamplingBackend object, the
+    sequence of (circuit, n_shots) pairs should be passed in to the sampler the
+    same order as the orginal experiment.
 
     Example:
         # 1. Sampling experiment

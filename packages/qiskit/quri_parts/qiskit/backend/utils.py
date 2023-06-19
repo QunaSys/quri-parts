@@ -24,6 +24,19 @@ def distribute_backend_shots(
     max_shots: Optional[int],
     enable_shots_roundup: Optional[bool] = True,
 ) -> Sequence[int]:
+    """Distributes the n_shots into batches of smaller shot numbers according
+    to the max_shots value.
+
+    Args:
+        n_shots: Total number of shots.
+        min_shots: Minimal number of shots of a single batch.
+        max_shots: Maximal number of shots of a single batch.
+        enable_shots_roundup: If True, when a number of shots of a batch
+            is smaller than min_shots, it is rounded up to the minimum.
+            In this case, it is possible that shots more than specified are used.
+            If it is strictly not allowed to exceed the specified shot count,
+            set this argument to False.
+    """
     if max_shots is not None and n_shots > max_shots:
         shot_dist = [max_shots] * (n_shots // max_shots)
         remaining = n_shots % max_shots
@@ -45,6 +58,8 @@ def distribute_backend_shots(
 
 
 def get_backend_min_max_shot(backend: Backend) -> tuple[int, Optional[int]]:
+    """Get the selected qiskit backend's minimum and maximum shot number
+    allowed in a single sampling job."""
     if isinstance(backend, BackendV1):
         max_shots = backend.configuration().max_shots
         if max_shots > 0:
@@ -60,6 +75,23 @@ def get_job_mapper_and_circuit_transpiler(
     qubit_mapping: Optional[Mapping[int, int]] = None,
     circuit_transpiler: Optional[CircuitTranspiler] = None,
 ) -> tuple[Callable[[SamplingJob], SamplingJob], CircuitTranspiler]:
+    """Creates
+        1. A job mapper that maps the qubits of raw sampling job from the backend to
+            a :class:`~SamplingJob` according to the specified qubit_mapping.
+        2. A circuit transpiler.
+
+    Args:
+        qubit_mapping: If specified, indices of qubits in the circuit are remapped
+            before running it on the backend. It can be used when you want to use
+            specific backend qubits, e.g. those with high fidelity.
+            The mapping should be specified with "from" qubit
+            indices as keys and "to" qubit indices as values. For example, if
+            you want to map qubits 0, 1, 2, 3 to backend qubits as 0 → 4, 1 → 2,
+            2 → 5, 3 → 0, then the ``qubit_mapping`` should be
+            ``{0: 4, 1: 2, 2: 5, 3: 0}``.
+        circuit_transpiler: A transpiler applied to the circuit before running it.
+            :class:`~QiskitTranspiler` is used when not specified.
+    """
     if circuit_transpiler is None:
         circuit_transpiler = QiskitTranspiler()
 
@@ -84,6 +116,12 @@ def get_job_mapper_and_circuit_transpiler(
 def convert_qiskit_sampling_count_to_qp_sampling_count(
     qiskit_counts: Mapping[str, int]
 ) -> SamplingCounts:
+    """Converts the raw counter returned from qiskit backends to quri-parts
+    couter.
+
+    Note that the qiskit counter uses a string that represents a binary
+    number as the key.
+    """
     measurements: MutableMapping[int, int] = {}
     for result in qiskit_counts:
         measurements[int(result, 2)] = qiskit_counts[result]
