@@ -371,7 +371,7 @@ class TestQiskitSavedDataSamplingBackend:
     n_shots_5 = int(8000)
     n_shots_6 = int(1.5e6)
 
-    def test_initial_replay_memory(self) -> None:
+    def test_replay_sampling_output_and_memory(self) -> None:
         assert saved_data_backend._replay_memory == {
             (circuit1_qasm_str, 1000000): 0,
             (circuit2_qasm_str, 1000000): 0,
@@ -382,7 +382,7 @@ class TestQiskitSavedDataSamplingBackend:
             (circuit3_qasm_str, 500000): 0,
         }
 
-    def test_run_1(self) -> None:
+        # sampling experiment 1
         result_1 = sampler(qp_circuit1, self.n_shots_1)
         assert result_1 == {
             2: 20628,
@@ -412,7 +412,7 @@ class TestQiskitSavedDataSamplingBackend:
             (circuit3_qasm_str, 500000): 0,
         }
 
-    def test_run_2(self) -> None:
+        # sampling experiment 2
         result_2 = sampler(qp_circuit2, self.n_shots_2)
         assert result_2 == {
             11: 137170,
@@ -442,7 +442,7 @@ class TestQiskitSavedDataSamplingBackend:
             (circuit3_qasm_str, 500000): 0,
         }
 
-    def test_run_3(self) -> None:
+        # sampling experiment 3
         result_3 = sampler(qp_circuit3, self.n_shots_3)
         assert result_3 == {
             5: 15,
@@ -473,7 +473,7 @@ class TestQiskitSavedDataSamplingBackend:
             (circuit3_qasm_str, 500000): 0,
         }
 
-    def test_run_4(self) -> None:
+        # sampling experiment 4
         result_4 = sampler(qp_circuit1, self.n_shots_4)
         assert result_4 == {
             2: 12482,
@@ -503,7 +503,7 @@ class TestQiskitSavedDataSamplingBackend:
             (circuit3_qasm_str, 500000): 0,
         }
 
-    def test_run_5(self) -> None:
+        # sampling experiment 5
         result_5 = sampler(qp_circuit2, self.n_shots_5)
         assert result_5 == {
             11: 259,
@@ -533,7 +533,7 @@ class TestQiskitSavedDataSamplingBackend:
             (circuit3_qasm_str, 500000): 0,
         }
 
-    def test_run_6(self) -> None:
+        # sampling experiment 6
         result_6 = sampler(qp_circuit3, self.n_shots_6)
         assert result_6 == {
             8: 5844,
