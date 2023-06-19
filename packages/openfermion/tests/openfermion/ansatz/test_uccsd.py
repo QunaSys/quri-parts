@@ -17,7 +17,7 @@ from quri_parts.chem.utils.excitations import excitations
 from quri_parts.circuit import LinearMappedUnboundParametricQuantumCircuit
 from quri_parts.core.operator import Operator, pauli_label, truncate
 from quri_parts.openfermion.ansatz.uccsd import (
-    UCCSD,
+    TrotterUCCSD,
     _construct_circuit,
     _construct_singlet_excitation_circuit,
 )
@@ -289,7 +289,9 @@ class TestUCCSD:
         n_spin_orbitals = 4
         n_electrons = 2
         trotter_number = 1
-        ansatz = UCCSD(n_spin_orbitals, n_electrons, trotter_number=trotter_number)
+        ansatz = TrotterUCCSD(
+            n_spin_orbitals, n_electrons, trotter_number=trotter_number
+        )
         expected_ansatz = _construct_circuit(
             n_spin_orbitals,
             n_electrons,
@@ -308,7 +310,7 @@ class TestUCCSD:
         n_spin_orbitals = 4
         n_electrons = 2
         trotter_number = 1
-        ansatz = UCCSD(
+        ansatz = TrotterUCCSD(
             n_spin_orbitals,
             n_electrons,
             bravyi_kitaev,
@@ -333,7 +335,7 @@ class TestUCCSD:
         n_spin_orbitals = 4
         n_electrons = 2
         trotter_number = 2
-        ansatz = UCCSD(
+        ansatz = TrotterUCCSD(
             n_spin_orbitals,
             n_electrons,
             symmetry_conserving_bravyi_kitaev,
@@ -355,15 +357,15 @@ class TestUCCSD:
 
     def test_singlet_uccsd_invalid_input(self) -> None:
         with pytest.raises(ValueError):
-            UCCSD(4, 3)
+            TrotterUCCSD(4, 3)
         with pytest.raises(ValueError):
-            UCCSD(4, 4)
+            TrotterUCCSD(4, 4)
 
 
 class TestSingletUCCSD:
     @staticmethod
     def check_is_singlet(
-        uccsd_ansatz: UCCSD,
+        uccsd_ansatz: TrotterUCCSD,
         n_spin_orbs: int,
         n_fermions: int,
         parameters: Sequence[float],
@@ -413,7 +415,7 @@ class TestSingletUCCSD:
         n_spin_orbitals = 8
         n_electrons = 4
         trotter_number = 1
-        ansatz = UCCSD(
+        ansatz = TrotterUCCSD(
             n_spin_orbitals,
             n_electrons,
             trotter_number=trotter_number,
@@ -445,7 +447,7 @@ class TestSingletUCCSD:
         n_spin_orbitals = 8
         n_electrons = 4
         trotter_number = 1
-        ansatz = UCCSD(
+        ansatz = TrotterUCCSD(
             n_spin_orbitals,
             n_electrons,
             trotter_number=trotter_number,

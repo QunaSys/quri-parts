@@ -12,7 +12,7 @@ from quri_parts.chem.utils.excitations import (
     DoubleExcitation,
     SingleExcitation,
     excitations,
-    spin_symmetric_excitations,
+    to_spin_symmetric_order,
 )
 from quri_parts.circuit import (
     ImmutableLinearMappedUnboundParametricQuantumCircuit,
@@ -27,7 +27,7 @@ from ..utils import (
 from ..utils.add_exp_excitation_gates_trotter_decomposition import _create_operator
 
 
-class UCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
+class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
     """Unitary coupled-cluster singles and doubles (UCCSD) ansatz. The ansatz
     consists of the exponentials of single excitation and double excitation
     operator decomposed by first-order Trotter product formula. Note that the ansatz
@@ -212,7 +212,8 @@ def singlet_excitation_parameters(
     list[str],
     dict[DoubleExcitation, list[tuple[str, float]]],
 ]:
-    s_exc, d_exc = spin_symmetric_excitations(n_spin_orbitals, n_fermions)
+    s_exc, d_exc = excitations(n_spin_orbitals, n_fermions)
+    d_exc = list(map(to_spin_symmetric_order, d_exc))
 
     s_sz_symmetric_set = []
     s_exc_param_fn_map = {}

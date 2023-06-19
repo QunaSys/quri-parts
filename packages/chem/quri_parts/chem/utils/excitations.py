@@ -8,8 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import itertools
-from typing import Sequence
+from typing import Sequence, cast
 
 from typing_extensions import TypeAlias
 
@@ -54,36 +53,45 @@ def excitations(
     return singles, doubles
 
 
-def spin_symmetric_excitations(
-    n_spin_orbitals: int, n_fermions: int
-) -> tuple[Sequence[SingleExcitation], Sequence[DoubleExcitation]]:
-    """Returns the lists of spin-symmetric single and double excitations.
+def to_spin_symmetric_order(double_excitation: DoubleExcitation) -> DoubleExcitation:
+    """Convert ΔSz=0 double excitation operators to make the indices of the
+    ladder operators consistent with that of the following equation:
 
-    Please refer to eq.(81) of arXiv:2109.15176 for more details.
+    .. math::
+        \\begin{align}
+            T &= T_1+T_2 =
+                &\\sum_{I, A} \\left(
+                    t_{I\\uparrow}^{A\\uparrow}
+                    c_{A \\uparrow}^{\\dagger}c_{I\\uparrow} +
+                    t_{I\\downarrow}^{A\\downarrow}
+                    c_{A \\downarrow}^{\\dagger}c_{I\\downarrow}
+                \\right)
+                & + \\left[
+                    \\sum_{I, J, A, B}
+                        t_{I\\uparrow J\\downarrow}^{A\\uparrow B\\downarrow}
+                        c_{A\\uparrow}^{\\dagger} c_{B\\downarrow}^{\\dagger}
+                        c_{J\\downarrow}c_{I\\uparrow} +
+                    \\sum_{I<J, A<B}
+                    \\left(
+                        t_{I\\uparrow J\\uparrow}^{A\\uparrow B\\uparrow}
+                        c_{A\\uparrow}^{\\dagger} c_{B\\uparrow}^{\\dagger}
+                        c_{J\\uparrow}c_{I\\uparrow} +
+                        t_{I\\downarrow J\\downarrow}^{A\\downarrow B\\downarrow}
+                        c_{A\\downarrow}^{\\dagger} c_{B\\downarrow}^{\\dagger}
+                        c_{J\\downarrow}c_{I\\downarrow}
+                    \\right)\\right]
+        \\end{align}
+
+    Ref:
+        Abhinav Anand et al.,
+        A Quantum Computing View on Unitary Coupled Cluster Theory,
+        `<https://arxiv.org/abs/2109.15176>`_
     """
-    sz = [0.5 if (i % 2 == 0) else -0.5 for i in range(n_spin_orbitals)]
-    singles = []
-    doubles = []
-    for r, p in itertools.product(
-        range(n_fermions), range(n_fermions, n_spin_orbitals)
-    ):
-        if sz[p] == sz[r]:
-            singles.append((r, p))
-
-    for i, j, a, b in itertools.product(
-        range(n_fermions),
-        range(n_fermions),
-        range(n_fermions, n_spin_orbitals),
-        range(n_fermions, n_spin_orbitals),
-    ):
-        if sz[a] == sz[b] == sz[i] == sz[j] and b > a and j > i:
-            doubles.append((i, j, b, a))
-        elif sz[i] == sz[a] == 0.5 and sz[j] == sz[b] == -0.5:
-            doubles.append((i, j, b, a))
-        else:
-            continue
-
-    return singles, doubles
+    sort_key = lambda x: (x % 2, x)  # noqa: E731
+    occs, virs = double_excitation[:2], double_excitation[2:]
+    sorted_occs = sorted(occs, key=sort_key)
+    sorted_virs = sorted(virs, key=sort_key, reverse=True)
+    return cast(DoubleExcitation, tuple(sorted_occs) + tuple(sorted_virs))
 
 
 def add_single_excitation_circuit(

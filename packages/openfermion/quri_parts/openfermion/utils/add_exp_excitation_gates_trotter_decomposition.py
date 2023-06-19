@@ -49,6 +49,21 @@ def add_exp_pauli_gates_from_linear_mapped_function(
     qp_operator: Operator,
     coeff: float = 1,
 ) -> None:
+    """Add exponential pauli rotation gate to a
+    :class:`~LinearMappedUnboundParametricQuantumCircuit` in place
+    according to the equation:
+
+    .. math::
+        \\exp (
+            i \\text{c} * f(\\theta_1, \\theta_2, \\cdots) * \\text{qp_operator}
+        )
+
+    Arg:
+        circuit: The circuit to add a pauli exponential rotation gate to.
+        param_fn: A dict representing parametric function in front of the qp_operator.
+        qp_operator: A Hermitian quri-parts operator.
+        coeff: An overall real coeffcient in the exponent.
+    """
     for pauli, op_coeff in qp_operator.items():
         if str(pauli) == "I":
             # This corresponds to a global phase.

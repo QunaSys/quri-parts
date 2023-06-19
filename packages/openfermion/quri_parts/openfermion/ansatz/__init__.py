@@ -9,6 +9,6 @@
 # limitations under the License.
 
 from .kupccgsd import KUpCCGSD
-from .uccsd import UCCSD, singlet_excitation_parameters
+from .uccsd import TrotterUCCSD, singlet_excitation_parameters
 
-__all__ = ["KUpCCGSD", "UCCSD", "singlet_excitation_parameters"]
+__all__ = ["KUpCCGSD", "TrotterUCCSD", "singlet_excitation_parameters"]
