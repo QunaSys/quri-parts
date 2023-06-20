@@ -205,7 +205,7 @@ class TestQiskitSamplingBackend:
         assert sum(counts.values()) == 1000
 
 
-class TestSavingMode:
+def test_saving_mode() -> None:
     device = AerSimulator()
     backend = QiskitSamplingBackend(device, save_data_while_sampling=True)
     backend._max_shots = 1000
@@ -225,44 +225,41 @@ class TestSavingMode:
     )
     circuit_qasm = qiskit_transpiled_circuit.qasm()
 
-    def test_saving_mode(self) -> None:
-        sampling_job = self.backend.sample(self.qp_circuit, 2000)
-        measurement_counter = sampling_job.result().counts
+    sampling_job = backend.sample(qp_circuit, 2000)
+    measurement_counter = sampling_job.result().counts
 
-        # Check if the circuit string and n_shots are distribited correctly
-        measurement_counter_from_memory: Counter[int] = Counter()
-        for qasm_str, n_shots, saved_job in self.backend._saved_data:
-            measurement_counter_from_memory += Counter(saved_job.result().counts)
+    # Check if the circuit string and n_shots are distribited correctly
+    measurement_counter_from_memory: Counter[int] = Counter()
+    for qasm_str, n_shots, saved_job in backend._saved_data:
+        measurement_counter_from_memory += Counter(saved_job.result().counts)
 
-            assert qasm_str == self.circuit_qasm
-            assert n_shots == 1000
+        assert qasm_str == circuit_qasm
+        assert n_shots == 1000
 
-        # Check if the saved data counter sums up to the correct counter.
-        assert measurement_counter_from_memory == measurement_counter
+    # Check if the saved data counter sums up to the correct counter.
+    assert measurement_counter_from_memory == measurement_counter
 
-        # Construct the saved data objects
-        raw_data_0 = self.backend._saved_data[0][2]._qiskit_job.result().get_counts()
-        raw_data_1 = self.backend._saved_data[1][2]._qiskit_job.result().get_counts()
+    # Construct the saved data objects
+    raw_data_0 = backend._saved_data[0][2]._qiskit_job.result().get_counts()
+    raw_data_1 = backend._saved_data[1][2]._qiskit_job.result().get_counts()
 
-        expected_saved_data_0 = QiskitSavedDataSamplingJob(
-            circuit_qasm=self.circuit_qasm,
-            n_shots=1000,
-            saved_result=QiskitSavedDataSamplingResult(raw_data=raw_data_0),
-        )
+    expected_saved_data_0 = QiskitSavedDataSamplingJob(
+        circuit_qasm=circuit_qasm,
+        n_shots=1000,
+        saved_result=QiskitSavedDataSamplingResult(raw_data=raw_data_0),
+    )
 
-        expected_saved_data_1 = QiskitSavedDataSamplingJob(
-            circuit_qasm=self.circuit_qasm,
-            n_shots=1000,
-            saved_result=QiskitSavedDataSamplingResult(raw_data=raw_data_1),
-        )
+    expected_saved_data_1 = QiskitSavedDataSamplingJob(
+        circuit_qasm=circuit_qasm,
+        n_shots=1000,
+        saved_result=QiskitSavedDataSamplingResult(raw_data=raw_data_1),
+    )
 
-        # Check the jobs and jobs_json properties.
-        expected_saved_data_seq = [
-            expected_saved_data_0,
-            expected_saved_data_1,
-        ]
-        assert self.backend.jobs == expected_saved_data_seq
-        expected_json_str = json.dumps(
-            expected_saved_data_seq, default=pydantic_encoder
-        )
-        assert self.backend.jobs_json == expected_json_str
+    # Check the jobs and jobs_json properties.
+    expected_saved_data_seq = [
+        expected_saved_data_0,
+        expected_saved_data_1,
+    ]
+    assert backend.jobs == expected_saved_data_seq
+    expected_json_str = json.dumps(expected_saved_data_seq, default=pydantic_encoder)
+    assert backend.jobs_json == expected_json_str
