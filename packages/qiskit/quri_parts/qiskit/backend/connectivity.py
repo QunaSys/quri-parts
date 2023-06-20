@@ -1,4 +1,4 @@
-from typing import Any, Union, Optional
+from typing import Any, Optional, Union
 
 import networkx as nx
 import numpy as np
