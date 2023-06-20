@@ -1,4 +1,5 @@
 from quri_parts.core.utils.recording import (
+    DEBUG,
     INFO,
     RecordEntry,
     Recorder,
@@ -85,3 +86,55 @@ def test_nested_func_record() -> None:
         RecordEntry(fid, ("x", 4)),
         RecordEntry(fid, ("2y", 8)),
     ]
+
+
+@recordable
+def rec_level_func(recorder: Recorder, x: int) -> int:
+    recorder.info("info", x)
+    recorder.debug("debug", 2 * x)
+    return 2 * x
+
+
+class TestRecordLevel:
+    def test_default_level(self) -> None:
+        session = RecordSession()
+
+        with session.start():
+            assert rec_level_func(3) == 6
+
+        records = session.get_records()
+        history = list(records.get_history(rec_level_func))
+        assert len(history) == 0
+
+    def test_info_level(self) -> None:
+        fid = rec_level_func.id
+        session = RecordSession()
+        session.set_level(INFO, rec_level_func)
+
+        with session.start():
+            assert rec_level_func(3) == 6
+
+        records = session.get_records()
+        history = list(records.get_history(rec_level_func))
+        assert len(history) == 1
+        (group,) = history
+
+        assert group.entries == [RecordEntry(fid, ("info", 3))]
+
+    def test_debug_level(self) -> None:
+        fid = rec_level_func.id
+        session = RecordSession()
+        session.set_level(DEBUG, rec_level_func)
+
+        with session.start():
+            assert rec_level_func(3) == 6
+
+        records = session.get_records()
+        history = list(records.get_history(rec_level_func))
+        assert len(history) == 1
+        (group,) = history
+
+        assert group.entries == [
+            RecordEntry(fid, ("info", 3)),
+            RecordEntry(fid, ("debug", 6)),
+        ]

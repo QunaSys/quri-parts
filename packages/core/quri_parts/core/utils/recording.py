@@ -39,6 +39,7 @@ class RecordableFunction(Generic[P, R]):
 RecordLevel: TypeAlias = int
 
 INFO: RecordLevel = 20
+DEBUG: RecordLevel = 10
 
 _RecKey: TypeAlias = Hashable
 _RecValue: TypeAlias = Any
@@ -57,9 +58,16 @@ class Recorder:
         for session in _active_sessions:
             session.exit_func(self._func_id)
 
-    def info(self, key: _RecKey, value: _RecValue) -> None:
+    def record(self, level: RecordLevel, key: _RecKey, value: _RecValue) -> None:
         for session in _active_sessions:
-            session.handler(self._func_id, key, value)
+            if session.is_enabled_for(level, self._func_id):
+                session.handler(self._func_id, key, value)
+
+    def debug(self, key: _RecKey, value: _RecValue) -> None:
+        self.record(DEBUG, key, value)
+
+    def info(self, key: _RecKey, value: _RecValue) -> None:
+        self.record(INFO, key, value)
 
 
 _recorders: dict[RecordableFunctionId, Recorder] = {}
@@ -112,6 +120,9 @@ class RecordSet:
         self._history.append(group)
         return group
 
+    def remove_last_group(self) -> None:
+        self._history.pop()
+
     def get_history(self, func: RecordableFunction[P, R]) -> Iterable[RecordGroup]:
         return filter(lambda g: g.func_id == func.id, self._history)
 
@@ -124,6 +135,9 @@ class RecordSession:
 
     def set_level(self, level: RecordLevel, func: RecordableFunction[P, R]) -> None:
         self._levels[func.id] = level
+
+    def is_enabled_for(self, level: RecordLevel, fid: RecordableFunctionId) -> bool:
+        return fid in self._levels and level >= self._levels[fid]
 
     def handler(
         self, fid: RecordableFunctionId, key: _RecKey, value: _RecValue
@@ -142,7 +156,9 @@ class RecordSession:
         self._group_stack.append(group)
 
     def exit_func(self, fid: RecordableFunctionId) -> None:
-        self._group_stack.pop()
+        group = self._group_stack.pop()
+        if not group.entries:
+            self._record_set.remove_last_group()
 
     def get_records(self) -> RecordSet:
         return self._record_set
