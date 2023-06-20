@@ -28,13 +28,13 @@ def test_recordable() -> None:
     assert len(history) == 2
     group0, group1 = history
 
-    assert group0.func_id == func_to_record.id
+    assert group0.func_id == fid
     assert group0.entries == [
         RecordEntry(fid, ("x", 3)),
         RecordEntry(fid, ("2x", 6)),
     ]
 
-    assert group1.func_id == func_to_record.id
+    assert group1.func_id == fid
     assert group1.entries == [
         RecordEntry(fid, ("x", 4)),
         RecordEntry(fid, ("2x", 8)),
