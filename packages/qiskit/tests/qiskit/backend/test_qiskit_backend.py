@@ -10,7 +10,7 @@
 
 import json
 from collections import Counter
-from typing import Optional, cast
+from typing import Optional
 
 import pytest
 import qiskit
@@ -226,20 +226,19 @@ class TestSavingMode:
     circuit_qasm = qiskit_transpiled_circuit.qasm()
 
     def test_saving_mode(self) -> None:
-        sampling_result = self.backend.sample(self.qp_circuit, 2000)
-        measurement_counter = sampling_result.result().counts
+        sampling_job = self.backend.sample(self.qp_circuit, 2000)
+        measurement_counter = sampling_job.result().counts
 
         # Check if the circuit string and n_shots are distribited correctly
-        expected_measurement_counter: Counter[int] = Counter()
+        measurement_counter_from_memory: Counter[int] = Counter()
         for qasm_str, n_shots, saved_job in self.backend._saved_data:
-            expected_measurement_counter += cast(
-                Counter[int], saved_job.result().counts
-            )
+            measurement_counter_from_memory += Counter(saved_job.result().counts)
+
             assert qasm_str == self.circuit_qasm
             assert n_shots == 1000
 
         # Check if the saved data counter sums up to the correct counter.
-        assert expected_measurement_counter == measurement_counter
+        assert measurement_counter_from_memory == measurement_counter
 
         # Construct the saved data objects
         raw_data_0 = self.backend._saved_data[0][2]._qiskit_job.result().get_counts()

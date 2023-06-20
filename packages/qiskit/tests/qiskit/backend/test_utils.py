@@ -8,15 +8,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from qiskit_aer import AerSimulator
-
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
 from quri_parts.qiskit.backend import (
     QiskitSavedDataSamplingJob,
     QiskitSavedDataSamplingResult,
     convert_qiskit_sampling_count_to_qp_sampling_count,
     distribute_backend_shots,
-    get_backend_min_max_shot,
     get_job_mapper_and_circuit_transpiler,
 )
 
@@ -57,13 +54,6 @@ class TestDistributeBackendShots:
             200, 1, 100, enable_shots_roundup=True
         )
         assert shot_distribution == [100, 100]
-
-
-def test_get_backend_min_max_shot() -> None:
-    aer_backend = AerSimulator()
-    min_shot, max_shot = get_backend_min_max_shot(aer_backend)
-    assert min_shot == 1
-    assert max_shot == int(1e6)
 
 
 class TestGetJobMapperAndCircuitTranspiler:

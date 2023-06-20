@@ -66,7 +66,7 @@ class QiskitSavedDataSamplingJob(SamplingJob):
     """An object that represents a saved sampling job.
 
     Args:
-        circuit_str: A string that represents the circuit used in a sampling job.
+        circuit_qasm: A string that represents the circuit used in a sampling job.
             Note that it should take in the qasm string of a qiskit quantum circuit.
             It can be accessed by `qiskit_circuit.qasm()`.
         n_shots: The total shots of a sampling job.

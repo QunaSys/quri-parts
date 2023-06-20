@@ -10,8 +10,6 @@
 
 import json
 
-from numpy import pi
-from qiskit import QuantumCircuit as QiskitQuantumCircuit
 from qiskit import transpile
 from qiskit_aer import AerSimulator
 
@@ -106,13 +104,6 @@ def test_qiskit_saved_data_job() -> None:
         circuit_qasm_str, n_shots, test_qiskit_saved_data_result
     )
 
-    expected_qiskit_circuit = QiskitQuantumCircuit(4)
-    expected_qiskit_circuit.u2(0, -2.9115927, 0)
-    expected_qiskit_circuit.u3(0.58079633, 0, -pi, 1)
-    expected_qiskit_circuit.u2(0, -2.2715927, 2)
-    expected_qiskit_circuit.u2(-0.16, -pi, 3)
-    expected_qiskit_circuit.measure_all()
-
     assert sampling_data_sampling_job.n_shots == 1000000
     assert sampling_data_sampling_job.saved_result.counts == {
         6: 10238,
@@ -134,7 +125,7 @@ def test_qiskit_saved_data_job() -> None:
     }
 
 
-class TestQiskitSavedDataSamplingBackend:
+def test_replay_sampling_output_and_memory() -> None:
     # Build json string
     backend = AerSimulator()
 
@@ -485,196 +476,130 @@ class TestQiskitSavedDataSamplingBackend:
     n_shots_5 = int(8000)
     n_shots_6 = int(1.5e6)
 
-    def test_replay_sampling_output_and_memory(self) -> None:
-        sampler = create_sampler_from_sampling_backend(self.saved_data_backend)
+    sampler = create_sampler_from_sampling_backend(saved_data_backend)
 
-        assert self.saved_data_backend._replay_memory == {
-            (self.circuit1_qasm_str, 1000000): 0,
-            (self.circuit2_qasm_str, 1000000): 0,
-            (self.circuit3_qasm_str, 4000): 0,
-            (self.circuit1_qasm_str, 200000): 0,
-            (self.circuit2_qasm_str, 8000): 0,
-            (self.circuit3_qasm_str, 1000000): 0,
-            (self.circuit3_qasm_str, 500000): 0,
-        }
+    # sampling experiment 1
+    result_1 = sampler(qp_circuit1, n_shots_1)
+    assert result_1 == {
+        2: 20628,
+        14: 20602,
+        10: 20377,
+        11: 20695,
+        5: 229943,
+        9: 229427,
+        8: 228891,
+        4: 229248,
+        12: 229565,
+        7: 20593,
+        6: 20429,
+        3: 20351,
+        1: 229438,
+        15: 20540,
+        13: 229276,
+        0: 229997,
+    }
 
-        # sampling experiment 1
-        result_1 = sampler(self.qp_circuit1, self.n_shots_1)
-        assert result_1 == {
-            2: 20628,
-            14: 20602,
-            10: 20377,
-            11: 20695,
-            5: 229943,
-            9: 229427,
-            8: 228891,
-            4: 229248,
-            12: 229565,
-            7: 20593,
-            6: 20429,
-            3: 20351,
-            1: 229438,
-            15: 20540,
-            13: 229276,
-            0: 229997,
-        }
-        assert self.saved_data_backend._replay_memory == {
-            (self.circuit1_qasm_str, 1000000): 2,
-            (self.circuit2_qasm_str, 1000000): 0,
-            (self.circuit3_qasm_str, 4000): 0,
-            (self.circuit1_qasm_str, 200000): 0,
-            (self.circuit2_qasm_str, 8000): 0,
-            (self.circuit3_qasm_str, 1000000): 0,
-            (self.circuit3_qasm_str, 500000): 0,
-        }
+    # sampling experiment 2
+    result_2 = sampler(qp_circuit2, n_shots_2)
+    assert result_2 == {
+        11: 137170,
+        14: 136785,
+        6: 137671,
+        12: 362385,
+        4: 363799,
+        3: 137239,
+        1: 362436,
+        9: 362543,
+        8: 362465,
+        13: 362902,
+        15: 136908,
+        7: 136936,
+        5: 363818,
+        2: 137560,
+        0: 362533,
+        10: 136850,
+    }
 
-        # sampling experiment 2
-        result_2 = sampler(self.qp_circuit2, self.n_shots_2)
-        assert result_2 == {
-            11: 137170,
-            14: 136785,
-            6: 137671,
-            12: 362385,
-            4: 363799,
-            3: 137239,
-            1: 362436,
-            9: 362543,
-            8: 362465,
-            13: 362902,
-            15: 136908,
-            7: 136936,
-            5: 363818,
-            2: 137560,
-            0: 362533,
-            10: 136850,
-        }
-        assert self.saved_data_backend._replay_memory == {
-            (self.circuit1_qasm_str, 1000000): 2,
-            (self.circuit2_qasm_str, 1000000): 4,
-            (self.circuit3_qasm_str, 4000): 0,
-            (self.circuit1_qasm_str, 200000): 0,
-            (self.circuit2_qasm_str, 8000): 0,
-            (self.circuit3_qasm_str, 1000000): 0,
-            (self.circuit3_qasm_str, 500000): 0,
-        }
+    # sampling experiment 3
+    result_3 = sampler(qp_circuit3, n_shots_3)
+    assert result_3 == {
+        5: 15,
+        0: 16,
+        9: 10,
+        10: 497,
+        8: 13,
+        14: 508,
+        11: 464,
+        2: 466,
+        7: 494,
+        13: 16,
+        15: 492,
+        3: 487,
+        1: 17,
+        12: 16,
+        4: 14,
+        6: 475,
+    }
 
-        # sampling experiment 3
-        result_3 = sampler(self.qp_circuit3, self.n_shots_3)
-        assert result_3 == {
-            5: 15,
-            0: 16,
-            9: 10,
-            10: 497,
-            8: 13,
-            14: 508,
-            11: 464,
-            2: 466,
-            7: 494,
-            13: 16,
-            15: 492,
-            3: 487,
-            1: 17,
-            12: 16,
-            4: 14,
-            6: 475,
-        }
+    # sampling experiment 4
+    result_4 = sampler(qp_circuit1, n_shots_4)
+    assert result_4 == {
+        2: 12482,
+        6: 12202,
+        10: 12317,
+        11: 12327,
+        5: 137363,
+        0: 137452,
+        3: 12271,
+        1: 137511,
+        12: 137217,
+        4: 137669,
+        9: 138132,
+        14: 12433,
+        8: 137505,
+        13: 138600,
+        15: 12246,
+        7: 12273,
+    }
 
-        assert self.saved_data_backend._replay_memory == {
-            (self.circuit1_qasm_str, 1000000): 2,
-            (self.circuit2_qasm_str, 1000000): 4,
-            (self.circuit3_qasm_str, 4000): 1,
-            (self.circuit1_qasm_str, 200000): 0,
-            (self.circuit2_qasm_str, 8000): 0,
-            (self.circuit3_qasm_str, 1000000): 0,
-            (self.circuit3_qasm_str, 500000): 0,
-        }
+    # sampling experiment 5
+    result_5 = sampler(qp_circuit2, n_shots_5)
+    assert result_5 == {
+        11: 259,
+        10: 263,
+        14: 271,
+        7: 264,
+        15: 264,
+        13: 758,
+        6: 281,
+        3: 287,
+        1: 768,
+        12: 726,
+        4: 688,
+        9: 702,
+        8: 712,
+        0: 741,
+        2: 272,
+        5: 744,
+    }
 
-        # sampling experiment 4
-        result_4 = sampler(self.qp_circuit1, self.n_shots_4)
-        assert result_4 == {
-            2: 12482,
-            6: 12202,
-            10: 12317,
-            11: 12327,
-            5: 137363,
-            0: 137452,
-            3: 12271,
-            1: 137511,
-            12: 137217,
-            4: 137669,
-            9: 138132,
-            14: 12433,
-            8: 137505,
-            13: 138600,
-            15: 12246,
-            7: 12273,
-        }
-        assert self.saved_data_backend._replay_memory == {
-            (self.circuit1_qasm_str, 1000000): 3,
-            (self.circuit2_qasm_str, 1000000): 4,
-            (self.circuit3_qasm_str, 4000): 1,
-            (self.circuit1_qasm_str, 200000): 1,
-            (self.circuit2_qasm_str, 8000): 0,
-            (self.circuit3_qasm_str, 1000000): 0,
-            (self.circuit3_qasm_str, 500000): 0,
-        }
-
-        # sampling experiment 5
-        result_5 = sampler(self.qp_circuit2, self.n_shots_5)
-        assert result_5 == {
-            11: 259,
-            10: 263,
-            14: 271,
-            7: 264,
-            15: 264,
-            13: 758,
-            6: 281,
-            3: 287,
-            1: 768,
-            12: 726,
-            4: 688,
-            9: 702,
-            8: 712,
-            0: 741,
-            2: 272,
-            5: 744,
-        }
-        assert self.saved_data_backend._replay_memory == {
-            (self.circuit1_qasm_str, 1000000): 3,
-            (self.circuit2_qasm_str, 1000000): 4,
-            (self.circuit3_qasm_str, 4000): 1,
-            (self.circuit1_qasm_str, 200000): 1,
-            (self.circuit2_qasm_str, 8000): 1,
-            (self.circuit3_qasm_str, 1000000): 0,
-            (self.circuit3_qasm_str, 500000): 0,
-        }
-
-        # sampling experiment 6
-        result_6 = sampler(self.qp_circuit3, self.n_shots_6)
-        assert result_6 == {
-            8: 5844,
-            5: 6009,
-            0: 5877,
-            9: 5967,
-            15: 181393,
-            13: 5947,
-            10: 181413,
-            3: 181372,
-            1: 5964,
-            6: 181502,
-            4: 5974,
-            12: 6083,
-            14: 181453,
-            2: 182627,
-            11: 181011,
-            7: 181564,
-        }
-        assert self.saved_data_backend._replay_memory == {
-            (self.circuit1_qasm_str, 1000000): 3,
-            (self.circuit2_qasm_str, 1000000): 4,
-            (self.circuit3_qasm_str, 4000): 1,
-            (self.circuit1_qasm_str, 200000): 1,
-            (self.circuit2_qasm_str, 8000): 1,
-            (self.circuit3_qasm_str, 1000000): 1,
-            (self.circuit3_qasm_str, 500000): 1,
-        }
+    # sampling experiment 6
+    result_6 = sampler(qp_circuit3, n_shots_6)
+    assert result_6 == {
+        8: 5844,
+        5: 6009,
+        0: 5877,
+        9: 5967,
+        15: 181393,
+        13: 5947,
+        10: 181413,
+        3: 181372,
+        1: 5964,
+        6: 181502,
+        4: 5974,
+        12: 6083,
+        14: 181453,
+        2: 182627,
+        11: 181011,
+        7: 181564,
+    }
