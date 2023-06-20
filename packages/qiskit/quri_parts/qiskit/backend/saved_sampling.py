@@ -123,7 +123,7 @@ class QiskitSavedDataSamplingBackend(SamplingBackend):
         ... )
 
         2-b: Replay sampling experiment.
-        
+
         (circuit, n_shots) pairs are passed in to the `saved_data_sampler`
         the same order as they were passed in to the `sampler`.
 
