@@ -138,3 +138,40 @@ class TestRecordLevel:
             RecordEntry(fid, ("info", 3)),
             RecordEntry(fid, ("debug", 6)),
         ]
+
+
+@recordable
+def is_enabled_for_func(recorder: Recorder, x: int) -> int:
+    # arg of is_enabled for (DEBUG) and recorder.info are inconsistent
+    # for testing purpose
+    if recorder.is_enabled_for(DEBUG):
+        recorder.info("x", x)
+    return 2 * x
+
+
+class TestIsEnabledFor:
+    def test_is_enabled_for_true(self) -> None:
+        fid = is_enabled_for_func.id
+        session = RecordSession()
+        session.set_level(DEBUG, is_enabled_for_func)
+
+        with session.start():
+            assert is_enabled_for_func(3) == 6
+
+        records = session.get_records()
+        history = list(records.get_history(is_enabled_for_func))
+        assert len(history) == 1
+        (group,) = history
+
+        assert group.entries == [RecordEntry(fid, ("x", 3))]
+
+    def test_is_enabled_for_false(self) -> None:
+        session = RecordSession()
+        session.set_level(INFO, is_enabled_for_func)
+
+        with session.start():
+            assert is_enabled_for_func(3) == 6
+
+        records = session.get_records()
+        history = list(records.get_history(is_enabled_for_func))
+        assert len(history) == 0
