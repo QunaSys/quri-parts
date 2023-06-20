@@ -34,7 +34,9 @@ def device_connectivity_graph(device: Union[BackendV1, BackendV2]) -> nx.Graph:
     return nx.parse_adjlist(lines)
 
 
-def qubit_counts_considering_cx_errors(device: BackendV2, epsilon: float) -> list[int]:
+def qubit_counts_considering_cx_errors(
+    device: BackendV2, cx_error_threshold: float
+) -> list[int]:
     coupling_map = device.coupling_map
     two_q_error_map = {}
     cx_errors = []
@@ -55,11 +57,10 @@ def qubit_counts_considering_cx_errors(device: BackendV2, epsilon: float) -> lis
             cx_errors.append(err)
 
     errors = np.array(cx_errors)
-    es = errors < epsilon
+    es = errors < cx_error_threshold
     adjlist = []
-    for c, e in zip(coupling_map, es):
+    for (a, b), e in zip(coupling_map, es):
         if e:
-            a, b = c
             adjlist.append(f"{a} {b}")
 
     graph = nx.parse_adjlist(adjlist)
