@@ -89,8 +89,9 @@ class QiskitSavedDataSamplingBackend(SamplingBackend):
     same order as the orginal experiment.
 
     Example:
-        # 1. Sampling experiment
-        # 1-a: Sampling mode with data saving
+        1. Sampling experiment
+
+        1-a: Sampling mode with data saving
 
         >>> backend_device = AerSimulator()
         >>> sampling_backend = QiskitSamplingBackend(
@@ -98,18 +99,19 @@ class QiskitSavedDataSamplingBackend(SamplingBackend):
         ... )
         >>> sampler = create_sampler_from_sampling_backend(sampling_backend)
 
-        # 1-b: Perform sampling experiments
+        1-b: Perform sampling experiments
 
         >>> sampling_count_1 = sampler(circuit_1, n_shots_1)
         >>> sampling_count_2 = sampler(circuit_2, n_shots_2)
         >>> sampling_count_3 = sampler(circuit_3, n_shots_3)
 
-        # 1-c: Dump sampling data
+        1-c: Dump sampling data
 
         >>> experiment_json_str = sampling_backend.jobs_json()
 
-        # 2. Replay sampling experiment
-        # 2-a: Create sampling backend and sampler with saved data.
+        2. Replay sampling experiment
+
+        2-a: Create sampling backend and sampler with saved data.
 
         >>> saved_data_sampling_backend = QiskitSavedDataSamplingBackend(
         ...     backend = backend_device,
@@ -120,9 +122,10 @@ class QiskitSavedDataSamplingBackend(SamplingBackend):
         ...    saved_data_sampling_backend
         ... )
 
-        # 2-b: Replay sampling experiment.
-        # (circuit, n_shots) pairs are passed in to the `saved_data_sampler`
-        # the same order as they were passed in to the `sampler`.
+        2-b: Replay sampling experiment.
+        
+        (circuit, n_shots) pairs are passed in to the `saved_data_sampler`
+        the same order as they were passed in to the `sampler`.
 
         >>> replayed_sampling_count_1 = sampler(circuit_1, n_shots_1)
         >>> replayed_sampling_count_2 = sampler(circuit_2, n_shots_2)
