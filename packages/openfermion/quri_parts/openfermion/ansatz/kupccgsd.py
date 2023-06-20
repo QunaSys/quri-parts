@@ -175,6 +175,15 @@ def _construct_singlet_excitation_circuit(
 def get_independent_excitations(
     s_excs: Sequence[SingleExcitation], d_excs: Sequence[DoubleExcitation], x: int
 ) -> tuple[list[SingleExcitation], list[str], list[DoubleExcitation], list[str]]:
+    """Returns the independent excitation list and their correponding circuit
+    parameter names.
+
+    For single excitation operators, c_p^† c_q and c_p^† c_q share the same circuit
+    parameter, so only c_p^† c_q will be included.
+
+    For double excitation operators, c_p^† c_q^† c_r c_s and c_s^† c_r^† c_q c_p
+    share the same circuit parameter, so only c_p^† c_q^† c_r c_s will be included.
+    """
     independent_s_exc = []
     independent_s_exc_name = []
 
