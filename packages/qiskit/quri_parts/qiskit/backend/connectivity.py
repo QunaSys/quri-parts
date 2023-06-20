@@ -1,7 +1,7 @@
-from typing import Union
+from typing import Any, Union, Optional
 
-import numpy as np
 import networkx as nx
+import numpy as np
 from qiskit.providers import BackendV1, BackendV2
 
 
@@ -38,7 +38,7 @@ def qubit_counts_considering_cx_errors(
     device: BackendV2, cx_error_threshold: float
 ) -> list[int]:
     coupling_map = device.coupling_map
-    two_q_error_map = {}
+    two_q_error_map: dict[tuple[Any, ...], Optional[float]] = {}
     cx_errors = []
     for gate, prop_dict in device.target.items():
         if prop_dict is None or None in prop_dict:
