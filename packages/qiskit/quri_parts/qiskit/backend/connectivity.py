@@ -1,7 +1,6 @@
 from typing import Any, Optional, Union
 
 import networkx as nx
-import numpy as np
 from qiskit.providers import BackendV1, BackendV2
 
 
@@ -34,12 +33,10 @@ def device_connectivity_graph(device: Union[BackendV1, BackendV2]) -> nx.Graph:
     return nx.parse_adjlist(lines)
 
 
-def qubit_counts_considering_cx_errors(
-    device: BackendV2, cx_error_threshold: float
-) -> list[int]:
+def couplint_map_with_cx_errors(device: BackendV2) -> dict[tuple[int, int], float]:
     coupling_map = device.coupling_map
     two_q_error_map: dict[tuple[Any, ...], Optional[float]] = {}
-    cx_errors = []
+    cx_errors = {}
     for gate, prop_dict in device.target.items():
         if prop_dict is None or None in prop_dict:
             continue
@@ -54,14 +51,107 @@ def qubit_counts_considering_cx_errors(
     if coupling_map:
         for line in coupling_map.get_edges():
             err = two_q_error_map.get(tuple(line), 0)
-            cx_errors.append(err)
+            cx_errors[tuple(line)] = err
+    return cx_errors
 
-    errors = np.array(cx_errors)
-    es = errors < cx_error_threshold
+
+def qubit_counts_considering_cx_errors(
+    device: BackendV2, cx_error_threshold: float
+) -> list[int]:
+    cx_errors = qubit_map_with_cx_errors(device)
     adjlist = []
-    for (a, b), e in zip(coupling_map, es):
-        if e:
+    for (a, b), e in cx_errors.items():
+        if e < cx_error_threshold:
             adjlist.append(f"{a} {b}")
 
     graph = nx.parse_adjlist(adjlist)
     return [len(c) for c in nx.connected_components(graph)]
+
+
+def optimized_single_stroke_subgraph(
+    graph: dict[tuple[int, int], float], qubits: int
+) -> Optional[nx.Graph]:
+    s = Optimize()
+
+    n = len(set(sum(graph.keys(), ())))
+    edge_count = qubits - 1
+
+    adj_mat = [[Int("adj[%d,%d]" % (i, j)) for j in range(n)] for i in range(n)]
+    cost_mat = [[Real("css[%d,%d]" % (i, j)) for j in range(n)] for i in range(n)]
+    for i in range(n):
+        for j in range(n):
+            s.add(Implies(adj_mat[i][j] == 1, (i, j) in graph))
+            s.add(If(adj_mat[i][j] == 1, adj_mat[j][i] == 1, adj_mat[j][i] == 0))
+            s.add(Or(adj_mat[i][j] == 1, adj_mat[i][j] == 0))
+            s.add(
+                If(
+                    adj_mat[i][j] == 1,
+                    cost_mat[i][j] == (graph[(i, j)] if (i, j) in graph else 0.0),
+                    cost_mat[i][j] == 0.0,
+                )
+            )
+
+    deg1 = IntVector("deg1", n)
+    deg2 = IntVector("deg2", n)
+    for i in range(n):
+        s.add(sum(adj_mat[i]) <= 2)
+        s.add(If(sum(adj_mat[i]) == 1, deg1[i] == 1, deg1[i] == 0))
+        s.add(If(sum(adj_mat[i]) == 2, deg2[i] == 1, deg2[i] == 0))
+    s.add(sum(deg1) == 2)
+    s.add(sum(deg2) == edge_count - 1)
+
+    path = [[Bool("path[%d,%d]" % (i, j)) for j in range(n)] for i in range(n)]
+    for i in range(n):
+        for j in range(n):
+            path[i][j] = False
+        path[i][i] = True
+    for k in range(n):
+        for i in range(n):
+            for j in range(n):
+                path[i][j] = Or(
+                    path[j][i],
+                    path[i][j],
+                    And(path[i][k], Or(adj_mat[k][j] == 1, adj_mat[j][k] == 1)),
+                )
+    for i in range(n):
+        for j in range(n):
+            s.add(
+                Implies(
+                    And(
+                        Or(deg1[i] == 1, deg2[i] == 1),
+                        Or(deg1[j] == 1, deg2[j] == 1),
+                    ),
+                    path[i][j],
+                )
+            )
+
+    s.minimize(sum(map(lambda cs: sum(cs), cost_mat)))
+
+    r = s.check()
+    if r != sat:
+        # raise RuntimeError("No subgraphs were found by SAT that met the criteria.")
+        return None
+    m = s.model()
+    adj_list = []
+    for i in range(n):
+        for j in range(n):
+            if m[adj_mat[i][j]] == 1:
+                adj_list.append(f"{i} {j}")
+    return nx.parse_adjlist(adj_list)
+
+
+def optimized_single_stroke_path(
+    device: BackendV2, qubits: int
+) -> Optional[list[tuple[int, int]]]:
+    cx_errors = coupling_map_with_cx_errors(device)
+
+    cx_lnfidelity = {}
+    for q, e in cx_errors.items():
+        cx_lnfidelity[q] = -math.log(1.0 - e)
+
+    graph = optimized_single_stroke_subgraph(cx_lnfidelity, qubits)
+    if graph is None:
+        return None
+
+    path = [(int(a), int(b)) for a, b in nx.eulerian_path(graph)]
+    return {q: cx_errors[q] for q in path}
