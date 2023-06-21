@@ -10,8 +10,10 @@ from quri_parts.circuit import (
     ImmutableQuantumCircuit,
     ImmutableUnboundParametricQuantumCircuit,
     LinearMappedUnboundParametricQuantumCircuit,
+    LinearMappedUnboundParametricQuantumCircuitBase,
     NonParametricQuantumCircuit,
     UnboundParametricQuantumCircuit,
+    UnboundParametricQuantumCircuitBase,
 )
 
 
@@ -50,8 +52,7 @@ def compile_parametric_circuit(
 
 class _QulacsCircuit(ImmutableQuantumCircuit):
     def __init__(self, circuit: NonParametricQuantumCircuit):
-        self._qubit_count = circuit.qubit_count
-        self._gates = circuit.gates
+        super().__init__(circuit)
         self._qulacs_circuit = qlc.convert_circuit(circuit)
 
     @property
@@ -60,7 +61,7 @@ class _QulacsCircuit(ImmutableQuantumCircuit):
 
 
 class _QulacsUnboundParametricCircuit(ImmutableUnboundParametricQuantumCircuit):
-    def __init__(self, circuit: UnboundParametricQuantumCircuit):
+    def __init__(self, circuit: UnboundParametricQuantumCircuitBase):
         super().__init__(circuit)
         self._qulacs_circuit, self._param_mapper = qlc.convert_parametric_circuit(
             circuit
@@ -78,7 +79,7 @@ class _QulacsUnboundParametricCircuit(ImmutableUnboundParametricQuantumCircuit):
 class _QulacsLinearMappedUnboundParametricCircuit(
     ImmutableLinearMappedUnboundParametricQuantumCircuit
 ):
-    def __init__(self, circuit: LinearMappedUnboundParametricQuantumCircuit):
+    def __init__(self, circuit: LinearMappedUnboundParametricQuantumCircuitBase):
         super().__init__(circuit)
         (
             self._qulacs_circuit,
