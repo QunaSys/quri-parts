@@ -1,6 +1,7 @@
 from collections.abc import Callable, Hashable, Iterable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
+from enum import IntEnum
 from functools import update_wrapper
 from typing import Any, Generic, NamedTuple, TypeVar
 
@@ -36,10 +37,13 @@ class RecordableFunction(Generic[P, R]):
         return self._id
 
 
-RecordLevel: TypeAlias = int
+class RecordLevel(IntEnum):
+    INFO = 20
+    DEBUG = 10
 
-INFO: RecordLevel = 20
-DEBUG: RecordLevel = 10
+
+INFO = RecordLevel.INFO
+DEBUG = RecordLevel.DEBUG
 
 _RecKey: TypeAlias = Hashable
 _RecValue: TypeAlias = Any
@@ -61,7 +65,7 @@ class Recorder:
     def record(self, level: RecordLevel, key: _RecKey, value: _RecValue) -> None:
         for session in _active_sessions:
             if session.is_enabled_for(level, self._func_id):
-                session.handler(self._func_id, key, value)
+                session.handler(level, self._func_id, key, value)
 
     def debug(self, key: _RecKey, value: _RecValue) -> None:
         self.record(DEBUG, key, value)
@@ -103,6 +107,7 @@ def recordable(f: Callable[Concatenate[Recorder, P], R]) -> RecordableFunction[P
 
 @dataclass
 class RecordEntry:
+    level: RecordLevel
     func_id: RecordableFunctionId
     data: _RecData
 
@@ -145,9 +150,13 @@ class RecordSession:
         return fid in self._levels and level >= self._levels[fid]
 
     def handler(
-        self, fid: RecordableFunctionId, key: _RecKey, value: _RecValue
+        self,
+        level: RecordLevel,
+        fid: RecordableFunctionId,
+        key: _RecKey,
+        value: _RecValue,
     ) -> None:
-        entry = RecordEntry(fid, (key, value))
+        entry = RecordEntry(level, fid, (key, value))
         self._group_stack[-1].add_entry(entry)
 
     @contextmanager

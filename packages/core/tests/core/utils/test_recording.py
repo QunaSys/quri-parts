@@ -31,14 +31,14 @@ def test_recordable() -> None:
 
     assert group0.func_id == fid
     assert group0.entries == [
-        RecordEntry(fid, ("x", 3)),
-        RecordEntry(fid, ("2x", 6)),
+        RecordEntry(INFO, fid, ("x", 3)),
+        RecordEntry(INFO, fid, ("2x", 6)),
     ]
 
     assert group1.func_id == fid
     assert group1.entries == [
-        RecordEntry(fid, ("x", 4)),
-        RecordEntry(fid, ("2x", 8)),
+        RecordEntry(INFO, fid, ("x", 4)),
+        RecordEntry(INFO, fid, ("2x", 8)),
     ]
 
 
@@ -62,16 +62,16 @@ def test_nested_sessions() -> None:
 
     assert all(group.func_id == fid for group in history1)
     assert group0.entries == [
-        RecordEntry(fid, ("x", 1)),
-        RecordEntry(fid, ("2x", 2)),
+        RecordEntry(INFO, fid, ("x", 1)),
+        RecordEntry(INFO, fid, ("2x", 2)),
     ]
     assert group1.entries == [
-        RecordEntry(fid, ("x", 2)),
-        RecordEntry(fid, ("2x", 4)),
+        RecordEntry(INFO, fid, ("x", 2)),
+        RecordEntry(INFO, fid, ("2x", 4)),
     ]
     assert group2.entries == [
-        RecordEntry(fid, ("x", 3)),
-        RecordEntry(fid, ("2x", 6)),
+        RecordEntry(INFO, fid, ("x", 3)),
+        RecordEntry(INFO, fid, ("2x", 6)),
     ]
 
     records2 = session2.get_records()
@@ -81,8 +81,8 @@ def test_nested_sessions() -> None:
 
     assert group.func_id == fid
     assert group.entries == [
-        RecordEntry(fid, ("x", 2)),
-        RecordEntry(fid, ("2x", 4)),
+        RecordEntry(INFO, fid, ("x", 2)),
+        RecordEntry(INFO, fid, ("2x", 4)),
     ]
 
 
@@ -114,21 +114,21 @@ def test_nested_func_record() -> None:
 
     assert group0.func_id == fid
     assert group0.entries == [
-        RecordEntry(fid, ("x", 3)),
-        RecordEntry(fid, ("y", 12)),
-        RecordEntry(fid, ("2y", 24)),
+        RecordEntry(INFO, fid, ("x", 3)),
+        RecordEntry(INFO, fid, ("y", 12)),
+        RecordEntry(INFO, fid, ("2y", 24)),
     ]
 
     assert group1.func_id == fid
     assert group1.entries == [
-        RecordEntry(fid, ("x", 6)),
-        RecordEntry(fid, ("2y", 12)),
+        RecordEntry(INFO, fid, ("x", 6)),
+        RecordEntry(INFO, fid, ("2y", 12)),
     ]
 
     assert group2.func_id == fid
     assert group2.entries == [
-        RecordEntry(fid, ("x", 4)),
-        RecordEntry(fid, ("2y", 8)),
+        RecordEntry(INFO, fid, ("x", 4)),
+        RecordEntry(INFO, fid, ("2y", 8)),
     ]
 
 
@@ -163,7 +163,7 @@ class TestRecordLevel:
         assert len(history) == 1
         (group,) = history
 
-        assert group.entries == [RecordEntry(fid, ("info", 3))]
+        assert group.entries == [RecordEntry(INFO, fid, ("info", 3))]
 
     def test_debug_level(self) -> None:
         fid = rec_level_func.id
@@ -179,8 +179,8 @@ class TestRecordLevel:
         (group,) = history
 
         assert group.entries == [
-            RecordEntry(fid, ("info", 3)),
-            RecordEntry(fid, ("debug", 6)),
+            RecordEntry(INFO, fid, ("info", 3)),
+            RecordEntry(DEBUG, fid, ("debug", 6)),
         ]
 
 
@@ -207,7 +207,7 @@ class TestIsEnabledFor:
         assert len(history) == 1
         (group,) = history
 
-        assert group.entries == [RecordEntry(fid, ("x", 3))]
+        assert group.entries == [RecordEntry(INFO, fid, ("x", 3))]
 
     def test_is_enabled_for_false(self) -> None:
         session = RecordSession()
@@ -240,4 +240,4 @@ class TestIsEnabledFor:
         assert len(history2) == 1
         (group,) = history2
 
-        assert group.entries == [RecordEntry(fid, ("x", 3))]
+        assert group.entries == [RecordEntry(INFO, fid, ("x", 3))]
