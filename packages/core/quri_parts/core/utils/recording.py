@@ -41,6 +41,9 @@ class RecordLevel(IntEnum):
     INFO = 20
     DEBUG = 10
 
+    def __str__(self) -> str:
+        return self.name
+
 
 INFO = RecordLevel.INFO
 DEBUG = RecordLevel.DEBUG
@@ -111,6 +114,9 @@ class RecordEntry:
     func_id: RecordableFunctionId
     data: _RecData
 
+    def __str__(self) -> str:
+        return f"{self.level}:{self.func_id}:{self.data}"
+
 
 @dataclass
 class RecordGroup:
@@ -119,6 +125,18 @@ class RecordGroup:
 
     def add_entry(self, entry: RecordEntry) -> None:
         self.entries.append(entry)
+
+    def __str__(self) -> str:
+        return (
+            f"""RecordGroup(
+  func_id: {self.func_id},
+  entries: [
+"""
+            + "\n".join(f"    {entry}," for entry in self.entries)
+            + """
+  ]
+)"""
+        )
 
 
 class RecordSet:
