@@ -38,12 +38,7 @@ from quri_parts.circuit.gate_names import (
 )
 
 from .. import cast_to_list
-from .compiled_circuit import (
-    _QulacsLinearMappedUnboundParametricCircuit,
-    _QulacsUnboundParametricCircuit,
-    compile_circuit,
-    compile_parametric_circuit,
-)
+from .compiled_circuit import compile_circuit, compile_parametric_circuit
 
 _single_qubit_gate_qulacs: Mapping[
     SingleQubitGateNameType, Callable[[int], qulacs.QuantumGateBase]
@@ -209,10 +204,6 @@ def convert_parametric_circuit(
 ]:
     param_circuit: UnboundParametricQuantumCircuitBase
     param_mapper: Callable[[Sequence[float]], Sequence[float]]
-    if isinstance(circuit, _QulacsLinearMappedUnboundParametricCircuit) or isinstance(
-        circuit, _QulacsUnboundParametricCircuit
-    ):
-        return circuit.qulacs_circuit, circuit.param_mapper
     if isinstance(circuit, LinearMappedUnboundParametricQuantumCircuitBase):
         param_mapping = circuit.param_mapping
         param_circuit = circuit.primitive_circuit()

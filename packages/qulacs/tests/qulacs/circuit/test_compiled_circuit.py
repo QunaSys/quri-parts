@@ -43,7 +43,7 @@ def gates_equal(g1: qulacs.QuantumGateBase, g2: qulacs.QuantumGateBase) -> bool:
     )
 
 
-def test_convert_circuit() -> None:
+def test_compile_circuit() -> None:
     circuit = QuantumCircuit(3)
     original_gates = [
         gates.X(1),
@@ -70,7 +70,7 @@ def test_convert_circuit() -> None:
         assert gates_equal(qulacs_circuit.get_gate(i), expected)
 
 
-def test_convert_parametric_circuit() -> None:
+def test_compile_parametric_circuit() -> None:
     circuit = UnboundParametricQuantumCircuit(3)
     circuit.add_X_gate(1)
     circuit.add_ParametricRX_gate(0)
@@ -105,7 +105,7 @@ def test_convert_parametric_circuit() -> None:
         assert gates_equal(qulacs_circuit.get_gate(i), expected)
 
 
-def test_convert_linear_mapped_parametric_circuit() -> None:
+def test_compile_linear_mapped_parametric_circuit() -> None:
     circuit = LinearMappedUnboundParametricQuantumCircuit(3)
     theta, phi = circuit.add_parameters("theta", "phi")
     circuit.add_X_gate(1)

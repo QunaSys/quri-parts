@@ -27,7 +27,11 @@ from quri_parts.core.operator import zero
 from quri_parts.core.state import ParametricQuantumStateVector, QuantumStateVector
 from quri_parts.core.utils.concurrent import execute_concurrently
 from quri_parts.qulacs import QulacsParametricStateT, QulacsStateT
-from quri_parts.qulacs.circuit.compiled_circuit import _QulacsCircuit
+from quri_parts.qulacs.circuit.compiled_circuit import (
+    _QulacsCircuit,
+    _QulacsLinearMappedUnboundParametricCircuit,
+    _QulacsUnboundParametricCircuit,
+)
 
 from . import cast_to_list
 from .circuit import convert_circuit, convert_parametric_circuit
@@ -169,7 +173,16 @@ def _sequential_parametric_estimate(
     n_qubits = state.qubit_count
     op = convert_operator(operator, n_qubits)
     parametric_circuit = state.parametric_circuit
-    qulacs_circuit, param_mapper = convert_parametric_circuit(parametric_circuit)
+    if isinstance(
+        parametric_circuit,
+        (_QulacsLinearMappedUnboundParametricCircuit, _QulacsUnboundParametricCircuit),
+    ):
+        qulacs_circuit, param_mapper = (
+            parametric_circuit.qulacs_circuit,
+            parametric_circuit.param_mapper,
+        )
+    else:
+        qulacs_circuit, param_mapper = convert_parametric_circuit(parametric_circuit)
 
     estimates = []
     for param in params:
