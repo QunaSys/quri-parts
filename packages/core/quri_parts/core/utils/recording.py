@@ -1,10 +1,10 @@
+import logging
+import threading
 from collections.abc import Callable, Hashable, Iterable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from enum import IntEnum
 from functools import update_wrapper
-import logging
-import threading
 from typing import Any, Generic, NamedTuple, Optional, TypeVar
 
 from typing_extensions import Concatenate, ParamSpec, TypeAlias

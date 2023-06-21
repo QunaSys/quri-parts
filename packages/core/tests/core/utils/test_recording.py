@@ -1,4 +1,5 @@
 import logging
+
 import pytest
 
 from quri_parts.core.utils.recording import (
