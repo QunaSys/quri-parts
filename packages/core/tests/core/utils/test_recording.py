@@ -42,6 +42,50 @@ def test_recordable() -> None:
     ]
 
 
+def test_nested_sessions() -> None:
+    fid = func_to_record.id
+    session1 = RecordSession()
+    session1.set_level(INFO, func_to_record)
+    session2 = RecordSession()
+    session2.set_level(INFO, func_to_record)
+
+    with session1.start():
+        assert func_to_record(1) == 2
+        with session2.start():
+            assert func_to_record(2) == 4
+        assert func_to_record(3) == 6
+
+    records1 = session1.get_records()
+    history1 = list(records1.get_history(func_to_record))
+    assert len(history1) == 3
+    group0, group1, group2 = history1
+
+    assert all(group.func_id == fid for group in history1)
+    assert group0.entries == [
+        RecordEntry(fid, ("x", 1)),
+        RecordEntry(fid, ("2x", 2)),
+    ]
+    assert group1.entries == [
+        RecordEntry(fid, ("x", 2)),
+        RecordEntry(fid, ("2x", 4)),
+    ]
+    assert group2.entries == [
+        RecordEntry(fid, ("x", 3)),
+        RecordEntry(fid, ("2x", 6)),
+    ]
+
+    records2 = session2.get_records()
+    history2 = list(records2.get_history(func_to_record))
+    assert len(history2) == 1
+    (group,) = history2
+
+    assert group.func_id == fid
+    assert group.entries == [
+        RecordEntry(fid, ("x", 2)),
+        RecordEntry(fid, ("2x", 4)),
+    ]
+
+
 @recordable
 def nested_func(recorder: Recorder, x: int) -> int:
     recorder.info("x", x)
