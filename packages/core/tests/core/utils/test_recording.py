@@ -175,3 +175,25 @@ class TestIsEnabledFor:
         records = session.get_records()
         history = list(records.get_history(is_enabled_for_func))
         assert len(history) == 0
+
+    def test_is_enabled_for_multiple_sessions(self) -> None:
+        fid = is_enabled_for_func.id
+        # session1 is set to the default level
+        session1 = RecordSession()
+        session2 = RecordSession()
+        session2.set_level(DEBUG, is_enabled_for_func)
+
+        with session1.start():
+            with session2.start():
+                assert is_enabled_for_func(3) == 6
+
+        records1 = session1.get_records()
+        history1 = list(records1.get_history(is_enabled_for_func))
+        assert len(history1) == 0
+
+        records2 = session2.get_records()
+        history2 = list(records2.get_history(is_enabled_for_func))
+        assert len(history2) == 1
+        (group,) = history2
+
+        assert group.entries == [RecordEntry(fid, ("x", 3))]

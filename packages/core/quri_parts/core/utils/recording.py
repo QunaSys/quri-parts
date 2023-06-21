@@ -70,7 +70,7 @@ class Recorder:
         self.record(INFO, key, value)
 
     def is_enabled_for(self, level: RecordLevel) -> bool:
-        return all(
+        return any(
             session.is_enabled_for(level, self._func_id) for session in _active_sessions
         )
 
