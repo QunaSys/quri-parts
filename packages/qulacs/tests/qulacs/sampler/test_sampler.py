@@ -57,7 +57,15 @@ class TestQulacsVectorSampler:
         assert all(c >= 0 for c in counts.values())
         assert sum(counts.values()) == shots
 
+    @pytest.mark.parametrize("qubits", [4, 12])
+    @pytest.mark.parametrize("shots", [800, 1200, 2**12 + 100])
+    def test_sampler_with_compiled_circuit(self, qubits: int, shots: int) -> None:
+        circuit = QuantumCircuit(qubits)
+        for i in range(qubits):
+            circuit.add_H_gate(i)
         compiled_circuit = compile_circuit(circuit)
+
+        sampler = create_qulacs_vector_sampler()
         counts_with_compiled_circuit = sampler(compiled_circuit, shots)
 
         assert set(counts_with_compiled_circuit.keys()).issubset(range(2**qubits))
@@ -82,6 +90,11 @@ class TestQulacsVectorConcurrentSampler:
         assert set(results[1]) == {0b0001, 0b0011}
         assert all(c >= 0 for c in results[1].values())
         assert sum(results[1].values()) == 2000
+
+    def test_concurrent_sampler_with_compiled_circuit(self) -> None:
+        circuit1 = circuit()
+        circuit2 = circuit()
+        circuit2.add_X_gate(3)
 
         compiled_circuit_1 = compile_circuit(circuit1)
         compiled_circuit_2 = compile_circuit(circuit2)
