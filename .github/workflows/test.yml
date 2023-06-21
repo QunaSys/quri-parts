@@ -32,6 +32,7 @@ jobs:
         path: |
           ~/.julia/
         key: ci-${{ runner.os }}-julia-cache
+        restore-keys: ci-${{ runner.os }}-julia-
 
     - run: |
         poetry install --only main,dev

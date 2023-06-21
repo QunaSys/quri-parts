@@ -33,6 +33,7 @@ jobs:
         path: |
           ~/.julia/
         key: ci-${{ runner.os }}-julia-cache
+        restore-keys: ci-${{ runner.os }}-julia-
 
     - name: Download pandoc
       if: steps.cache-pandoc.outputs.cache-hit != 'true'
