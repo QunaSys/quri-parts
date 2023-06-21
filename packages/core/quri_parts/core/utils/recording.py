@@ -1,9 +1,11 @@
 from collections.abc import Callable, Hashable, Iterable, Iterator
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import IntEnum
 from functools import update_wrapper
-from typing import Any, Generic, NamedTuple, TypeVar
+import logging
+import threading
+from typing import Any, Generic, NamedTuple, Optional, TypeVar
 
 from typing_extensions import Concatenate, ParamSpec, TypeAlias
 
@@ -16,12 +18,18 @@ class RecordableFunctionId(NamedTuple):
     qualname: str
     param: Hashable
 
-    def __str__(self) -> str:
-        base = f"{self.module}.{self.qualname}"
+    def to_str(self, full: bool = True) -> str:
+        if full:
+            base = f"{self.module}.{self.qualname}"
+        else:
+            base = self.qualname
         if self.param:
             return f"{base}<{str(self.param)}>"
         else:
             return base
+
+    def __str__(self) -> str:
+        return self.to_str()
 
 
 class RecordableFunction(Generic[P, R]):
@@ -47,6 +55,8 @@ class RecordLevel(IntEnum):
 
 INFO = RecordLevel.INFO
 DEBUG = RecordLevel.DEBUG
+
+_DEFAULT_LOGGER_NAME = f"{logging.Logger.root.name}.quri_parts_recording"
 
 _RecKey: TypeAlias = Hashable
 _RecValue: TypeAlias = Any
@@ -118,10 +128,21 @@ class RecordEntry:
         return f"{self.level}:{self.func_id}:{self.data}"
 
 
+_group_id = threading.local()
+_group_id.current = 0
+
+
+def _next_group_id() -> int:
+    id: int = _group_id.current
+    _group_id.current += 1
+    return id
+
+
 @dataclass
 class RecordGroup:
     func_id: RecordableFunctionId
     entries: list[RecordEntry]
+    id: int = field(default_factory=_next_group_id)
 
     def add_entry(self, entry: RecordEntry) -> None:
         self.entries.append(entry)
@@ -155,11 +176,17 @@ class RecordSet:
         return filter(lambda g: g.func_id == func.id, self._history)
 
 
+def _to_logging_level(level: RecordLevel) -> int:
+    # Each RecordLevel has the same value as a logging level at least at the moment
+    return level.value
+
+
 class RecordSession:
     def __init__(self) -> None:
         self._levels: dict[RecordableFunctionId, RecordLevel] = {}
         self._record_set = RecordSet()
         self._group_stack: list[RecordGroup] = []
+        self._loggers: set[logging.Logger] = set()
 
     def set_level(self, level: RecordLevel, func: RecordableFunction[P, R]) -> None:
         self._levels[func.id] = level
@@ -175,7 +202,22 @@ class RecordSession:
         value: _RecValue,
     ) -> None:
         entry = RecordEntry(level, fid, (key, value))
-        self._group_stack[-1].add_entry(entry)
+        group = self._group_stack[-1]
+        group.add_entry(entry)
+        self._log(entry, group)
+
+    def _log(self, entry: RecordEntry, group: RecordGroup) -> None:
+        log_level = _to_logging_level(entry.level)
+        msg = ""
+        for logger in self._loggers:
+            if not logger.isEnabledFor(log_level):
+                continue
+            if not msg:
+                k, v = entry.data
+                msg = f"{entry.func_id.to_str(False)}: {k}={v}"
+            logger.getChild(entry.func_id.module).log(
+                log_level, msg, extra={"record_group": group.id}
+            )
 
     @contextmanager
     def start(self) -> Iterator[None]:
@@ -194,6 +236,11 @@ class RecordSession:
 
     def get_records(self) -> RecordSet:
         return self._record_set
+
+    def add_logger(self, logger: Optional[logging.Logger] = None) -> None:
+        if logger is None:
+            logger = logging.getLogger(_DEFAULT_LOGGER_NAME)
+        self._loggers.add(logger)
 
 
 _active_sessions: list[RecordSession] = []

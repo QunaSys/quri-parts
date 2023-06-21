@@ -1,3 +1,6 @@
+import logging
+import pytest
+
 from quri_parts.core.utils.recording import (
     DEBUG,
     INFO,
@@ -241,3 +244,84 @@ class TestIsEnabledFor:
         (group,) = history2
 
         assert group.entries == [RecordEntry(INFO, fid, ("x", 3))]
+
+
+@recordable
+def logging_func(recorder: Recorder, x: int) -> int:
+    recorder.info("x", x)
+    recorder.debug("2x", 2 * x)
+    return 2 * x
+
+
+class TestLogging:
+    def test_default_logger_info(self, caplog: pytest.LogCaptureFixture) -> None:
+        caplog.set_level(logging.INFO)
+
+        session = RecordSession()
+        session.set_level(INFO, logging_func)
+        session.add_logger()
+
+        with session.start():
+            assert logging_func(3) == 6
+
+        assert len(caplog.records) == 1
+        log_record = caplog.records[0]
+        assert log_record.name == f"root.quri_parts_recording.{logging_func.id.module}"
+        assert log_record.levelno == logging.INFO
+        assert log_record.message == f"{logging_func.id.qualname}: x=3"
+        assert isinstance(getattr(log_record, "record_group"), int)
+
+    def test_default_logger_debug(self, caplog: pytest.LogCaptureFixture) -> None:
+        caplog.set_level(logging.DEBUG)
+
+        session = RecordSession()
+        session.set_level(DEBUG, logging_func)
+        session.add_logger()
+
+        with session.start():
+            assert logging_func(3) == 6
+
+        assert len(caplog.records) == 2
+        log_record0, log_record1 = caplog.records
+
+        assert log_record0.name == f"root.quri_parts_recording.{logging_func.id.module}"
+        assert log_record0.levelno == logging.INFO
+        assert log_record0.message == f"{logging_func.id.qualname}: x=3"
+        assert isinstance(getattr(log_record0, "record_group"), int)
+
+        assert log_record1.name == f"root.quri_parts_recording.{logging_func.id.module}"
+        assert log_record1.levelno == logging.DEBUG
+        assert log_record1.message == f"{logging_func.id.qualname}: 2x=6"
+        assert isinstance(getattr(log_record1, "record_group"), int)
+
+        assert getattr(log_record0, "record_group") == getattr(
+            log_record1, "record_group"
+        )
+
+    def test_custom_logger(self, caplog: pytest.LogCaptureFixture) -> None:
+        log_name = "test_recording"
+        caplog.set_level(logging.INFO, logger=log_name)
+        logger = logging.getLogger(log_name)
+
+        session = RecordSession()
+        session.set_level(INFO, logging_func)
+        session.add_logger(logger)
+
+        with session.start():
+            assert logging_func(3) == 6
+
+        assert len(caplog.records) == 1
+        log_record = caplog.records[0]
+        assert log_record.name == f"{log_name}.{logging_func.id.module}"
+        assert log_record.levelno == logging.INFO
+        assert log_record.message == f"{logging_func.id.qualname}: x=3"
+        assert isinstance(getattr(log_record, "record_group"), int)
+
+    def test_no_logging_by_default(self, caplog: pytest.LogCaptureFixture) -> None:
+        session = RecordSession()
+        session.set_level(INFO, logging_func)
+
+        with session.start():
+            assert logging_func(3) == 6
+
+        assert len(caplog.record_tuples) == 0
