@@ -70,6 +70,40 @@ def qubit_counts_considering_cx_errors(
     return [len(c) for c in nx.connected_components(graph)]
 
 
+def _undirected(g):
+    rs = {}
+    for (a, b), e in g.items():
+        if (a, b) not in rs and (b, a) not in rs:
+            rs[(a, b)] = e
+    return rs
+
+
+def _directed(g):
+    rs = {}
+    for (a, b), e in g.items():
+        rs[(b, a)] = e
+    return rs | g
+
+
+def _list_to_graph(graph) -> nx.Graph:
+    adjlist = []
+    for (a, b), _ in graph:
+        adjlist.append(f"{a} {b}")
+    return nx.parse_adjlist(adjlist)
+
+
+def reliable_subgraph(device: BackendV2, qubits: int) -> list[nx.Graph]:
+    cx_errors = coupling_map_with_cx_errors(device)
+
+    sorted_graph = sorted(_undirected(cx_errors).items(), key=lambda x: x[1])
+    for i in range(qubits - 1, len(sorted_graph)):
+        sg = _list_to_graph(sorted_graph[:i])
+        rs = [sg.subgraph(c) for c in nx.connected_components(sg) if len(c) >= qubits]
+        if rs:
+            return rs
+    return []
+
+
 def optimized_single_stroke_subgraph(
     graph: dict[tuple[int, int], float], qubits: int
 ) -> Optional[nx.Graph]:
