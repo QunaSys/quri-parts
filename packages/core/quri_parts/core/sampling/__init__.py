@@ -12,7 +12,7 @@ from typing import Callable, Collection, Iterable, Mapping, NamedTuple, Sequence
 
 from typing_extensions import TypeAlias
 
-from quri_parts.backend import SamplingBackend
+from quri_parts.backend import IdealSamplingBackend, SamplingBackend
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.core.operator import CommutablePauliSet, Operator
 
@@ -24,6 +24,10 @@ MeasurementCounts: TypeAlias = Mapping[int, Union[int, float]]
 #: Sampler represents a function that samples a specified (non-parametric) circuit by
 #: a specified times and returns the count statistics.
 Sampler: TypeAlias = Callable[[NonParametricQuantumCircuit, int], MeasurementCounts]
+
+#: IdealSampler represents a function that runs a specified (non-parametric) circuit
+#: on an ideal simulator and returns the measurement probabilities.
+IdealSampler: TypeAlias = Callable[[NonParametricQuantumCircuit], MeasurementCounts]
 
 #: ConcurrentSampler represents a function that samples specified (non-parametric)
 #: circuits concurrently.
@@ -39,6 +43,18 @@ def create_sampler_from_sampling_backend(backend: SamplingBackend) -> Sampler:
         circuit: NonParametricQuantumCircuit, n_shots: int
     ) -> MeasurementCounts:
         job = backend.sample(circuit, n_shots)
+        return job.result().counts
+
+    return sampler
+
+
+def create_ideal_sampler_from_ideal_backend(
+    backend: IdealSamplingBackend,
+) -> IdealSampler:
+    """Create a simple :class:`~Sampler` using a :class:`~SamplingBackend`."""
+
+    def sampler(circuit: NonParametricQuantumCircuit) -> MeasurementCounts:
+        job = backend.run(circuit)
         return job.result().counts
 
     return sampler

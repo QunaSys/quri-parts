@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Mapping, MutableMapping, Optional, Sequence
+from typing import Callable, Mapping, MutableMapping, Optional, Sequence, Union
 
 from qiskit.providers.backend import Backend, BackendV1, BackendV2
 
@@ -122,7 +122,7 @@ def convert_qiskit_sampling_count_to_qp_sampling_count(
     Note that the qiskit counter uses a string that represents a binary
     number as the key.
     """
-    measurements: MutableMapping[int, int] = {}
+    measurements: MutableMapping[int, Union[int, float]] = {}
     for result in qiskit_counts:
         measurements[int(result, 2)] = qiskit_counts[result]
     return measurements
