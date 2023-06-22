@@ -1,3 +1,16 @@
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#      http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""This module provides features of recording and logging intermediate data
+from inside functions."""
+
 import logging
 import threading
 from collections.abc import Callable, Hashable, Iterable, Iterator
@@ -5,20 +18,52 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from enum import IntEnum
 from functools import update_wrapper
-from typing import Any, Generic, NamedTuple, Optional, TypeVar
+from typing import Any, NamedTuple, Optional, Protocol, TypeVar, cast
 
 from typing_extensions import Concatenate, ParamSpec, TypeAlias
+
+
+class RecordLevel(IntEnum):
+    """Level of recording, which specifies importance of a recording event.
+
+    A larger value means higher importance. Record level is a concept
+    similar to :py:mod:`logging` level. Currently each record level has
+    its counterpart :py:mod:`logging` level with the same integer value.
+    """
+
+    INFO = 20
+    DEBUG = 10
+
+    def __str__(self) -> str:
+        return self.name
+
+
+#: INFO level
+INFO = RecordLevel.INFO
+#: DEBUG level
+DEBUG = RecordLevel.DEBUG
+
 
 P = ParamSpec("P")
 R = TypeVar("R", covariant=True)
 
 
 class RecordableFunctionId(NamedTuple):
+    """Represents an identifier for a recordable function."""
+
+    #: Name of the module which the function belongs to.
     module: str
+    #: Qualified name of the function.
     qualname: str
+    #: Other parameters necessary for identifying a function. It is currently unused.
     param: Hashable
 
     def to_str(self, full: bool = True) -> str:
+        """Returns a string representation of itself.
+
+        If ``full`` is True, the returned string contains the module
+        name.
+        """
         if full:
             base = f"{self.module}.{self.qualname}"
         else:
@@ -32,29 +77,39 @@ class RecordableFunctionId(NamedTuple):
         return self.to_str()
 
 
-class RecordableFunction(Generic[P, R]):
-    def __init__(self, f: Callable[P, R], id: RecordableFunctionId):
-        self._f = f
-        self._id = id
+class RecordableFunction(Protocol[P, R]):
+    """Represents an instance of a recordable function with its identifier,
+    which can be accessed via :attr:`id` attribute."""
+
+    id: RecordableFunctionId
 
     def __call__(self, *args: P.args, **kwargs: P.kwargs) -> R:
-        return self._f(*args, **kwargs)
-
-    @property
-    def id(self) -> RecordableFunctionId:
-        return self._id
+        ...
 
 
-class RecordLevel(IntEnum):
-    INFO = 20
-    DEBUG = 10
+def recordable(f: Callable[Concatenate["Recorder", P], R]) -> RecordableFunction[P, R]:
+    """A decorator for creating a recordable function.
 
-    def __str__(self) -> str:
-        return self.name
+    A function to which this decorator is applied must receive a
+    :class:`Recorder` as its first positional argument, which can be
+    used for recording in the function body. This decorator removes the
+    :class:`Recorder` argument, so a user of the recordable function
+    does not need to pass a :class:`Recorder` instance. This decorator
+    also adds a :class:`RecordableFunctionId`, which can be accesed via
+    :attr:`id` attribute.
+    """
+    param = ()  # TODO
+    f_id = RecordableFunctionId(f.__module__, f.__qualname__, param)
 
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+        recorder = _get_recorder(f_id)
+        with recorder.start_func():
+            return f(recorder, *args, **kwargs)
 
-INFO = RecordLevel.INFO
-DEBUG = RecordLevel.DEBUG
+    wrapper = cast(RecordableFunction[P, R], wrapper)
+    wrapper.id = f_id
+    return update_wrapper(wrapper, f)
+
 
 _DEFAULT_LOGGER_NAME = f"{logging.Logger.root.name}.quri_parts_recording"
 
@@ -102,20 +157,6 @@ def _get_recorder(fid: RecordableFunctionId) -> Recorder:
         recorder = Recorder(fid)
         _recorders[fid] = recorder
         return recorder
-
-
-def recordable(f: Callable[Concatenate[Recorder, P], R]) -> RecordableFunction[P, R]:
-    param = ()  # TODO
-    f_id = RecordableFunctionId(f.__module__, f.__qualname__, param)
-
-    def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-        recorder = _get_recorder(f_id)
-        with recorder.start_func():
-            return f(recorder, *args, **kwargs)
-
-    rf = RecordableFunction(wrapper, f_id)
-
-    return update_wrapper(rf, f)
 
 
 @dataclass
