@@ -53,26 +53,29 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
 
     Note:
         Spin symmetric ansatz:
-            1. Certain excitation operators will share the same circuit parameters.
-                - For single excitation:
-                    - :math:`c_{A↑}^† c_{I↑}` and :math:`c_{A↓}^† c_{I↓}` share the same
-                    transition amplitude t_I^A, thus sharing the same circuit parameter
-                    t.
-                - For mixed spin double excitation:
-                    - :math:`c_{A↑}^† c_{B↓}^† c_{J↓} c_{I↑}` and :math:`c_{A↑}^† c_{B↓}^† c_{J↓} c_{I↑}`
-                    share the same excitaion amplitude :math:`t_{I↑, J↓}^{A↑, B↓}`, thus sharing
-                    the same circuit parameter d_I_J_A_B.
-                    - All the circuit parameters for double excitation are fixed by
-                    the mixed spin double excitation mode.
-                - For same spin double excitation:
-                    - :math:`c_{A↑}^† c_{B↑}^† c_{J↑} c_{I↑}` and :math:`c_{A↓}^† c_{B↓}^† c_{J↓} c_{I↓}`
-                    share the same excitation amplitude :math:`t_{I↑, J↓}^{A↑, B↓} - t_{I↓, J↑}^{A↑, B↓}`,
-                    where the corresponding parameters d_I_J_A_B and d_I_J_B_A are already added to the
-                    circuit when constructing the mixed spin excitation modes.
-            2. Parameter count:
-                For a system with n_o occupied spatial orbitals and n_v virtual spatial orbitals:
-                - Single excitations amount for n_o * n_v parameters
-                - Double excitations amount for n_o * n_v + n_o * n_v * (n_o * n_v - 1)/2 parameters.
+
+        1. Certain excitation operators will share the same circuit parameters.
+            - For single excitation:
+                :math:`c_{A↑}^† c_{I↑}` and :math:`c_{A↓}^† c_{I↓}` share the same transition amplitude :math:`t_I^A`,
+                thus sharing the same circuit parameter s_I_A.
+            - For mixed spin double excitation:
+                - :math:`c_{A↑}^† c_{B↓}^† c_{J↓} c_{I↑}` and :math:`c_{A↑}^† c_{B↓}^† c_{J↓} c_{I↑}` share the same excitaion amplitude :math:`t_{I↑, J↓}^{A↑, B↓}`,
+                thus sharing the same circuit parameter d_I_J_A_B.
+                
+                - All the circuit parameters for double excitation are fixed by
+                the mixed spin double excitation mode.
+            - For same spin double excitation:
+                :math:`c_{A↑}^† c_{B↑}^† c_{J↑} c_{I↑}` and :math:`c_{A↓}^† c_{B↓}^† c_{J↓} c_{I↓}` share the same excitation amplitude :math:`t_{I↑, J↓}^{A↑, B↓} - t_{I↓, J↑}^{A↑, B↓}`,
+                where the corresponding parameters d_I_J_A_B and d_I_J_B_A are already added to the
+                circuit when constructing the mixed spin excitation modes.
+
+        2. Parameter count:
+            For a system with n_o occupied spatial orbitals and n_v virtual spatial orbitals:
+
+            - Single excitations amount for  :math:`n_o * n_v` parameters.
+
+            - Double excitations amount for
+                :math:`n_o * n_v + n_o * n_v * (n_o * n_v - 1)/2` parameters.
     """  # noqa: E501
 
     def __init__(

@@ -54,15 +54,19 @@ def add_exp_pauli_gates_from_linear_mapped_function(
     according to the equation:
 
     .. math::
-        \\exp (
+        \\exp \\left[
             i \\text{c} * f(\\theta_1, \\theta_2, \\cdots) * \\text{qp_operator}
-        )
+        \\right]
 
     Arg:
-        circuit: The circuit to add a pauli exponential rotation gate to.
-        param_fn: A dict representing parametric function in front of the qp_operator.
-        qp_operator: A Hermitian quri-parts operator.
-        coeff: An overall real coeffcient in the exponent.
+        circuit:
+            The circuit to add a pauli exponential rotation gate to.
+        param_fn:
+            A dict representing parametric function in front of the qp_operator.
+        qp_operator:
+            A Hermitian quri-parts operator.
+        coeff:
+            An overall real coeffcient in the exponent.
     """
     for pauli, op_coeff in qp_operator.items():
         if str(pauli) == "I":

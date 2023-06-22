@@ -59,14 +59,14 @@ def to_spin_symmetric_order(double_excitation: DoubleExcitation) -> DoubleExcita
 
     .. math::
         \\begin{align}
-            T &= T_1+T_2 =
-                &\\sum_{I, A} \\left(
+            T &= T_1+T_2 \\\\
+              &= \\sum_{I, A} \\left(
                     t_{I\\uparrow}^{A\\uparrow}
                     c_{A \\uparrow}^{\\dagger}c_{I\\uparrow} +
                     t_{I\\downarrow}^{A\\downarrow}
                     c_{A \\downarrow}^{\\dagger}c_{I\\downarrow}
-                \\right)
-                & + \\left[
+                \\right) \\\\
+              &\\quad + \\left[
                     \\sum_{I, J, A, B}
                         t_{I\\uparrow J\\downarrow}^{A\\uparrow B\\downarrow}
                         c_{A\\uparrow}^{\\dagger} c_{B\\downarrow}^{\\dagger}
