@@ -1,7 +1,9 @@
+import math
 from typing import Any, Optional, Union
 
 import networkx as nx
 from qiskit.providers import BackendV1, BackendV2
+from z3 import And, Bool, If, Implies, Int, IntVector, Optimize, Or, Real, sat
 
 
 def device_connectivity_graph(device: Union[BackendV1, BackendV2]) -> nx.Graph:
@@ -33,7 +35,7 @@ def device_connectivity_graph(device: Union[BackendV1, BackendV2]) -> nx.Graph:
     return nx.parse_adjlist(lines)
 
 
-def couplint_map_with_cx_errors(device: BackendV2) -> dict[tuple[int, int], float]:
+def coupling_map_with_cx_errors(device: BackendV2) -> dict[tuple[int, int], float]:
     coupling_map = device.coupling_map
     two_q_error_map: dict[tuple[Any, ...], Optional[float]] = {}
     cx_errors = {}
@@ -58,7 +60,7 @@ def couplint_map_with_cx_errors(device: BackendV2) -> dict[tuple[int, int], floa
 def qubit_counts_considering_cx_errors(
     device: BackendV2, cx_error_threshold: float
 ) -> list[int]:
-    cx_errors = qubit_map_with_cx_errors(device)
+    cx_errors = coupling_map_with_cx_errors(device)
     adjlist = []
     for (a, b), e in cx_errors.items():
         if e < cx_error_threshold:
@@ -77,19 +79,13 @@ def optimized_single_stroke_subgraph(
     edge_count = qubits - 1
 
     adj_mat = [[Int("adj[%d,%d]" % (i, j)) for j in range(n)] for i in range(n)]
-    cost_mat = [[Real("css[%d,%d]" % (i, j)) for j in range(n)] for i in range(n)]
+    cost = 0.0
     for i in range(n):
         for j in range(n):
             s.add(Implies(adj_mat[i][j] == 1, (i, j) in graph))
             s.add(If(adj_mat[i][j] == 1, adj_mat[j][i] == 1, adj_mat[j][i] == 0))
             s.add(Or(adj_mat[i][j] == 1, adj_mat[i][j] == 0))
-            s.add(
-                If(
-                    adj_mat[i][j] == 1,
-                    cost_mat[i][j] == (graph[(i, j)] if (i, j) in graph else 0.0),
-                    cost_mat[i][j] == 0.0,
-                )
-            )
+            cost = cost + If(adj_mat[i][j] == 1, graph.get((i, j), 0.0), 0.0)
 
     deg1 = IntVector("deg1", n)
     deg2 = IntVector("deg2", n)
@@ -125,7 +121,7 @@ def optimized_single_stroke_subgraph(
                 )
             )
 
-    s.minimize(sum(map(lambda cs: sum(cs), cost_mat)))
+    s.minimize(cost)
 
     r = s.check()
     if r != sat:
