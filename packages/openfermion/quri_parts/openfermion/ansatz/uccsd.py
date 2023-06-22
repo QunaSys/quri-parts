@@ -61,7 +61,7 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
             - For mixed spin double excitation:
                 - :math:`c_{A↑}^† c_{B↓}^† c_{J↓} c_{I↑}` and :math:`c_{A↑}^† c_{B↓}^† c_{J↓} c_{I↑}` share the same excitaion amplitude :math:`t_{I↑, J↓}^{A↑, B↓}`,
                 thus sharing the same circuit parameter d_I_J_A_B.
-                
+
                 - All the circuit parameters for double excitation are fixed by
                 the mixed spin double excitation mode.
             - For same spin double excitation:
