@@ -92,7 +92,7 @@ def _list_to_graph(graph) -> nx.Graph:
     return nx.parse_adjlist(adjlist)
 
 
-def reliable_subgraph(device: BackendV2, qubits: int) -> list[nx.Graph]:
+def cx_reliable_subgraph(device: BackendV2, qubits: int) -> list[nx.Graph]:
     cx_errors = coupling_map_with_cx_errors(device)
 
     sorted_graph = sorted(_undirected(cx_errors).items(), key=lambda x: x[1])
