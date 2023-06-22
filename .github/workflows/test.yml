@@ -31,7 +31,7 @@ jobs:
       with:
         path: |
           ~/.julia/
-        key: ci-${{ runner.os }}-julia-cache
+        key: ci-${{ runner.os }}-julia-${{ hashFiles('poetry.lock') }}-cache
         restore-keys: ci-${{ runner.os }}-julia-
 
     - run: |
