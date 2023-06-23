@@ -102,19 +102,19 @@ def approx_cx_reliable_subgraph(
     return []
 
 
-def _length_satisfactory_paths(graph: nx.Graph, qubits: int) -> list[list[str]]:
+def _length_satisfactory_paths(graph: nx.Graph, qubits: int) -> list[list[int]]:
     nodes = list(graph.nodes)
     ret = []
     for s in nodes:
         for e in nodes:
             ps = nx.all_simple_paths(graph, s, e)
-            ret.extend([p for p in ps if len(p) == qubits])
+            ret.extend([list(map(int, p)) for p in ps if len(p) == qubits])
     return ret
 
 
 def _approx_cx_reliable_single_stroke_paths(
     cx_errors: dict[tuple[int, int], float], qubits: int
-) -> list[list[str]]:
+) -> list[list[int]]:
     sorted_graph = sorted(_undirected(cx_errors).items(), key=lambda x: x[1])
     for i in range(qubits - 1, len(sorted_graph)):
         sg = _list_to_graph(list(_directed({k: v for k, v in sorted_graph[:i]}).keys()))
@@ -141,6 +141,4 @@ def cx_reliable_single_stroke_path(
         ps = _length_satisfactory_paths(_list_to_graph(list(cx_errors.keys())), qubits)
     else:
         ps = _approx_cx_reliable_single_stroke_paths(cx_errors, qubits)
-    return list(
-        map(int, max(ps, key=lambda p: _path_fidelity(cx_errors, list(map(int, p)))))
-    )
+    return max(ps, key=lambda p: _path_fidelity(cx_errors, p))
