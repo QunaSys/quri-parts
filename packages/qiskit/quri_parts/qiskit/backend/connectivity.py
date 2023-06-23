@@ -2,8 +2,9 @@ import math
 from typing import Any, Optional, Union
 
 import networkx as nx
+import numpy as np
 from qiskit.providers import BackendV1, BackendV2
-from z3 import And, Bool, If, Implies, Int, IntVector, Optimize, Or, Real, sat
+from z3 import And, Bool, If, Implies, Int, IntVector, Optimize, Or, sat
 
 
 def device_connectivity_graph(device: Union[BackendV1, BackendV2]) -> nx.Graph:
@@ -85,9 +86,10 @@ def _directed(g):
     return rs | g
 
 
-def _list_to_graph(graph) -> nx.Graph:
+def _list_to_graph(gl: list[tuple[int, int], float]) -> nx.Graph:
+    g = _directed({k: v for k, v in gl})
     adjlist = []
-    for (a, b), _ in graph:
+    for (a, b), _ in g.items():
         adjlist.append(f"{a} {b}")
     return nx.parse_adjlist(adjlist)
 
@@ -102,6 +104,48 @@ def cx_reliable_subgraph(device: BackendV2, qubits: int) -> list[nx.Graph]:
         if rs:
             return rs
     return []
+
+
+def _satisfactory_paths(graph: nx.Graph, qubits: int) -> list[list[str]]:
+    nodes = list(graph.nodes)
+    ret = []
+    for s, e in zip(nodes, nodes[1:]):
+        ps = nx.all_simple_paths(graph, s, e)
+        ret.extend([p for p in ps if len(p) >= qubits])
+    return ret
+
+
+def _cx_reliable_single_stroke_paths(cx_errors, qubits: int) -> list[list[str]]:
+    sorted_graph = sorted(_undirected(cx_errors).items(), key=lambda x: x[1])
+    for i in range(qubits - 1, len(sorted_graph)):
+        sg = _list_to_graph(sorted_graph[:i])
+        rs = [sg.subgraph(c) for c in nx.connected_components(sg) if len(c) >= qubits]
+        print(f"{i}: {[len(c) for c in nx.connected_components(sg)]}")
+        ret = []
+        for r in rs:
+            sp = _satisfactory_paths(r, qubits)
+            ret.extend(sp)
+        if ret:
+            return ret
+    return []
+
+
+def _path_fidelity(cx_errors, path) -> float:
+    return np.prod([1 - cx_errors[q] for q in zip(path, path[1:])])
+
+
+def cx_reliable_single_stroke_path(device: BackendV2, qubits: int) -> list[int]:
+    cx_errors = coupling_map_with_cx_errors(device)
+    ps = _cx_reliable_single_stroke_paths(cx_errors, qubits)
+    ret = []
+    fc = 0.0
+    for p in ps:
+        path = list(map(int, p))
+        f = _path_fidelity(cx_errors, path)
+        if f > fc:
+            fc = f
+            ret = path
+    return ret
 
 
 def optimized_single_stroke_subgraph(
