@@ -87,12 +87,16 @@ def _list_to_graph(coupling_list: list[tuple[int, int]]) -> nx.Graph:
 def approx_cx_reliable_subgraph(
     cx_errors: dict[tuple[int, int], float], qubits: int
 ) -> list[nx.Graph]:
-    sorted_graph = _sorted_undirected(cx_errors)
-    for i in range(qubits - 1, len(sorted_graph)):
-        sg = _list_to_graph(_directed(sorted_graph[:i]))
-        rs = [sg.subgraph(c) for c in nx.connected_components(sg) if len(c) >= qubits]
-        if rs:
-            return rs
+    sorted_edges = _sorted_undirected(cx_errors)
+    for i in range(qubits - 1, len(sorted_edges)):
+        best_nodes = _list_to_graph(_directed(sorted_edges[:i]))
+        enough_nodes = [
+            best_nodes.subgraph(c)
+            for c in nx.connected_components(best_nodes)
+            if len(c) >= qubits
+        ]
+        if enough_nodes:
+            return enough_nodes
     return []
 
 
@@ -109,11 +113,15 @@ def _length_satisfactory_paths(graph: nx.Graph, qubits: int) -> list[list[int]]:
 def _approx_cx_reliable_single_stroke_paths(
     cx_errors: dict[tuple[int, int], float], qubits: int
 ) -> list[list[int]]:
-    sorted_graph = _sorted_undirected(cx_errors)
-    for i in range(qubits - 1, len(sorted_graph)):
-        sg = _list_to_graph(_directed(sorted_graph[:i]))
-        rs = [sg.subgraph(c) for c in nx.connected_components(sg) if len(c) >= qubits]
-        ret = sum([_length_satisfactory_paths(r, qubits) for r in rs], [])
+    sorted_edges = _sorted_undirected(cx_errors)
+    for i in range(qubits - 1, len(sorted_edges)):
+        best_nodes = _list_to_graph(_directed(sorted_edges[:i]))
+        enough_nodes = [
+            best_nodes.subgraph(c)
+            for c in nx.connected_components(best_nodes)
+            if len(c) >= qubits
+        ]
+        ret = sum([_length_satisfactory_paths(g, qubits) for g in enough_nodes], [])
         if ret:
             return ret
     return []
