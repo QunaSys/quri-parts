@@ -86,27 +86,26 @@ def _directed(g):
     return rs | g
 
 
-def _list_to_graph(gl: list[tuple[int, int], float]) -> nx.Graph:
-    g = _directed({k: v for k, v in gl})
+def _list_to_graph(coupling_list: list[tuple[int, int]]) -> nx.Graph:
     adjlist = []
-    for (a, b), _ in g.items():
+    for a, b in coupling_list:
         adjlist.append(f"{a} {b}")
     return nx.parse_adjlist(adjlist)
 
 
-def cx_reliable_subgraph(
+def approx_cx_reliable_subgraph(
     cx_errors: dict[tuple[int, int], float], qubits: int
 ) -> list[nx.Graph]:
     sorted_graph = sorted(_undirected(cx_errors).items(), key=lambda x: x[1])
     for i in range(qubits - 1, len(sorted_graph)):
-        sg = _list_to_graph(sorted_graph[:i])
+        sg = _list_to_graph(_directed({k: v for k, v in sorted_graph[:i]}))
         rs = [sg.subgraph(c) for c in nx.connected_components(sg) if len(c) >= qubits]
         if rs:
             return rs
     return []
 
 
-def _satisfactory_paths(graph: nx.Graph, qubits: int) -> list[list[str]]:
+def _length_satisfactory_paths(graph: nx.Graph, qubits: int) -> list[list[str]]:
     nodes = list(graph.nodes)
     ret = []
     for s in nodes:
@@ -116,17 +115,17 @@ def _satisfactory_paths(graph: nx.Graph, qubits: int) -> list[list[str]]:
     return ret
 
 
-def _cx_reliable_single_stroke_paths(
+def _approx_cx_reliable_single_stroke_paths(
     cx_errors: dict[tuple[int, int], float], qubits: int
 ) -> list[list[str]]:
     sorted_graph = sorted(_undirected(cx_errors).items(), key=lambda x: x[1])
     for i in range(qubits - 1, len(sorted_graph)):
-        sg = _list_to_graph(sorted_graph[:i])
+        sg = _list_to_graph(_directed({k: v for k, v in sorted_graph[:i]}))
         rs = [sg.subgraph(c) for c in nx.connected_components(sg) if len(c) >= qubits]
         print(f"{i}: {[len(c) for c in nx.connected_components(sg)]}")
         ret = []
         for r in rs:
-            sp = _satisfactory_paths(r, qubits)
+            sp = _length_satisfactory_paths(r, qubits)
             ret.extend(sp)
         if ret:
             return ret
@@ -138,9 +137,14 @@ def _path_fidelity(cx_errors: dict[tuple[int, int], float], path: list[int]) -> 
 
 
 def cx_reliable_single_stroke_path(
-    cx_errors: dict[tuple[int, int], float], qubits: int
+    cx_errors: dict[tuple[int, int], float],
+    qubits: int,
+    exact: Bool = True,
 ) -> list[int]:
-    ps = _cx_reliable_single_stroke_paths(cx_errors, qubits)
+    if exact:
+        ps = _length_satisfactory_paths(_list_to_graph(cx_errors.keys()), qubits)
+    else:
+        ps = _approx_cx_reliable_single_stroke_paths(cx_errors, qubits)
     ret = []
     fc = 0.0
     for p in ps:
