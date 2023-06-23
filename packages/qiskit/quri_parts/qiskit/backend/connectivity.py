@@ -57,9 +57,8 @@ def coupling_map_with_cx_errors(device: BackendV2) -> dict[tuple[int, int], floa
 
 
 def qubit_counts_considering_cx_errors(
-    device: BackendV2, cx_error_threshold: float
+    cx_errors: dict[tuple[int, int], float], cx_error_threshold: float
 ) -> list[int]:
-    cx_errors = coupling_map_with_cx_errors(device)
     adjlist = []
     for (a, b), e in cx_errors.items():
         if e < cx_error_threshold:
@@ -120,7 +119,6 @@ def _approx_cx_reliable_single_stroke_paths(
     for i in range(qubits - 1, len(sorted_graph)):
         sg = _list_to_graph(list(_directed({k: v for k, v in sorted_graph[:i]}).keys()))
         rs = [sg.subgraph(c) for c in nx.connected_components(sg) if len(c) >= qubits]
-        print(f"{i}: {[len(c) for c in nx.connected_components(sg)]}")
         ret = []
         for r in rs:
             sp = _length_satisfactory_paths(r, qubits)
@@ -143,12 +141,6 @@ def cx_reliable_single_stroke_path(
         ps = _length_satisfactory_paths(_list_to_graph(list(cx_errors.keys())), qubits)
     else:
         ps = _approx_cx_reliable_single_stroke_paths(cx_errors, qubits)
-    ret = []
-    fc = 0.0
-    for p in ps:
-        path = list(map(int, p))
-        f = _path_fidelity(cx_errors, path)
-        if f > fc:
-            fc = f
-            ret = path
-    return ret
+    return list(
+        map(int, max(ps, key=lambda p: _path_fidelity(cx_errors, list(map(int, p)))))
+    )
