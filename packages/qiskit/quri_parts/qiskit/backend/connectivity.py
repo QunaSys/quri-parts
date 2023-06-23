@@ -57,13 +57,10 @@ def coupling_map_with_cx_errors(device: BackendV2) -> dict[tuple[int, int], floa
 
 
 def qubit_counts_considering_cx_errors(
-    cx_errors: dict[tuple[int, int], float], cx_error_threshold: float
+    device: BackendV2, cx_error_threshold: float
 ) -> list[int]:
-    adjlist = []
-    for (a, b), e in cx_errors.items():
-        if e < cx_error_threshold:
-            adjlist.append(f"{a} {b}")
-
+    cx_errors = coupling_map_with_cx_errors(device)
+    adjlist = [f"{a} {b}" for (a, b), e in cx_errors.items() if e < cx_error_threshold]
     graph = nx.parse_adjlist(adjlist)
     return [len(c) for c in nx.connected_components(graph)]
 
@@ -92,7 +89,7 @@ def approx_cx_reliable_subgraph(
 ) -> list[nx.Graph]:
     sorted_graph = _sorted_undirected(cx_errors)
     for i in range(qubits - 1, len(sorted_graph)):
-        sg = _list_to_graph(list(_directed({k: v for k, v in sorted_graph[:i]}).keys()))
+        sg = _list_to_graph(_directed(sorted_graph[:i]))
         rs = [sg.subgraph(c) for c in nx.connected_components(sg) if len(c) >= qubits]
         if rs:
             return rs
@@ -114,7 +111,7 @@ def _approx_cx_reliable_single_stroke_paths(
 ) -> list[list[int]]:
     sorted_graph = _sorted_undirected(cx_errors)
     for i in range(qubits - 1, len(sorted_graph)):
-        sg = _list_to_graph(list(_directed({k: v for k, v in sorted_graph[:i]}).keys()))
+        sg = _list_to_graph(_directed(sorted_graph[:i]))
         rs = [sg.subgraph(c) for c in nx.connected_components(sg) if len(c) >= qubits]
         ret = sum([_length_satisfactory_paths(r, qubits) for r in rs], [])
         if ret:
