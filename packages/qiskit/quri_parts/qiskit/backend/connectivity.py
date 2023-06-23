@@ -68,32 +68,29 @@ def qubit_counts_considering_cx_errors(
     return [len(c) for c in nx.connected_components(graph)]
 
 
-def _undirected(g: dict[tuple[int, int], float]) -> dict[tuple[int, int], float]:
-    rs = {}
-    for (a, b), e in g.items():
-        if (a, b) not in rs and (b, a) not in rs:
-            rs[(a, b)] = e
-    return rs
+def _sorted_undirected(
+    cx_errors: dict[tuple[int, int], float]
+) -> list[tuple[int, int]]:
+    ud = []
+    for (a, b), e in cx_errors.items():
+        if (a, b) not in ud and (b, a) not in ud:
+            ud.append(((a, b), e))
+    return next(zip(*sorted(ud, key=lambda x: x[1])))
 
 
-def _directed(g: dict[tuple[int, int], float]) -> dict[tuple[int, int], float]:
-    rs = {}
-    for (a, b), e in g.items():
-        rs[(b, a)] = e
-    return rs | g
+def _directed(g: list[tuple[int, int]]) -> dict[tuple[int, int], float]:
+    rs = set((b, a) for a, b in g)
+    return rs | set(g)
 
 
 def _list_to_graph(coupling_list: list[tuple[int, int]]) -> nx.Graph:
-    adjlist = []
-    for a, b in coupling_list:
-        adjlist.append(f"{a} {b}")
-    return nx.parse_adjlist(adjlist)
+    return nx.parse_adjlist([f"{a} {b}" for a, b in coupling_list])
 
 
 def approx_cx_reliable_subgraph(
     cx_errors: dict[tuple[int, int], float], qubits: int
 ) -> list[nx.Graph]:
-    sorted_graph = sorted(_undirected(cx_errors).items(), key=lambda x: x[1])
+    sorted_graph = _sorted_undirected(cx_errors)
     for i in range(qubits - 1, len(sorted_graph)):
         sg = _list_to_graph(list(_directed({k: v for k, v in sorted_graph[:i]}).keys()))
         rs = [sg.subgraph(c) for c in nx.connected_components(sg) if len(c) >= qubits]
@@ -115,7 +112,7 @@ def _length_satisfactory_paths(graph: nx.Graph, qubits: int) -> list[list[int]]:
 def _approx_cx_reliable_single_stroke_paths(
     cx_errors: dict[tuple[int, int], float], qubits: int
 ) -> list[list[int]]:
-    sorted_graph = sorted(_undirected(cx_errors).items(), key=lambda x: x[1])
+    sorted_graph = _sorted_undirected(cx_errors)
     for i in range(qubits - 1, len(sorted_graph)):
         sg = _list_to_graph(list(_directed({k: v for k, v in sorted_graph[:i]}).keys()))
         rs = [sg.subgraph(c) for c in nx.connected_components(sg) if len(c) >= qubits]
