@@ -115,7 +115,9 @@ def _satisfactory_paths(graph: nx.Graph, qubits: int) -> list[list[str]]:
     return ret
 
 
-def _cx_reliable_single_stroke_paths(cx_errors, qubits: int) -> list[list[str]]:
+def _cx_reliable_single_stroke_paths(
+    cx_errors: dict[tuple[int, int], float], qubits: int
+) -> list[list[str]]:
     sorted_graph = sorted(_undirected(cx_errors).items(), key=lambda x: x[1])
     for i in range(qubits - 1, len(sorted_graph)):
         sg = _list_to_graph(sorted_graph[:i])
@@ -130,7 +132,7 @@ def _cx_reliable_single_stroke_paths(cx_errors, qubits: int) -> list[list[str]]:
     return []
 
 
-def _path_fidelity(cx_errors, path) -> float:
+def _path_fidelity(cx_errors: dict[tuple[int, int], float], path) -> float:
     return np.prod([1 - cx_errors[q] for q in zip(path, path[1:])])
 
 
