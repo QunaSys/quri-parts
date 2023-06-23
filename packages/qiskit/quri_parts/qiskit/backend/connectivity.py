@@ -119,10 +119,7 @@ def _approx_cx_reliable_single_stroke_paths(
     for i in range(qubits - 1, len(sorted_graph)):
         sg = _list_to_graph(list(_directed({k: v for k, v in sorted_graph[:i]}).keys()))
         rs = [sg.subgraph(c) for c in nx.connected_components(sg) if len(c) >= qubits]
-        ret = []
-        for r in rs:
-            sp = _length_satisfactory_paths(r, qubits)
-            ret.extend(sp)
+        ret = sum([_length_satisfactory_paths(r, qubits) for r in rs], [])
         if ret:
             return ret
     return []
