@@ -224,7 +224,7 @@ def optimized_single_stroke_subgraph(
 
 def optimized_single_stroke_path(
     device: BackendV2, qubits: int
-) -> Optional[list[tuple[int, int]]]:
+) -> Optional[dict[tuple[int, int]]]:
     cx_errors = coupling_map_with_cx_errors(device)
 
     cx_lnfidelity = {}
