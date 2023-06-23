@@ -98,7 +98,7 @@ def approx_cx_reliable_subgraph(
 ) -> list[nx.Graph]:
     sorted_graph = sorted(_undirected(cx_errors).items(), key=lambda x: x[1])
     for i in range(qubits - 1, len(sorted_graph)):
-        sg = _list_to_graph(_directed({k: v for k, v in sorted_graph[:i]}))
+        sg = _list_to_graph(_directed({k: v for k, v in sorted_graph[:i]}).keys())
         rs = [sg.subgraph(c) for c in nx.connected_components(sg) if len(c) >= qubits]
         if rs:
             return rs
@@ -120,7 +120,7 @@ def _approx_cx_reliable_single_stroke_paths(
 ) -> list[list[str]]:
     sorted_graph = sorted(_undirected(cx_errors).items(), key=lambda x: x[1])
     for i in range(qubits - 1, len(sorted_graph)):
-        sg = _list_to_graph(_directed({k: v for k, v in sorted_graph[:i]}))
+        sg = _list_to_graph(_directed({k: v for k, v in sorted_graph[:i]}).keys())
         rs = [sg.subgraph(c) for c in nx.connected_components(sg) if len(c) >= qubits]
         print(f"{i}: {[len(c) for c in nx.connected_components(sg)]}")
         ret = []
