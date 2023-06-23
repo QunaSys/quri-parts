@@ -132,4 +132,4 @@ def cx_reliable_single_stroke_path(
         ps = _length_satisfactory_paths(_list_to_graph(list(cx_errors.keys())), qubits)
     else:
         ps = _approx_cx_reliable_single_stroke_paths(cx_errors, qubits)
-    return max(ps, key=lambda p: _path_fidelity(cx_errors, p))
+    return max(ps, key=lambda p: _path_fidelity(cx_errors, p)) if ps else []
