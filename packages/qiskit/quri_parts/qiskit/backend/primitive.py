@@ -156,15 +156,16 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         else:
             raise ValueError("Invalid type for sampler_options")
 
-    def close(self) -> Any:
+    def close(self) -> None:
         """Close the IBM session.
 
         This will terminate all unfinished jobs.
         """
-        assert self._session is not None
+        if self._session is None:
+            raise ValueError("Session doesn't exist to close.")
         self._session.close()
 
-    def __enter__(self) -> Any:
+    def __enter__(self) -> "QiskitRuntimeSamplingBackend":
         """The backend passed during `__init__`, is used to construct a
         session, which will be closed after the `with` scope ends."""
         session = Session(service=self._service, backend=self._backend)
@@ -179,11 +180,10 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         exc_val: Optional[BaseException],
         exc_tb: Optional[TracebackType],
     ) -> None:
-        """If the session is created using `with` then the session is closed by
-        the following functionality."""
-        assert self._session is not None
-        self._session.__exit__(exc_type, exc_val, exc_tb)
-        self._session = None
+        """Removes the session from the scope if it exists."""
+        if self._session is not None:
+            self._session.__exit__(exc_type, exc_val, exc_tb)
+            self._session = None
 
     def sample(self, circuit: NonParametricQuantumCircuit, n_shots: int) -> SamplingJob:
         if not n_shots >= 1:

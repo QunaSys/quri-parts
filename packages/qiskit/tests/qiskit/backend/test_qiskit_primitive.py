@@ -11,52 +11,49 @@
 from unittest.mock import MagicMock
 
 import pytest
-from qiskit.test.reference_circuits import ReferenceCircuits
-from qiskit_ibm_runtime import Options, QiskitRuntimeService, Sampler, Session
+from qiskit.primitives import SamplerResult
+from qiskit.result import QuasiDistribution
+from qiskit_ibm_runtime import Options, QiskitRuntimeService
 from qiskit_ibm_runtime.runtime_job import JobStatus, RuntimeJob
 
 from quri_parts.backend import CompositeSamplingJob
 from quri_parts.circuit import QuantumCircuit
 from quri_parts.qiskit.backend import QiskitRuntimeSamplingBackend
-from quri_parts.qiskit.backend.primitive import QiskitRuntimeSamplingJob
+from quri_parts.qiskit.backend.primitive import (
+    QiskitRuntimeSamplingJob,
+    QiskitRuntimeSamplingResult,
+)
 
 from .mock.ibm_runtime_service_mock import mock_get_backend
 
 
+def fake_run(**kwargs) -> RuntimeJob:  # type: ignore
+    jjob = MagicMock(spec=RuntimeJob)
+
+    def _always_false() -> bool:
+        return False
+
+    def _status() -> JobStatus:
+        return JobStatus.DONE
+
+    def _job_id() -> str:
+        return "aaa"
+
+    def result() -> SamplerResult:
+        return SamplerResult(
+            quasi_dists=[QuasiDistribution({1: 1.0})], metadata=[{"shots": 10}]
+        )
+
+    jjob.status = _status
+    jjob.running = _always_false
+    jjob.job_id = _job_id
+    jjob.result = result
+
+    return jjob
+
+
 class TestQiskitPrimitive:
-    def test_fake_service_call(self) -> None:
-        # Checking if fake backend works
-        runtime_service = mock_get_backend("FakeVigo")
-        service = runtime_service()
-        with Session(service=service, backend="FakeVigo") as session:
-            sampler = Sampler(session=session)
-            bell = ReferenceCircuits.bell()
-
-            bell = ReferenceCircuits.bell()
-            _ = sampler.run(bell, shots=1000)
-
-        service.run.assert_called_once()
-        args_list = service.run.call_args_list
-        assert len(args_list) == 1
-        _, kwargs = args_list[0]
-        shots = kwargs["inputs"]["run_options"]["shots"]
-        assert shots == 1000
-
     def test_sampler_call(self) -> None:
-        jjob = MagicMock(spec=RuntimeJob)
-
-        def fake_run(program_id, inputs, **kwargs) -> RuntimeJob:  # type: ignore
-            def _always_false() -> bool:
-                return False
-
-            def _status() -> JobStatus:
-                return JobStatus.DONE
-
-            jjob.status = _status
-            jjob.running = _always_false
-
-            return jjob
-
         runtime_service = mock_get_backend("FakeVigo")
         service = runtime_service()
         service.run = fake_run
@@ -68,25 +65,15 @@ class TestQiskitPrimitive:
 
         assert isinstance(job, QiskitRuntimeSamplingJob)
 
+        assert job._qiskit_job.job_id() == "aaa"
+        assert job._qiskit_job.status() == JobStatus.DONE
+        assert not job._qiskit_job.running()
+
+        result = job.result()
+        assert isinstance(result, QiskitRuntimeSamplingResult)
+        assert len(result._qiskit_result.metadata) == 1
+
     def test_sampler_session(self) -> None:
-        jjob = MagicMock(spec=RuntimeJob)
-
-        def fake_run(program_id, inputs, **kwargs) -> RuntimeJob:  # type: ignore
-            def _always_false() -> bool:
-                return False
-
-            def _status() -> JobStatus:
-                return JobStatus.DONE
-
-            def _job_id() -> str:
-                return "aaa"
-
-            jjob.status = _status
-            jjob.running = _always_false
-            jjob.job_id = _job_id
-
-            return jjob
-
         runtime_service = mock_get_backend("FakeVigo")
         service = runtime_service()
         service.run = fake_run
@@ -99,8 +86,42 @@ class TestQiskitPrimitive:
 
         assert isinstance(job, QiskitRuntimeSamplingJob)
 
+        assert job._qiskit_job.job_id() == "aaa"
+        assert job._qiskit_job.status() == JobStatus.DONE
+        assert not job._qiskit_job.running()
+
+        result = job.result()
+        assert isinstance(result, QiskitRuntimeSamplingResult)
+        assert len(result._qiskit_result.metadata) == 1
+
+        # {1: 1.0} * 10
+        assert result.counts == {1: 10.0}
+
         # Checking if the session is closed
         service._api_client.close_session.assert_called_once_with("aaa")
+
+    def test_sampler_composite(self) -> None:
+        runtime_service = mock_get_backend("FakeVigo")
+        service = runtime_service()
+        service.run = fake_run
+        backend = service.backend()
+
+        sampler = QiskitRuntimeSamplingBackend(backend=backend, service=service)
+
+        # Setting the max shots for the sake of testing
+        sampler._max_shots = 5
+
+        circuit = QuantumCircuit(2)
+        circuit.add_X_gate(0)
+        job = sampler.sample(circuit, 10)
+
+        assert isinstance(job, CompositeSamplingJob)
+        result = job.result()
+        counts = result.counts
+
+        # Same job is returned twice, making it 20.
+        expected_counts = {1: 20.0}
+        assert counts == expected_counts
 
     @pytest.mark.api
     def test_sampler_live_simple(self) -> None:
@@ -163,12 +184,11 @@ class TestQiskitPrimitive:
         service = QiskitRuntimeService()
         backend = service.backend("ibmq_qasm_simulator")
 
-        # Setting the max shots for the sake of testing
-
         circuit = QuantumCircuit(2)
         circuit.add_X_gate(0)
 
         with QiskitRuntimeSamplingBackend(backend=backend, service=service) as sampler:
+            # Setting the max shots for the sake of testing
             sampler._max_shots = 5
             job = sampler.sample(circuit, 10)
 

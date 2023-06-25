@@ -9,8 +9,10 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+#
 # The functionality of `mock_get_backend` contained in the file has been
-# modified from the original.
+# modified from the original. The original file is available at:
+# https://github.com/Qiskit/qiskit-ibm-runtime/blob/main/qiskit_ibm_runtime/test/ibm_runtime_service_mock.py
 """Mock for qiskit_ibm_runtime.QiskitRuntimeService."""
 
 from unittest.mock import MagicMock
@@ -22,19 +24,16 @@ from qiskit_ibm_runtime import QiskitRuntimeService
 def mock_get_backend(backend: str) -> QiskitRuntimeService:
     """Mock for QiskitRuntimeService.
 
-    Replace qiskit_ibm_runtime.QiskitRuntimeService with a mock that returns
-    a single backend. Note this will set the value of qiskit_ibm_runtime.
-    QiskitRuntimeService to a MagicMock object. It
-    is intended to be run as part of docstrings with jupyter-example in a
-    hidden cell so that later examples which rely on ibm quantum devices so
-    that the docs can be built without requiring configured accounts. If used
-    outside of this context be aware that you will have to manually restore
-    qiskit_ibm_runtime.QiskitRuntimeService the value to
-    qiskit_ibm_runtime.QiskitRuntimeService after you finish using your mock.
+    Create a mock of qiskit_ibm_runtime.QiskitRuntimeService that returns
+    a single backend. This will not effect the imported qiskit_ibm_runtime.
+    QiskitRuntimeService. It is intended to run tests without requiring
+    to configure accounts, such as on github CI.
 
     Args:
         backend (str): The class name as a string for the fake device to
             return. For example, FakeVigo.
+
+    Returns: Mock of qiskit_ibm_runtime.QiskitRuntimeService
 
     Raises:
         NameError: If the specified value of backend
