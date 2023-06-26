@@ -267,4 +267,8 @@ __all__ = [
     "Z2RZTranspiler",
     "su2_decompose",
     "su4_decompose",
+    "extract_qubit_path",
+    "gate_count",
+    "gate_weighted_depth",
+    "qubit_couplings",
 ]
