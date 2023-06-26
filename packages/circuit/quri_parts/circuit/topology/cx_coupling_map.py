@@ -1,3 +1,6 @@
+from collections.abc import Mapping, Sequence
+from typing import TypeAlias
+
 import networkx as nx
 import numpy as np
 
@@ -8,18 +11,18 @@ from quri_parts.circuit.transpile import (
     extract_qubit_path,
 )
 
+CouplingMapWithCxErrors: TypeAlias = Mapping[tuple[int, int], float]
+
 
 def qubit_counts_considering_cx_errors(
-    cx_errors: dict[tuple[int, int], float], cx_error_threshold: float
-) -> list[int]:
+    cx_errors: CouplingMapWithCxErrors, cx_error_threshold: float
+) -> Sequence[int]:
     adjlist = [f"{a} {b}" for (a, b), e in cx_errors.items() if e < cx_error_threshold]
     graph = nx.parse_adjlist(adjlist)
     return [len(c) for c in nx.connected_components(graph)]
 
 
-def _sorted_undirected(
-    cx_errors: dict[tuple[int, int], float]
-) -> list[tuple[int, int]]:
+def _sorted_undirected(cx_errors: CouplingMapWithCxErrors) -> Sequence[tuple[int, int]]:
     ud = []
     for (a, b), e in cx_errors.items():
         if (a, b) not in ud and (b, a) not in ud:
@@ -27,18 +30,18 @@ def _sorted_undirected(
     return next(zip(*sorted(ud, key=lambda x: x[1])))
 
 
-def _directed(g: list[tuple[int, int]]) -> dict[tuple[int, int], float]:
+def _directed(g: Sequence[tuple[int, int]]) -> CouplingMapWithCxErrors:
     rs = set((b, a) for a, b in g)
     return rs | set(g)
 
 
-def _list_to_graph(coupling_list: list[tuple[int, int]]) -> nx.Graph:
+def _list_to_graph(coupling_list: Sequence[tuple[int, int]]) -> nx.Graph:
     return nx.parse_adjlist([f"{a} {b}" for a, b in coupling_list])
 
 
 def approx_cx_reliable_subgraph(
-    cx_errors: dict[tuple[int, int], float], qubits: int
-) -> list[nx.Graph]:
+    cx_errors: CouplingMapWithCxErrors, qubits: int
+) -> Sequence[nx.Graph]:
     sorted_edges = _sorted_undirected(cx_errors)
     for i in range(qubits - 1, len(sorted_edges)):
         best_nodes = _list_to_graph(_directed(sorted_edges[:i]))
@@ -52,7 +55,7 @@ def approx_cx_reliable_subgraph(
     return []
 
 
-def _length_satisfactory_paths(graph: nx.Graph, qubits: int) -> list[list[int]]:
+def _length_satisfactory_paths(graph: nx.Graph, qubits: int) -> Sequence[Sequence[int]]:
     nodes = list(graph.nodes)
     ret = []
     for s in nodes:
@@ -63,7 +66,7 @@ def _length_satisfactory_paths(graph: nx.Graph, qubits: int) -> list[list[int]]:
 
 
 def _approx_cx_reliable_single_stroke_paths(
-    cx_errors: dict[tuple[int, int], float], qubits: int
+    cx_errors: CouplingMapWithCxErrors, qubits: int
 ) -> list[list[int]]:
     sorted_edges = _sorted_undirected(cx_errors)
     for i in range(qubits - 1, len(sorted_edges)):
@@ -79,12 +82,12 @@ def _approx_cx_reliable_single_stroke_paths(
     return []
 
 
-def _path_fidelity(cx_errors: dict[tuple[int, int], float], path: list[int]) -> float:
+def _path_fidelity(cx_errors: CouplingMapWithCxErrors, path: Sequence[int]) -> float:
     return np.prod([1 - cx_errors[q] for q in zip(path, path[1:])])
 
 
 def cx_reliable_single_stroke_path(
-    cx_errors: dict[tuple[int, int], float],
+    cx_errors: CouplingMapWithCxErrors,
     qubits: int,
     exact: bool = True,
 ) -> list[int]:
@@ -96,7 +99,7 @@ def cx_reliable_single_stroke_path(
 
 
 class QubitMappingByCxErrorsTranspiler(CircuitTranspilerProtocol):
-    def __init__(self, cx_errors: dict[tuple[int, int], float], exact: bool = True):
+    def __init__(self, cx_errors: CouplingMapWithCxErrors, exact: bool = True):
         self._cx_errors = cx_errors
         self._exact = exact
 

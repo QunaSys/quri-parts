@@ -1,8 +1,9 @@
+import itertools as it
 from collections import defaultdict
 from collections.abc import Mapping, Sequence
-import itertools as it
-import networkx as nx
 from typing import Optional
+
+import networkx as nx
 
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.circuit.gate_names import NonParametricGateNameType
