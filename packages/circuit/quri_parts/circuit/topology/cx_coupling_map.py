@@ -1,5 +1,5 @@
-from collections.abc import Mapping, Sequence
 import itertools as it
+from collections.abc import Mapping, Sequence
 from typing import TypeAlias, cast
 
 import networkx as nx
