@@ -28,7 +28,6 @@ from quri_parts.core.state import (
 )
 from quri_parts.qulacs.circuit.compiled_circuit import (
     _QulacsCircuit,
-    _QulacsUnboundParametricCircuit,
     compile_circuit,
     compile_parametric_circuit,
 )
@@ -309,7 +308,7 @@ def parametric_circuit() -> UnboundParametricQuantumCircuit:
 
 def create_parametric_vector_state(
     qubit_count: int,
-    circuit: Union[UnboundParametricQuantumCircuit, _QulacsUnboundParametricCircuit],
+    circuit: UnboundParametricQuantumCircuit,
     bits: int,
 ) -> ParametricQuantumStateVector:
     return ParametricQuantumStateVector(
