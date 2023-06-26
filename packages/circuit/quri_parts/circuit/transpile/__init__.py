@@ -10,6 +10,12 @@
 
 from typing import Callable
 
+from .analyze import (
+    gate_weighted_depth,
+    gate_count,
+    qubit_couplings,
+    extract_qubit_path,
+)
 from .clifford_approximation import CliffordApproximationTranspiler
 from .fuse import (
     FuseRotationTranspiler,

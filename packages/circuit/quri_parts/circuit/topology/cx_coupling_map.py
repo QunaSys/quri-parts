@@ -1,6 +1,13 @@
 import networkx as nx
 import numpy as np
 
+from quri_parts.circuit import NonParametricQuantumCircuit
+from quri_parts.circuit.transpile import (
+    CircuitTranspilerProtocol,
+    QubitRemappingTranspiler,
+    extract_qubit_path,
+)
+
 
 def qubit_counts_considering_cx_errors(
     cx_errors: dict[tuple[int, int], float], cx_error_threshold: float
@@ -86,3 +93,27 @@ def cx_reliable_single_stroke_path(
     else:
         ps = _approx_cx_reliable_single_stroke_paths(cx_errors, qubits)
     return max(ps, key=lambda p: _path_fidelity(cx_errors, p)) if ps else []
+
+
+class QubitMappingByCxErrorsTranspiler(CircuitTranspilerProtocol):
+    def __init__(self, cx_errors: dict[tuple[int, int], float], exact: bool = True):
+        self._cx_errors = cx_errors
+        self._exact = exact
+
+    def __call__(
+        self, circuit: NonParametricQuantumCircuit
+    ) -> NonParametricQuantumCircuit:
+        circuit_path = extract_qubit_path(circuit)
+        if circuit_path is None:
+            raise ValueError(
+                "Qubits in the given circuit is not sequentially entangled."
+            )
+        qubit_path = cx_reliable_single_stroke_path(
+            self._cx_errors, circuit.qubit_count, self._exact
+        )
+        if not qubit_path:
+            raise ValueError(
+                "Cannot find single stroke path in coupling map for the given circuit."
+            )
+        qubit_mapping = {c: q for c, q in zip(circuit_path, qubit_path)}
+        return QubitRemappingTranspiler(qubit_mapping)(circuit)
