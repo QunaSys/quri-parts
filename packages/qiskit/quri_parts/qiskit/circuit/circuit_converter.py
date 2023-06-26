@@ -13,14 +13,20 @@ from typing import Callable, Optional, Type
 
 import numpy as np
 import qiskit.circuit.library as qgate
-from qiskit.circuit import QuantumCircuit
+from qiskit.circuit import QuantumCircuit as QiskitQuantumCircuit
 from qiskit.circuit.gate import Gate
 from qiskit.extensions import UnitaryGate
 from qiskit.opflow import X, Y, Z
 from typing_extensions import TypeAlias
 
-from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate, gate_names
+from quri_parts.circuit import (
+    NonParametricQuantumCircuit,
+    QuantumCircuit,
+    QuantumGate,
+    gate_names,
+)
 from quri_parts.circuit.gate_names import (
+    Measurement,
     MultiQubitGateNameType,
     ParametricGateNameType,
     SingleQubitGateNameType,
@@ -42,7 +48,7 @@ from quri_parts.circuit.transpile import (
 )
 
 QiskitCircuitConverter: TypeAlias = Callable[
-    [NonParametricQuantumCircuit, Optional[CircuitTranspiler]], QuantumCircuit
+    [NonParametricQuantumCircuit, Optional[CircuitTranspiler]], QiskitQuantumCircuit
 ]
 
 #: CircuitTranspiler to convert a circuit configuration suitable for Qiskit.
@@ -162,14 +168,20 @@ def convert_gate(gate: QuantumGate) -> Gate:
 def convert_circuit(
     circuit: NonParametricQuantumCircuit,
     transpiler: Optional[CircuitTranspiler] = QiskitTranspiler(),
-) -> QuantumCircuit:
+) -> QiskitQuantumCircuit:
     """Converts a :class:`NonParametricQuantumCircuit` to
     :class:`qiskit.QuantumCircuit`."""
     if transpiler is not None:
         circuit = transpiler(circuit)
 
-    qiskit_circuit = QuantumCircuit(circuit.qubit_count)
+    if isinstance(circuit, QuantumCircuit):
+        qiskit_circuit = QiskitQuantumCircuit(circuit.qubit_count, circuit.cbit_count)
+    else:
+        qiskit_circuit = QiskitQuantumCircuit(circuit.qubit_count)
     for gate in circuit.gates:
+        if gate.name == Measurement:
+            qiskit_circuit.measure(gate.target_indices[0], gate.c_indices[0])
+            continue
         indices = (*gate.control_indices, *gate.target_indices)
         qiskit_circuit.append(convert_gate(gate), qargs=indices)
     return qiskit_circuit

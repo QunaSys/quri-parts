@@ -28,6 +28,7 @@ from .gates import (
     U3,
     H,
     Identity,
+    Measurement,
     Pauli,
     PauliRotation,
     S,
@@ -225,6 +226,10 @@ class MutableQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
         """Add a Pauli rotation gate to the circuit."""
         self.add_gate(PauliRotation(target_qubits, pauli_id_list, angle))
 
+    def measure(self, qubit_index: int, c_index: int) -> None:
+        """Add an Identity gate to the circuit."""
+        self.add_gate(Measurement(qubit_index, c_index))
+
 
 class NonParametricQuantumCircuit(QuantumCircuitProtocol, ABC):
     """A base class for quantum circuits having only non-parametric gates.
@@ -283,13 +288,19 @@ class QuantumCircuit(NonParametricQuantumCircuit, MutableQuantumCircuitProtocol)
         self,
         qubit_count: int,
         gates: Sequence[QuantumGate] = [],
+        cbit_count: int = 0,
     ):
         self._qubit_count = qubit_count
+        self._cbit_count = cbit_count
         self._gates = list(gates)
 
     @property
     def qubit_count(self) -> int:
         return self._qubit_count
+
+    @property
+    def cbit_count(self) -> int:
+        return self._cbit_count
 
     @property
     def gates(self) -> Sequence[QuantumGate]:
@@ -311,6 +322,12 @@ class QuantumCircuit(NonParametricQuantumCircuit, MutableQuantumCircuitProtocol)
             raise ValueError(
                 "The indices of the gate applied must be smaller than qubit_count"
             )
+        if len(gate.c_indices) > 0 and max(gate.c_indices) >= self.cbit_count:
+            raise ValueError(
+                "The classical indices of the gate applied must be smaller",
+                "than cbit_count",
+            )
+
         if gate_index:
             self._gates.insert(gate_index, gate)
         else:
@@ -337,6 +354,7 @@ class ImmutableQuantumCircuit(NonParametricQuantumCircuit):
 
     def __init__(self, circuit: QuantumCircuit):
         self._qubit_count = circuit.qubit_count
+        self._cbit_count = circuit.cbit_count
         self._gates = circuit.gates
 
     def __eq__(self, other: object) -> bool:
@@ -350,6 +368,10 @@ class ImmutableQuantumCircuit(NonParametricQuantumCircuit):
         return self._qubit_count
 
     @property
+    def cbit_count(self) -> int:
+        return self._cbit_count
+
+    @property
     def gates(self) -> Sequence[QuantumGate]:
         return self._gates
 
@@ -357,4 +379,4 @@ class ImmutableQuantumCircuit(NonParametricQuantumCircuit):
         return self
 
     def get_mutable_copy(self) -> QuantumCircuit:
-        return QuantumCircuit(self.qubit_count, self.gates)
+        return QuantumCircuit(self.qubit_count, self.gates, self.cbit_count)

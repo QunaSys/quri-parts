@@ -78,6 +78,16 @@ class TestQuantumCircuit:
         immutable_circuit_2 = circuit_2.freeze()
         assert immutable_circuit_2.depth == 2
 
+    def test_measurement(self) -> None:
+        circuit = QuantumCircuit(1, cbit_count=1)
+        circuit.add_X_gate(0)
+        circuit.measure(0, 0)
+
+        with pytest.raises(ValueError):
+            circuit.measure(0, 1)
+        with pytest.raises(ValueError):
+            circuit.measure(1, 0)
+
 
 class TestImmutableQuantumCircuit:
     def test_get_mutable_copy(self) -> None:

@@ -99,7 +99,11 @@ class GateDecomposer(CircuitTranspilerProtocol, ABC):
             else:
                 cg.append(gate)
 
-        cc = QuantumCircuit(circuit.qubit_count)
+        if isinstance(circuit, QuantumCircuit):
+            cc = QuantumCircuit(circuit.qubit_count, cbit_count=circuit.cbit_count)
+        else:
+            cc = QuantumCircuit(circuit.qubit_count)
+
         cc.extend(cg)
         return cc
 
@@ -153,6 +157,10 @@ class ParallelDecomposer(CircuitTranspilerProtocol):
             else:
                 cg.append(gate)
 
-        cc = QuantumCircuit(circuit.qubit_count)
+        if isinstance(circuit, QuantumCircuit):
+            cc = QuantumCircuit(circuit.qubit_count, cbit_count=circuit.cbit_count)
+        else:
+            cc = QuantumCircuit(circuit.qubit_count)
+
         cc.extend(cg)
         return cc
