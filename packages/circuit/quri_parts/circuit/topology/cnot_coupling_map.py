@@ -135,8 +135,8 @@ class QubitMappingByCxErrorsTranspiler(CircuitTranspilerProtocol):
     across the entire entangling path.
 
     If all the qubits of a given circuit are entangled by 2 qubit gates and can be
-    arranged in a row, the qubit indices of the circuit are mapped if a path with the
-    required number of qubits is found from the qubit coupling map.
+    arranged in a row, the qubit indices of the circuit are reallocated if a path with
+    the required number of qubits is found from the qubit coupling map.
 
     Args:
         cnot_errors: A dictionary representing the coupling of qubits and their CNOT
