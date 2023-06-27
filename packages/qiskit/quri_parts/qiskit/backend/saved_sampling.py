@@ -10,7 +10,7 @@
 
 import json
 from collections import defaultdict
-from typing import Any, Mapping, Optional, Sequence
+from typing import Any, Mapping, MutableMapping, Optional, Sequence, Union
 
 import qiskit
 from pydantic.dataclasses import dataclass
@@ -62,6 +62,19 @@ class QiskitSavedDataSamplingResult(SamplingResult):
 
 
 @dataclass
+class QiskitRuntimeSavedDataSamplingResult(SamplingResult):
+    quasi_dist: dict[int, float]
+    n_shots: int
+
+    @property
+    def counts(self) -> SamplingCounts:
+        measurements: MutableMapping[int, float] = {}
+        for result, quasi_prob in self.quasi_dist.items():
+            measurements[result] = quasi_prob * self.n_shots
+        return measurements
+
+
+@dataclass
 class QiskitSavedDataSamplingJob(SamplingJob):
     """An object that represents a saved sampling job.
 
@@ -76,9 +89,13 @@ class QiskitSavedDataSamplingJob(SamplingJob):
 
     circuit_qasm: str
     n_shots: int
-    saved_result: QiskitSavedDataSamplingResult
+    saved_result: Union[
+        QiskitSavedDataSamplingResult, QiskitRuntimeSavedDataSamplingResult
+    ]
 
-    def result(self) -> QiskitSavedDataSamplingResult:
+    def result(
+        self,
+    ) -> Union[QiskitSavedDataSamplingResult, QiskitRuntimeSavedDataSamplingResult]:
         return self.saved_result
 
 
