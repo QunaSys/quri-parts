@@ -9,13 +9,14 @@
 # limitations under the License.
 
 from dataclasses import dataclass
-from typing import Union, cast
+from typing import Optional, Union, cast
 
 import numpy as np
 import numpy.typing as npt
 from pyscf import ao2mo, gto, mcscf, scf
 
 from quri_parts.chem.mol import (
+    ActiveSpace,
     ActiveSpaceMolecularOrbitals,
     AO1eInt,
     AO1eIntArray,
@@ -292,3 +293,18 @@ def get_active_space_spin_integrals(
     )
     spin_integrals = spatial_mo_eint_set_to_spin_mo_eint_set(spatial_integrals)
     return spin_integrals
+
+
+def get_spin_mo_integrals_from_mole(
+    mole: gto.Mole,
+    mo_coeff: npt.NDArray[np.complex128],
+    active_space: Optional[ActiveSpace],
+) -> tuple[MolecularOrbitals, SpinMOeIntSet]:
+    mo = PySCFMolecularOrbitals(mole, mo_coeff)
+    ao_eint_set = get_ao_eint_set(mo)
+
+    if active_space is None:
+        return mo, ao_eint_set.to_full_space_mo_int(mo)
+
+    asmo = ActiveSpaceMolecularOrbitals(mo, active_space)
+    return asmo, ao_eint_set.to_active_space_mo_int(asmo)

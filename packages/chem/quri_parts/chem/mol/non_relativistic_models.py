@@ -426,3 +426,8 @@ def get_active_space_spin_integrals_from_ao_eint(
     )
 
     return active_space_integrals
+
+
+HamiltonianCoefficient = tuple[
+    float, npt.NDArray[np.complex128], npt.NDArray[np.complex128]
+]
