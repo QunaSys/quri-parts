@@ -11,6 +11,14 @@ def gate_weighted_depth(
     weights: Mapping[str, int],
     default_weight: int = 0,
 ) -> int:
+    """Calculate circuit depth by setting different weights for each gate type.
+
+    Args:
+        circuit: Target NonParametricQuantumCircuit.
+        weights: Mapping from gate names to their weights.
+        default_weight: Gate weights not included in the weights argument.
+            If the argument is omitted, 0 is used by default.
+    """
     qubit_depths: dict[int, int] = defaultdict()
     _weights = dict(weights)
     for gate in circuit.gates:
@@ -28,6 +36,15 @@ def gate_count(
     qubit_indices: Sequence[int] = (),
     gate_names: Sequence[str] = (),
 ) -> int:
+    """Count the number of gates that satisfy the given qubit indices and gate names.
+
+    Args:
+        circuit: Target NonParametricQuantumCircuit.
+        qubit_indices: Target a gate that acts on one of the specified qubits.
+            If omitted, all qubits are covered.
+        gate_names: Specify the target gate names. If omitted, all gate types
+            are covered.
+    """
     any_qubits, any_gates = not qubit_indices, not gate_names
     target_qubits, target_gates = set(qubit_indices), set(gate_names)
     count = 0
@@ -43,6 +60,8 @@ def gate_count(
 def qubit_couplings(
     circuit: NonParametricQuantumCircuit,
 ) -> Sequence[tuple[int, ...]]:
+    """Returns the set of tuples of the qubit indices of the multiple qubit gates
+    in the circuit."""
     coupling = set()
     for gate in circuit.gates:
         qubits = tuple(gate.control_indices) + tuple(gate.target_indices)
@@ -54,10 +73,12 @@ def qubit_couplings(
 def extract_qubit_coupling_path(
     circuit: NonParametricQuantumCircuit,
 ) -> Sequence[int]:
+    """Returns the path of entangled 2 qubits in a circuit when they are arranged in
+    a row. If no such path is found, an empty list is returned."""
     couplings = set()
     for qs in qubit_couplings(circuit):
         if len(qs) > 2:
-            raise ValueError("The given circuit contains a more than 3 qubits gate.")
+            raise ValueError("The given circuit contains a more than 2 qubits gate.")
         couplings |= {qs, (qs[1], qs[0])}
     graph = nx.parse_adjlist([f"{a} {b}" for a, b in couplings])
     paths = []
