@@ -9,7 +9,7 @@ from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.circuit.transpile import (
     CircuitTranspilerProtocol,
     QubitRemappingTranspiler,
-    extract_qubit_path,
+    extract_qubit_coupling_path,
 )
 
 CouplingMapWithCxErrors: TypeAlias = Mapping[tuple[int, int], float]
@@ -111,7 +111,7 @@ class QubitMappingByCxErrorsTranspiler(CircuitTranspilerProtocol):
     def __call__(
         self, circuit: NonParametricQuantumCircuit
     ) -> NonParametricQuantumCircuit:
-        circuit_path = extract_qubit_path(circuit)
+        circuit_path = extract_qubit_coupling_path(circuit)
         if circuit_path is None:
             raise ValueError(
                 "Qubits in the given circuit is not sequentially entangled."

@@ -10,18 +10,18 @@ from quri_parts.circuit import NonParametricQuantumCircuit
 
 def gate_weighted_depth(
     circuit: NonParametricQuantumCircuit,
-    weights: Mapping[str, int] = {},
-    default_weight: int = 1,
+    weights: Mapping[str, int],
+    default_weight: int = 0,
 ) -> int:
     qubit_depths: dict[int, int] = defaultdict()
     _weights = dict(weights)
     for gate in circuit.gates:
         qubits = tuple(gate.control_indices) + tuple(gate.target_indices)
         depth = _weights.get(gate.name, default_weight) + max(
-            qubit_depths[q] for q in qubits
+            qubit_depths.get(q, 0) for q in qubits
         )
-    for q in qubits:
-        qubit_depths[q] = depth
+        for q in qubits:
+            qubit_depths[q] = depth
     return max(qubit_depths.values()) if qubit_depths else 0
 
 
@@ -31,13 +31,12 @@ def gate_count(
     gate_names: Sequence[str] = (),
 ) -> int:
     any_qubits, any_gates = not qubit_indices, not gate_names
+    target_qubits, target_gates = set(qubit_indices), set(gate_names)
     count = 0
-    target_qubits = set(qubit_indices)
-    target_gates = set(gate_names)
     for gate in circuit.gates:
         qubits = set(tuple(gate.control_indices) + tuple(gate.target_indices))
         if (any_gates or gate.name in target_gates) and (
-            any_qubits or qubits <= target_qubits
+            any_qubits or qubits & target_qubits
         ):
             count += 1
     return count
@@ -45,21 +44,30 @@ def gate_count(
 
 def qubit_couplings(
     circuit: NonParametricQuantumCircuit,
-) -> Sequence[tuple[int, int]]:
+) -> Sequence[tuple[int, ...]]:
     coupling = set()
     for gate in circuit.gates:
         qubits = tuple(gate.control_indices) + tuple(gate.target_indices)
-        if len(qubits) < 2:
-            continue
-        coupling |= set(it.product(qubits, repeat=2))
-    return cast(Sequence[tuple[int, int]], list(coupling))
+        if len(qubits) >= 2:
+            coupling.add(qubits)
+    return list(coupling)
 
 
-def extract_qubit_path(circuit: NonParametricQuantumCircuit) -> Optional[Sequence[int]]:
-    coupling = set(qubit_couplings(circuit))
-    for a, b in coupling:
-        coupling.add((b, a))
-    graph = nx.parse_adjlist([f"{a} {b}" for a, b in coupling])
-    if nx.is_eulerian(graph):
-        return list(map(int, nx.eulerian_path(graph).nodes))
-    return None
+def extract_qubit_coupling_path(
+    circuit: NonParametricQuantumCircuit,
+) -> Sequence[int]:
+    couplings = set()
+    for qs in qubit_couplings(circuit):
+        if len(qs) > 2:
+            raise ValueError("The given circuit contains a more than 3 qubits gate.")
+        couplings |= {qs, (qs[1], qs[0])}
+    graph = nx.parse_adjlist([f"{a} {b}" for a, b in couplings])
+    paths = []
+    nodes = list(graph.nodes)
+    for s in nodes:
+        for e in nodes:
+            ps = nx.all_simple_paths(graph, s, e)
+            paths.extend([list(map(int, p)) for p in ps if len(p) == len(nodes)])
+    if len(paths) == 2 and set(paths[0]) == set(paths[1]):
+        return list(map(int, paths[0]))
+    return []

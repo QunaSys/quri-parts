@@ -11,7 +11,7 @@
 from typing import Callable
 
 from .analyze import (
-    extract_qubit_path,
+    extract_qubit_coupling_path,
     gate_count,
     gate_weighted_depth,
     qubit_couplings,
@@ -267,7 +267,7 @@ __all__ = [
     "Z2RZTranspiler",
     "su2_decompose",
     "su4_decompose",
-    "extract_qubit_path",
+    "extract_qubit_coupling_path",
     "gate_count",
     "gate_weighted_depth",
     "qubit_couplings",
