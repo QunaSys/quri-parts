@@ -34,6 +34,6 @@ def device_connectivity_graph(device: Union[BackendV1, BackendV2]) -> nx.Graph:
     return nx.parse_adjlist(lines)
 
 
-def coupling_map_with_cx_errors(device: BackendV2) -> Mapping[tuple[int, int], float]:
+def coupling_map_with_cnot_errors(device: BackendV2) -> Mapping[tuple[int, int], float]:
     edges = device.coupling_map.get_edges()
     return {qs: prop.error for qs, prop in device.target["cx"].items() if qs in edges}

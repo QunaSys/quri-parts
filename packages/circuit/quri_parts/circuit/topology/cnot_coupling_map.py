@@ -16,17 +16,21 @@ from quri_parts.circuit.transpile import (
 CouplingMapWithCxErrors: TypeAlias = Mapping[tuple[int, int], float]
 
 
-def qubit_counts_considering_cx_errors(
-    cx_errors: CouplingMapWithCxErrors, cx_error_threshold: float
+def qubit_counts_considering_cnot_errors(
+    cnot_errors: CouplingMapWithCxErrors, cnot_error_threshold: float
 ) -> Sequence[int]:
-    adjlist = [f"{a} {b}" for (a, b), e in cx_errors.items() if e < cx_error_threshold]
+    adjlist = [
+        f"{a} {b}" for (a, b), e in cnot_errors.items() if e < cnot_error_threshold
+    ]
     graph = nx.parse_adjlist(adjlist)
     return [len(c) for c in nx.connected_components(graph)]
 
 
-def _sorted_undirected(cx_errors: CouplingMapWithCxErrors) -> Sequence[tuple[int, int]]:
+def _sorted_undirected(
+    cnot_errors: CouplingMapWithCxErrors,
+) -> Sequence[tuple[int, int]]:
     ud = []
-    for (a, b), e in sorted(cx_errors.items()):
+    for (a, b), e in sorted(cnot_errors.items()):
         if (a, b) not in ud and (b, a) not in ud:
             ud.append(((a, b), e))
     return next(zip(*sorted(ud, key=lambda x: x[1])))
@@ -41,10 +45,10 @@ def _list_to_graph(coupling_list: Sequence[tuple[int, int]]) -> nx.Graph:
     return nx.parse_adjlist([f"{a} {b}" for a, b in coupling_list])
 
 
-def approx_cx_reliable_subgraph(
-    cx_errors: CouplingMapWithCxErrors, qubits: int
+def approx_cnot_reliable_subgraph(
+    cnot_errors: CouplingMapWithCxErrors, qubits: int
 ) -> Sequence[nx.Graph]:
-    sorted_edges = _sorted_undirected(cx_errors)
+    sorted_edges = _sorted_undirected(cnot_errors)
     for i in range(qubits - 1, len(sorted_edges)):
         best_nodes = _list_to_graph(_directed(sorted_edges[:i]))
         enough_nodes = [
@@ -67,10 +71,10 @@ def _length_satisfactory_paths(graph: nx.Graph, qubits: int) -> Sequence[Sequenc
     return ret
 
 
-def _approx_cx_reliable_single_stroke_paths(
-    cx_errors: CouplingMapWithCxErrors, qubits: int
+def _approx_cnot_reliable_single_stroke_paths(
+    cnot_errors: CouplingMapWithCxErrors, qubits: int
 ) -> Sequence[Sequence[int]]:
-    sorted_edges = _sorted_undirected(cx_errors)
+    sorted_edges = _sorted_undirected(cnot_errors)
     for i in range(qubits - 1, len(sorted_edges)):
         best_nodes = _list_to_graph(_directed(sorted_edges[:i]))
         enough_nodes = [
@@ -88,25 +92,27 @@ def _approx_cx_reliable_single_stroke_paths(
     return []
 
 
-def _path_fidelity(cx_errors: CouplingMapWithCxErrors, path: Sequence[int]) -> float:
-    return cast(float, np.prod([1 - cx_errors[q] for q in zip(path, path[1:])]))
+def _path_fidelity(cnot_errors: CouplingMapWithCxErrors, path: Sequence[int]) -> float:
+    return cast(float, np.prod([1 - cnot_errors[q] for q in zip(path, path[1:])]))
 
 
-def cx_reliable_single_stroke_path(
-    cx_errors: CouplingMapWithCxErrors,
+def cnot_reliable_single_stroke_path(
+    cnot_errors: CouplingMapWithCxErrors,
     qubits: int,
     exact: bool = True,
 ) -> Sequence[int]:
     if exact:
-        ps = _length_satisfactory_paths(_list_to_graph(list(cx_errors.keys())), qubits)
+        ps = _length_satisfactory_paths(
+            _list_to_graph(list(cnot_errors.keys())), qubits
+        )
     else:
-        ps = _approx_cx_reliable_single_stroke_paths(cx_errors, qubits)
-    return max(ps, key=lambda p: _path_fidelity(cx_errors, p)) if ps else []
+        ps = _approx_cnot_reliable_single_stroke_paths(cnot_errors, qubits)
+    return max(ps, key=lambda p: _path_fidelity(cnot_errors, p)) if ps else []
 
 
 class QubitMappingByCxErrorsTranspiler(CircuitTranspilerProtocol):
-    def __init__(self, cx_errors: CouplingMapWithCxErrors, exact: bool = True):
-        self._cx_errors = cx_errors
+    def __init__(self, cnot_errors: CouplingMapWithCxErrors, exact: bool = True):
+        self._cnot_errors = cnot_errors
         self._exact = exact
 
     def __call__(
@@ -117,8 +123,8 @@ class QubitMappingByCxErrorsTranspiler(CircuitTranspilerProtocol):
             raise ValueError(
                 "Qubits in the given circuit is not sequentially entangled."
             )
-        qubit_path = cx_reliable_single_stroke_path(
-            self._cx_errors, circuit.qubit_count, self._exact
+        qubit_path = cnot_reliable_single_stroke_path(
+            self._cnot_errors, circuit.qubit_count, self._exact
         )
         if not qubit_path:
             raise ValueError(

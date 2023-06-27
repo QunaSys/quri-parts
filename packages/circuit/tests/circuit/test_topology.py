@@ -13,9 +13,9 @@ from quri_parts.circuit.topology import (
     QubitMappingByCxErrorsTranspiler,
     SquareLattice,
     SquareLatticeSWAPInsertionTranspiler,
-    approx_cx_reliable_subgraph,
-    cx_reliable_single_stroke_path,
-    qubit_counts_considering_cx_errors,
+    approx_cnot_reliable_subgraph,
+    cnot_reliable_single_stroke_path,
+    qubit_counts_considering_cnot_errors,
 )
 
 
@@ -59,7 +59,7 @@ def test_square_lattice_swap_insertion() -> None:
     assert transpiled.gates == expect.gates
 
 
-def _cx_errors_3_loops() -> dict[tuple[int, int], float]:
+def _cnot_errors_3_loops() -> dict[tuple[int, int], float]:
     cs = {
         (0, 1): 0.3,  # loop 3
         (1, 2): 0.3,
@@ -80,9 +80,9 @@ def _cx_errors_3_loops() -> dict[tuple[int, int], float]:
     return cs | rs
 
 
-def _cx_errors_steps() -> dict[tuple[int, int], float]:
+def _cnot_errors_steps() -> dict[tuple[int, int], float]:
     cs = {
-        (0, 1): 0.5,
+        (0, 1): 0.5,  # loop 8
         (1, 2): 0.4,
         (2, 3): 0.3,
         (3, 4): 0.2,
@@ -95,56 +95,60 @@ def _cx_errors_steps() -> dict[tuple[int, int], float]:
     return cs | rs
 
 
-def test_qubit_counts_considering_cx_errors() -> None:
-    cx_loops = _cx_errors_3_loops()
-    assert [12] == list(qubit_counts_considering_cx_errors(cx_loops, 1.0))
-    assert [5, 7] == sorted(qubit_counts_considering_cx_errors(cx_loops, 0.45))
-    assert [3, 4, 5] == sorted(qubit_counts_considering_cx_errors(cx_loops, 0.35))
-    assert [4, 5] == sorted(qubit_counts_considering_cx_errors(cx_loops, 0.25))
-    assert [5] == sorted(qubit_counts_considering_cx_errors(cx_loops, 0.15))
-    assert [] == sorted(qubit_counts_considering_cx_errors(cx_loops, 0.05))
+def test_qubit_counts_considering_cnot_errors() -> None:
+    map_loops = _cnot_errors_3_loops()
+    assert [12] == list(qubit_counts_considering_cnot_errors(map_loops, 1.0))
+    assert [5, 7] == sorted(qubit_counts_considering_cnot_errors(map_loops, 0.45))
+    assert [3, 4, 5] == sorted(qubit_counts_considering_cnot_errors(map_loops, 0.35))
+    assert [4, 5] == sorted(qubit_counts_considering_cnot_errors(map_loops, 0.25))
+    assert [5] == sorted(qubit_counts_considering_cnot_errors(map_loops, 0.15))
+    assert [] == sorted(qubit_counts_considering_cnot_errors(map_loops, 0.05))
 
 
-def test_approx_cx_reliable_subgraph() -> None:
-    cx_loops = _cx_errors_3_loops()
-    graphs_3_5 = approx_cx_reliable_subgraph(cx_loops, 5)
+def test_approx_cnot_reliable_subgraph() -> None:
+    map_loops = _cnot_errors_3_loops()
+    graphs_3_5 = approx_cnot_reliable_subgraph(map_loops, 5)
     assert len(graphs_3_5) == 1
     assert set(range(7, 12)) == set(map(int, graphs_3_5[0].nodes))
-    graphs_3_7 = approx_cx_reliable_subgraph(cx_loops, 7)
+    graphs_3_7 = approx_cnot_reliable_subgraph(map_loops, 7)
     assert len(graphs_3_7) == 1
     assert set(range(7)) == set(map(int, graphs_3_7[0].nodes))
-    graphs_3_12 = approx_cx_reliable_subgraph(cx_loops, 12)
+    graphs_3_12 = approx_cnot_reliable_subgraph(map_loops, 12)
     assert len(graphs_3_12) == 1
     assert set(range(12)) == set(map(int, graphs_3_12[0].nodes))
-    assert [] == approx_cx_reliable_subgraph(cx_loops, 13)
+    assert [] == approx_cnot_reliable_subgraph(map_loops, 13)
 
-    cx_steps = _cx_errors_steps()
-    graphs_s_3 = approx_cx_reliable_subgraph(cx_steps, 3)
+    map_steps = _cnot_errors_steps()
+    graphs_s_3 = approx_cnot_reliable_subgraph(map_steps, 3)
     assert len(graphs_s_3) == 1
     assert set([3, 4, 5]) == set(map(int, graphs_s_3[0].nodes))
-    graphs_s_8 = approx_cx_reliable_subgraph(cx_steps, 8)
+    graphs_s_8 = approx_cnot_reliable_subgraph(map_steps, 8)
     assert len(graphs_s_8) == 1
     assert set(range(8)) == set(map(int, graphs_s_8[0].nodes))
-    assert [] == approx_cx_reliable_subgraph(cx_steps, 13)
+    assert [] == approx_cnot_reliable_subgraph(map_steps, 13)
 
 
-def test_cx_reliable_single_stroke_path() -> None:
-    cx_loops = _cx_errors_3_loops()
-    assert set(range(12)) == set(cx_reliable_single_stroke_path(cx_loops, 12, True))
-    assert set(range(3, 12)) == set(cx_reliable_single_stroke_path(cx_loops, 9, True))
-    assert set(range(7, 12)) == set(cx_reliable_single_stroke_path(cx_loops, 5, True))
-    assert [] == list(cx_reliable_single_stroke_path(cx_loops, 13, True))
-
-    cx_steps = _cx_errors_steps()
-    assert [5, 4, 3, 2, 1, 0, 7, 6] == list(
-        cx_reliable_single_stroke_path(cx_steps, 8, True)
+def test_cnot_reliable_single_stroke_path() -> None:
+    map_loops = _cnot_errors_3_loops()
+    assert set(range(12)) == set(cnot_reliable_single_stroke_path(map_loops, 12, True))
+    assert set(range(3, 12)) == set(
+        cnot_reliable_single_stroke_path(map_loops, 9, True)
     )
-    assert [2, 3, 4, 5] == list(cx_reliable_single_stroke_path(cx_steps, 4, True))
-    assert [3, 4, 5] == list(cx_reliable_single_stroke_path(cx_steps, 3, True))
-    assert [] == list(cx_reliable_single_stroke_path(cx_steps, 9, True))
+    assert set(range(7, 12)) == set(
+        cnot_reliable_single_stroke_path(map_loops, 5, True)
+    )
+    assert [] == list(cnot_reliable_single_stroke_path(map_loops, 13, True))
+
+    map_steps = _cnot_errors_steps()
+    assert [5, 4, 3, 2, 1, 0, 7, 6] == list(
+        cnot_reliable_single_stroke_path(map_steps, 8, True)
+    )
+    assert [2, 3, 4, 5] == list(cnot_reliable_single_stroke_path(map_steps, 4, True))
+    assert [3, 4, 5] == list(cnot_reliable_single_stroke_path(map_steps, 3, True))
+    assert [] == list(cnot_reliable_single_stroke_path(map_steps, 9, True))
 
 
-def test_qubit_mapping_by_cx_errors_transpiler() -> None:
+def test_qubit_mapping_by_cnot_errors_transpiler() -> None:
     circuit = QuantumCircuit(4)
     circuit.extend(
         [
@@ -157,8 +161,8 @@ def test_qubit_mapping_by_cx_errors_transpiler() -> None:
             H(3),
         ]
     )
-    cx_errors = _cx_errors_steps()
-    transpiled = QubitMappingByCxErrorsTranspiler(cx_errors, True)(circuit)
+    cnot_errors = _cnot_errors_steps()
+    transpiled = QubitMappingByCxErrorsTranspiler(cnot_errors, True)(circuit)
 
     expect = QuantumCircuit(9)
     expect.extend(

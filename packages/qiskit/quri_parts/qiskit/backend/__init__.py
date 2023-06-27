@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .connectivity import coupling_map_with_cx_errors, device_connectivity_graph
+from .connectivity import coupling_map_with_cnot_errors, device_connectivity_graph
 from .sampling import QiskitSamplingBackend, QiskitSamplingJob, QiskitSamplingResult
 from .saved_sampling import (
     QiskitSavedDataSamplingBackend,
@@ -33,6 +33,6 @@ __all__ = [
     "get_backend_min_max_shot",
     "distribute_backend_shots",
     "convert_qiskit_sampling_count_to_qp_sampling_count",
-    "coupling_map_with_cx_errors",
+    "coupling_map_with_cnot_errors",
     "device_connectivity_graph",
 ]
