@@ -1,9 +1,10 @@
 import itertools as it
 from collections.abc import Mapping, Sequence
-from typing import TypeAlias, cast
+from typing import cast
 
 import networkx as nx
 import numpy as np
+from typing_extensions import TypeAlias
 
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.circuit.transpile import (
@@ -25,7 +26,7 @@ def qubit_counts_considering_cx_errors(
 
 def _sorted_undirected(cx_errors: CouplingMapWithCxErrors) -> Sequence[tuple[int, int]]:
     ud = []
-    for (a, b), e in cx_errors.items():
+    for (a, b), e in sorted(cx_errors.items()):
         if (a, b) not in ud and (b, a) not in ud:
             ud.append(((a, b), e))
     return next(zip(*sorted(ud, key=lambda x: x[1])))

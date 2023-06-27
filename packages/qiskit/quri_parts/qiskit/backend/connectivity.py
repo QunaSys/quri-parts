@@ -1,5 +1,5 @@
 from collections.abc import Mapping
-from typing import Any, Union, cast
+from typing import Union
 
 import networkx as nx
 from qiskit.providers import BackendV1, BackendV2

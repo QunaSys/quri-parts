@@ -10,12 +10,12 @@
 
 from quri_parts.circuit import CNOT, CZ, SWAP, H, QuantumCircuit, X
 from quri_parts.circuit.topology import (
+    QubitMappingByCxErrorsTranspiler,
     SquareLattice,
     SquareLatticeSWAPInsertionTranspiler,
-    qubit_counts_considering_cx_errors,
     approx_cx_reliable_subgraph,
     cx_reliable_single_stroke_path,
-    QubitMappingByCxErrorsTranspiler,
+    qubit_counts_considering_cx_errors,
 )
 
 
