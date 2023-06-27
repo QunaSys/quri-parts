@@ -109,9 +109,9 @@ def cnot_reliable_single_stroke_path(
     qubit_count: int,
     exact: bool = True,
 ) -> Sequence[int]:
-    """Find the path with the specified number of qubits that has minimal CNOT error
-    across the entire path. The cost is calculated by product of 1 - error. If no such
-    path is found, an empty list is returned.
+    """Find the path with the specified number of qubits that has maximum fidelity
+    across the entire path considering CNOT errors. If no such path is found,
+    an empty list is returned.
 
     Args:
         cnot_errors: A dictionary representing the coupling of qubits and their CNOT
@@ -131,8 +131,8 @@ def cnot_reliable_single_stroke_path(
 
 
 class QubitMappingByCxErrorsTranspiler(CircuitTranspilerProtocol):
-    """A CircuitTranspiler, that maps qubit indices so that the CNOT error is minimized
-    across the entire entangling path.
+    """A CircuitTranspiler, that maps qubit indices so that the fidelity considering
+    CNOT errors is maximized across the entire entangling path.
 
     If all the qubits of a given circuit are entangled by 2 qubit gates and can be
     arranged in a row, the qubit indices of the circuit are reallocated if a path with
