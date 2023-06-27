@@ -1,7 +1,5 @@
-import itertools as it
 from collections import defaultdict
 from collections.abc import Mapping, Sequence
-from typing import Optional, cast
 
 import networkx as nx
 

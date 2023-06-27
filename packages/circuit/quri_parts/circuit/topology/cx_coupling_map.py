@@ -112,7 +112,7 @@ class QubitMappingByCxErrorsTranspiler(CircuitTranspilerProtocol):
         self, circuit: NonParametricQuantumCircuit
     ) -> NonParametricQuantumCircuit:
         circuit_path = extract_qubit_coupling_path(circuit)
-        if circuit_path is None:
+        if circuit_path is None or len(circuit_path) != circuit.qubit_count:
             raise ValueError(
                 "Qubits in the given circuit is not sequentially entangled."
             )
