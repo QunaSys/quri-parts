@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .connectivity import device_connectivity_graph
+from .connectivity import coupling_map_with_cx_errors, device_connectivity_graph
 from .sampling import QiskitSamplingBackend, QiskitSamplingJob, QiskitSamplingResult
 
 __all__ = [
@@ -16,4 +16,5 @@ __all__ = [
     "QiskitSamplingJob",
     "QiskitSamplingResult",
     "device_connectivity_graph",
+    "coupling_map_with_cx_errors",
 ]

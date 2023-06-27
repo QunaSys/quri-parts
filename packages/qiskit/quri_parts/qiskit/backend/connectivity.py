@@ -1,5 +1,5 @@
 from collections.abc import Mapping
-from typing import Any, Optional, Union, cast
+from typing import Any, Union, cast
 
 import networkx as nx
 from qiskit.providers import BackendV1, BackendV2
@@ -35,22 +35,5 @@ def device_connectivity_graph(device: Union[BackendV1, BackendV2]) -> nx.Graph:
 
 
 def coupling_map_with_cx_errors(device: BackendV2) -> Mapping[tuple[int, int], float]:
-    coupling_map = device.coupling_map
-    two_q_error_map: dict[tuple[Any, ...], float] = {}
-    cx_errors = {}
-    for gate, prop_dict in device.target.items():
-        if prop_dict is None or None in prop_dict:
-            continue
-        for qargs, inst_props in prop_dict.items():
-            if inst_props is None:
-                continue
-            if len(qargs) == 2:
-                if inst_props.error is not None:
-                    two_q_error_map[qargs] = max(
-                        two_q_error_map.get(qargs, 0), inst_props.error
-                    )
-    if coupling_map:
-        for line in coupling_map.get_edges():
-            err = two_q_error_map.get(tuple(line), 0)
-            cx_errors[cast(tuple[int, int], tuple(line))] = err
-    return cx_errors
+    edges = device.coupling_map.get_edges()
+    return {qs: prop.error for qs, prop in device.target["cx"].items() if qs in edges}

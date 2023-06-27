@@ -12,9 +12,12 @@ from typing import Optional
 
 import networkx as nx
 import pytest
-from qiskit.providers import BackendV1, BackendV2
+from qiskit.providers import BackendV1, BackendV2, fake_provider
 
-from quri_parts.qiskit.backend import device_connectivity_graph
+from quri_parts.qiskit.backend import (
+    coupling_map_with_cx_errors,
+    device_connectivity_graph,
+)
 
 
 class MockCouplingMap:
@@ -136,3 +139,13 @@ class TestQiskitConnectivityGraphV2:
 
         with pytest.raises(ValueError, match="does not have a coupling map."):
             device_connectivity_graph(backend)
+
+
+def test_coupling_map_with_cx_errors() -> None:
+    device = fake_provider.FakeBelemV2()
+    cx_errors = coupling_map_with_cx_errors(device)
+    expected = [(0, 1), (1, 2), (1, 3), (3, 4)]
+    for c in expected:
+        assert c in cx_errors
+    for e in cx_errors.values():
+        assert 1.0 >= e and e >= 0.0
