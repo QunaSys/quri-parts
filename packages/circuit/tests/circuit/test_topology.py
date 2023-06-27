@@ -106,7 +106,26 @@ def test_qubit_counts_considering_cx_errors() -> None:
 
 
 def test_approx_cx_reliable_subgraph() -> None:
-    pass
+    cx_loops = _cx_errors_3_loops()
+    graphs_3_5 = approx_cx_reliable_subgraph(cx_loops, 5)
+    assert len(graphs_3_5) == 1
+    assert set(range(7, 12)) == set(map(int, graphs_3_5[0].nodes))
+    graphs_3_7 = approx_cx_reliable_subgraph(cx_loops, 7)
+    assert len(graphs_3_7) == 1
+    assert set(range(7)) == set(map(int, graphs_3_7[0].nodes))
+    graphs_3_12 = approx_cx_reliable_subgraph(cx_loops, 12)
+    assert len(graphs_3_12) == 1
+    assert set(range(12)) == set(map(int, graphs_3_12[0].nodes))
+    assert [] == approx_cx_reliable_subgraph(cx_loops, 13)
+
+    cx_steps = _cx_errors_steps()
+    graphs_s_3 = approx_cx_reliable_subgraph(cx_steps, 3)
+    assert len(graphs_s_3) == 1
+    assert set([3, 4, 5]) == set(map(int, graphs_s_3[0].nodes))
+    graphs_s_8 = approx_cx_reliable_subgraph(cx_steps, 8)
+    assert len(graphs_s_8) == 1
+    assert set(range(8)) == set(map(int, graphs_s_8[0].nodes))
+    assert [] == approx_cx_reliable_subgraph(cx_steps, 13)
 
 
 def test_cx_reliable_single_stroke_path() -> None:
@@ -127,27 +146,31 @@ def test_cx_reliable_single_stroke_path() -> None:
 
 def test_qubit_mapping_by_cx_errors_transpiler() -> None:
     circuit = QuantumCircuit(4)
-    circuit.extend([
-        H(0),
-        CNOT(0, 1),
-        H(1),
-        CNOT(1, 2),
-        H(2),
-        CNOT(2, 3),
-        H(3),
-    ])
+    circuit.extend(
+        [
+            H(0),
+            CNOT(0, 1),
+            H(1),
+            CNOT(1, 2),
+            H(2),
+            CNOT(2, 3),
+            H(3),
+        ]
+    )
     cx_errors = _cx_errors_steps()
     transpiled = QubitMappingByCxErrorsTranspiler(cx_errors, True)(circuit)
 
     expect = QuantumCircuit(9)
-    expect.extend([
-        H(2),
-        CNOT(2, 3),
-        H(3),
-        CNOT(3, 4),
-        H(4),
-        CNOT(4, 5),
-        H(5),
-    ])
+    expect.extend(
+        [
+            H(2),
+            CNOT(2, 3),
+            H(3),
+            CNOT(3, 4),
+            H(4),
+            CNOT(4, 5),
+            H(5),
+        ]
+    )
 
     assert transpiled.gates == expect.gates
