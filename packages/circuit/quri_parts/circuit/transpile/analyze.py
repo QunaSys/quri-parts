@@ -1,7 +1,7 @@
+import itertools as it
 from collections import defaultdict
 from collections.abc import Mapping, Sequence
 
-import itertools as it
 import networkx as nx
 
 from quri_parts.circuit import NonParametricQuantumCircuit
