@@ -1,6 +1,7 @@
 from collections import defaultdict
 from collections.abc import Mapping, Sequence
 
+import itertools as it
 import networkx as nx
 
 from quri_parts.circuit import NonParametricQuantumCircuit
@@ -69,6 +70,11 @@ def qubit_couplings(
         if len(qubits) >= 2:
             coupling.add(qubits)
     return list(coupling)
+
+
+def entangled_qubits(circuit: NonParametricQuantumCircuit) -> Sequence[int]:
+    """Returns qubit indices that are entangled by 2 or more qubit gates."""
+    return list(set(it.chain(*qubit_couplings(circuit))))
 
 
 def extract_qubit_coupling_path(
