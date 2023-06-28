@@ -66,6 +66,11 @@ def approx_cnot_reliable_subgraph(
     return []
 
 
+def graph_to_coupling_list(graph: nx.Graph) -> Sequence[tuple[int, ...]]:
+    """Convert networkx Graph (contains integer name nodes) to Sequence of integer tuples."""
+    return list(map(lambda qs: tuple(map(int, qs)), graph.edges)))
+
+
 def _length_satisfactory_paths(
     graph: nx.Graph, qubit_count: int
 ) -> Sequence[Sequence[int]]:
