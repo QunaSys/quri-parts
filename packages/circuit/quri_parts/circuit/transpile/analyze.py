@@ -36,7 +36,8 @@ def gate_count(
     qubit_indices: Sequence[int] = (),
     gate_names: Sequence[str] = (),
 ) -> int:
-    """Count the number of gates that satisfy the given qubit indices and gate names.
+    """Count the number of gates that satisfy the given qubit indices and gate
+    names.
 
     Args:
         circuit: Target NonParametricQuantumCircuit.
@@ -60,8 +61,8 @@ def gate_count(
 def qubit_couplings(
     circuit: NonParametricQuantumCircuit,
 ) -> Sequence[tuple[int, ...]]:
-    """Returns the set of tuples of the qubit indices of the multiple qubit gates
-    in the circuit."""
+    """Returns the set of tuples of the qubit indices of the multiple qubit
+    gates in the circuit."""
     coupling = set()
     for gate in circuit.gates:
         qubits = tuple(gate.control_indices) + tuple(gate.target_indices)
@@ -73,8 +74,11 @@ def qubit_couplings(
 def extract_qubit_coupling_path(
     circuit: NonParametricQuantumCircuit,
 ) -> Sequence[int]:
-    """Returns the path of entangled 2 qubits in a circuit when they are arranged in
-    a row. If no such path is found, an empty list is returned."""
+    """Returns the path of entangled 2 qubits in a circuit when they are
+    arranged in a row.
+
+    If no such path is found, an empty list is returned.
+    """
     couplings = set()
     for qs in qubit_couplings(circuit):
         if len(qs) > 2:

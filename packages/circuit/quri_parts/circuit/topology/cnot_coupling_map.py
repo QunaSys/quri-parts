@@ -13,15 +13,15 @@ from quri_parts.circuit.transpile import (
     extract_qubit_coupling_path,
 )
 
+#: Represents qubit couplings and their CNOT error rates.
 CouplingMapWithCxErrors: TypeAlias = Mapping[tuple[int, int], float]
 
 
 def qubit_counts_considering_cnot_errors(
     cnot_errors: CouplingMapWithCxErrors, cnot_error_threshold: float
 ) -> Sequence[int]:
-    """Returns a list of the number of qubits in subgraphs consisting only of coupled
-    qubits with cnot errors smaller than the specified threshold.
-    """
+    """Returns a list of the number of qubits in subgraphs consisting only of
+    coupled qubits with cnot errors smaller than the specified threshold."""
     adjlist = [
         f"{a} {b}" for (a, b), e in cnot_errors.items() if e < cnot_error_threshold
     ]
@@ -51,9 +51,8 @@ def _list_to_graph(coupling_list: Sequence[tuple[int, int]]) -> nx.Graph:
 def approx_cnot_reliable_subgraph(
     cnot_errors: CouplingMapWithCxErrors, qubit_count: int
 ) -> Sequence[nx.Graph]:
-    """Returns a list of subgraphs with relatively small cnot errors that contain
-    the specified number or more qubits.
-    """
+    """Returns a list of subgraphs with relatively small cnot errors that
+    contain the specified number or more qubits."""
     sorted_edges = _sorted_undirected(cnot_errors)
     for i in range(qubit_count - 1, len(sorted_edges)):
         best_nodes = _list_to_graph(_directed(sorted_edges[:i]))
@@ -109,9 +108,9 @@ def cnot_reliable_single_stroke_path(
     qubit_count: int,
     exact: bool = True,
 ) -> Sequence[int]:
-    """Find the path with the specified number of qubits that has maximum fidelity
-    across the entire path considering CNOT errors. If no such path is found,
-    an empty list is returned.
+    """Find the path with the specified number of qubits that has maximum
+    fidelity across the entire path considering CNOT errors. If no such path is
+    found, an empty list is returned.
 
     Args:
         cnot_errors: A dictionary representing the coupling of qubits and their CNOT
@@ -131,8 +130,8 @@ def cnot_reliable_single_stroke_path(
 
 
 class QubitMappingByCxErrorsTranspiler(CircuitTranspilerProtocol):
-    """A CircuitTranspiler, that maps qubit indices so that the fidelity considering
-    CNOT errors is maximized across the entire entangling path.
+    """A CircuitTranspiler, that maps qubit indices so that the fidelity
+    considering CNOT errors is maximized across the entire entangling path.
 
     If all the qubits of a given circuit are entangled by 2 qubit gates and can be
     arranged in a row, the qubit indices of the circuit are reallocated if a path with
