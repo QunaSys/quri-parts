@@ -23,6 +23,7 @@ from quri_parts.pyscf.mol import (
     PySCFSpatialMO1eInt,
     PySCFSpatialMO2eInt,
     get_active_space_spatial_integrals,
+    get_spin_mo_integrals_from_mole,
 )
 
 
@@ -204,3 +205,181 @@ class TestH3WithMultiplicity2(unittest.TestCase):
         assert isclose(as_mo_nuc_energy, expected_nuc_energy)
         assert allclose(as_mo_1e_int, expected_mo_1e_int)
         assert allclose(as_mo_2e_int, expected_mo_2e_int)
+
+
+class TestSpinMOIntegralsFromMole:
+    def test_get_spin_mo_integrals_from_mole_full_space(self) -> None:
+        atoms = [["H", [0, 0, i]] for i in range(2)]
+        gto_mol = gto.M(atom=atoms)
+        mf = scf.RHF(gto_mol)
+        mf.kernel()
+
+        mo, spin_mo_eint_set = get_spin_mo_integrals_from_mole(gto_mol, mf.mo_coeff)
+        assert (mo.mo_coeff == mf.mo_coeff).all()
+        assert isinstance(mo, PySCFMolecularOrbitals)
+
+        nuc_energy = spin_mo_eint_set.const
+        spin_mo_1e_int_array = spin_mo_eint_set.mo_1e_int.array
+        spin_mo_2e_int_array = spin_mo_eint_set.mo_2e_int.array
+
+        expected_nuc_energy = 0.52917721092
+        expected_spin_mo_1e_int = array(
+            [
+                [-1.11084418, 0.0, 0.0, 0.0],
+                [0.0, -1.11084418, 0.0, 0.0],
+                [0.0, 0.0, -0.589121, 0.0],
+                [0.0, 0.0, 0.0, -0.589121],
+            ]
+        )
+
+        expected_spin_mo_2e_int = array(
+            [
+                [
+                    [
+                        [0.6264025, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.19679058, 0.0],
+                        [0.0, 0.0, 0.0, 0.0],
+                    ],
+                    [
+                        [0.0, 0.0, 0.0, 0.0],
+                        [0.6264025, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.19679058, 0.0],
+                    ],
+                    [
+                        [0.0, 0.0, 0.19679058, 0.0],
+                        [0.0, 0.0, 0.0, 0.0],
+                        [0.62170676, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.0],
+                    ],
+                    [
+                        [0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.19679058, 0.0],
+                        [0.0, 0.0, 0.0, 0.0],
+                        [0.62170676, 0.0, 0.0, 0.0],
+                    ],
+                ],
+                [
+                    [
+                        [0.0, 0.6264025, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.19679058],
+                        [0.0, 0.0, 0.0, 0.0],
+                    ],
+                    [
+                        [0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.6264025, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.19679058],
+                    ],
+                    [
+                        [0.0, 0.0, 0.0, 0.19679058],
+                        [0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.62170676, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.0],
+                    ],
+                    [
+                        [0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.19679058],
+                        [0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.62170676, 0.0, 0.0],
+                    ],
+                ],
+                [
+                    [
+                        [0.0, 0.0, 0.62170676, 0.0],
+                        [0.0, 0.0, 0.0, 0.0],
+                        [0.19679058, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.0],
+                    ],
+                    [
+                        [0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.62170676, 0.0],
+                        [0.0, 0.0, 0.0, 0.0],
+                        [0.19679058, 0.0, 0.0, 0.0],
+                    ],
+                    [
+                        [0.19679058, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.65307075, 0.0],
+                        [0.0, 0.0, 0.0, 0.0],
+                    ],
+                    [
+                        [0.0, 0.0, 0.0, 0.0],
+                        [0.19679058, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.65307075, 0.0],
+                    ],
+                ],
+                [
+                    [
+                        [0.0, 0.0, 0.0, 0.62170676],
+                        [0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.19679058, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.0],
+                    ],
+                    [
+                        [0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.62170676],
+                        [0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.19679058, 0.0, 0.0],
+                    ],
+                    [
+                        [0.0, 0.19679058, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.65307075],
+                        [0.0, 0.0, 0.0, 0.0],
+                    ],
+                    [
+                        [0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.19679058, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.65307075],
+                    ],
+                ],
+            ]
+        )
+
+        assert isclose(nuc_energy, expected_nuc_energy)
+        assert allclose(spin_mo_1e_int_array, expected_spin_mo_1e_int)
+        assert allclose(spin_mo_2e_int_array, expected_spin_mo_2e_int)
+
+    def test_get_spin_mo_integrals_from_mole_active_space(self) -> None:
+        atoms = [["H", [0, 0, i]] for i in range(3)]
+        gto_mol = gto.M(atom=atoms, spin=1)
+        mf = scf.ROHF(gto_mol)
+        mf.kernel()
+
+        mo, spin_mo_eint_set = get_spin_mo_integrals_from_mole(
+            gto_mol, mf.mo_coeff, cas(1, 1)
+        )
+
+        nuc_energy = spin_mo_eint_set.const
+        spin_mo_1e_int_array = spin_mo_eint_set.mo_1e_int.array
+        spin_mo_2e_int_array = spin_mo_eint_set.mo_2e_int.array
+
+        assert isinstance(mo, ActiveSpaceMolecularOrbitals)
+
+        assert mo.spin == 1
+        assert mo.n_core_ele == 2
+        assert mo.n_active_ele == 1
+        assert mo.n_ele_alpha == 1
+        assert mo.n_ele_beta == 0
+        assert mo.n_spatial_orb == 3
+        assert mo.n_active_orb == 1
+        assert mo.n_core_orb == 1
+        assert mo.n_vir_orb == 1
+
+        expected_nuc_energy = -1.18702694476004
+        expected_spin_mo_1e_int = array([[-0.33696926, 0.0], [0.0, -0.33696926]])
+        expected_spin_mo_2e_int = array(
+            [
+                [[[0.53466412, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.53466412, 0.0]]],
+                [[[0.0, 0.53466412], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.53466412]]],
+            ]
+        )
+
+        assert isclose(nuc_energy, expected_nuc_energy)
+        assert allclose(spin_mo_1e_int_array, expected_spin_mo_1e_int)
+        assert allclose(spin_mo_2e_int_array, expected_spin_mo_2e_int)

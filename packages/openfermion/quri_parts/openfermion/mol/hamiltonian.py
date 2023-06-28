@@ -8,7 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from openfermion import InteractionOperator
+from typing import Union
+
+from openfermion import FermionOperator, InteractionOperator, MajoranaOperator
 
 from quri_parts.chem.mol import (
     ActiveSpaceMolecularOrbitals,
@@ -34,7 +36,9 @@ def get_fermionic_hamiltonian(
 
 
 def convert_fermionic_hamiltonian_to_qubit_hamiltonian(
-    fermionic_hamiltonian: InteractionOperator,
+    fermionic_hamiltonian: Union[
+        FermionOperator, InteractionOperator, MajoranaOperator
+    ],
     mo: MolecularOrbitals,
     fermion_qubit_mapping: OpenFermionQubitMapping = jordan_wigner,
 ) -> tuple[Operator, OpenFermionQubitOperatorMapper, FermionQubitStateMapper]:
