@@ -2,6 +2,12 @@ name: Lint
 
 on:
   pull_request:
+    paths:
+      - packages/**/*.py
+      - pyproject.toml
+      - poetry.lock
+      - .flake8
+      - .github/workflows/lint.yml
   push:
     branches: [main]
 
@@ -12,32 +18,23 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Install Poetry
-      env:
-        POETRY_VERSION: 1.4.0
-      run: |
-        curl -sSL https://install.python-poetry.org | python -
-        echo "$HOME/.poetry/bin" >> $GITHUB_PATH
-
-    - uses: actions/setup-python@v4
+    - uses: ./.github/actions/python-poetry-install
       with:
+        poetry-version: '1.4.0'
         python-version: '3.9'
-        cache: 'poetry'
 
     - run: |
-        poetry install -vvv
+        poetry env use 3.9
+        poetry install --only lint
 
-    - run: poetry run isort . --check --diff
+    - run: poetry run isort packages --check --diff
       if: success() || failure()
 
-    - run: poetry run black . --check
+    - run: poetry run black packages --check
       if: success() || failure()
 
-    - run: poetry run flake8
+    - run: poetry run flake8 packages
       if: success() || failure()
 
-    - run: poetry run mypy .
-      if: success() || failure()
-
-    - run: poetry run docformatter -c -r .
+    - run: poetry run docformatter -c -r packages
       if: success() || failure()
