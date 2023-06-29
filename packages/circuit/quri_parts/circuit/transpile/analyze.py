@@ -72,15 +72,15 @@ def qubit_couplings(
     return list(coupling)
 
 
-def entangled_qubits(circuit: NonParametricQuantumCircuit) -> Sequence[int]:
-    """Returns qubit indices that are entangled by 2 or more qubit gates."""
+def coupled_qubits(circuit: NonParametricQuantumCircuit) -> Sequence[int]:
+    """Returns qubit indices that are coupled by 2 or more qubit gates."""
     return list(set(it.chain(*qubit_couplings(circuit))))
 
 
 def extract_qubit_coupling_path(
     circuit: NonParametricQuantumCircuit,
 ) -> Sequence[int]:
-    """Returns the path of entangled 2 qubits in a circuit when they are
+    """Returns the path of coupled 2 qubits in a circuit when they are
     arranged in a row.
 
     If no such path is found, an empty list is returned.
@@ -92,9 +92,9 @@ def extract_qubit_coupling_path(
         couplings |= {qs, (qs[1], qs[0])}
     graph = nx.parse_adjlist([f"{a} {b}" for a, b in couplings])
     paths = []
-    nodes = list(graph.nodes)
+    nodes = set(graph.nodes)
     for s in nodes:
-        for e in nodes:
+        for e in nodes - {s}:
             ps = nx.all_simple_paths(graph, s, e)
             paths.extend([list(map(int, p)) for p in ps if len(p) == len(nodes)])
     if len(paths) == 2 and set(paths[0]) == set(paths[1]):
