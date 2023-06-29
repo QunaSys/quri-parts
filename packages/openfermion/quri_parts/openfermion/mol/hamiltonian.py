@@ -29,6 +29,8 @@ from quri_parts.openfermion.transforms import (
 def get_fermionic_hamiltonian(
     spin_mo_eint_set: SpinMOeIntSet,
 ) -> InteractionOperator:
+    """Construct the molecular hamiltonian from the spin MO electron
+    integrals."""
     nuc_energy = spin_mo_eint_set.const
     mo_1e_int = spin_mo_eint_set.mo_1e_int.array
     mo_2e_int = spin_mo_eint_set.mo_2e_int.array / 2
@@ -42,6 +44,9 @@ def convert_fermionic_hamiltonian_to_qubit_hamiltonian(
     mo: MolecularOrbitals,
     fermion_qubit_mapping: OpenFermionQubitMapping = jordan_wigner,
 ) -> tuple[Operator, OpenFermionQubitOperatorMapper, FermionQubitStateMapper]:
+    """Converts the fermionic hamiltonian into qubit hamiltonian with a given
+    mapping method, and returns the operator mapper along with the state
+    mapper."""
     if isinstance(mo, ActiveSpaceMolecularOrbitals):
         n_spin_orbitals = 2 * mo.n_active_orb
         n_electrons = mo.n_active_ele
@@ -60,6 +65,8 @@ def get_qubit_mapped_hamiltonian_operator(
     spin_mo_eint_set: SpinMOeIntSet,
     fermion_qubit_mapping: OpenFermionQubitMapping = jordan_wigner,
 ) -> tuple[Operator, OpenFermionQubitOperatorMapper, FermionQubitStateMapper]:
+    """Computes the qubit hamiltonian and returns the operator mapper along
+    with the state mapper."""
     fermionic_hamiltonian = get_fermionic_hamiltonian(spin_mo_eint_set)
     return convert_fermionic_hamiltonian_to_qubit_hamiltonian(
         fermionic_hamiltonian, mo, fermion_qubit_mapping
