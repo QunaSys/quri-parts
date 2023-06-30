@@ -80,15 +80,6 @@ class SamplingBackend(Protocol):
         ...
 
 
-class IdealSamplingBackend(Protocol):
-    """Sampling backend that returns the probabilities of each measurement."""
-
-    @abstractmethod
-    def run(self, circuit: NonParametricQuantumCircuit) -> SamplingJob:
-        """Simulate the circuit and return the sampling job."""
-        ...
-
-
 class BackendError(Exception):
     """BackendError represents an error caused by a quantum computing
     backend."""

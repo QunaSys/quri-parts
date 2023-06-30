@@ -12,7 +12,7 @@ from typing import Callable, Collection, Iterable, Mapping, NamedTuple, Sequence
 
 from typing_extensions import TypeAlias
 
-from quri_parts.backend import IdealSamplingBackend, SamplingBackend
+from quri_parts.backend import SamplingBackend
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.core.operator import CommutablePauliSet, Operator
 
@@ -49,12 +49,12 @@ def create_sampler_from_sampling_backend(backend: SamplingBackend) -> Sampler:
 
 
 def create_ideal_sampler_from_ideal_backend(
-    backend: IdealSamplingBackend,
+    backend: SamplingBackend,
 ) -> IdealSampler:
     """Create a simple :class:`~Sampler` using a :class:`~SamplingBackend`."""
 
     def sampler(circuit: NonParametricQuantumCircuit) -> MeasurementCounts:
-        job = backend.run(circuit)
+        job = backend.sample(circuit, n_shots=1)
         return job.result().counts
 
     return sampler

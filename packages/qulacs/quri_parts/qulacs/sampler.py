@@ -18,7 +18,7 @@ from numpy.random import default_rng
 
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.circuit.noise import NoiseModel
-from quri_parts.core.sampling import ConcurrentSampler, MeasurementCounts, Sampler
+from quri_parts.core.sampling import ConcurrentSampler, MeasurementCounts, Sampler, IdealSampler
 from quri_parts.core.utils.concurrent import execute_concurrently
 
 from .circuit import convert_circuit
@@ -41,6 +41,22 @@ def _sample(circuit: NonParametricQuantumCircuit, shots: int) -> MeasurementCoun
         return dict(((i, count) for i, count in enumerate(counts) if count > 0))
     else:
         return Counter(qs_state.sampling(shots))
+
+def _ideal_sample(circuit: NonParametricQuantumCircuit) -> MeasurementCounts:
+    qs_circuit = convert_circuit(circuit)
+    qs_state = qulacs.QuantumState(circuit.qubit_count)
+    qs_circuit.update_quantum_state(qs_state)
+
+    probs = np.abs(qs_state.get_vector()) ** 2
+
+    return {i: prob for i, prob in enumerate(probs)}
+
+
+def create_qulacs_vector_ideal_sampler() -> IdealSampler:
+    """Returns a :class:`~IdealSampler` that uses Qulacs vector simulator for
+    returning the probabilities."""
+    return _ideal_sample
+
 
 
 def create_qulacs_vector_sampler() -> Sampler:
