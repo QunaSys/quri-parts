@@ -13,3 +13,4 @@ Tutorials
     tutorials/noise_error
     tutorials/error_mitigation
     tutorials/chemistry
+    tutorials/qubit_operator_mapping
