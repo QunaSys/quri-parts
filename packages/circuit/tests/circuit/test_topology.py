@@ -14,8 +14,8 @@ from quri_parts.circuit.topology import (
     SquareLattice,
     SquareLatticeSWAPInsertionTranspiler,
     approx_reliable_coupling_subgraph,
-    reliable_coupling_single_stroke_path,
     effectively_coupled_qubits_counts,
+    reliable_coupling_single_stroke_path,
 )
 
 
@@ -130,7 +130,9 @@ def test_approx_reliable_coupling_subgraph() -> None:
 
 def test_reliable_coupling_single_stroke_path() -> None:
     map_loops = _cnot_errors_3_loops()
-    assert set(range(12)) == set(reliable_coupling_single_stroke_path(map_loops, 12, True))
+    assert set(range(12)) == set(
+        reliable_coupling_single_stroke_path(map_loops, 12, True)
+    )
     assert set(range(3, 12)) == set(
         reliable_coupling_single_stroke_path(map_loops, 9, True)
     )
@@ -143,7 +145,9 @@ def test_reliable_coupling_single_stroke_path() -> None:
     assert [5, 4, 3, 2, 1, 0, 7, 6] == list(
         reliable_coupling_single_stroke_path(map_steps, 8, True)
     )
-    assert [2, 3, 4, 5] == list(reliable_coupling_single_stroke_path(map_steps, 4, True))
+    assert [2, 3, 4, 5] == list(
+        reliable_coupling_single_stroke_path(map_steps, 4, True)
+    )
     assert [3, 4, 5] == list(reliable_coupling_single_stroke_path(map_steps, 3, True))
     assert [] == list(reliable_coupling_single_stroke_path(map_steps, 9, True))
 

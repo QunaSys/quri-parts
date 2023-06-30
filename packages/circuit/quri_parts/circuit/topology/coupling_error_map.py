@@ -54,8 +54,8 @@ def _list_to_graph(coupling_list: Sequence[tuple[int, int]]) -> nx.Graph:
 def approx_reliable_coupling_subgraph(
     two_qubit_errors: CouplingMapWithCxErrors, qubit_count: int
 ) -> Sequence[nx.Graph]:
-    """Returns a list of subgraphs with relatively small two qubit gate errors that
-    contain the specified number or more qubits."""
+    """Returns a list of subgraphs with relatively small two qubit gate errors
+    that contain the specified number or more qubits."""
     sorted_edges = _sorted_undirected(two_qubit_errors)
     for i in range(qubit_count - 1, len(sorted_edges)):
         best_nodes = _list_to_graph(_directed(sorted_edges[:i]))
@@ -120,8 +120,8 @@ def reliable_coupling_single_stroke_path(
     exact: bool = True,
 ) -> Sequence[int]:
     """Find the path with the specified number of qubits that has maximum
-    fidelity across the entire path considering 2 qubit gate errors. If no
-    such path is found, an empty list is returned.
+    fidelity across the entire path considering 2 qubit gate errors. If no such
+    path is found, an empty list is returned.
 
     Args:
         two_qubit_errors: A dictionary representing the coupling of qubits and their
@@ -144,7 +144,8 @@ def reliable_coupling_single_stroke_path(
 
 class ReliableSingleStrokeCouplingPathQubitMappingTranspiler(CircuitTranspilerProtocol):
     """A CircuitTranspiler, that maps qubit indices so that the fidelity
-    considering 2 qubit gate errors is maximized across the entire coupling path.
+    considering 2 qubit gate errors is maximized across the entire coupling
+    path.
 
     If all the qubits of a given circuit are coupled by 2 qubit gates and can be
     arranged in a row, the qubit indices of the circuit are reallocated if a path with

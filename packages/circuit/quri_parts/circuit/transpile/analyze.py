@@ -80,8 +80,8 @@ def coupled_qubits(circuit: NonParametricQuantumCircuit) -> Sequence[int]:
 def extract_qubit_coupling_path(
     circuit: NonParametricQuantumCircuit,
 ) -> Sequence[int]:
-    """Returns the path of coupled 2 qubits in a circuit when they are
-    arranged in a row.
+    """Returns the path of coupled 2 qubits in a circuit when they are arranged
+    in a row.
 
     If no such path is found, an empty list is returned.
     """

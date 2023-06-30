@@ -11,8 +11,8 @@
 from .coupling_error_map import (
     ReliableSingleStrokeCouplingPathQubitMappingTranspiler,
     approx_reliable_coupling_subgraph,
-    reliable_coupling_single_stroke_path,
     effectively_coupled_qubits_counts,
+    reliable_coupling_single_stroke_path,
 )
 from .square_lattice import SquareLattice, SquareLatticeSWAPInsertionTranspiler
 
