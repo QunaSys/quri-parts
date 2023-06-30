@@ -9,18 +9,18 @@
 # limitations under the License.
 
 from .coupling_error_map import (
-    QubitMappingByCxErrorsTranspiler,
-    approx_cnot_reliable_subgraph,
-    cnot_reliable_single_stroke_path,
-    qubit_counts_considering_cnot_errors,
+    ReliableSingleStrokeCouplingPathQubitMappingTranspiler,
+    approx_reliable_coupling_subgraph,
+    reliable_coupling_single_stroke_path,
+    effectively_coupled_qubits_counts,
 )
 from .square_lattice import SquareLattice, SquareLatticeSWAPInsertionTranspiler
 
 __all__ = [
     "SquareLattice",
     "SquareLatticeSWAPInsertionTranspiler",
-    "QubitMappingByCxErrorsTranspiler",
+    "ReliableSingleStrokeCouplingPathQubitMappingTranspiler",
     "approx_cnot_reliable_subgraph",
-    "cnot_reliable_single_stroke_path",
-    "qubit_counts_considering_cnot_errors",
+    "reliable_coupling_single_stroke_path",
+    "effectively_coupled_qubits_counts",
 ]

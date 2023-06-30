@@ -51,7 +51,7 @@ def _list_to_graph(coupling_list: Sequence[tuple[int, int]]) -> nx.Graph:
     return nx.parse_adjlist([f"{a} {b}" for a, b in coupling_list])
 
 
-def approx_two_qubit_gate_reliable_subgraph(
+def approx_reliable_coupling_subgraph(
     two_qubit_errors: CouplingMapWithCxErrors, qubit_count: int
 ) -> Sequence[nx.Graph]:
     """Returns a list of subgraphs with relatively small two qubit gate errors that
@@ -87,7 +87,7 @@ def _length_satisfactory_paths(
     return ret
 
 
-def _approx_two_qubit_gate_reliable_single_stroke_paths(
+def _approx_reliable_coupling_single_stroke_paths(
     two_qubit_errors: CouplingMapWithCxErrors, qubit_count: int
 ) -> Sequence[Sequence[int]]:
     sorted_edges = _sorted_undirected(two_qubit_errors)
@@ -114,7 +114,7 @@ def _path_fidelity(
     return cast(float, np.prod([1 - two_qubit_errors[q] for q in zip(path, path[1:])]))
 
 
-def two_qubit_gate_reliable_single_stroke_path(
+def reliable_coupling_single_stroke_path(
     two_qubit_errors: CouplingMapWithCxErrors,
     qubit_count: int,
     exact: bool = True,
@@ -136,13 +136,13 @@ def two_qubit_gate_reliable_single_stroke_path(
             _list_to_graph(list(two_qubit_errors.keys())), qubit_count
         )
     else:
-        ps = _approx_two_qubit_gate_reliable_single_stroke_paths(
+        ps = _approx_reliable_coupling_single_stroke_paths(
             two_qubit_errors, qubit_count
         )
     return max(ps, key=lambda p: _path_fidelity(two_qubit_errors, p)) if ps else []
 
 
-class QubitMappingByReliableSingleStrokeCouplingsTranspiler(CircuitTranspilerProtocol):
+class ReliableSingleStrokeCouplingPathQubitMappingTranspiler(CircuitTranspilerProtocol):
     """A CircuitTranspiler, that maps qubit indices so that the fidelity
     considering 2 qubit gate errors is maximized across the entire coupling path.
 
@@ -168,7 +168,7 @@ class QubitMappingByReliableSingleStrokeCouplingsTranspiler(CircuitTranspilerPro
         circuit_path = extract_qubit_coupling_path(circuit)
         if circuit_path is None or len(circuit_path) != circuit.qubit_count:
             raise ValueError("Qubits in the given circuit is not sequentially coupled.")
-        qubit_path = two_qubit_gate_reliable_single_stroke_path(
+        qubit_path = reliable_coupling_single_stroke_path(
             self._two_qubit_errors, circuit.qubit_count, self._exact
         )
         if not qubit_path:
