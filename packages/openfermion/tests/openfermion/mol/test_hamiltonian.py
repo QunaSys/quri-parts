@@ -35,6 +35,10 @@ from quri_parts.openfermion.mol import (
     get_fermionic_hamiltonian,
     get_qubit_mapped_hamiltonian_operator,
 )
+from quri_parts.openfermion.transforms import (
+    bravyi_kitaev,
+    symmetry_conserving_bravyi_kitaev,
+)
 
 
 @dataclass
@@ -207,11 +211,11 @@ class TestConvertFermionicHamiltonianToQubitHamiltonian:
 
         mo = MolecularOrbitalsInfo(2, 2)
 
-        qubit_operator, _, _ = convert_fermionic_hamiltonian_to_qubit_hamiltonian(
+        jw_qubit_operator, _, _ = convert_fermionic_hamiltonian_to_qubit_hamiltonian(
             fermionic_operator, mo
         )
 
-        expected_qubit_operator = Operator(
+        expected_jw_qubit_operator = Operator(
             {
                 PAULI_IDENTITY: -0.3276081896748091,
                 pauli_label("Z0"): +0.13716572937099503,
@@ -231,7 +235,49 @@ class TestConvertFermionicHamiltonianToQubitHamiltonian:
             }
         )
 
-        assert truncate(expected_qubit_operator - qubit_operator) == zero()
+        assert truncate(expected_jw_qubit_operator - jw_qubit_operator) == zero()
+
+        bk_qubit_operator, _, _ = convert_fermionic_hamiltonian_to_qubit_hamiltonian(
+            fermionic_operator,
+            mo,
+            bravyi_kitaev,
+        )
+        expected_bk_qubit_operator = Operator(
+            {
+                PAULI_IDENTITY: (-0.32760818967480876 + 0j),
+                pauli_label("X0 Z1 X2"): (0.04919764587136755 + 0j),
+                pauli_label("X0 Z1 X2 Z3"): (0.04919764587136755 + 0j),
+                pauli_label("Y0 Z1 Y2"): (0.04919764587136755 + 0j),
+                pauli_label("Y0 Z1 Y2 Z3"): (0.04919764587136755 + 0j),
+                pauli_label("Z0"): (0.13716572937099514 + 0j),
+                pauli_label("Z0 Z1"): (0.13716572937099503 + 0j),
+                pauli_label("Z0 Z1 Z2"): (0.15542669077992832 + 0j),
+                pauli_label("Z0 Z1 Z2 Z3"): (0.15542669077992832 + 0j),
+                pauli_label("Z0 Z2"): (0.10622904490856078 + 0j),
+                pauli_label("Z0 Z2 Z3"): (0.10622904490856078 + 0j),
+                pauli_label("Z1"): (0.15660062488237947 + 0j),
+                pauli_label("Z1 Z2 Z3"): (-0.1303629205710911 + 0j),
+                pauli_label("Z1 Z3"): (0.1632676867356435 + 0j),
+                pauli_label("Z2"): (-0.1303629205710911 + 0j),
+            }
+        )
+        assert truncate(expected_bk_qubit_operator - bk_qubit_operator) == zero()
+
+        scbk_qubit_operator, _, _ = convert_fermionic_hamiltonian_to_qubit_hamiltonian(
+            fermionic_operator,
+            mo,
+            symmetry_conserving_bravyi_kitaev,
+        )
+        expected_scbk_qubit_operator = Operator(
+            {
+                PAULI_IDENTITY: -0.5400662794919303,
+                pauli_label("X0 X1"): 0.1967905834854702,
+                pauli_label("Z0"): 0.26752864994208625,
+                pauli_label("Z0 Z1"): 0.009014930058166337,
+                pauli_label("Z1"): 0.26752864994208614,
+            }
+        )
+        assert truncate(scbk_qubit_operator - expected_scbk_qubit_operator) == zero()
 
     def test_conversion_with_active_space(self) -> None:
         fermionic_operator = FermionOperator()
@@ -253,10 +299,11 @@ class TestConvertFermionicHamiltonianToQubitHamiltonian:
 
         mo = MolecularOrbitalsInfo(3, 3, 1)
         asmo = ActiveSpaceMolecularOrbitals(mo, cas(1, 1))
-        qubit_operator, _, _ = convert_fermionic_hamiltonian_to_qubit_hamiltonian(
+
+        jw_qubit_operator, _, _ = convert_fermionic_hamiltonian_to_qubit_hamiltonian(
             fermionic_operator, asmo
         )
-        expected_qubit_operator = Operator(
+        jw_expected_qubit_operator = Operator(
             {
                 PAULI_IDENTITY: -1.3903301703637687,
                 pauli_label("Z0"): 0.03481859786069455,
@@ -264,7 +311,20 @@ class TestConvertFermionicHamiltonianToQubitHamiltonian:
                 pauli_label("Z0 Z1"): 0.13366602988233975,
             }
         )
-        assert truncate(qubit_operator - expected_qubit_operator) == zero()
+        assert truncate(jw_qubit_operator - jw_expected_qubit_operator) == zero()
+
+        bk_qubit_operator, _, _ = convert_fermionic_hamiltonian_to_qubit_hamiltonian(
+            fermionic_operator, asmo, bravyi_kitaev
+        )
+        expected_bk_qubit_operator = Operator(
+            {
+                PAULI_IDENTITY: -1.3903301747600398,
+                pauli_label("Z0"): 0.03481859786069455,
+                pauli_label("Z1"): 0.13366602988233975,
+                pauli_label("Z0 Z1"): 0.03481859786069455,
+            }
+        )
+        assert truncate(bk_qubit_operator - expected_bk_qubit_operator) == zero()
 
 
 class TestGetQubitMappedHamiltonianOperator:
@@ -395,9 +455,9 @@ class TestGetQubitMappedHamiltonianOperator:
         )
 
         mo = MolecularOrbitalsInfo(2, 2)
-        qubit_operator, _, _ = get_qubit_mapped_hamiltonian_operator(mo, mo_eint_set)
+        jw_qubit_operator, _, _ = get_qubit_mapped_hamiltonian_operator(mo, mo_eint_set)
 
-        expected_qubit_operator = Operator(
+        expected_jw_qubit_operator = Operator(
             {
                 PAULI_IDENTITY: -0.3276081896748091,
                 pauli_label("Z0"): +0.13716572937099503,
@@ -417,7 +477,46 @@ class TestGetQubitMappedHamiltonianOperator:
             }
         )
 
-        assert truncate(expected_qubit_operator - qubit_operator) == zero()
+        assert truncate(expected_jw_qubit_operator - jw_qubit_operator) == zero()
+
+        bk_qubit_operator, _, _ = get_qubit_mapped_hamiltonian_operator(
+            mo, mo_eint_set, bravyi_kitaev
+        )
+
+        expected_bk_qubit_operator = Operator(
+            {
+                PAULI_IDENTITY: (-0.32760818967480876 + 0j),
+                pauli_label("X0 Z1 X2"): (0.04919764587136755 + 0j),
+                pauli_label("X0 Z1 X2 Z3"): (0.04919764587136755 + 0j),
+                pauli_label("Y0 Z1 Y2"): (0.04919764587136755 + 0j),
+                pauli_label("Y0 Z1 Y2 Z3"): (0.04919764587136755 + 0j),
+                pauli_label("Z0"): (0.13716572937099514 + 0j),
+                pauli_label("Z0 Z1"): (0.13716572937099503 + 0j),
+                pauli_label("Z0 Z1 Z2"): (0.15542669077992832 + 0j),
+                pauli_label("Z0 Z1 Z2 Z3"): (0.15542669077992832 + 0j),
+                pauli_label("Z0 Z2"): (0.10622904490856078 + 0j),
+                pauli_label("Z0 Z2 Z3"): (0.10622904490856078 + 0j),
+                pauli_label("Z1"): (0.15660062488237947 + 0j),
+                pauli_label("Z1 Z2 Z3"): (-0.1303629205710911 + 0j),
+                pauli_label("Z1 Z3"): (0.1632676867356435 + 0j),
+                pauli_label("Z2"): (-0.1303629205710911 + 0j),
+            }
+        )
+        assert truncate(expected_bk_qubit_operator - bk_qubit_operator) == zero()
+
+        scbk_qubit_operator, _, _ = get_qubit_mapped_hamiltonian_operator(
+            mo, mo_eint_set, symmetry_conserving_bravyi_kitaev
+        )
+        expected_scbk_qubit_operator = Operator(
+            {
+                PAULI_IDENTITY: -0.5400662794919303,
+                pauli_label("X0 X1"): 0.1967905834854702,
+                pauli_label("Z0"): 0.26752864994208625,
+                pauli_label("Z0 Z1"): 0.009014930058166337,
+                pauli_label("Z1"): 0.26752864994208614,
+            }
+        )
+        assert truncate(scbk_qubit_operator - expected_scbk_qubit_operator) == zero()
 
     def test_get_qubit_mapped_active_space_hamiltonian_operator(self) -> None:
         nuc_energy = -1.18702694476004
@@ -437,8 +536,10 @@ class TestGetQubitMappedHamiltonianOperator:
         )
         mo = MolecularOrbitalsInfo(3, 3, 1)
         asmo = ActiveSpaceMolecularOrbitals(mo, cas(1, 1))
-        qubit_operator, _, _ = get_qubit_mapped_hamiltonian_operator(asmo, mo_eint_set)
-        expected_qubit_operator = Operator(
+        jw_qubit_operator, _, _ = get_qubit_mapped_hamiltonian_operator(
+            asmo, mo_eint_set
+        )
+        expected_jw_qubit_operator = Operator(
             {
                 PAULI_IDENTITY: -1.3903301703637687,
                 pauli_label("Z0"): 0.03481859786069455,
@@ -446,4 +547,17 @@ class TestGetQubitMappedHamiltonianOperator:
                 pauli_label("Z0 Z1"): 0.13366602988233975,
             }
         )
-        assert truncate(qubit_operator - expected_qubit_operator) == zero()
+        assert truncate(jw_qubit_operator - expected_jw_qubit_operator) == zero()
+
+        bk_qubit_operator, _, _ = get_qubit_mapped_hamiltonian_operator(
+            asmo, mo_eint_set, bravyi_kitaev
+        )
+        expected_bk_qubit_operator = Operator(
+            {
+                PAULI_IDENTITY: -1.3903301747600398,
+                pauli_label("Z0"): 0.03481859786069455,
+                pauli_label("Z1"): 0.13366602988233975,
+                pauli_label("Z0 Z1"): 0.03481859786069455,
+            }
+        )
+        assert truncate(bk_qubit_operator - expected_bk_qubit_operator) == zero()
