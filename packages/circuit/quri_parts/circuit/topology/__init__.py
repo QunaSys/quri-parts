@@ -20,7 +20,7 @@ __all__ = [
     "SquareLattice",
     "SquareLatticeSWAPInsertionTranspiler",
     "ReliableSingleStrokeCouplingPathQubitMappingTranspiler",
-    "approx_cnot_reliable_subgraph",
-    "reliable_coupling_single_stroke_path",
+    "approx_reliable_coupling_subgraph",
     "effectively_coupled_qubits_counts",
+    "reliable_coupling_single_stroke_path",
 ]
