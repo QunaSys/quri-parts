@@ -13,9 +13,9 @@ from quri_parts.circuit.topology import (
     QubitMappingByCxErrorsTranspiler,
     SquareLattice,
     SquareLatticeSWAPInsertionTranspiler,
-    approx_cnot_reliable_subgraph,
-    cnot_reliable_single_stroke_path,
-    qubit_counts_considering_cnot_errors,
+    approx_reliable_coupling_subgraph,
+    reliable_coupling_single_stroke_path,
+    effectively_coupled_qubits_counts,
 )
 
 
@@ -95,57 +95,57 @@ def _cnot_errors_steps() -> dict[tuple[int, int], float]:
     return cs | rs
 
 
-def test_qubit_counts_considering_cnot_errors() -> None:
+def test_effectively_coupled_qubits_counts() -> None:
     map_loops = _cnot_errors_3_loops()
-    assert [12] == list(qubit_counts_considering_cnot_errors(map_loops, 1.0))
-    assert [5, 7] == sorted(qubit_counts_considering_cnot_errors(map_loops, 0.45))
-    assert [3, 4, 5] == sorted(qubit_counts_considering_cnot_errors(map_loops, 0.35))
-    assert [4, 5] == sorted(qubit_counts_considering_cnot_errors(map_loops, 0.25))
-    assert [5] == sorted(qubit_counts_considering_cnot_errors(map_loops, 0.15))
-    assert [] == sorted(qubit_counts_considering_cnot_errors(map_loops, 0.05))
+    assert [12] == list(effectively_coupled_qubits_counts(map_loops, 1.0))
+    assert [5, 7] == sorted(effectively_coupled_qubits_counts(map_loops, 0.45))
+    assert [3, 4, 5] == sorted(effectively_coupled_qubits_counts(map_loops, 0.35))
+    assert [4, 5] == sorted(effectively_coupled_qubits_counts(map_loops, 0.25))
+    assert [5] == sorted(effectively_coupled_qubits_counts(map_loops, 0.15))
+    assert [] == sorted(effectively_coupled_qubits_counts(map_loops, 0.05))
 
 
-def test_approx_cnot_reliable_subgraph() -> None:
+def test_approx_reliable_coupling_subgraph() -> None:
     map_loops = _cnot_errors_3_loops()
-    graphs_3_5 = approx_cnot_reliable_subgraph(map_loops, 5)
+    graphs_3_5 = approx_reliable_coupling_subgraph(map_loops, 5)
     assert len(graphs_3_5) == 1
     assert set(range(7, 12)) == set(map(int, graphs_3_5[0].nodes))
-    graphs_3_7 = approx_cnot_reliable_subgraph(map_loops, 7)
+    graphs_3_7 = approx_reliable_coupling_subgraph(map_loops, 7)
     assert len(graphs_3_7) == 1
     assert set(range(7)) == set(map(int, graphs_3_7[0].nodes))
-    graphs_3_12 = approx_cnot_reliable_subgraph(map_loops, 12)
+    graphs_3_12 = approx_reliable_coupling_subgraph(map_loops, 12)
     assert len(graphs_3_12) == 1
     assert set(range(12)) == set(map(int, graphs_3_12[0].nodes))
-    assert [] == approx_cnot_reliable_subgraph(map_loops, 13)
+    assert [] == approx_reliable_coupling_subgraph(map_loops, 13)
 
     map_steps = _cnot_errors_steps()
-    graphs_s_3 = approx_cnot_reliable_subgraph(map_steps, 3)
+    graphs_s_3 = approx_reliable_coupling_subgraph(map_steps, 3)
     assert len(graphs_s_3) == 1
     assert set([3, 4, 5]) == set(map(int, graphs_s_3[0].nodes))
-    graphs_s_8 = approx_cnot_reliable_subgraph(map_steps, 8)
+    graphs_s_8 = approx_reliable_coupling_subgraph(map_steps, 8)
     assert len(graphs_s_8) == 1
     assert set(range(8)) == set(map(int, graphs_s_8[0].nodes))
-    assert [] == approx_cnot_reliable_subgraph(map_steps, 13)
+    assert [] == approx_reliable_coupling_subgraph(map_steps, 13)
 
 
-def test_cnot_reliable_single_stroke_path() -> None:
+def test_reliable_coupling_single_stroke_path() -> None:
     map_loops = _cnot_errors_3_loops()
-    assert set(range(12)) == set(cnot_reliable_single_stroke_path(map_loops, 12, True))
+    assert set(range(12)) == set(reliable_coupling_single_stroke_path(map_loops, 12, True))
     assert set(range(3, 12)) == set(
-        cnot_reliable_single_stroke_path(map_loops, 9, True)
+        reliable_coupling_single_stroke_path(map_loops, 9, True)
     )
     assert set(range(7, 12)) == set(
-        cnot_reliable_single_stroke_path(map_loops, 5, True)
+        reliable_coupling_single_stroke_path(map_loops, 5, True)
     )
-    assert [] == list(cnot_reliable_single_stroke_path(map_loops, 13, True))
+    assert [] == list(reliable_coupling_single_stroke_path(map_loops, 13, True))
 
     map_steps = _cnot_errors_steps()
     assert [5, 4, 3, 2, 1, 0, 7, 6] == list(
-        cnot_reliable_single_stroke_path(map_steps, 8, True)
+        reliable_coupling_single_stroke_path(map_steps, 8, True)
     )
-    assert [2, 3, 4, 5] == list(cnot_reliable_single_stroke_path(map_steps, 4, True))
-    assert [3, 4, 5] == list(cnot_reliable_single_stroke_path(map_steps, 3, True))
-    assert [] == list(cnot_reliable_single_stroke_path(map_steps, 9, True))
+    assert [2, 3, 4, 5] == list(reliable_coupling_single_stroke_path(map_steps, 4, True))
+    assert [3, 4, 5] == list(reliable_coupling_single_stroke_path(map_steps, 3, True))
+    assert [] == list(reliable_coupling_single_stroke_path(map_steps, 9, True))
 
 
 def test_qubit_mapping_by_cnot_errors_transpiler() -> None:

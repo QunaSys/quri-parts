@@ -10,7 +10,7 @@
 
 from quri_parts.circuit import QuantumCircuit, gate_names, gates
 from quri_parts.circuit.transpile import (
-    entangled_qubits,
+    coupled_qubits,
     extract_qubit_coupling_path,
     gate_count,
     gate_weighted_depth,
@@ -85,10 +85,10 @@ def test_qubit_couplings() -> None:
     assert qubit_couplings(QuantumCircuit(1)) == []
 
 
-def test_entangled_qubits() -> None:
-    assert sorted(entangled_qubits(_circuit_3())) == list(range(3))
-    assert sorted(entangled_qubits(_circuit_5())) == list(range(5))
-    assert entangled_qubits(QuantumCircuit(1)) == []
+def test_coupled_qubits() -> None:
+    assert sorted(coupled_qubits(_circuit_3())) == list(range(3))
+    assert sorted(coupled_qubits(_circuit_5())) == list(range(5))
+    assert coupled_qubits(QuantumCircuit(1)) == []
 
 
 def test_extract_qubit_path() -> None:
