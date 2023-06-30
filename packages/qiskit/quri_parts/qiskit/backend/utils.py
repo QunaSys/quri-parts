@@ -61,13 +61,13 @@ def distribute_backend_shots(
 def get_backend_min_max_shot(backend: Backend) -> tuple[int, Optional[int]]:
     """Get the selected qiskit backend's minimum and maximum shot number
     allowed in a single sampling job."""
+    if not isinstance(backend, (BackendV1, BackendV2, IBMBackend)):
+        raise BackendError("Backend not supported.")
+
     if isinstance(backend, (BackendV1, IBMBackend)):
         max_shots = backend.configuration().max_shots
         if max_shots > 0:
             return 1, max_shots
-
-    if not isinstance(backend, (BackendV1, BackendV2, IBMBackend)):
-        raise BackendError("Backend not supported.")
 
     return 1, None
 
