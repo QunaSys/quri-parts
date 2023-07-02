@@ -180,8 +180,10 @@ def convert_circuit(
         qiskit_circuit = QiskitQuantumCircuit(circuit.qubit_count)
     for gate in circuit.gates:
         if gate.name == Measurement:
-            qiskit_circuit.measure(gate.target_indices[0], gate.c_indices[0])
+            for qubit, c_bit in zip(gate.target_indices, gate.classical_indices):
+                qiskit_circuit.measure(qubit, c_bit)
             continue
+
         indices = (*gate.control_indices, *gate.target_indices)
         qiskit_circuit.append(convert_gate(gate), qargs=indices)
     return qiskit_circuit

@@ -226,9 +226,18 @@ class MutableQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
         """Add a Pauli rotation gate to the circuit."""
         self.add_gate(PauliRotation(target_qubits, pauli_id_list, angle))
 
-    def measure(self, qubit_index: int, c_index: int) -> None:
+    def measure(
+        self,
+        qubit_indices: Union[int, Sequence[int]],
+        classical_indices: Union[int, Sequence[int]],
+    ) -> None:
         """Add an Identity gate to the circuit."""
-        self.add_gate(Measurement(qubit_index, c_index))
+        if isinstance(qubit_indices, int):
+            qubit_indices = [qubit_indices]
+        if isinstance(classical_indices, int):
+            classical_indices = [classical_indices]
+
+        self.add_gate(Measurement(qubit_indices, classical_indices))
 
 
 class NonParametricQuantumCircuit(QuantumCircuitProtocol, ABC):
@@ -322,7 +331,10 @@ class QuantumCircuit(NonParametricQuantumCircuit, MutableQuantumCircuitProtocol)
             raise ValueError(
                 "The indices of the gate applied must be smaller than qubit_count"
             )
-        if len(gate.c_indices) > 0 and max(gate.c_indices) >= self.cbit_count:
+        if (
+            len(gate.classical_indices) > 0
+            and max(gate.classical_indices) >= self.cbit_count
+        ):
             raise ValueError(
                 "The classical indices of the gate applied must be smaller",
                 "than cbit_count",

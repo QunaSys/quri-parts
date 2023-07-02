@@ -250,7 +250,7 @@ def test_convert_circuit_with_measurement() -> None:
         gates.H(2),
         gates.CNOT(0, 2),
         gates.RX(0, 0.125),
-        gates.Measurement(0, 1),
+        gates.Measurement([0], [1]),
         gates.X(1),
     ]
     for gate in original_gates:

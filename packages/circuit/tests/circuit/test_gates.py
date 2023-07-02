@@ -156,8 +156,8 @@ def test_gate_creation() -> None:
     )
 
     # Measurement gate
-    assert Measurement(5, 7) == QuantumGate(
-        gate_names.Measurement, target_indices=(5,), c_indices=(7,)
+    assert Measurement([5], [7]) == QuantumGate(
+        gate_names.Measurement, target_indices=(5,), classical_indices=(7,)
     )
 
 
@@ -198,7 +198,7 @@ def test_gate_addition() -> None:
         UnitaryMatrix((0, 1), two_umat),
         Pauli(target_indices, pauli_ids),
         PauliRotation(target_indices, pauli_ids, theta),
-        Measurement(0, 0),
+        Measurement([0], [0]),
     ]
     lc.extend(gates)
 

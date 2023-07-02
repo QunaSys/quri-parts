@@ -510,9 +510,17 @@ Every parametric gate is carried with it's parameter
 class MeasurementFactory:
     name: Literal["Measurement"] = gate_names.Measurement
 
-    def __call__(self, target_index: int, c_bit_index: int) -> QuantumGate:
+    def __call__(
+        self, target_indices: Sequence[int], classical_indices: Sequence[int]
+    ) -> QuantumGate:
+        if len(target_indices) != len(classical_indices):
+            raise ValueError(
+                "Number of qubits and classical bits must be same for measurement."
+            )
         return QuantumGate(
-            name=self.name, target_indices=(target_index,), c_indices=(c_bit_index,)
+            name=self.name,
+            target_indices=tuple(target_indices),
+            classical_indices=tuple(classical_indices),
         )
 
 
