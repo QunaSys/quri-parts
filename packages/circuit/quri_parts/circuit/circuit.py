@@ -66,6 +66,11 @@ class QuantumCircuitProtocol(Protocol):
         ...
 
     @abstractproperty
+    def cbit_count(self) -> int:
+        """Number of classical bits involved in the circuit."""
+        ...
+
+    @abstractproperty
     def depth(self) -> int:
         """Returns circuit depth."""
         ...

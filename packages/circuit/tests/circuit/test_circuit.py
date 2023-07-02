@@ -97,7 +97,7 @@ class TestQuantumCircuitDeprecation:
             circuit = QuantumCircuit(1, _GATES)  # type: ignore
             assert len(w) == 1
             assert issubclass(w[-1].category, DeprecationWarning)
-            assert "QuantumGate initialization takes" in str(w[-1].message)
+            assert "QuantumCircuit initialization takes" in str(w[-1].message)
 
             no_warning = QuantumCircuit(1, gates=_GATES)
             # Incorrect order constructs identical circuit as correct order.
