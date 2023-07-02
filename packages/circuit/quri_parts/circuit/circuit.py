@@ -8,6 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import warnings
 from abc import ABC, abstractmethod, abstractproperty
 from collections.abc import Sequence
 from typing import Optional, Protocol, Union
@@ -296,12 +297,20 @@ class QuantumCircuit(NonParametricQuantumCircuit, MutableQuantumCircuitProtocol)
     def __init__(
         self,
         qubit_count: int,
-        gates: Sequence[QuantumGate] = [],
         cbit_count: int = 0,
+        gates: Sequence[QuantumGate] = [],
     ):
         self._qubit_count = qubit_count
-        self._cbit_count = cbit_count
-        self._gates = list(gates)
+        if isinstance(cbit_count, Sequence):
+            warnings.warn(
+                "QuantumCircuit initialization takes cbit_count before gates.",
+                DeprecationWarning,
+            )
+            self._gates = list(cbit_count)
+            self._cbit_count = 0
+        else:
+            self._cbit_count = cbit_count
+            self._gates = list(gates)
 
     @property
     def qubit_count(self) -> int:
@@ -319,7 +328,7 @@ class QuantumCircuit(NonParametricQuantumCircuit, MutableQuantumCircuitProtocol)
         return ImmutableQuantumCircuit(self)
 
     def get_mutable_copy(self) -> "QuantumCircuit":
-        circuit = QuantumCircuit(self.qubit_count, self._gates)
+        circuit = QuantumCircuit(self.qubit_count, self.cbit_count, self._gates)
         return circuit
 
     def add_gate(self, gate: QuantumGate, gate_index: Optional[int] = None) -> None:
@@ -391,4 +400,4 @@ class ImmutableQuantumCircuit(NonParametricQuantumCircuit):
         return self
 
     def get_mutable_copy(self) -> QuantumCircuit:
-        return QuantumCircuit(self.qubit_count, self.gates, self.cbit_count)
+        return QuantumCircuit(self.qubit_count, self.cbit_count, self.gates)

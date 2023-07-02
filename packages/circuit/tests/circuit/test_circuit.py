@@ -8,6 +8,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import warnings
+
 import pytest
 
 from quri_parts.circuit import (
@@ -87,6 +89,19 @@ class TestQuantumCircuit:
             circuit.measure(0, 1)
         with pytest.raises(ValueError):
             circuit.measure(1, 0)
+
+
+class TestQuantumCircuitDeprecation:
+    def test_order_flip(self) -> None:
+        with warnings.catch_warnings(record=True) as w:
+            circuit = QuantumCircuit(1, _GATES)  # type: ignore
+            assert len(w) == 1
+            assert issubclass(w[-1].category, DeprecationWarning)
+            assert "QuantumGate initialization takes" in str(w[-1].message)
+
+            no_warning = QuantumCircuit(1, gates=_GATES)
+            # Incorrect order constructs identical circuit as correct order.
+            assert circuit == no_warning
 
 
 class TestImmutableQuantumCircuit:
