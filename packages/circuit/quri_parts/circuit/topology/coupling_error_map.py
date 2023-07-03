@@ -155,8 +155,9 @@ def reliable_coupling_single_stroke_path_qubit_mapping(
     two_qubit_errors: CouplingMapWithErrors,
     exact: bool = True,
 ) -> BackendQubitMapping:
-    """BackendQubitMapping generator, that maps qubit indices so that the fidelity
-    considering 2 qubit gate errors is maximized across the entire coupling path.
+    """BackendQubitMapping generator, that maps qubit indices so that the
+    fidelity considering 2 qubit gate errors is maximized across the entire
+    coupling path.
 
     If all the qubits of a given circuit are coupled by 2 qubit gates and can be
     arranged in a row, the qubit indices of the circuit are reallocated if a path with
