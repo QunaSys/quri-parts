@@ -14,7 +14,7 @@ from quri_parts.circuit.transpile import extract_qubit_coupling_path
 CouplingMapWithErrors: TypeAlias = Mapping[tuple[int, int], float]
 
 
-def effectively_coupled_qubits_counts(
+def effectively_coupled_qubit_counts(
     two_qubit_errors: CouplingMapWithErrors, two_qubit_error_threshold: float
 ) -> Sequence[int]:
     """Returns a list of the number of qubits in subgraphs consisting only of
