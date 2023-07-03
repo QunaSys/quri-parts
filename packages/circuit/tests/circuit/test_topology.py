@@ -13,7 +13,7 @@ from quri_parts.circuit.topology import (
     SquareLattice,
     SquareLatticeSWAPInsertionTranspiler,
     approx_reliable_coupling_subgraph,
-    effectively_coupled_qubits_counts,
+    effectively_coupled_qubit_counts,
     reliable_coupling_single_stroke_path,
     reliable_coupling_single_stroke_path_qubit_mapping,
 )
@@ -97,12 +97,12 @@ def _cnot_errors_steps() -> dict[tuple[int, int], float]:
 
 def test_effectively_coupled_qubits_counts() -> None:
     map_loops = _cnot_errors_3_loops()
-    assert [12] == list(effectively_coupled_qubits_counts(map_loops, 1.0))
-    assert [5, 7] == sorted(effectively_coupled_qubits_counts(map_loops, 0.45))
-    assert [3, 4, 5] == sorted(effectively_coupled_qubits_counts(map_loops, 0.35))
-    assert [4, 5] == sorted(effectively_coupled_qubits_counts(map_loops, 0.25))
-    assert [5] == sorted(effectively_coupled_qubits_counts(map_loops, 0.15))
-    assert [] == sorted(effectively_coupled_qubits_counts(map_loops, 0.05))
+    assert [12] == list(effectively_coupled_qubit_counts(map_loops, 1.0))
+    assert [5, 7] == sorted(effectively_coupled_qubit_counts(map_loops, 0.45))
+    assert [3, 4, 5] == sorted(effectively_coupled_qubit_counts(map_loops, 0.35))
+    assert [4, 5] == sorted(effectively_coupled_qubit_counts(map_loops, 0.25))
+    assert [5] == sorted(effectively_coupled_qubit_counts(map_loops, 0.15))
+    assert [] == sorted(effectively_coupled_qubit_counts(map_loops, 0.05))
 
 
 def test_approx_reliable_coupling_subgraph() -> None:
