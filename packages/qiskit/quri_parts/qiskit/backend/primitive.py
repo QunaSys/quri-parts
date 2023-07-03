@@ -112,6 +112,9 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             or a :class:`qiskit_ibm_runtime.Options`.
         run_kwargs: Additional keyword arguments for
             :meth:`qiskit.providers.backend.Backend.run` method.
+        save_data_while_sampling: If True, the circuit, n_shots and the
+            sampling counts will be saved. Please use the `.jobs` or `.jobs_json`
+            to access the saved data.
     """
 
     def __init__(
