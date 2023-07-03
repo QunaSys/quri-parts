@@ -14,19 +14,30 @@ from quri_parts.circuit.transpile import extract_qubit_coupling_path
 CouplingMapWithErrors: TypeAlias = Mapping[tuple[int, int], float]
 
 
-def effectively_coupled_qubit_counts(
+def effectively_coupled_subgraph(
     two_qubit_errors: CouplingMapWithErrors, two_qubit_error_threshold: float
-) -> Sequence[int]:
-    """Returns a list of the number of qubits in subgraphs consisting only of
-    coupled qubits with two qubit gate errors smaller than the specified
-    threshold."""
+) -> Sequence[nx.Graph]:
     adjlist = [
         f"{a} {b}"
         for (a, b), e in two_qubit_errors.items()
         if e < two_qubit_error_threshold
     ]
     graph = nx.parse_adjlist(adjlist)
-    return [len(c) for c in nx.connected_components(graph)]
+    return nx.connected_components(graph)
+
+
+def effectively_coupled_qubit_counts(
+    two_qubit_errors: CouplingMapWithErrors, two_qubit_error_threshold: float
+) -> Sequence[int]:
+    """Returns a list of the number of qubits in subgraphs consisting only of
+    coupled qubits with two qubit gate errors smaller than the specified
+    threshold."""
+    return [
+        len(c)
+        for c in effectively_coupled_subgraph(
+            two_qubit_errors, two_qubit_error_threshold
+        )
+    ]
 
 
 def _sorted_undirected(
