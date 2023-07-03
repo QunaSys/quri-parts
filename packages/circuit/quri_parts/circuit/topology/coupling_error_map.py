@@ -6,7 +6,7 @@ import networkx as nx
 import numpy as np
 from typing_extensions import TypeAlias
 
-from quri_parts.backend import BackendQubitMapping
+from quri_parts.core.backend import BackendQubitMapping
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.circuit.transpile import extract_qubit_coupling_path
 
@@ -23,7 +23,7 @@ def effectively_coupled_subgraph(
         if e < two_qubit_error_threshold
     ]
     graph = nx.parse_adjlist(adjlist)
-    return nx.connected_components(graph)
+    return list(nx.connected_components(graph))
 
 
 def effectively_coupled_qubit_counts(
