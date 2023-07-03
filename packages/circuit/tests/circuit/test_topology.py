@@ -10,12 +10,12 @@
 
 from quri_parts.circuit import CNOT, CZ, SWAP, H, QuantumCircuit, X
 from quri_parts.circuit.topology import (
-    ReliableSingleStrokeCouplingPathQubitMappingTranspiler,
     SquareLattice,
     SquareLatticeSWAPInsertionTranspiler,
     approx_reliable_coupling_subgraph,
     effectively_coupled_qubits_counts,
     reliable_coupling_single_stroke_path,
+    reliable_coupling_single_stroke_path_qubit_mapping,
 )
 
 
@@ -152,7 +152,7 @@ def test_reliable_coupling_single_stroke_path() -> None:
     assert [] == list(reliable_coupling_single_stroke_path(map_steps, 9, True))
 
 
-def test_qubit_mapping_by_cnot_errors_transpiler() -> None:
+def test_reliable_coupling_single_stroke_path_qubit_mapping() -> None:
     circuit = QuantumCircuit(4)
     circuit.extend(
         [
@@ -166,9 +166,10 @@ def test_qubit_mapping_by_cnot_errors_transpiler() -> None:
         ]
     )
     cnot_errors = _cnot_errors_steps()
-    transpiled = ReliableSingleStrokeCouplingPathQubitMappingTranspiler(
-        cnot_errors, True
-    )(circuit)
+    transpiler = reliable_coupling_single_stroke_path_qubit_mapping(
+        circuit, cnot_errors, True
+    ).circuit_transpiler
+    transpiled = transpiler(circuit)
 
     expect = QuantumCircuit(9)
     expect.extend(

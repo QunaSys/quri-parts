@@ -6,19 +6,16 @@ import networkx as nx
 import numpy as np
 from typing_extensions import TypeAlias
 
+from quri_parts.backend import BackendQubitMapping
 from quri_parts.circuit import NonParametricQuantumCircuit
-from quri_parts.circuit.transpile import (
-    CircuitTranspilerProtocol,
-    QubitRemappingTranspiler,
-    extract_qubit_coupling_path,
-)
+from quri_parts.circuit.transpile import extract_qubit_coupling_path
 
-#: Represents qubit couplings and their CNOT error rates.
-CouplingMapWithCxErrors: TypeAlias = Mapping[tuple[int, int], float]
+#: Represents qubit couplings and their interested 2 qubit gate error rates.
+CouplingMapWithErrors: TypeAlias = Mapping[tuple[int, int], float]
 
 
 def effectively_coupled_qubits_counts(
-    two_qubit_errors: CouplingMapWithCxErrors, two_qubit_error_threshold: float
+    two_qubit_errors: CouplingMapWithErrors, two_qubit_error_threshold: float
 ) -> Sequence[int]:
     """Returns a list of the number of qubits in subgraphs consisting only of
     coupled qubits with two qubit gate errors smaller than the specified
@@ -33,7 +30,7 @@ def effectively_coupled_qubits_counts(
 
 
 def _sorted_undirected(
-    two_qubit_errors: CouplingMapWithCxErrors,
+    two_qubit_errors: CouplingMapWithErrors,
 ) -> Sequence[tuple[int, int]]:
     ud = []
     for (a, b), e in sorted(two_qubit_errors.items()):
@@ -52,7 +49,7 @@ def _list_to_graph(coupling_list: Sequence[tuple[int, int]]) -> nx.Graph:
 
 
 def approx_reliable_coupling_subgraph(
-    two_qubit_errors: CouplingMapWithCxErrors, qubit_count: int
+    two_qubit_errors: CouplingMapWithErrors, qubit_count: int
 ) -> Sequence[nx.Graph]:
     """Returns a list of subgraphs with relatively small two qubit gate errors
     that contain the specified number or more qubits."""
@@ -88,7 +85,7 @@ def _length_satisfactory_paths(
 
 
 def _approx_reliable_coupling_single_stroke_paths(
-    two_qubit_errors: CouplingMapWithCxErrors, qubit_count: int
+    two_qubit_errors: CouplingMapWithErrors, qubit_count: int
 ) -> Sequence[Sequence[int]]:
     sorted_edges = _sorted_undirected(two_qubit_errors)
     for i in range(qubit_count - 1, len(sorted_edges)):
@@ -109,13 +106,13 @@ def _approx_reliable_coupling_single_stroke_paths(
 
 
 def _path_fidelity(
-    two_qubit_errors: CouplingMapWithCxErrors, path: Sequence[int]
+    two_qubit_errors: CouplingMapWithErrors, path: Sequence[int]
 ) -> float:
     return cast(float, np.prod([1 - two_qubit_errors[q] for q in zip(path, path[1:])]))
 
 
 def reliable_coupling_single_stroke_path(
-    two_qubit_errors: CouplingMapWithCxErrors,
+    two_qubit_errors: CouplingMapWithErrors,
     qubit_count: int,
     exact: bool = True,
 ) -> Sequence[int]:
@@ -142,39 +139,35 @@ def reliable_coupling_single_stroke_path(
     return max(ps, key=lambda p: _path_fidelity(two_qubit_errors, p)) if ps else []
 
 
-class ReliableSingleStrokeCouplingPathQubitMappingTranspiler(CircuitTranspilerProtocol):
-    """A CircuitTranspiler, that maps qubit indices so that the fidelity
-    considering 2 qubit gate errors is maximized across the entire coupling
-    path.
+def reliable_coupling_single_stroke_path_qubit_mapping(
+    circuit: NonParametricQuantumCircuit,
+    two_qubit_errors: CouplingMapWithErrors,
+    exact: bool = True,
+) -> BackendQubitMapping:
+    """BackendQubitMapping generator, that maps qubit indices so that the fidelity
+    considering 2 qubit gate errors is maximized across the entire coupling path.
 
     If all the qubits of a given circuit are coupled by 2 qubit gates and can be
     arranged in a row, the qubit indices of the circuit are reallocated if a path with
     the required number of qubits is found from the qubit coupling map.
 
     Args:
+        circuit: Target NonParametricQuantumCircuit.
         two_qubit_errors: A dictionary representing the coupling of qubits and their
             error rates.
         exact: Specify whether to search for the optimal solution. Approximate solutions
             can also be selected when the target graph is large and the computational
             cost is high.
     """
-
-    def __init__(self, two_qubit_errors: CouplingMapWithCxErrors, exact: bool = True):
-        self._two_qubit_errors = two_qubit_errors
-        self._exact = exact
-
-    def __call__(
-        self, circuit: NonParametricQuantumCircuit
-    ) -> NonParametricQuantumCircuit:
-        circuit_path = extract_qubit_coupling_path(circuit)
-        if circuit_path is None or len(circuit_path) != circuit.qubit_count:
-            raise ValueError("Qubits in the given circuit is not sequentially coupled.")
-        qubit_path = reliable_coupling_single_stroke_path(
-            self._two_qubit_errors, circuit.qubit_count, self._exact
+    circuit_path = extract_qubit_coupling_path(circuit)
+    if circuit_path is None or len(circuit_path) != circuit.qubit_count:
+        raise ValueError("Qubits in the given circuit is not sequentially coupled.")
+    qubit_path = reliable_coupling_single_stroke_path(
+        two_qubit_errors, circuit.qubit_count, exact
+    )
+    if not qubit_path:
+        raise ValueError(
+            "Cannot find single stroke path in coupling map for the given circuit."
         )
-        if not qubit_path:
-            raise ValueError(
-                "Cannot find single stroke path in coupling map for the given circuit."
-            )
-        qubit_mapping = {c: q for c, q in zip(circuit_path, qubit_path)}
-        return QubitRemappingTranspiler(qubit_mapping)(circuit)
+    qubit_mapping = {c: q for c, q in zip(circuit_path, qubit_path)}
+    return BackendQubitMapping(qubit_mapping)
