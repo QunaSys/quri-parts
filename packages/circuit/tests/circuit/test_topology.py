@@ -171,16 +171,16 @@ def test_reliable_coupling_single_stroke_path_qubit_mapping() -> None:
     ).circuit_transpiler
     transpiled = transpiler(circuit)
 
-    expect = QuantumCircuit(9)
+    expect = QuantumCircuit(7)
     expect.extend(
         [
-            H(2),
-            CNOT(2, 3),
-            H(3),
-            CNOT(3, 4),
-            H(4),
-            CNOT(4, 5),
             H(5),
+            CNOT(5, 4),
+            H(4),
+            CNOT(4, 3),
+            H(3),
+            CNOT(3, 2),
+            H(2),
         ]
     )
 
