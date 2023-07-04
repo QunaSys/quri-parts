@@ -26,6 +26,7 @@ from quri_parts.chem.transforms import (
     FermionQubitMapping,
     FermionQubitStateMapper,
     JordanWigner,
+    QubitStateFermionMapper,
     SymmetryConservingBravyiKitaev,
 )
 from quri_parts.core.operator import Operator, SinglePauli
@@ -124,6 +125,43 @@ class OpenFermionQubitMapping(FermionQubitMapping, Protocol):
             )
 
         return mapper
+
+    def get_inv_state_mapper(
+        self,
+        n_spin_orbitals: int,
+        n_fermions: Optional[int] = None,
+        n_up_spins: Optional[int] = None,
+    ) -> QubitStateFermionMapper:
+        trans_mat = inverse(
+            _state_transformation_matrix(
+                self.get_of_operator_mapper(n_spin_orbitals, n_fermions),
+                n_spin_orbitals,
+            )
+        )
+        n_qubits = self.n_qubits_required(n_spin_orbitals)
+
+        def mapper(state: ComputationalBasisState) -> Collection[int]:
+            bits = state.bits
+            bit_array = [(bits & 1 << index) >> index for index in range(n_qubits)]
+            print(bit_array)
+            bit_array = self.augment_dropped_bits(
+                bit_array, n_spin_orbitals, n_fermions, n_up_spins
+            )
+            qubit_vector = BinaryArray(bit_array)
+            occupancy_vector = trans_mat @ qubit_vector
+            occupancy_list = [i for i, o in enumerate(occupancy_vector) if o == 1]
+            return occupancy_list[0:n_fermions]
+
+        return mapper
+
+    def augment_dropped_bits(
+        self,
+        bit_array: list[int],
+        n_spin_orbitals: int,
+        n_fermions: Optional[int] = None,
+        sz: Optional[int] = None,
+    ) -> list[int]:
+        return bit_array
 
 
 class OpenFermionJordanWigner(JordanWigner, OpenFermionQubitMapping):
@@ -292,6 +330,19 @@ class OpenFermionSymmetryConservingBravyiKitaev(
             raise ValueError("n_fermions is required.")
 
         return super().get_state_mapper(n_spin_orbitals, n_fermions)
+
+    def augment_dropped_bits(
+        self,
+        bit_array: list[int],
+        n_spin_orbitals: int,
+        n_fermions: Optional[int] = None,
+        n_up_spins: Optional[int] = None,
+    ) -> list[int]:
+        if n_up_spins is None or n_fermions is None:
+            raise ValueError("")
+        up_bit = n_up_spins % 2
+        n_bit = n_fermions % 2
+        return bit_array + [up_bit, n_bit]
 
 
 symmetry_conserving_bravyi_kitaev = OpenFermionSymmetryConservingBravyiKitaev()

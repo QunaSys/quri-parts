@@ -51,6 +51,10 @@ FermionQubitStateMapper: TypeAlias = Callable[
     [Collection[int]], ComputationalBasisState
 ]
 
+QubitStateFermionMapper: TypeAlias = Callable[
+    [ComputationalBasisState], Collection[int]
+]
+
 
 class FermionQubitMapping(Protocol):
     """Mapping from Fermionic states to qubit states."""
@@ -83,6 +87,15 @@ class FermionQubitMapping(Protocol):
                 argument (e.g. symmetry-conserving Bravyi-Kitaev transformation) while
                 the others ignore it.
         """
+        ...
+
+    @abstractmethod
+    def get_inv_state_mapper(
+        self,
+        n_spin_orbitals: int,
+        n_fermions: Optional[int] = None,
+        n_up_spins: Optional[int] = None,
+    ) -> QubitStateFermionMapper:
         ...
 
 
