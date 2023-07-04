@@ -41,7 +41,11 @@ from .saved_sampling import (
     QiskitSavedDataSamplingJob,
     encode_saved_data_job_sequence_to_json,
 )
-from .utils import distribute_backend_shots, get_job_mapper_and_circuit_transpiler
+from .utils import (
+    distribute_backend_shots,
+    get_backend_min_max_shot,
+    get_job_mapper_and_circuit_transpiler,
+)
 
 
 class QiskitRuntimeSamplingResult(SamplingResult):
@@ -143,8 +147,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
 
         # shots related
         self._enable_shots_roundup = enable_shots_roundup
-        self._min_shots = 1
-        self._max_shots: Optional[int] = getattr(backend, "max_shots", None)
+        self._min_shots, self._max_shots = get_backend_min_max_shot(backend)
 
         # other kwargs
         self._run_kwargs = run_kwargs
