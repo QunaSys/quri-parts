@@ -23,7 +23,7 @@ def effectively_coupled_subgraph(
         if e < two_qubit_error_threshold
     ]
     graph = nx.parse_adjlist(adjlist)
-    return list(nx.connected_components(graph))
+    return [graph.subgraph(c).copy() for c in nx.connected_components(graph)]
 
 
 def effectively_coupled_qubit_counts(

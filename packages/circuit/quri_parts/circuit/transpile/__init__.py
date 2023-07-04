@@ -11,7 +11,8 @@
 from typing import Callable
 
 from .analyze import (
-    coupled_qubits,
+    coupled_qubit_graphs,
+    coupled_qubit_indices,
     extract_qubit_coupling_path,
     gate_count,
     gate_weighted_depth,
