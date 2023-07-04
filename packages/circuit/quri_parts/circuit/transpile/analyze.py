@@ -60,22 +60,25 @@ def gate_count(
 
 def qubit_couplings(
     circuit: NonParametricQuantumCircuit,
+    include_singles: bool = False,
 ) -> Sequence[tuple[int, ...]]:
     """Returns the set of tuples of the qubit indices of the multiple qubit
     gates in the circuit."""
     coupling = set()
     for gate in circuit.gates:
         qubits = tuple(gate.control_indices) + tuple(gate.target_indices)
-        if len(qubits) >= 2:
+        if include_singles or len(qubits) >= 2:
             coupling.add(qubits)
     return list(coupling)
 
 
-def coupled_qubit_graphs(circuit: NonParametricQuantumCircuit) -> Sequence[nx.Graph]:
+def coupled_qubit_graphs(
+    circuit: NonParametricQuantumCircuit, include_singles: bool = False
+) -> Sequence[nx.Graph]:
     """Returns a Sequence of each connected graphs with the coupled qubits as
     edges."""
     adjlist = []
-    for qs in qubit_couplings(circuit):
+    for qs in qubit_couplings(circuit, include_singles):
         adjlist.append(" ".join(map(str, qs)))
     graph = nx.parse_adjlist(adjlist)
     return [graph.subgraph(c).copy() for c in nx.connected_components(graph)]
@@ -83,10 +86,13 @@ def coupled_qubit_graphs(circuit: NonParametricQuantumCircuit) -> Sequence[nx.Gr
 
 def coupled_qubit_indices(
     circuit: NonParametricQuantumCircuit,
+    include_singles: bool = False,
 ) -> Sequence[Sequence[int]]:
     """Returns a Sequence of qubit indices of each connected graphs with the
     coupled qubits as edges."""
-    return [list(map(int, g.nodes)) for g in coupled_qubit_graphs(circuit)]
+    return [
+        list(map(int, g.nodes)) for g in coupled_qubit_graphs(circuit, include_singles)
+    ]
 
 
 def extract_qubit_coupling_path(
