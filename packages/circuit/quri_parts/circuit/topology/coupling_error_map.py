@@ -159,9 +159,10 @@ def reliable_coupling_single_stroke_path_qubit_mapping(
     fidelity considering 2 qubit gate errors is maximized across the entire
     coupling path.
 
-    If all the qubits of a given circuit are coupled by 2 qubit gates and can be
-    arranged in a row, the qubit indices of the circuit are reallocated if a path with
-    the required number of qubits is found from the qubit coupling map.
+    When a single path containing all the qubits in the circuit can be found
+    from the graph with the coupled qubits in the circuit as edges, the qubit
+    indices of the circuit are reallocated if a path with the required number
+    of qubits is found from the qubit coupling map of the device.
 
     Args:
         circuit: Target NonParametricQuantumCircuit.
