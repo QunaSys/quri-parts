@@ -1,4 +1,3 @@
-import itertools as it
 from collections import defaultdict
 from collections.abc import Mapping, Sequence
 
