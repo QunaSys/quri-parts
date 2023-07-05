@@ -39,31 +39,6 @@ from quri_parts.openfermion.transforms import (
     symmetry_conserving_bravyi_kitaev,
 )
 
-
-@dataclass
-class MolecularOrbitalsInfo(MolecularOrbitals):
-    _n_electron: int
-    _n_spatial_orb: int
-    _spin: int = 0
-    _mo_coeff: npt.NDArray[np.complex128] = np.zeros((1,), dtype=np.complex128)
-
-    @property
-    def n_electron(self) -> int:
-        return self._n_electron
-
-    @property
-    def spin(self) -> int:
-        return self._spin
-
-    @property
-    def n_spatial_orb(self) -> int:
-        return self._n_spatial_orb
-
-    @property
-    def mo_coeff(self) -> "npt.NDArray[np.complex128]":
-        return self._mo_coeff
-
-
 def test_get_fermionic_hamiltonian() -> None:
     nuc_energy = -1.18702694476004
     spin_mo_1e_int = SpinMO1eIntArray(array([[-0.33696926, 0.0], [0.0, -0.33696926]]))
