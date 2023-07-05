@@ -37,7 +37,7 @@ def get_fermionic_hamiltonian(
     return InteractionOperator(nuc_energy, mo_1e_int, mo_2e_int)
 
 
-def convert_fermionic_hamiltonian_to_qubit_hamiltonian(
+def operator_from_of_fermionic_op(
     fermionic_hamiltonian: Union[
         FermionOperator, InteractionOperator, MajoranaOperator
     ],
@@ -60,7 +60,7 @@ def convert_fermionic_hamiltonian_to_qubit_hamiltonian(
     return operator_mapper(fermionic_hamiltonian), operator_mapper, state_mapper
 
 
-def get_qubit_mapped_hamiltonian_operator(
+def get_qubit_mapped_hamiltonian(
     mo: MolecularOrbitals,
     spin_mo_eint_set: SpinMOeIntSet,
     fermion_qubit_mapping: OpenFermionQubitMapping = jordan_wigner,
@@ -68,6 +68,6 @@ def get_qubit_mapped_hamiltonian_operator(
     """Computes the qubit hamiltonian and returns the operator mapper along
     with the state mapper."""
     fermionic_hamiltonian = get_fermionic_hamiltonian(spin_mo_eint_set)
-    return convert_fermionic_hamiltonian_to_qubit_hamiltonian(
+    return operator_from_of_fermionic_op(
         fermionic_hamiltonian, mo, fermion_qubit_mapping
     )

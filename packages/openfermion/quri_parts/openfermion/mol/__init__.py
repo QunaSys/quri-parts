@@ -9,13 +9,13 @@
 # limitations under the License.
 
 from .hamiltonian import (
-    convert_fermionic_hamiltonian_to_qubit_hamiltonian,
     get_fermionic_hamiltonian,
-    get_qubit_mapped_hamiltonian_operator,
+    get_qubit_mapped_hamiltonian,
+    operator_from_of_fermionic_op,
 )
 
 __all__ = [
     "get_fermionic_hamiltonian",
-    "get_qubit_mapped_hamiltonian_operator",
-    "convert_fermionic_hamiltonian_to_qubit_hamiltonian",
+    "get_qubit_mapped_hamiltonian",
+    "operator_from_of_fermionic_op",
 ]
