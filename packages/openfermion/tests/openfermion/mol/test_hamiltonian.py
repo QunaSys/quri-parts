@@ -8,20 +8,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import dataclass
 
-import numpy as np
-import numpy.typing as npt
 from numpy import array, isclose
 from openfermion import FermionOperator
 
-from quri_parts.chem.mol import (
-    MolecularOrbitals,
-    SpinMO1eIntArray,
-    SpinMO2eIntArray,
-    SpinMOeIntSet,
-    cas,
-)
+from quri_parts.chem.mol import SpinMO1eIntArray, SpinMO2eIntArray, SpinMOeIntSet, cas
 from quri_parts.core.operator import (
     PAULI_IDENTITY,
     Operator,
@@ -38,6 +29,7 @@ from quri_parts.openfermion.transforms import (
     bravyi_kitaev,
     symmetry_conserving_bravyi_kitaev,
 )
+
 
 def test_get_fermionic_hamiltonian() -> None:
     nuc_energy = -1.18702694476004
