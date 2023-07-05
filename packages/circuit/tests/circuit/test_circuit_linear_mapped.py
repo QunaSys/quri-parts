@@ -187,32 +187,38 @@ class TestLinearMappedUnboundParametricQuantumCircuit:
     @patch.object(QuantumCircuit, "__add__", dummy_add)
     @patch.object(UnboundParametricQuantumCircuit, "__add__", dummy_add)
     def test_radd(self) -> None:
-        circuit, _ = mutable_circuit()
+        circuit = LinearMappedUnboundParametricQuantumCircuit(2)
+        params = circuit.add_parameters("RX", "PauliRotation")
+        circuit.add_ParametricRX_gate(0, params[0])
+        circuit.add_ParametricPauliRotation_gate([1], [1], params[1])
+
         qc_circuit = QuantumCircuit(2)
         qc_circuit.add_H_gate(0)
         got_circuit = qc_circuit + circuit
         exp_circuit = LinearMappedUnboundParametricQuantumCircuit(2)
         exp_circuit.add_H_gate(0)
-        for gate in _GATES:
-            exp_circuit.add_gate(gate)
-        params = exp_circuit.add_parameters("RX", "PauliRotation")
-        exp_circuit.add_ParametricRX_gate(0, params[0])
-        exp_circuit.add_ParametricPauliRotation_gate([1], [1], params[1])
+        exp_params = exp_circuit.add_parameters("RX", "PauliRotation")
+        exp_circuit.add_ParametricRX_gate(0, exp_params[0])
+        exp_circuit.add_ParametricPauliRotation_gate([1], [1], exp_params[1])
         assert got_circuit.gates == exp_circuit.gates
+        got_vals = got_circuit.param_mapping.mapper({params[0]: 1.0, params[1]: 0.8})
+        exp_vals = exp_circuit.param_mapping.mapper({exp_params[0]: 1.0, exp_params[1]: 0.8})
+        for got, exp in zip(got_vals.values(), exp_vals.values()):
+            assert got == exp
 
-        circuit, _ = mutable_circuit()
         up_circuit = UnboundParametricQuantumCircuit(2)
-        up_circuit.add_H_gate(0)
+        up_param = up_circuit.add_ParametricRZ_gate(0)
         got_circuit2 = up_circuit + circuit
         exp_circuit = LinearMappedUnboundParametricQuantumCircuit(2)
-        exp_circuit.add_H_gate(0)
-        for gate in _GATES:
-            exp_circuit.add_gate(gate)
-        params = exp_circuit.add_parameters("RX", "PauliRotation")
-        exp_circuit.add_ParametricRX_gate(0, params[0])
-        exp_circuit.add_ParametricPauliRotation_gate([1], [1], params[1])
+        exp_params = exp_circuit.add_parameters("RZ", "RX", "PauliRotation")
+        exp_circuit.add_ParametricRZ_gate(0, exp_params[0])
+        exp_circuit.add_ParametricRX_gate(0, exp_params[1])
+        exp_circuit.add_ParametricPauliRotation_gate([1], [1], exp_params[2])
         assert got_circuit2.gates == exp_circuit.gates
-
+        got_vals = got_circuit2.param_mapping.mapper({up_param: 0.4, params[0]: 1.0, params[1]: 0.8})
+        exp_vals = exp_circuit.param_mapping.mapper({exp_params[0]: 0.4, exp_params[1]: 1.0, exp_params[2]: 0.8})
+        for got, exp in zip(got_vals.values(), exp_vals.values()):
+            assert got == exp
 
 class TestImmutableLinearMappedUnboundParametricQuantumCircuit:
     def test_immutable_linear_mapped_unbound_parametric_quantum_circuit(self) -> None:
