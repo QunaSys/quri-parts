@@ -226,6 +226,7 @@ class LinearParameterMapping(ParameterMappingBase):
     def mapper(self) -> Mapper:
         out_params = self._out_params
         mapping = self._mapping
+
         def m(param_vals: ParameterValueAssignment) -> ParameterValueAssignment:
             in_param_vals = {**param_vals, CONST: 1.0}
             out_param_vals = {}
