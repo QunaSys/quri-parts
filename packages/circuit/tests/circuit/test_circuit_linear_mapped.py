@@ -157,10 +157,10 @@ class TestLinearMappedUnboundParametricQuantumCircuit:
         exp_circuit.add_ParametricRZ_gate(0, exp_param)
         assert got_circuit.gates == exp_circuit.gates
         got_vals = got_circuit.param_mapping.mapper(
-            {params[0]: 1.0, params[1]: 0.8, lm_param: 0.4}
+            {params[0]: 1.0, params[1]: 0.7, lm_param: 0.4}
         )
         exp_vals = exp_circuit.param_mapping.mapper(
-            {params[0]: 1.0, params[1]: 0.8, exp_param: 0.4}
+            {params[0]: 1.0, params[1]: 0.7, exp_param: 0.4}
         )
         for got, exp in zip(got_vals.values(), exp_vals.values()):
             assert got == exp
@@ -173,10 +173,10 @@ class TestLinearMappedUnboundParametricQuantumCircuit:
         exp_circuit.add_ParametricRZ_gate(0, exp_param)
         assert got_circuit.gates == exp_circuit.gates
         got_vals = got_circuit.param_mapping.mapper(
-            {params[0]: 1.0, params[1]: 0.8, in_param: 0.4}
+            {params[0]: 1.0, params[1]: 0.7, in_param: 0.4}
         )
         exp_vals = exp_circuit.param_mapping.mapper(
-            {params[0]: 1.0, params[1]: 0.8, exp_param: 0.4}
+            {params[0]: 1.0, params[1]: 0.7, exp_param: 0.4}
         )
         for got, exp in zip(got_vals.values(), exp_vals.values()):
             assert got == exp
@@ -187,8 +187,8 @@ class TestLinearMappedUnboundParametricQuantumCircuit:
         exp_circuit = circuit.get_mutable_copy()
         exp_circuit.add_H_gate(0)
         assert got_circuit.gates == exp_circuit.gates
-        got_vals = got_circuit.param_mapping.mapper({params[0]: 1.0, params[1]: 0.8})
-        exp_vals = exp_circuit.param_mapping.mapper({params[0]: 1.0, params[1]: 0.8})
+        got_vals = got_circuit.param_mapping.mapper({params[0]: 1.0, params[1]: 0.7})
+        exp_vals = exp_circuit.param_mapping.mapper({params[0]: 1.0, params[1]: 0.7})
         for got, exp in zip(got_vals.values(), exp_vals.values()):
             assert got == exp
 
