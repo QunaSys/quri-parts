@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Optional, Union, overload
 
 if TYPE_CHECKING:
     import numpy.typing as npt
@@ -19,10 +19,74 @@ from quri_parts.circuit import (
 )
 
 from . import ComputationalBasisState
-from .state import GeneralCircuitQuantumState, QuantumState
+from .state import CircuitQuantumState, QuantumState
 from .state_parametric import ParametricCircuitQuantumState
 from .state_vector import QuantumStateVector, StateVectorType
 from .state_vector_parametric import ParametricQuantumStateVector
+
+
+@overload
+def apply_circuit(
+    circuit: NonParametricQuantumCircuit,
+    state: CircuitQuantumState,
+) -> CircuitQuantumState:
+    ...
+
+
+@overload
+def apply_circuit(
+    circuit: NonParametricQuantumCircuit,
+    state: QuantumStateVector,
+) -> QuantumStateVector:
+    ...
+
+
+@overload
+def apply_circuit(
+    circuit: NonParametricQuantumCircuit,
+    state: ParametricCircuitQuantumState,
+) -> ParametricCircuitQuantumState:
+    ...
+
+
+@overload
+def apply_circuit(
+    circuit: NonParametricQuantumCircuit,
+    state: ParametricQuantumStateVector,
+) -> ParametricQuantumStateVector:
+    ...
+
+
+@overload
+def apply_circuit(
+    circuit: UnboundParametricQuantumCircuitProtocol,
+    state: CircuitQuantumState,
+) -> ParametricCircuitQuantumState:
+    ...
+
+
+@overload
+def apply_circuit(
+    circuit: UnboundParametricQuantumCircuitProtocol,
+    state: QuantumStateVector,
+) -> ParametricQuantumStateVector:
+    ...
+
+
+@overload
+def apply_circuit(
+    circuit: UnboundParametricQuantumCircuitProtocol,
+    state: ParametricCircuitQuantumState,
+) -> ParametricCircuitQuantumState:
+    ...
+
+
+@overload
+def apply_circuit(
+    circuit: UnboundParametricQuantumCircuitProtocol,
+    state: ParametricQuantumStateVector,
+) -> ParametricQuantumStateVector:
+    ...
 
 
 def apply_circuit(
@@ -35,7 +99,7 @@ def apply_circuit(
 
     The original state is not changed.
     """
-    if isinstance(state, GeneralCircuitQuantumState):
+    if isinstance(state, CircuitQuantumState):
         combined_circuit = state.circuit + circuit
         return quantum_state(state.qubit_count, circuit=combined_circuit)
     elif isinstance(state, QuantumStateVector):
@@ -87,7 +151,7 @@ def _circuit_quantum_state(
     ],
 ) -> QuantumState:
     if isinstance(circuit, NonParametricQuantumCircuit):
-        return GeneralCircuitQuantumState(n_qubits, circuit)
+        return ComputationalBasisState(n_qubits, bits=0).with_gates_applied(circuit)
     else:
         return ParametricCircuitQuantumState(n_qubits, circuit)
 
