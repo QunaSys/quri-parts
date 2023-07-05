@@ -16,7 +16,6 @@ from numpy import array, isclose
 from openfermion import FermionOperator
 
 from quri_parts.chem.mol import (
-    ActiveSpaceMolecularOrbitals,
     MolecularOrbitals,
     SpinMO1eIntArray,
     SpinMO2eIntArray,
@@ -209,9 +208,9 @@ class TestConvertFermionicHamiltonianToQubitHamiltonian:
         )
         fermionic_operator += 0.52917721092
 
-        mo = MolecularOrbitalsInfo(2, 2)
-
-        jw_qubit_operator, _, _ = operator_from_of_fermionic_op(fermionic_operator, mo)
+        jw_qubit_operator, _, _ = operator_from_of_fermionic_op(
+            fermionic_operator, cas(2, 2)
+        )
 
         expected_jw_qubit_operator = Operator(
             {
@@ -237,7 +236,7 @@ class TestConvertFermionicHamiltonianToQubitHamiltonian:
 
         bk_qubit_operator, _, _ = operator_from_of_fermionic_op(
             fermionic_operator,
-            mo,
+            cas(2, 2),
             bravyi_kitaev,
         )
         expected_bk_qubit_operator = Operator(
@@ -263,7 +262,7 @@ class TestConvertFermionicHamiltonianToQubitHamiltonian:
 
         scbk_qubit_operator, _, _ = operator_from_of_fermionic_op(
             fermionic_operator,
-            mo,
+            cas(2, 2),
             symmetry_conserving_bravyi_kitaev,
         )
         expected_scbk_qubit_operator = Operator(
@@ -295,11 +294,8 @@ class TestConvertFermionicHamiltonianToQubitHamiltonian:
         )
         fermionic_operator += -1.18702694476004
 
-        mo = MolecularOrbitalsInfo(3, 3, 1)
-        asmo = ActiveSpaceMolecularOrbitals(mo, cas(1, 1))
-
         jw_qubit_operator, _, _ = operator_from_of_fermionic_op(
-            fermionic_operator, asmo
+            fermionic_operator, cas(1, 1)
         )
         jw_expected_qubit_operator = Operator(
             {
@@ -312,7 +308,7 @@ class TestConvertFermionicHamiltonianToQubitHamiltonian:
         assert truncate(jw_qubit_operator - jw_expected_qubit_operator) == zero()
 
         bk_qubit_operator, _, _ = operator_from_of_fermionic_op(
-            fermionic_operator, asmo, bravyi_kitaev
+            fermionic_operator, cas(1, 1), bravyi_kitaev
         )
         expected_bk_qubit_operator = Operator(
             {
@@ -452,8 +448,7 @@ class TestGetQubitMappedHamiltonianOperator:
             const=nuc_energy, mo_1e_int=spin_mo_1e_int, mo_2e_int=spin_mo_2e_int
         )
 
-        mo = MolecularOrbitalsInfo(2, 2)
-        jw_qubit_operator, _, _ = get_qubit_mapped_hamiltonian(mo, mo_eint_set)
+        jw_qubit_operator, _, _ = get_qubit_mapped_hamiltonian(cas(2, 2), mo_eint_set)
 
         expected_jw_qubit_operator = Operator(
             {
@@ -478,7 +473,7 @@ class TestGetQubitMappedHamiltonianOperator:
         assert truncate(expected_jw_qubit_operator - jw_qubit_operator) == zero()
 
         bk_qubit_operator, _, _ = get_qubit_mapped_hamiltonian(
-            mo, mo_eint_set, bravyi_kitaev
+            cas(2, 2), mo_eint_set, bravyi_kitaev
         )
 
         expected_bk_qubit_operator = Operator(
@@ -503,7 +498,7 @@ class TestGetQubitMappedHamiltonianOperator:
         assert truncate(expected_bk_qubit_operator - bk_qubit_operator) == zero()
 
         scbk_qubit_operator, _, _ = get_qubit_mapped_hamiltonian(
-            mo, mo_eint_set, symmetry_conserving_bravyi_kitaev
+            cas(2, 2), mo_eint_set, symmetry_conserving_bravyi_kitaev
         )
         expected_scbk_qubit_operator = Operator(
             {
@@ -532,9 +527,8 @@ class TestGetQubitMappedHamiltonianOperator:
         mo_eint_set = SpinMOeIntSet(
             const=nuc_energy, mo_1e_int=spin_mo_1e_int, mo_2e_int=spin_mo_2e_int
         )
-        mo = MolecularOrbitalsInfo(3, 3, 1)
-        asmo = ActiveSpaceMolecularOrbitals(mo, cas(1, 1))
-        jw_qubit_operator, _, _ = get_qubit_mapped_hamiltonian(asmo, mo_eint_set)
+
+        jw_qubit_operator, _, _ = get_qubit_mapped_hamiltonian(cas(1, 1), mo_eint_set)
         expected_jw_qubit_operator = Operator(
             {
                 PAULI_IDENTITY: -1.3903301703637687,
@@ -546,7 +540,7 @@ class TestGetQubitMappedHamiltonianOperator:
         assert truncate(jw_qubit_operator - expected_jw_qubit_operator) == zero()
 
         bk_qubit_operator, _, _ = get_qubit_mapped_hamiltonian(
-            asmo, mo_eint_set, bravyi_kitaev
+            cas(1, 1), mo_eint_set, bravyi_kitaev
         )
         expected_bk_qubit_operator = Operator(
             {

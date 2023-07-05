@@ -12,11 +12,7 @@ from typing import Union
 
 from openfermion import FermionOperator, InteractionOperator, MajoranaOperator
 
-from quri_parts.chem.mol import (
-    ActiveSpaceMolecularOrbitals,
-    MolecularOrbitals,
-    SpinMOeIntSet,
-)
+from quri_parts.chem.mol import ActiveSpace, SpinMOeIntSet
 from quri_parts.chem.transforms import FermionQubitStateMapper
 from quri_parts.core.operator import Operator
 from quri_parts.openfermion.transforms import (
@@ -41,18 +37,15 @@ def operator_from_of_fermionic_op(
     fermionic_hamiltonian: Union[
         FermionOperator, InteractionOperator, MajoranaOperator
     ],
-    mo: MolecularOrbitals,
+    active_space: ActiveSpace,
     fermion_qubit_mapping: OpenFermionQubitMapping = jordan_wigner,
 ) -> tuple[Operator, OpenFermionQubitOperatorMapper, FermionQubitStateMapper]:
     """Converts the fermionic hamiltonian into qubit hamiltonian with a given
     mapping method, and returns the operator mapper along with the state
     mapper."""
-    if isinstance(mo, ActiveSpaceMolecularOrbitals):
-        n_spin_orbitals = 2 * mo.n_active_orb
-        n_electrons = mo.n_active_ele
-    else:
-        n_spin_orbitals = 2 * mo.n_spatial_orb
-        n_electrons = mo.n_electron
+
+    n_spin_orbitals = 2 * active_space.n_active_orb
+    n_electrons = active_space.n_active_ele
     operator_mapper = fermion_qubit_mapping.get_of_operator_mapper(
         n_spin_orbitals, n_electrons
     )
@@ -61,7 +54,7 @@ def operator_from_of_fermionic_op(
 
 
 def get_qubit_mapped_hamiltonian(
-    mo: MolecularOrbitals,
+    active_space: ActiveSpace,
     spin_mo_eint_set: SpinMOeIntSet,
     fermion_qubit_mapping: OpenFermionQubitMapping = jordan_wigner,
 ) -> tuple[Operator, OpenFermionQubitOperatorMapper, FermionQubitStateMapper]:
@@ -69,5 +62,5 @@ def get_qubit_mapped_hamiltonian(
     with the state mapper."""
     fermionic_hamiltonian = get_fermionic_hamiltonian(spin_mo_eint_set)
     return operator_from_of_fermionic_op(
-        fermionic_hamiltonian, mo, fermion_qubit_mapping
+        fermionic_hamiltonian, active_space, fermion_qubit_mapping
     )
