@@ -13,18 +13,13 @@ from typing import Callable, Optional, Type
 
 import numpy as np
 import qiskit.circuit.library as qgate
-from qiskit.circuit import QuantumCircuit as QiskitQuantumCircuit
+from qiskit.circuit import QuantumCircuit
 from qiskit.circuit.gate import Gate
 from qiskit.extensions import UnitaryGate
 from qiskit.opflow import X, Y, Z
 from typing_extensions import TypeAlias
 
-from quri_parts.circuit import (
-    NonParametricQuantumCircuit,
-    QuantumCircuit,
-    QuantumGate,
-    gate_names,
-)
+from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate, gate_names
 from quri_parts.circuit.gate_names import (
     Measurement,
     MultiQubitGateNameType,
@@ -48,7 +43,7 @@ from quri_parts.circuit.transpile import (
 )
 
 QiskitCircuitConverter: TypeAlias = Callable[
-    [NonParametricQuantumCircuit, Optional[CircuitTranspiler]], QiskitQuantumCircuit
+    [NonParametricQuantumCircuit, Optional[CircuitTranspiler]], QuantumCircuit
 ]
 
 #: CircuitTranspiler to convert a circuit configuration suitable for Qiskit.
@@ -168,20 +163,16 @@ def convert_gate(gate: QuantumGate) -> Gate:
 def convert_circuit(
     circuit: NonParametricQuantumCircuit,
     transpiler: Optional[CircuitTranspiler] = QiskitTranspiler(),
-) -> QiskitQuantumCircuit:
+) -> QuantumCircuit:
     """Converts a :class:`NonParametricQuantumCircuit` to
     :class:`qiskit.QuantumCircuit`."""
     if transpiler is not None:
         circuit = transpiler(circuit)
 
-    if isinstance(circuit, QuantumCircuit):
-        qiskit_circuit = QiskitQuantumCircuit(circuit.qubit_count, circuit.cbit_count)
-    else:
-        qiskit_circuit = QiskitQuantumCircuit(circuit.qubit_count)
+    qiskit_circuit = QuantumCircuit(circuit.qubit_count, circuit.cbit_count)
     for gate in circuit.gates:
         if gate.name == Measurement:
-            for qubit, c_bit in zip(gate.target_indices, gate.classical_indices):
-                qiskit_circuit.measure(qubit, c_bit)
+            qiskit_circuit.measure(gate.target_indices, gate.classical_indices)
             continue
 
         indices = (*gate.control_indices, *gate.target_indices)

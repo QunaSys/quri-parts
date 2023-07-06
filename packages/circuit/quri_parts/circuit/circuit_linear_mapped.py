@@ -67,7 +67,9 @@ class LinearMappedUnboundParametricQuantumCircuitBase(
         return self._circuit.freeze()
 
     def get_mutable_copy(self) -> "LinearMappedUnboundParametricQuantumCircuit":
-        circuit = LinearMappedUnboundParametricQuantumCircuit(self.qubit_count)
+        circuit = LinearMappedUnboundParametricQuantumCircuit(
+            self.qubit_count, self.cbit_count
+        )
         circuit._param_mapping = self._param_mapping
         circuit._circuit = self._circuit.get_mutable_copy()
         return circuit
@@ -76,7 +78,9 @@ class LinearMappedUnboundParametricQuantumCircuitBase(
         self,
         gates: Union[GateSequence, "LinearMappedUnboundParametricQuantumCircuitBase"],
     ) -> "LinearMappedUnboundParametricQuantumCircuit":
-        circuit = LinearMappedUnboundParametricQuantumCircuit(self.qubit_count)
+        circuit = LinearMappedUnboundParametricQuantumCircuit(
+            self.qubit_count, self.cbit_count
+        )
         circuit.extend(self)
         circuit.extend(gates)
         return circuit

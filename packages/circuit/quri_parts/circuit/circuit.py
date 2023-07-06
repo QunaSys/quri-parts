@@ -237,7 +237,7 @@ class MutableQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
         qubit_indices: Union[int, Sequence[int]],
         classical_indices: Union[int, Sequence[int]],
     ) -> None:
-        """Add an Identity gate to the circuit."""
+        """Adds measurement gate at selected qubits."""
         if isinstance(qubit_indices, int):
             qubit_indices = [qubit_indices]
         if isinstance(classical_indices, int):

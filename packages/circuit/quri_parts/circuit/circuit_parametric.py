@@ -186,7 +186,7 @@ class UnboundParametricQuantumCircuitBase(UnboundParametricQuantumCircuitProtoco
         return self.freeze()
 
     def get_mutable_copy(self) -> "UnboundParametricQuantumCircuit":
-        circuit = UnboundParametricQuantumCircuit(self.qubit_count)
+        circuit = UnboundParametricQuantumCircuit(self.qubit_count, self.cbit_count)
         circuit._gates = list(self._gates)
         return circuit
 
@@ -200,7 +200,7 @@ class UnboundParametricQuantumCircuitBase(UnboundParametricQuantumCircuitProtoco
         ones. I.e. even if those two share the same instance of a
         parameter, it is copied into two independent parameters.
         """
-        circuit = UnboundParametricQuantumCircuit(self.qubit_count)
+        circuit = UnboundParametricQuantumCircuit(self.qubit_count, self.cbit_count)
         circuit.extend(self)
         circuit.extend(gates)
         return circuit
@@ -382,7 +382,7 @@ class ImmutableBoundParametricQuantumCircuit(ImmutableQuantumCircuit):
         circuit: UnboundParametricQuantumCircuitBase,
         parameter_map: Mapping[Parameter, float],
     ):
-        super().__init__(QuantumCircuit(circuit.qubit_count))
+        super().__init__(QuantumCircuit(circuit.qubit_count, circuit.cbit_count))
         self.unbound_param_circuit = circuit.freeze()
         self.parameter_map = dict(parameter_map)
 
