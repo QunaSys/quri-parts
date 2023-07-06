@@ -70,7 +70,7 @@ def test_get_fermionic_hamiltonian() -> None:
         assert isclose(fermionic_hamiltonian[op], coeff)
 
 
-class TestConvertFermionicHamiltonianToQubitHamiltonian:
+class TestOperatorFromOfFermionicOp:
     def test_conversion_without_active_space(self) -> None:
         fermionic_operator = FermionOperator()
         fermionic_operator += FermionOperator(((0, 1), (0, 0))) * -1.1108441798837272
