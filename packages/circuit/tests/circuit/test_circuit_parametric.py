@@ -11,7 +11,6 @@
 from quri_parts.circuit import (
     CNOT,
     RX,
-    GateSequence,
     ImmutableBoundParametricQuantumCircuit,
     ImmutableUnboundParametricQuantumCircuit,
     QuantumCircuit,
@@ -41,10 +40,6 @@ def mutable_circuit() -> UnboundParametricQuantumCircuit:
 def immutable_circuit() -> ImmutableUnboundParametricQuantumCircuit:
     q_circuit = mutable_circuit()
     return ImmutableUnboundParametricQuantumCircuit(q_circuit)
-
-
-def dummy_add(self: QuantumCircuit, gates: GateSequence) -> "QuantumCircuit":
-    return NotImplemented
 
 
 class TestUnboundParametricQuantumCircuit:

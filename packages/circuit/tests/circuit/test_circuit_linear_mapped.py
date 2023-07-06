@@ -13,7 +13,6 @@ from typing import Sequence
 from quri_parts.circuit import (
     CNOT,
     RX,
-    GateSequence,
     ImmutableBoundParametricQuantumCircuit,
     ImmutableLinearMappedUnboundParametricQuantumCircuit,
     LinearMappedUnboundParametricQuantumCircuit,
@@ -50,10 +49,6 @@ def immutable_circuit() -> (
 ):
     q_circuit, params = mutable_circuit()
     return ImmutableLinearMappedUnboundParametricQuantumCircuit(q_circuit), params
-
-
-def dummy_add(self: QuantumCircuit, gates: GateSequence) -> QuantumCircuit:
-    return NotImplemented
 
 
 class TestLinearMappedUnboundParametricQuantumCircuit:
