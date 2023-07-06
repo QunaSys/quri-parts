@@ -300,8 +300,8 @@ def get_spin_mo_integrals_from_mole(
     mo_coeff: npt.NDArray[np.complex128],
     active_space: Optional[ActiveSpace] = None,
 ) -> tuple[ActiveSpace, SpinMOeIntSet]:
-    """Computes the spin MO electron integrals and returns the corresponding
-    :class:`~quri_parts.chem.mol.MolecularOrbitals` object."""
+    """Computes the spin MO electron integrals and the corresponding
+    :class:`~quri_parts.chem.mol.ActiveSpace` object."""
     mo = PySCFMolecularOrbitals(mole, mo_coeff)
     ao_eint_set = get_ao_eint_set(mo)
 
