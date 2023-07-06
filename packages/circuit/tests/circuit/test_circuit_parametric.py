@@ -8,8 +8,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from unittest.mock import patch
-
 from quri_parts.circuit import (
     CNOT,
     RX,
@@ -111,7 +109,6 @@ class TestUnboundParametricQuantumCircuit:
         exp_circuit.add_ParametricRX_gate(0)
         assert got_circuit.gates == exp_circuit.gates
 
-    @patch.object(QuantumCircuit, "__add__", dummy_add)
     def test_radd(self) -> None:
         circuit = mutable_circuit()
         qc_circuit = QuantumCircuit(2)

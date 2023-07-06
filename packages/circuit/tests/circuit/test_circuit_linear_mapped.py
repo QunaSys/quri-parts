@@ -9,7 +9,6 @@
 # limitations under the License.
 
 from typing import Sequence
-from unittest.mock import patch
 
 from quri_parts.circuit import (
     CNOT,
@@ -192,8 +191,6 @@ class TestLinearMappedUnboundParametricQuantumCircuit:
         for got, exp in zip(got_vals.values(), exp_vals.values()):
             assert got == exp
 
-    @patch.object(QuantumCircuit, "__add__", dummy_add)
-    @patch.object(UnboundParametricQuantumCircuit, "__add__", dummy_add)
     def test_radd(self) -> None:
         circuit = LinearMappedUnboundParametricQuantumCircuit(2)
         params = circuit.add_parameters("RX", "PauliRotation")
