@@ -24,7 +24,9 @@ from ..utils import (
     add_exp_excitation_gates_trotter_decomposition,
     add_exp_pauli_gates_from_linear_mapped_function,
 )
-from ..utils.add_exp_excitation_gates_trotter_decomposition import _create_operator
+from ..utils.add_exp_excitation_gates_trotter_decomposition import (
+    create_anti_hermitian_sd_excitation_operator,
+)
 
 
 class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
@@ -46,10 +48,10 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
         singlet_excitation: If ``True``, the ansatz will be spin symmetric.
             Parameters for the spin symmetric ansatz are named according to the spatial
             transition amplitude.
-            
+
             - For single excitations, parameter named s_i_a denotes the excitation
                 is from occupied spatial orbital i to virtial spatial orbital a.
-            
+
             - For double excitations, parameter named d_i_j_a_b denotes the excitation
                 is from occupied spin orbital (i, ↑), (j, ↓) to virtual spin orbitals
                 (a, ↑), (b, ↓).
@@ -191,14 +193,18 @@ def _construct_singlet_excitation_circuit(
                 param_fnc = {
                     added_parameter_map[name]: coeff for name, coeff in fnc_list
                 }
-                real_operator = _create_operator(exc, op_mapper) * -1j
+                real_operator = (
+                    create_anti_hermitian_sd_excitation_operator(exc, op_mapper) * -1j
+                )
                 add_exp_pauli_gates_from_linear_mapped_function(
                     circuit, param_fnc, real_operator, 1 / trotter_number
                 )
 
         for d_exc, fnc_list in d_exc_param_fn_map.items():
             param_fnc = {added_parameter_map[name]: coeff for name, coeff in fnc_list}
-            real_operator = _create_operator(d_exc, op_mapper) * -1j
+            real_operator = (
+                create_anti_hermitian_sd_excitation_operator(d_exc, op_mapper) * -1j
+            )
             add_exp_pauli_gates_from_linear_mapped_function(
                 circuit,
                 param_fnc,

@@ -32,7 +32,7 @@ from quri_parts.openfermion.utils import (
     add_exp_pauli_gates_from_linear_mapped_function,
 )
 from quri_parts.openfermion.utils.add_exp_excitation_gates_trotter_decomposition import (  # noqa: E501
-    _create_operator,
+    create_anti_hermitian_sd_excitation_operator,
 )
 
 
@@ -170,108 +170,160 @@ class TestConstructSpinSymmetricCircuit:
 
         op_mapper = fermion_qubit_mapping.get_of_operator_mapper()
 
-        operator_0_4 = _create_operator((0, 4), op_mapper) * -1j
+        operator_0_4 = (
+            create_anti_hermitian_sd_excitation_operator((0, 4), op_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             expected_circuit, {s_0_2: 1}, operator_0_4, 1
         )
-        operator_0_6 = _create_operator((0, 6), op_mapper) * -1j
+        operator_0_6 = (
+            create_anti_hermitian_sd_excitation_operator((0, 6), op_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             expected_circuit, {s_0_3: 1}, operator_0_6, 1
         )
-        operator_1_5 = _create_operator((1, 5), op_mapper) * -1j
+        operator_1_5 = (
+            create_anti_hermitian_sd_excitation_operator((1, 5), op_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             expected_circuit, {s_0_2: 1}, operator_1_5, 1
         )
-        operator_1_7 = _create_operator((1, 7), op_mapper) * -1j
+        operator_1_7 = (
+            create_anti_hermitian_sd_excitation_operator((1, 7), op_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             expected_circuit, {s_0_3: 1}, operator_1_7, 1
         )
-        operator_2_4 = _create_operator((2, 4), op_mapper) * -1j
+        operator_2_4 = (
+            create_anti_hermitian_sd_excitation_operator((2, 4), op_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             expected_circuit, {s_1_2: 1}, operator_2_4, 1
         )
-        operator_2_6 = _create_operator((2, 6), op_mapper) * -1j
+        operator_2_6 = (
+            create_anti_hermitian_sd_excitation_operator((2, 6), op_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             expected_circuit, {s_1_3: 1}, operator_2_6, 1
         )
-        operator_3_5 = _create_operator((3, 5), op_mapper) * -1j
+        operator_3_5 = (
+            create_anti_hermitian_sd_excitation_operator((3, 5), op_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             expected_circuit, {s_1_2: 1}, operator_3_5, 1
         )
-        operator_3_7 = _create_operator((3, 7), op_mapper) * -1j
+        operator_3_7 = (
+            create_anti_hermitian_sd_excitation_operator((3, 7), op_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             expected_circuit, {s_1_3: 1}, operator_3_7, 1
         )
 
-        operator_0_1_5_4 = _create_operator((0, 1, 5, 4), op_mapper) * -1j
+        operator_0_1_5_4 = (
+            create_anti_hermitian_sd_excitation_operator((0, 1, 5, 4), op_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             expected_circuit, {d_0_0_2_2: 1}, operator_0_1_5_4, 1
         )
-        operator_0_1_7_4 = _create_operator((0, 1, 7, 4), op_mapper) * -1j
+        operator_0_1_7_4 = (
+            create_anti_hermitian_sd_excitation_operator((0, 1, 7, 4), op_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             expected_circuit, {d_0_0_2_3: 1}, operator_0_1_7_4, 1
         )
-        operator_0_1_5_6 = _create_operator((0, 1, 5, 6), op_mapper) * -1j
+        operator_0_1_5_6 = (
+            create_anti_hermitian_sd_excitation_operator((0, 1, 5, 6), op_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             expected_circuit, {d_0_0_2_3: 1}, operator_0_1_5_6, 1
         )
-        operator_0_1_7_6 = _create_operator((0, 1, 7, 6), op_mapper) * -1j
+        operator_0_1_7_6 = (
+            create_anti_hermitian_sd_excitation_operator((0, 1, 7, 6), op_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             expected_circuit, {d_0_0_3_3: 1}, operator_0_1_7_6, 1
         )
-        operator_0_3_5_4 = _create_operator((0, 3, 5, 4), op_mapper) * -1j
+        operator_0_3_5_4 = (
+            create_anti_hermitian_sd_excitation_operator((0, 3, 5, 4), op_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             expected_circuit, {d_0_1_2_2: 1}, operator_0_3_5_4, 1
         )
-        operator_0_3_7_4 = _create_operator((0, 3, 7, 4), op_mapper) * -1j
+        operator_0_3_7_4 = (
+            create_anti_hermitian_sd_excitation_operator((0, 3, 7, 4), op_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             expected_circuit, {d_0_1_2_3: 1}, operator_0_3_7_4, 1
         )
-        operator_0_3_5_6 = _create_operator((0, 3, 5, 6), op_mapper) * -1j
+        operator_0_3_5_6 = (
+            create_anti_hermitian_sd_excitation_operator((0, 3, 5, 6), op_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             expected_circuit, {d_0_1_3_2: 1}, operator_0_3_5_6, 1
         )
-        operator_0_3_7_6 = _create_operator((0, 3, 7, 6), op_mapper) * -1j
+        operator_0_3_7_6 = (
+            create_anti_hermitian_sd_excitation_operator((0, 3, 7, 6), op_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             expected_circuit, {d_0_1_3_3: 1}, operator_0_3_7_6, 1
         )
-        operator_2_1_5_4 = _create_operator((2, 1, 5, 4), op_mapper) * -1j
+        operator_2_1_5_4 = (
+            create_anti_hermitian_sd_excitation_operator((2, 1, 5, 4), op_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             expected_circuit, {d_0_1_2_2: 1}, operator_2_1_5_4, 1
         )
-        operator_2_1_7_4 = _create_operator((2, 1, 7, 4), op_mapper) * -1j
+        operator_2_1_7_4 = (
+            create_anti_hermitian_sd_excitation_operator((2, 1, 7, 4), op_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             expected_circuit, {d_0_1_3_2: 1}, operator_2_1_7_4, 1
         )
-        operator_2_1_5_6 = _create_operator((2, 1, 5, 6), op_mapper) * -1j
+        operator_2_1_5_6 = (
+            create_anti_hermitian_sd_excitation_operator((2, 1, 5, 6), op_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             expected_circuit, {d_0_1_2_3: 1}, operator_2_1_5_6, 1
         )
-        operator_2_1_7_6 = _create_operator((2, 1, 7, 6), op_mapper) * -1j
+        operator_2_1_7_6 = (
+            create_anti_hermitian_sd_excitation_operator((2, 1, 7, 6), op_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             expected_circuit, {d_0_1_3_3: 1}, operator_2_1_7_6, 1
         )
-        operator_2_3_5_4 = _create_operator((2, 3, 5, 4), op_mapper) * -1j
+        operator_2_3_5_4 = (
+            create_anti_hermitian_sd_excitation_operator((2, 3, 5, 4), op_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             expected_circuit, {d_1_1_2_2: 1}, operator_2_3_5_4, 1
         )
-        operator_2_3_7_4 = _create_operator((2, 3, 7, 4), op_mapper) * -1j
+        operator_2_3_7_4 = (
+            create_anti_hermitian_sd_excitation_operator((2, 3, 7, 4), op_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             expected_circuit, {d_1_1_2_3: 1}, operator_2_3_7_4, 1
         )
-        operator_2_3_5_6 = _create_operator((2, 3, 5, 6), op_mapper) * -1j
+        operator_2_3_5_6 = (
+            create_anti_hermitian_sd_excitation_operator((2, 3, 5, 6), op_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             expected_circuit, {d_1_1_2_3: 1}, operator_2_3_5_6, 1
         )
-        operator_2_3_7_6 = _create_operator((2, 3, 7, 6), op_mapper) * -1j
+        operator_2_3_7_6 = (
+            create_anti_hermitian_sd_excitation_operator((2, 3, 7, 6), op_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             expected_circuit, {d_1_1_3_3: 1}, operator_2_3_7_6, 1
         )
-        operator_0_2_6_4 = _create_operator((0, 2, 6, 4), op_mapper) * -1j
+        operator_0_2_6_4 = (
+            create_anti_hermitian_sd_excitation_operator((0, 2, 6, 4), op_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             expected_circuit, {d_0_1_2_3: 1, d_0_1_3_2: -1}, operator_0_2_6_4, 1
         )
-        operator_1_3_7_5 = _create_operator((1, 3, 7, 5), op_mapper) * -1j
+        operator_1_3_7_5 = (
+            create_anti_hermitian_sd_excitation_operator((1, 3, 7, 5), op_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             expected_circuit, {d_0_1_2_3: 1, d_0_1_3_2: -1}, operator_1_3_7_5, 1
         )

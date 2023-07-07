@@ -16,7 +16,7 @@ from quri_parts.openfermion.transforms import (
     symmetry_conserving_bravyi_kitaev,
 )
 from quri_parts.openfermion.utils.add_exp_excitation_gates_trotter_decomposition import (  # noqa
-    _create_operator,
+    create_anti_hermitian_sd_excitation_operator,
     add_exp_excitation_gates_trotter_decomposition,
     add_exp_pauli_gates_from_linear_mapped_function,
 )
@@ -27,14 +27,14 @@ class TestCreateOperator:
         jw_mapper = jordan_wigner.get_of_operator_mapper()
 
         s_exc = (0, 2)
-        op = _create_operator(s_exc, jw_mapper)
+        op = create_anti_hermitian_sd_excitation_operator(s_exc, jw_mapper)
         expected_op = Operator(
             {pauli_label("X0 Z1 Y2"): -0.5j, pauli_label("Y0 Z1 X2"): 0.5j}
         )
         assert op == expected_op
 
         s_exc = (1, 3)
-        op = _create_operator(s_exc, jw_mapper)
+        op = create_anti_hermitian_sd_excitation_operator(s_exc, jw_mapper)
         expected_op = Operator(
             {pauli_label("X1 Z2 Y3"): -0.5j, pauli_label("Y1 Z2 X3"): 0.5j}
         )
@@ -44,14 +44,14 @@ class TestCreateOperator:
         bk_mapper = bravyi_kitaev.get_of_operator_mapper()
 
         s_exc = (0, 2)
-        op = _create_operator(s_exc, bk_mapper)
+        op = create_anti_hermitian_sd_excitation_operator(s_exc, bk_mapper)
         expected_op = Operator(
             {pauli_label("X0 Y1 X2"): 0.5j, pauli_label("Y0 Y1 Y2"): 0.5j}
         )
         assert op == expected_op
 
         s_exc = (1, 3)
-        op = _create_operator(s_exc, bk_mapper)
+        op = create_anti_hermitian_sd_excitation_operator(s_exc, bk_mapper)
         expected_op = Operator(
             {pauli_label("Z0 Y1 Z2"): 0.5j, pauli_label("Y1 Z3"): -0.5j}
         )
@@ -65,12 +65,12 @@ class TestCreateOperator:
         )
 
         s_exc = (0, 2)
-        op = _create_operator(s_exc, scbk_mapper)
+        op = create_anti_hermitian_sd_excitation_operator(s_exc, scbk_mapper)
         expected_op = Operator({pauli_label("Y0"): 1.0j})
         assert op == expected_op
 
         s_exc = (1, 3)
-        op = _create_operator(s_exc, scbk_mapper)
+        op = create_anti_hermitian_sd_excitation_operator(s_exc, scbk_mapper)
         expected_op = Operator({pauli_label("Y1"): 1.0j})
         assert op == expected_op
 
@@ -78,7 +78,7 @@ class TestCreateOperator:
         jw_mapper = jordan_wigner.get_of_operator_mapper()
 
         d_exc = (0, 1, 2, 3)
-        op = _create_operator(d_exc, jw_mapper)
+        op = create_anti_hermitian_sd_excitation_operator(d_exc, jw_mapper)
         expected_op = Operator(
             {
                 pauli_label("X0 X1 X2 Y3"): 0.125j,
@@ -94,7 +94,7 @@ class TestCreateOperator:
         assert op == expected_op
 
         d_exc = (0, 3, 4, 7)
-        op = _create_operator(d_exc, jw_mapper)
+        op = create_anti_hermitian_sd_excitation_operator(d_exc, jw_mapper)
         expected_op = Operator(
             {
                 pauli_label("X0 Z1 Z2 X3 X4 Z5 Z6 Y7"): 0.125j,
@@ -113,7 +113,7 @@ class TestCreateOperator:
         bk_mapper = bravyi_kitaev.get_of_operator_mapper()
 
         d_exc = (0, 1, 2, 3)
-        op = _create_operator(d_exc, bk_mapper)
+        op = create_anti_hermitian_sd_excitation_operator(d_exc, bk_mapper)
         expected_op = Operator(
             {
                 pauli_label("X0 Y2"): 0.125j,
@@ -129,7 +129,7 @@ class TestCreateOperator:
         assert op == expected_op
 
         d_exc = (0, 3, 4, 7)
-        op = _create_operator(d_exc, bk_mapper)
+        op = create_anti_hermitian_sd_excitation_operator(d_exc, bk_mapper)
         expected_op = Operator(
             {
                 pauli_label("Y0 Y1 Z2 X4 Y5 Z6"): -0.125j,
@@ -148,7 +148,7 @@ class TestCreateOperator:
         scbk_mapper = symmetry_conserving_bravyi_kitaev.get_of_operator_mapper(4, 2)
 
         d_exc = (0, 1, 2, 3)
-        op = _create_operator(d_exc, scbk_mapper)
+        op = create_anti_hermitian_sd_excitation_operator(d_exc, scbk_mapper)
         expected_op = Operator(
             {
                 pauli_label("X0 Y1"): -0.5j,
@@ -159,7 +159,7 @@ class TestCreateOperator:
 
         scbk_mapper = symmetry_conserving_bravyi_kitaev.get_of_operator_mapper(8, 2)
         d_exc = (0, 3, 4, 7)
-        op = _create_operator(d_exc, scbk_mapper)
+        op = create_anti_hermitian_sd_excitation_operator(d_exc, scbk_mapper)
         expected_op = Operator(
             {
                 pauli_label("Y0 Y1 X2 Z3 Y4 Z5"): 0.125j,
@@ -332,15 +332,21 @@ class TestAddExpPauliGatesFromLinearMappedFunctions:
         param1 = circuit.add_parameter("param1")
         param2 = circuit.add_parameter("param2")
 
-        operator_1 = _create_operator((0, 1, 2, 3), jw_mapper) * -1j
+        operator_1 = (
+            create_anti_hermitian_sd_excitation_operator((0, 1, 2, 3), jw_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             circuit, {param1: 4}, operator_1, coeff=0.5
         )
-        operator_2 = _create_operator((2, 3, 4, 5), jw_mapper) * -1j
+        operator_2 = (
+            create_anti_hermitian_sd_excitation_operator((2, 3, 4, 5), jw_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             circuit, {param2: -2}, operator_2, coeff=0.4
         )
-        operator_3 = _create_operator((0, 1, 3, 4), jw_mapper) * -1j
+        operator_3 = (
+            create_anti_hermitian_sd_excitation_operator((0, 1, 3, 4), jw_mapper) * -1j
+        )
         add_exp_pauli_gates_from_linear_mapped_function(
             circuit, {param1: 1, param2: -3}, operator_3, coeff=-2.0
         )

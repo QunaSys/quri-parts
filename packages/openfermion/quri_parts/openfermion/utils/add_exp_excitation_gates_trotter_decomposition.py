@@ -31,7 +31,7 @@ def add_exp_excitation_gates_trotter_decomposition(
     """Add parametric Pauli rotation gates as a product of the exponentials of
     the excitations to the given :attr:`circuit`."""
     for i, sorb_indices in enumerate(excitation_indices):
-        op = _create_operator(sorb_indices, operator_mapper)
+        op = create_anti_hermitian_sd_excitation_operator(sorb_indices, operator_mapper)
         for pauli, op_coef in op.items():
             pauli_index_list, pauli_id_list = zip(*pauli)
             op_coef = op_coef.imag
@@ -82,13 +82,17 @@ def add_exp_pauli_gates_from_linear_mapped_function(
         )
 
 
-def create_unitary_single_double_excitation_operator(
+def create_anti_hermitian_sd_excitation_operator(
     excitation_indices: Union[SingleExcitation, DoubleExcitation],
     operator_mapper: OpenFermionQubitOperatorMapper,
 ) -> Operator:
-    """Create a :class:`~quri_parts.core.operator.Operator` that represents
-    unitary version of the excitation operator
-    """
+    """Create an anti-hermitian :class:`~quri_parts.core.operator.Operator`
+    according to the assigned index.
+
+    - If there are 2 excitation indices (i, a), it creates the :class:`~quri_parts.core.operator.Operator` for :math:`c_a^{\dagger} c_i - c_i^{\dagger} c_a`.
+
+    - If there are 4 excitation indices (i, j, b, a), it creates the :class:`~quri_parts.core.operator.Operator` for :math:`c_a^{\dagger} c_b^{\dagger} c_j c_i - c_i^{\dagger}c_j^{\dagger} c_b c_a`.
+    """  # noqa:
     op = FermionOperator()
     if len(excitation_indices) == 2:
         op += FermionOperator(
