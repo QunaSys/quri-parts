@@ -8,7 +8,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .connectivity import coupling_map_with_cnot_errors, device_connectivity_graph
+from .connectivity import (
+    coupling_map_with_2_qubit_gate_errors,
+    device_connectivity_graph,
+)
 from .primitive import QiskitRuntimeSamplingBackend
 from .sampling import QiskitSamplingBackend, QiskitSamplingJob, QiskitSamplingResult
 from .saved_sampling import (
@@ -32,7 +35,7 @@ __all__ = [
     "QiskitSavedDataSamplingResult",
     "QiskitSavedDataSamplingBackend",
     "convert_qiskit_sampling_count_to_qp_sampling_count",
-    "coupling_map_with_cnot_errors",
+    "coupling_map_with_2_qubit_errors",
     "device_connectivity_graph",
     "distribute_backend_shots",
     "get_job_mapper_and_circuit_transpiler",

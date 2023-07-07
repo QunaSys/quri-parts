@@ -15,7 +15,7 @@ import pytest
 from qiskit.providers import BackendV1, BackendV2, fake_provider
 
 from quri_parts.qiskit.backend import (
-    coupling_map_with_cnot_errors,
+    coupling_map_with_2_qubit_gate_errors,
     device_connectivity_graph,
 )
 
@@ -143,7 +143,7 @@ class TestQiskitConnectivityGraphV2:
 
 def test_coupling_map_with_cnot_errors() -> None:
     device = fake_provider.FakeBelemV2()
-    cnot_errors = coupling_map_with_cnot_errors(device)
+    cnot_errors = coupling_map_with_2_qubit_gate_errors(device, gate_name="cx")
     expected = [(0, 1), (1, 2), (1, 3), (3, 4)]
     for c in expected:
         assert c in cnot_errors

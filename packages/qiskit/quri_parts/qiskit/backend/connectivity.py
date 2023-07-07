@@ -34,8 +34,12 @@ def device_connectivity_graph(device: Union[BackendV1, BackendV2]) -> nx.Graph:
     return nx.parse_adjlist(lines)
 
 
-def coupling_map_with_cnot_errors(device: BackendV2) -> Mapping[tuple[int, int], float]:
-    """Extract qubit couplings and their CNOT error rates from Qiskit BackendV2
-    instance."""
+def coupling_map_with_2_qubit_gate_errors(
+    device: BackendV2, gate_name: str = "cx"
+) -> Mapping[tuple[int, int], float]:
+    """Extract qubit couplings and their 2 qubit gate error rates from Qiskit
+    BackendV2 instance."""
     edges = device.coupling_map.get_edges()
-    return {qs: prop.error for qs, prop in device.target["cx"].items() if qs in edges}
+    return {
+        qs: prop.error for qs, prop in device.target[gate_name].items() if qs in edges
+    }
