@@ -12,13 +12,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from quri_parts.circuit import (
-    GateSequence,
-    ImmutableQuantumCircuit,
-    QuantumCircuit,
-    UnboundParametricQuantumCircuit,
-    UnboundParametricQuantumCircuitBase,
-)
+from quri_parts.circuit import QuantumCircuit, UnboundParametricQuantumCircuit
 from quri_parts.core.state import (
     ComputationalBasisState,
     GeneralCircuitQuantumState,
@@ -32,10 +26,6 @@ from quri_parts.core.state.state_helper import (
     _circuit_quantum_state,
     _quantum_state_vector,
 )
-
-
-def dummy_add(self: QuantumCircuit, gates: GateSequence) -> "QuantumCircuit":
-    return QuantumCircuit(self.qubit_count)
 
 
 def test_circuit_quantum_state() -> None:
@@ -92,8 +82,6 @@ def test_quantum_state(
         quantum_state(n_qubits, vector=[1.0, 0, 0, 0], bits=0b01)
 
 
-@patch.object(UnboundParametricQuantumCircuitBase, "__add__", dummy_add)
-@patch.object(ImmutableQuantumCircuit, "__add__", dummy_add)
 @patch("quri_parts.core.state.state_helper.quantum_state")
 def test_apply_circuit(quantum_state_mock: Mock) -> None:
     n_qubits = 2
