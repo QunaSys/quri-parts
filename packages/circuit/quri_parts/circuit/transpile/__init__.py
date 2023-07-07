@@ -21,6 +21,7 @@ from .analyze import (
 from .clifford_approximation import CliffordApproximationTranspiler
 from .fuse import (
     FuseRotationTranspiler,
+    NormalizeRotationTranspiler,
     RX2NamedTranspiler,
     RY2NamedTranspiler,
     RZ2NamedTranspiler,
@@ -231,6 +232,7 @@ __all__ = [
     "CZ2CNOTHTranspiler",
     "CZ2RXRYCNOTTranspiler",
     "FuseRotationTranspiler",
+    "NormalizeRotationTranspiler",
     "H2RXRYTranspiler",
     "H2RZSqrtXTranspiler",
     "QubitRemappingTranspiler",
