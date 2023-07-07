@@ -82,10 +82,13 @@ def add_exp_pauli_gates_from_linear_mapped_function(
         )
 
 
-def _create_operator(
+def create_unitary_single_double_excitation_operator(
     excitation_indices: Union[SingleExcitation, DoubleExcitation],
     operator_mapper: OpenFermionQubitOperatorMapper,
 ) -> Operator:
+    """Create a :class:`~quri_parts.core.operator.Operator` that represents
+    unitary version of the excitation operator
+    """
     op = FermionOperator()
     if len(excitation_indices) == 2:
         op += FermionOperator(

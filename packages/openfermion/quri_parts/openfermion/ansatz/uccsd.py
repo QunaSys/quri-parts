@@ -42,40 +42,42 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
           :class:`Operator`
         trotter_number: Number for first-order Trotter product formula.
         use_singles: If ``True``, single-excitation gates are applied.
+        delta_sz: The spin difference of the molecule before and after the transition.
         singlet_excitation: If ``True``, the ansatz will be spin symmetric.
             Parameters for the spin symmetric ansatz are named according to the spatial
             transition amplitude.
-            - For single excitations, parameter named s_I_A denotes the excitation
-            is from occupied spatial orbital I to virtial spatial orbital A.
-            - For double excitations, parameter named d_I_J_A_B denotes the excitation
-            is from occupied spin orbital (I, ↑), (J, ↓) to virtual spin orbitals
-            (A, ↑), (B, ↓).
+            
+            - For single excitations, parameter named s_i_a denotes the excitation
+                is from occupied spatial orbital i to virtial spatial orbital a.
+            
+            - For double excitations, parameter named d_i_j_a_b denotes the excitation
+                is from occupied spin orbital (i, ↑), (j, ↓) to virtual spin orbitals
+                (a, ↑), (b, ↓).
 
     Note:
         Singlets excitation ansatz:
 
         1. Certain excitation operators will share the same circuit parameters.
             - For single excitation:
-                :math:`c_{A↑}^† c_{I↑}` and :math:`c_{A↓}^† c_{I↓}` share the same transition amplitude :math:`t_I^A`,
-                thus sharing the same circuit parameter s_I_A.
+                :math:`c_{a↑}^† c_{i↑}` and :math:`c_{a↓}^† c_{i↓}` share the same transition amplitude :math:`t_i^a`,
+                thus sharing the same circuit parameter s_i_a.
             - For mixed spin double excitation:
-                - :math:`c_{A↑}^† c_{B↓}^† c_{J↓} c_{I↑}` and :math:`c_{A↑}^† c_{B↓}^† c_{J↓} c_{I↑}` share the same excitaion amplitude :math:`t_{I↑, J↓}^{A↑, B↓}`,
-                thus sharing the same circuit parameter d_I_J_A_B.
+                - :math:`c_{a↑}^† c_{b↓}^† c_{j↓} c_{i↑}` and :math:`c_{a↑}^† c_{b↓}^† c_{j↓} c_{i↑}` share the same excitaion amplitude :math:`t_{i↑, j↓}^{a↑, b↓}`,
+                thus sharing the same circuit parameter d_i_j_a_b.
 
                 - All the circuit parameters for double excitation are fixed by
                 the mixed spin double excitation mode.
             - For same spin double excitation:
-                :math:`c_{A↑}^† c_{B↑}^† c_{J↑} c_{I↑}` and :math:`c_{A↓}^† c_{B↓}^† c_{J↓} c_{I↓}` share the same excitation amplitude :math:`t_{I↑, J↓}^{A↑, B↓} - t_{I↓, J↑}^{A↑, B↓}`,
-                where the corresponding parameters d_I_J_A_B and d_I_J_B_A are already added to the
+                :math:`c_{a↑}^† c_{b↑}^† c_{j↑} c_{i↑}` and :math:`c_{a↓}^† c_{b↓}^† c_{j↓} c_{i↓}` share the same excitation amplitude :math:`t_{i↑, j↓}^{a↑, b↓} - t_{i↓, j↑}^{a↑, b↓}`,
+                where the corresponding parameters d_i_j_a_b and d_i_j_b_a are already added to the
                 circuit when constructing the mixed spin excitation modes.
 
         2. Parameter count:
-            For a system with n_o occupied spatial orbitals and n_v virtual spatial orbitals:
+            For a system with :math:`n_o` occupied spatial orbitals and :math:`n_v` virtual spatial orbitals:
 
-            - Single excitations amount for  :math:`n_o * n_v` parameters.
+            - Single excitations amount for :math:`n_o n_v` parameters.
 
-            - Double excitations amount for
-                :math:`n_o * n_v + n_o * n_v * (n_o * n_v - 1)/2` parameters.
+            - Double excitations amount for :math:`n_o n_v + n_o n_v (n_o n_v - 1)/2` parameters.
     """  # noqa: E501
 
     def __init__(
@@ -215,6 +217,10 @@ def singlet_excitation_parameters(
     list[str],
     dict[DoubleExcitation, list[tuple[str, float]]],
 ]:
+    assert n_fermions % 2 == 0 and n_spin_orbitals % 2 == 0, ValueError(
+        "Number of fermions and n_spin_orbitals should be both"
+        "even numbers for spin singlet ansatz"
+    )
     s_exc, d_exc = excitations(n_spin_orbitals, n_fermions)
     d_exc = list(map(to_spin_symmetric_order, d_exc))
 
@@ -261,9 +267,6 @@ def singlet_excitation_parameters(
             p_name := f"d_{spa_j}_{spa_i}_{spa_b}_{spa_a}"
         ) in d_sz_symmetric_set:
             d_exc_param_fn_map[op] = [(p_name, 1.0), (m_name, -1.0)]
-        else:
-            print(d_sz_symmetric_set, d_exc_param_fn_map)
-            raise Exception
 
     return (
         s_sz_symmetric_set,
