@@ -14,7 +14,7 @@ from openfermion.ops import FermionOperator
 
 from quri_parts.chem.utils.excitations import DoubleExcitation, SingleExcitation
 from quri_parts.circuit import LinearMappedUnboundParametricQuantumCircuit, Parameter
-from quri_parts.core.operator import Operator
+from quri_parts.core.operator import PAULI_IDENTITY, Operator
 
 from ..transforms import OpenFermionQubitOperatorMapper
 
@@ -69,7 +69,7 @@ def add_exp_pauli_gates_from_linear_mapped_function(
             An overall real coeffcient in the exponent.
     """
     for pauli, op_coeff in qp_operator.items():
-        if str(pauli) == "I":
+        if pauli == PAULI_IDENTITY:
             # This corresponds to a global phase.
             continue
         pauli_index_list, pauli_id_list = zip(*pauli)

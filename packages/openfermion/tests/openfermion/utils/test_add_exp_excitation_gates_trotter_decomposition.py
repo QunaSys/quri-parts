@@ -16,9 +16,9 @@ from quri_parts.openfermion.transforms import (
     symmetry_conserving_bravyi_kitaev,
 )
 from quri_parts.openfermion.utils.add_exp_excitation_gates_trotter_decomposition import (  # noqa
-    create_anti_hermitian_sd_excitation_operator,
     add_exp_excitation_gates_trotter_decomposition,
     add_exp_pauli_gates_from_linear_mapped_function,
+    create_anti_hermitian_sd_excitation_operator,
 )
 
 
