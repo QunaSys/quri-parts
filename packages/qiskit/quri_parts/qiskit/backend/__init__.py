@@ -37,7 +37,7 @@ __all__ = [
     "QiskitSavedDataSamplingResult",
     "QiskitSavedDataSamplingBackend",
     "convert_qiskit_sampling_count_to_qp_sampling_count",
-    "coupling_map_with_2_qubit_errors",
+    "coupling_map_with_2_qubit_gate_errors",
     "device_connectivity_graph",
     "distribute_backend_shots",
     "get_job_mapper_and_circuit_transpiler",
