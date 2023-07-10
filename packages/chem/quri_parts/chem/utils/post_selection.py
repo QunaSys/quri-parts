@@ -64,18 +64,18 @@ def create_bk_electron_number_post_selection_filter_fn(
     return filter_fn
 
 
-def _inv_bk_trans_mat(qubit_count: int) -> npt.NDArray[np.uint8]:
+def _inv_bk_trans_mat(log_2_dim: int) -> npt.NDArray[np.uint8]:
     """Function that generate inverse Bravyi-Kitaev transformation matrix
     recursively.
 
     So the function returns the matrix which converts BK mapped state to
     occupation number state.
     """
-    if qubit_count == 0:
+    if log_2_dim == 0:
         return np.array([1])
-    mat = np.zeros((2**qubit_count, 2**qubit_count), dtype=np.uint8)
-    partial = _inv_bk_trans_mat(qubit_count - 1)
-    mat[0 : 2 ** (qubit_count - 1), 0 : 2 ** (qubit_count - 1)] = partial  # noqa
-    mat[2 ** (qubit_count - 1) :, 2 ** (qubit_count - 1) :] = partial  # noqa
-    mat[-1, 2 ** (qubit_count - 1) - 1] = 1
+    mat = np.zeros((2**log_2_dim, 2**log_2_dim), dtype=np.uint8)
+    partial = _inv_bk_trans_mat(log_2_dim - 1)
+    mat[0 : 2 ** (log_2_dim - 1), 0 : 2 ** (log_2_dim - 1)] = partial  # noqa
+    mat[2 ** (log_2_dim - 1) :, 2 ** (log_2_dim - 1) :] = partial  # noqa
+    mat[-1, 2 ** (log_2_dim - 1) - 1] = 1
     return mat
