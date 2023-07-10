@@ -49,10 +49,10 @@ def create_bk_electron_number_post_selection_filter_fn(
     by Bravyi-Kitaev transformation.
     """
     pow_base_2 = np.ceil(np.log2(qubit_count)).astype(np.uint8)
-    inv_trans_mat = _inv_bk_trans_mat(pow_base_2)
+    inv_trans_mat = _inv_bk_trans_mat(pow_base_2)[:qubit_count, :qubit_count]
 
     def filter_fn(bits: int) -> bool:
-        bk_state_array = (bits >> np.arange(2**pow_base_2) & 1).astype(np.uint8)
+        bk_state_array = (bits >> np.arange(qubit_count) & 1).astype(np.uint8)
         occ_num_state = np.dot(inv_trans_mat, bk_state_array) % 2
         if sz:
             n_up = np.count_nonzero(occ_num_state[::2] == 1)
