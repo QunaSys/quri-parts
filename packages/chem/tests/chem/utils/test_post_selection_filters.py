@@ -33,6 +33,8 @@ def test_create_jw_electron_number_post_selection_filter_fn() -> None:
     assert filter_fn(0b111)
     assert filter_fn(0b11100)
     assert filter_fn(193)
+    assert not filter_fn(0b1011)
+    assert not filter_fn(0b11010)
 
 
 def test_create_bk_electron_number_post_selection_filter_fn() -> None:
