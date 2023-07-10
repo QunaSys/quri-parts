@@ -10,7 +10,7 @@
 
 import numpy as np
 
-from quri_parts.chem.utils.post_selection import (
+from quri_parts.chem.utils.post_selection_filters import (
     _inv_bk_trans_mat,
     create_bk_electron_number_post_selection_filter_fn,
     create_jw_electron_number_post_selection_filter_fn,
