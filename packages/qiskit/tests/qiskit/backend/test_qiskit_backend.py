@@ -8,16 +8,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
+from collections import Counter
 from typing import Optional
 
 import pytest
 import qiskit
+from pydantic.json import pydantic_encoder
 from qiskit_aer import AerSimulator
 
 from quri_parts.backend import CompositeSamplingJob
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
-from quri_parts.qiskit.backend import QiskitSamplingBackend
+from quri_parts.qiskit.backend import (
+    QiskitSamplingBackend,
+    QiskitSamplingJob,
+    QiskitSavedDataSamplingJob,
+    QiskitSavedDataSamplingResult,
+)
+from quri_parts.qiskit.circuit import convert_circuit
 
 
 def circuit_converter(
@@ -47,6 +56,7 @@ class TestQiskitSamplingBackend:
         job = backend.sample(QuantumCircuit(4), 1000)
         counts = job.result().counts
 
+        assert isinstance(job, QiskitSamplingJob)
         assert set(counts.keys()) == {0b0000, 0b0001, 0b0100, 0b0101}
         assert all(c >= 0 for c in counts.values())
         assert sum(counts.values()) == 1000
@@ -62,6 +72,7 @@ class TestQiskitSamplingBackend:
         job = backend.sample(circuit, 1000)
         counts = job.result().counts
 
+        assert isinstance(job, QiskitSamplingJob)
         assert set(counts.keys()) == {0b001, 0b011}
         assert all(c >= 0 for c in counts.values())
         assert sum(counts.values()) == 1000
@@ -75,6 +86,7 @@ class TestQiskitSamplingBackend:
         job = backend.sample(circuit, 1000)
         counts = job.result().counts
 
+        assert isinstance(job, QiskitSamplingJob)
         assert set(counts.keys()) == {0b1001, 0b1011}
         assert all(c >= 0 for c in counts.values())
         assert sum(counts.values()) == 1000
@@ -87,6 +99,7 @@ class TestQiskitSamplingBackend:
         job = backend.sample(QuantumCircuit(4), 50)
         counts = job.result().counts
 
+        assert isinstance(job, QiskitSamplingJob)
         assert set(counts.keys()) == {0b0000, 0b0001, 0b0100, 0b0101}
         assert all(c >= 0 for c in counts.values())
         assert sum(counts.values()) == 1000
@@ -97,6 +110,20 @@ class TestQiskitSamplingBackend:
         backend._min_shots = 1000
         with pytest.raises(ValueError):
             job = backend.sample(QuantumCircuit(4), 50)
+
+    def test_shots_split_evenly(self) -> None:
+        device = AerSimulator()
+
+        backend = QiskitSamplingBackend(device, circuit_converter)
+        backend._max_shots = 100
+        job = backend.sample(QuantumCircuit(4), 200)
+        counts = job.result().counts
+
+        assert set(counts.keys()) == {0b0000, 0b0001, 0b0100, 0b0101}
+        assert all(c >= 0 for c in counts.values())
+        assert sum(counts.values()) == 200
+        assert isinstance(job, CompositeSamplingJob)
+        assert sorted(sum(j.result().counts.values()) for j in job.jobs) == [100, 100]
 
     def test_max_shots(self) -> None:
         device = AerSimulator()
@@ -181,3 +208,63 @@ class TestQiskitSamplingBackend:
         assert set(counts.keys()) == {0b001, 0b011}
         assert all(c >= 0 for c in counts.values())
         assert sum(counts.values()) == 1000
+
+
+def test_saving_mode() -> None:
+    device = AerSimulator()
+    backend = QiskitSamplingBackend(device, save_data_while_sampling=True)
+    backend._max_shots = 1000
+
+    qp_circuit = QuantumCircuit(4)
+    qp_circuit.add_H_gate(0)
+    qp_circuit.add_H_gate(1)
+    qp_circuit.add_H_gate(2)
+    qp_circuit.add_H_gate(3)
+    qp_circuit.add_RX_gate(0, 0.23)
+    qp_circuit.add_RY_gate(1, -0.99)
+    qp_circuit.add_RX_gate(2, 0.87)
+    qp_circuit.add_RZ_gate(3, -0.16)
+
+    qiskit_transpiled_circuit = qiskit.transpile(
+        convert_circuit(qp_circuit).measure_all(False), device
+    )
+    circuit_qasm = qiskit_transpiled_circuit.qasm()
+
+    sampling_job = backend.sample(qp_circuit, 2000)
+    measurement_counter = sampling_job.result().counts
+
+    # Check if the circuit string and n_shots are distribited correctly
+    measurement_counter_from_memory: Counter[int] = Counter()
+    for qasm_str, n_shots, saved_job in backend._saved_data:
+        measurement_counter_from_memory += Counter(saved_job.result().counts)
+
+        assert qasm_str == circuit_qasm
+        assert n_shots == 1000
+
+    # Check if the saved data counter sums up to the correct counter.
+    assert measurement_counter_from_memory == measurement_counter
+
+    # Construct the saved data objects
+    raw_data_0 = backend._saved_data[0][2]._qiskit_job.result().get_counts()
+    raw_data_1 = backend._saved_data[1][2]._qiskit_job.result().get_counts()
+
+    expected_saved_data_0 = QiskitSavedDataSamplingJob(
+        circuit_qasm=circuit_qasm,
+        n_shots=1000,
+        saved_result=QiskitSavedDataSamplingResult(raw_data=raw_data_0),
+    )
+
+    expected_saved_data_1 = QiskitSavedDataSamplingJob(
+        circuit_qasm=circuit_qasm,
+        n_shots=1000,
+        saved_result=QiskitSavedDataSamplingResult(raw_data=raw_data_1),
+    )
+
+    # Check the jobs and jobs_json properties.
+    expected_saved_data_seq = [
+        expected_saved_data_0,
+        expected_saved_data_1,
+    ]
+    assert backend.jobs == expected_saved_data_seq
+    expected_json_str = json.dumps(expected_saved_data_seq, default=pydantic_encoder)
+    assert backend.jobs_json == expected_json_str
