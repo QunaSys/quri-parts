@@ -22,7 +22,7 @@ from quri_parts.circuit import (
 from ..transforms import OpenFermionQubitMapping, jordan_wigner
 from ..utils import (
     add_exp_excitation_gates_trotter_decomposition,
-    add_exp_pauli_gates_from_linear_mapped_function,
+    add_parametric_commuting_paulis_exp_gate,
 )
 from ..utils.add_exp_excitation_gates_trotter_decomposition import (
     create_anti_hermitian_sd_excitation_operator,
@@ -196,7 +196,7 @@ def _construct_singlet_excitation_circuit(
                 real_operator = (
                     create_anti_hermitian_sd_excitation_operator(exc, op_mapper) * -1j
                 )
-                add_exp_pauli_gates_from_linear_mapped_function(
+                add_parametric_commuting_paulis_exp_gate(
                     circuit, param_fnc, real_operator, 1 / trotter_number
                 )
 
@@ -205,7 +205,7 @@ def _construct_singlet_excitation_circuit(
             real_operator = (
                 create_anti_hermitian_sd_excitation_operator(d_exc, op_mapper) * -1j
             )
-            add_exp_pauli_gates_from_linear_mapped_function(
+            add_parametric_commuting_paulis_exp_gate(
                 circuit,
                 param_fnc,
                 real_operator,
@@ -273,6 +273,8 @@ def singlet_excitation_parameters(
             p_name := f"d_{spa_j}_{spa_i}_{spa_b}_{spa_a}"
         ) in d_sz_symmetric_set:
             d_exc_param_fn_map[op] = [(p_name, 1.0), (m_name, -1.0)]
+        else:
+            assert False, "Unreachable"
 
     return (
         s_sz_symmetric_set,

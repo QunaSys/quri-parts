@@ -43,7 +43,7 @@ def add_exp_excitation_gates_trotter_decomposition(
     return circuit
 
 
-def add_exp_pauli_gates_from_linear_mapped_function(
+def add_parametric_commuting_paulis_exp_gate(
     circuit: LinearMappedUnboundParametricQuantumCircuit,
     param_fn: dict[Parameter, float],
     qp_operator: Operator,

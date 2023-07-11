@@ -17,7 +17,7 @@ from quri_parts.openfermion.transforms import (
 )
 from quri_parts.openfermion.utils.add_exp_excitation_gates_trotter_decomposition import (  # noqa
     add_exp_excitation_gates_trotter_decomposition,
-    add_exp_pauli_gates_from_linear_mapped_function,
+    add_parametric_commuting_paulis_exp_gate,
     create_anti_hermitian_sd_excitation_operator,
 )
 
@@ -335,19 +335,19 @@ class TestAddExpPauliGatesFromLinearMappedFunctions:
         operator_1 = (
             create_anti_hermitian_sd_excitation_operator((0, 1, 2, 3), jw_mapper) * -1j
         )
-        add_exp_pauli_gates_from_linear_mapped_function(
+        add_parametric_commuting_paulis_exp_gate(
             circuit, {param1: 4}, operator_1, coeff=0.5
         )
         operator_2 = (
             create_anti_hermitian_sd_excitation_operator((2, 3, 4, 5), jw_mapper) * -1j
         )
-        add_exp_pauli_gates_from_linear_mapped_function(
+        add_parametric_commuting_paulis_exp_gate(
             circuit, {param2: -2}, operator_2, coeff=0.4
         )
         operator_3 = (
             create_anti_hermitian_sd_excitation_operator((0, 1, 3, 4), jw_mapper) * -1j
         )
-        add_exp_pauli_gates_from_linear_mapped_function(
+        add_parametric_commuting_paulis_exp_gate(
             circuit, {param1: 1, param2: -3}, operator_3, coeff=-2.0
         )
 
