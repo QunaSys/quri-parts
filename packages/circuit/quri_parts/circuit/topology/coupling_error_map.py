@@ -7,8 +7,11 @@ import numpy as np
 from typing_extensions import TypeAlias
 
 from quri_parts.backend.qubit_mapping import BackendQubitMapping
-from quri_parts.circuit import NonParametricQuantumCircuit
-from quri_parts.circuit.transpile import extract_qubit_coupling_path
+from quri_parts.circuit import NonParametricQuantumCircuit, gate_names
+from quri_parts.circuit.transpile import (
+    extract_qubit_coupling_path,
+    gate_weighted_depth,
+)
 
 #: Represents qubit couplings and their interested 2 qubit gate error rates.
 CouplingMapWithErrors: TypeAlias = Mapping[tuple[int, int], float]
@@ -116,15 +119,30 @@ def _approx_reliable_coupling_single_stroke_paths(
     return []
 
 
-def _path_fidelity(
+def _two_qubit_path_fidelity(
     two_qubit_errors: CouplingMapWithErrors, path: Sequence[int]
 ) -> float:
-    return cast(float, np.prod([1 - two_qubit_errors[q] for q in zip(path, path[1:])]))
+    return cast(
+        float, np.prod([1.0 - two_qubit_errors[q] for q in zip(path, path[1:])])
+    )
+
+
+def _circuit_fidelity(
+    two_qubit_errors: CouplingMapWithErrors,
+    readout_errors: Mapping[int, float],
+    reps: int,
+    path: Sequence[int],
+) -> float:
+    two_qubit_1_line = _two_qubit_path_fidelity(two_qubit_errors, path)
+    readout = np.prod([1.0 - readout_errors[q] for q in path])
+    return two_qubit_1_line**reps * readout
 
 
 def reliable_coupling_single_stroke_path(
     two_qubit_errors: CouplingMapWithErrors,
+    readout_errors: Mapping[int, float],
     qubit_count: int,
+    reps: int = 1,
     exact: bool = True,
 ) -> Sequence[int]:
     """Find the path with the specified number of qubits that has maximum
@@ -132,9 +150,11 @@ def reliable_coupling_single_stroke_path(
     path is found, an empty list is returned.
 
     Args:
-        two_qubit_errors: A dictionary representing the coupling of qubits and their
+        two_qubit_errors: Mapping representing the coupling of qubits and their
             error rates.
-        qubit_count: Number of qubits in the path.
+        readout_errors: Mapping from qubits to their readout errors.
+        qubit_count: Required number of qubits in the path.
+        reps: Number of repeated 2 qubit gate layers of the circuit.
         exact: Specify whether to search for the optimal solution. Approximate solutions
             can also be selected when the target graph is large and the computational
             cost is high.
@@ -147,12 +167,20 @@ def reliable_coupling_single_stroke_path(
         ps = _approx_reliable_coupling_single_stroke_paths(
             two_qubit_errors, qubit_count
         )
-    return max(ps, key=lambda p: _path_fidelity(two_qubit_errors, p)) if ps else []
+    return (
+        max(
+            ps,
+            key=lambda p: _circuit_fidelity(two_qubit_errors, readout_errors, reps, p),
+        )
+        if ps
+        else []
+    )
 
 
 def reliable_coupling_single_stroke_path_qubit_mapping(
     circuit: NonParametricQuantumCircuit,
     two_qubit_errors: CouplingMapWithErrors,
+    readout_errors: Mapping[int, float],
     exact: bool = True,
 ) -> BackendQubitMapping:
     """BackendQubitMapping generator, that maps qubit indices so that the
@@ -166,8 +194,9 @@ def reliable_coupling_single_stroke_path_qubit_mapping(
 
     Args:
         circuit: Target NonParametricQuantumCircuit.
-        two_qubit_errors: A dictionary representing the coupling of qubits and their
+        two_qubit_errors: Mapping representing the couplings of qubits and their
             error rates.
+        readout_errors: Mapping from qubits to their readout_errors.
         exact: Specify whether to search for the optimal solution. Approximate solutions
             can also be selected when the target graph is large and the computational
             cost is high.
@@ -175,8 +204,15 @@ def reliable_coupling_single_stroke_path_qubit_mapping(
     circuit_path = extract_qubit_coupling_path(circuit)
     if circuit_path is None or len(circuit_path) != circuit.qubit_count:
         raise ValueError("Qubits in the given circuit is not sequentially coupled.")
+    two_qubit_depth = gate_weighted_depth(
+        circuit, {gate_names.CNOT: 1, gate_names.CZ: 1, gate_names.SWAP: 1}
+    )
     qubit_path = reliable_coupling_single_stroke_path(
-        two_qubit_errors, circuit.qubit_count, exact
+        two_qubit_errors,
+        readout_errors,
+        circuit.qubit_count,
+        two_qubit_depth // 2,
+        exact,
     )
     if not qubit_path:
         raise ValueError(

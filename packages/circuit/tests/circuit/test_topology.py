@@ -8,6 +8,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections.abc import Mapping
+
 from quri_parts.circuit import CNOT, CZ, SWAP, H, QuantumCircuit, X
 from quri_parts.circuit.topology import (
     SquareLattice,
@@ -128,28 +130,40 @@ def test_approx_reliable_coupling_subgraph() -> None:
     assert [] == approx_reliable_coupling_subgraph(map_steps, 13)
 
 
+def _no_readout_errors(qubits: int) -> Mapping[int, float]:
+    return {q: 0.0 for q in range(qubits)}
+
+
 def test_reliable_coupling_single_stroke_path() -> None:
     map_loops = _cnot_errors_3_loops()
+    readout_errors_loops = _no_readout_errors(12)
     assert set(range(12)) == set(
-        reliable_coupling_single_stroke_path(map_loops, 12, True)
+        reliable_coupling_single_stroke_path(map_loops, readout_errors_loops, 12)
     )
     assert set(range(3, 12)) == set(
-        reliable_coupling_single_stroke_path(map_loops, 9, True)
+        reliable_coupling_single_stroke_path(map_loops, readout_errors_loops, 9)
     )
     assert set(range(7, 12)) == set(
-        reliable_coupling_single_stroke_path(map_loops, 5, True)
+        reliable_coupling_single_stroke_path(map_loops, readout_errors_loops, 5)
     )
-    assert [] == list(reliable_coupling_single_stroke_path(map_loops, 13, True))
+    assert [] == list(
+        reliable_coupling_single_stroke_path(map_loops, readout_errors_loops, 13)
+    )
 
     map_steps = _cnot_errors_steps()
+    readout_errors_steps = _no_readout_errors(8)
     assert [5, 4, 3, 2, 1, 0, 7, 6] == list(
-        reliable_coupling_single_stroke_path(map_steps, 8, True)
+        reliable_coupling_single_stroke_path(map_steps, readout_errors_steps, 8)
     )
     assert [2, 3, 4, 5] == list(
-        reliable_coupling_single_stroke_path(map_steps, 4, True)
+        reliable_coupling_single_stroke_path(map_steps, readout_errors_steps, 4)
     )
-    assert [3, 4, 5] == list(reliable_coupling_single_stroke_path(map_steps, 3, True))
-    assert [] == list(reliable_coupling_single_stroke_path(map_steps, 9, True))
+    assert [3, 4, 5] == list(
+        reliable_coupling_single_stroke_path(map_steps, readout_errors_steps, 3)
+    )
+    assert [] == list(
+        reliable_coupling_single_stroke_path(map_steps, readout_errors_steps, 9)
+    )
 
 
 def test_reliable_coupling_single_stroke_path_qubit_mapping() -> None:
@@ -166,8 +180,9 @@ def test_reliable_coupling_single_stroke_path_qubit_mapping() -> None:
         ]
     )
     cnot_errors = _cnot_errors_steps()
+    readout_errors = _no_readout_errors(9)
     transpiler = reliable_coupling_single_stroke_path_qubit_mapping(
-        circuit, cnot_errors, True
+        circuit, cnot_errors, readout_errors, True
     ).circuit_transpiler
     transpiled = transpiler(circuit)
 
