@@ -134,7 +134,7 @@ def _circuit_fidelity(
     path: Sequence[int],
 ) -> float:
     two_qubit_1_line = _two_qubit_path_fidelity(two_qubit_errors, path)
-    readout = np.prod([1.0 - readout_errors[q] for q in path])
+    readout = cast(float, np.prod([1.0 - readout_errors[q] for q in path]))
     return two_qubit_1_line**reps * readout
 
 

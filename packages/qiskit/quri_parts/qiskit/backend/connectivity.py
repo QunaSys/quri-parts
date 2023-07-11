@@ -43,3 +43,7 @@ def coupling_map_with_2_qubit_gate_errors(
     return {
         qs: prop.error for qs, prop in device.target[gate_name].items() if qs in edges
     }
+
+
+def qubit_indices_with_readout_errors(device: BackendV2) -> Mapping[int, float]:
+    return {qs[0]: prop.error for qs, prop in device.target["measure"].items()}
