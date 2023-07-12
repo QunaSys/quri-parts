@@ -66,7 +66,7 @@ def draw_circuit(
     ],
     line_length: int = 80,
 ) -> None:
-    """Circuit drawer which outputs given circuit as an ASCII art to standart
+    """Circuit drawer which outputs given circuit as an ASCII art to standard
     streams.
 
     Args:
