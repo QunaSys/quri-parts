@@ -41,6 +41,7 @@ from .saved_sampling import (
     QiskitSavedDataSamplingJob,
     encode_saved_data_job_sequence_to_json,
 )
+from .tracker import Tracker, TrackerStatus
 from .utils import (
     distribute_backend_shots,
     get_backend_min_max_shot,
@@ -132,6 +133,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         sampler_options: Union[None, Options, Dict[str, Any]] = None,
         run_kwargs: Mapping[str, Any] = {},
         save_data_while_sampling: bool = False,
+        total_time_limit: float = 10.0,
     ):
         self._backend = backend
         self._service = service
@@ -166,6 +168,16 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             self._qiskit_sampler_options = None
         else:
             raise ValueError("Invalid type for sampler_options")
+
+        # Tracker related
+        self.tracker = Tracker()
+        self.__time_limit = total_time_limit
+        self.__running_jobs: dict[
+            str, QiskitRuntimeSamplingJob
+        ] = {}  # The key is job id string
+        self.__finished_jobs: dict[
+            str, QiskitRuntimeSamplingJob
+        ] = {}  # The key is job id string
 
     def close(self) -> None:
         """Close the IBM session.
@@ -209,6 +221,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
                 qiskit_circuit, shots=s, **self._run_kwargs
             )
             qiskit_runtime_sampling_job = QiskitRuntimeSamplingJob(qiskit_runtime_job)
+            # self._add_job_for_tracking(qiskit_runtime_sampling_job)
             # Saving mode
             if self._save_data_while_sampling:
                 self._saved_data.append(
@@ -264,6 +277,61 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             if len(qubit_mapped_jobs) == 1
             else CompositeSamplingJob(qubit_mapped_jobs)
         )
+
+    def _add_job_for_tracking(self, runtime_job: QiskitRuntimeSamplingJob) -> None:
+        assert (
+            runtime_job._qiskit_job.job_id() not in self.__running_jobs
+            and runtime_job._qiskit_job.job_id() not in self.__finished_jobs
+        )
+
+        if (
+            self.tracker.status is TrackerStatus.Done
+            or self.tracker.status is TrackerStatus.Empty
+        ):
+            self.tracker.set_status(TrackerStatus.Running)
+        else:
+            # Run track before submitting.
+            # If price limit is exceeded, cancel the newly submitted job
+            # and throw error.
+            try:
+                self.track()
+            except RuntimeError:
+                runtime_job._qiskit_job.cancel()
+                raise RuntimeError(
+                    "Cannot submit this job as time limit of"
+                    f"{self.__time_limit} seconds is already exceeded."
+                )
+
+        self.__running_jobs[runtime_job._qiskit_job.job_id()] = runtime_job
+
+    def track(self) -> None:
+        finished_id = []
+        # Scan through running jobs to see if there are finished ones.
+        for job in self.__running_jobs.values():
+            job_id = job._qiskit_job.job_id()
+            metrics = job._qiskit_job.metrics()
+            finished = metrics["timestamps"]["finished"] is not None
+            if finished:
+                finished_id.append(job_id)
+                self.__finished_jobs[job_id] = job
+                self.tracker.add_new_job_execution_time(metrics["usage"]["second"])
+
+        # print(self.__running_jobs)
+        # Remove finished jobs form running_jobs
+        for job_id in finished_id:
+            del self.__running_jobs[job_id]
+
+        # Modify tracker status
+        if self.tracker.total_run_time > self.__time_limit:
+            self.tracker.set_status(TrackerStatus.Exceeded)
+            for job in self.__running_jobs.values():
+                job._qiskit_job.cancel()
+            raise RuntimeError(
+                f"Time limit of {self.__time_limit} seconds is exceeded."
+            )
+
+        elif len(self.__running_jobs) == 0:
+            self.tracker.set_status(TrackerStatus.Done)
 
     @property
     def jobs(self) -> Sequence[QiskitSavedDataSamplingJob]:

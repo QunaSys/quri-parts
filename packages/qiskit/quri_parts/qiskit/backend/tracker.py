@@ -10,10 +10,6 @@
 
 import enum
 
-from quri_parts.qiskit.backend.primitive import QiskitRuntimeSamplingJob
-
-PRICE_PER_SECOND = 16
-
 
 class TrackerStatus(enum.Enum):
     Done = enum.auto()
@@ -23,75 +19,21 @@ class TrackerStatus(enum.Enum):
 
 
 class Tracker:
-    def __init__(self, price_limit: float) -> None:
+    def __init__(self) -> None:
         # Make all attributes un-accessible
-        self.__price_limit = price_limit
         self.__status = TrackerStatus.Empty
-        self.__running_jobs: dict[
-            str, QiskitRuntimeSamplingJob
-        ] = {}  # The key is job id string
-        self.__finished_jobs: dict[
-            str, QiskitRuntimeSamplingJob
-        ] = {}  # The key is job id string
         self.__total_time = 0.0
 
     @property
-    def status(self):
+    def status(self) -> TrackerStatus:
         return self.__status
 
+    def set_status(self, new_status: TrackerStatus) -> None:
+        self.__status = new_status
+
     @property
-    def total_run_time(self):
+    def total_run_time(self) -> float:
         return self.__total_time
 
-    def add_job(self, runtime_job: QiskitRuntimeSamplingJob) -> None:
-        assert (
-            runtime_job._qiskit_job.job_id() not in self.__running_jobs
-            and runtime_job._qiskit_job.job_id() not in self.__finished_jobs
-        )
-
-        if self.status is TrackerStatus.Done or self.status is TrackerStatus.Empty:
-            self.__status = TrackerStatus.Running
-        else:
-            # Run track before submitting.
-            # If price limit is exceeded, cancel the newly submitted job
-            # and throw error.
-            try:
-                self.track()
-            except RuntimeError:
-                runtime_job._qiskit_job.cancel()
-                raise RuntimeError(
-                    "Cannot submit this job as price limit of"
-                    f"{self.__price_limit} USD is already exceeded."
-                )
-
-        self.__running_jobs[runtime_job._qiskit_job.job_id()] = runtime_job
-
-    def track(self) -> None:
-        finished_id = []
-        # Scan through running jobs to see if there are finished ones.
-        for job in self.__running_jobs.values():
-            job_id = job._qiskit_job.job_id()
-            metrics = job._qiskit_job.metrics()
-            finished = metrics["timestamps"]["finished"] is not None
-            if finished:
-                finished_id.append(job_id)
-                self.__finished_jobs[job_id] = job
-                self.__total_time += metrics["usage"]["second"]
-
-        # Remove finished jobs form running_jobs
-        for job_id in finished_id:
-            del self.__running_jobs[job_id]
-
-        # Modify tracker status
-        if self.__total_time * PRICE_PER_SECOND > self.__price_limit:
-            self.__status = TrackerStatus.Exceeded
-            for job in self.__running_jobs.values():
-                job._qiskit_job.cancel()
-            raise RuntimeError(f"Price limit of {self.__price_limit} USD exceeded.")
-
-        elif len(self.__running_jobs) == 0:
-            self.__status == TrackerStatus.Done
-
-    def run_track(self):
-        while self.__status is TrackerStatus.Running:
-            self.track()
+    def add_new_job_execution_time(self, time_increment: float) -> None:
+        self.__total_time += time_increment
