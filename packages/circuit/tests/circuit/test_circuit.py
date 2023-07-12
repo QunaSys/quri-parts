@@ -90,6 +90,16 @@ class TestQuantumCircuit:
         with pytest.raises(ValueError):
             circuit.measure(1, 0)
 
+    def test_add(self) -> None:
+        circuit1 = mutable_circuit()
+        circuit2 = QuantumCircuit(2)
+        circuit2.add_X_gate(0)
+        combined_circuit = circuit1 + circuit2
+        exp_circuit = circuit1.get_mutable_copy()
+        exp_circuit.add_X_gate(0)
+        assert isinstance(combined_circuit, QuantumCircuit)
+        assert combined_circuit.gates == exp_circuit.gates
+
 
 class TestQuantumCircuitDeprecation:
     def test_order_flip(self) -> None:

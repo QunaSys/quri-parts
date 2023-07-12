@@ -76,20 +76,37 @@ class LinearMappedUnboundParametricQuantumCircuitBase(
 
     def combine(
         self,
-        gates: Union[GateSequence, "LinearMappedUnboundParametricQuantumCircuitBase"],
+        gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol],
     ) -> "LinearMappedUnboundParametricQuantumCircuit":
         circuit = LinearMappedUnboundParametricQuantumCircuit(
             self.qubit_count, self.cbit_count
         )
-        circuit.extend(self)
-        circuit.extend(gates)
+        try:
+            circuit.extend(self)
+            circuit.extend(gates)
+        except ValueError:
+            return NotImplemented
         return circuit
 
     def __add__(
         self,
-        gates: Union[GateSequence, "LinearMappedUnboundParametricQuantumCircuitBase"],
+        gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol],
     ) -> "LinearMappedUnboundParametricQuantumCircuit":
-        return self.combine(gates)
+        try:
+            return self.combine(gates)
+        except ValueError:
+            return NotImplemented
+
+    def __radd__(
+        self, gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol]
+    ) -> "LinearMappedUnboundParametricQuantumCircuit":
+        combined_circuit = LinearMappedUnboundParametricQuantumCircuit(self.qubit_count)
+        try:
+            combined_circuit.extend(gates)
+            combined_circuit.extend(self)
+        except ValueError:
+            return NotImplemented
+        return combined_circuit
 
     def bind_parameters(
         self, params: Sequence[float]
@@ -197,7 +214,7 @@ class LinearMappedUnboundParametricQuantumCircuit(
 
     def extend(
         self,
-        gates: Union[GateSequence, LinearMappedUnboundParametricQuantumCircuitBase],
+        gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol],
     ) -> None:
         """Extend the parametric circuit with given gates or a linear mapped
         unbound parametric circuit.
@@ -206,19 +223,39 @@ class LinearMappedUnboundParametricQuantumCircuit(
         parameters, they are treated as the same parameters, in contrast
         to the case of :class:`~UnboundParametricQuantumCircuit`.
         """
-        if isinstance(gates, LinearMappedUnboundParametricQuantumCircuitBase):
+        if isinstance(gates, UnboundParametricQuantumCircuitProtocol):
             if self.qubit_count != gates.qubit_count:
                 raise ValueError(
                     f"Qubit count not match (self={self.qubit_count}, "
                     f"other={gates.qubit_count})."
                 )
-            self._param_mapping = self._param_mapping.combine(gates._param_mapping)
-            self._circuit.extend(gates._circuit)
+            if isinstance(gates.param_mapping, LinearParameterMapping):
+                self._param_mapping = self._param_mapping.combine(gates.param_mapping)
+            else:
+                raise ValueError(
+                    f"Unsupported parameter mapping type: {type(gates.param_mapping)}"
+                )
+            self._circuit.extend(gates.primitive_circuit())
         else:
             if isinstance(gates, NonParametricQuantumCircuit):
+                if self.qubit_count != gates.qubit_count:
+                    raise ValueError(
+                        f"Qubit count not match (self={self.qubit_count}, "
+                        f"other={gates.qubit_count})."
+                    )
                 gates = gates.gates
             for gate in gates:
                 self.add_gate(gate)
+
+    def __iadd__(
+        self,
+        gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol],
+    ) -> "LinearMappedUnboundParametricQuantumCircuit":
+        try:
+            self.extend(gates)
+        except ValueError:
+            return NotImplemented
+        return self
 
     def freeze(self) -> "ImmutableLinearMappedUnboundParametricQuantumCircuit":
         return ImmutableLinearMappedUnboundParametricQuantumCircuit(self)
@@ -230,7 +267,7 @@ class ImmutableLinearMappedUnboundParametricQuantumCircuit(
     """An immutable parametric quantum circuit where parameters of parametric
     gates are given by linear functions of circuit parameters."""
 
-    def __init__(self, circuit: LinearMappedUnboundParametricQuantumCircuit):
+    def __init__(self, circuit: LinearMappedUnboundParametricQuantumCircuitBase):
         self._param_mapping = circuit._param_mapping
         self._circuit = circuit._circuit.freeze()
 
