@@ -14,3 +14,5 @@ updates:
     target-branch: "main"
     ignore:
       - dependency-name: "quri-parts-*"
+      - dependency-name: "botocore"
+        update-types: ["version-update:semver-patch"]
