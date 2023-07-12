@@ -16,3 +16,5 @@ updates:
       - dependency-name: "quri-parts-*"
       - dependency-name: "botocore"
         update-types: ["version-update:semver-patch"]
+      - dependency-name: "boto3"
+        update-types: ["version-update:semver-patch"]
