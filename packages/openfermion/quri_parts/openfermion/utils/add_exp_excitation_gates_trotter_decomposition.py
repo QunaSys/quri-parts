@@ -14,7 +14,7 @@ from openfermion.ops import FermionOperator
 
 from quri_parts.chem.utils.excitations import DoubleExcitation, SingleExcitation
 from quri_parts.circuit import LinearMappedUnboundParametricQuantumCircuit, Parameter
-from quri_parts.core.operator import PAULI_IDENTITY, Operator
+from quri_parts.core.operator import Operator
 
 from ..transforms import OpenFermionQubitOperatorMapper
 
@@ -41,45 +41,6 @@ def add_exp_excitation_gates_trotter_decomposition(
                 {params[i]: -2.0 * op_coef * coef},
             )
     return circuit
-
-
-def add_parametric_commuting_paulis_exp_gate(
-    circuit: LinearMappedUnboundParametricQuantumCircuit,
-    param_fn: dict[Parameter, float],
-    qp_operator: Operator,
-    coeff: float = 1,
-) -> None:
-    """Add exponential pauli rotation gate to a
-    :class:`~LinearMappedUnboundParametricQuantumCircuit` in place
-    according to the equation:
-
-    .. math::
-        \\exp \\left[
-            i \\text{c} * f(\\theta_1, \\theta_2, \\cdots) * \\text{qp_operator}
-        \\right]
-
-    Arg:
-        circuit:
-            The circuit to add a pauli exponential rotation gate to.
-        param_fn:
-            A dict representing parametric function in front of the qp_operator.
-        qp_operator:
-            A Hermitian quri-parts operator.
-        coeff:
-            An overall real coeffcient in the exponent.
-    """
-    for pauli, op_coeff in qp_operator.items():
-        if pauli == PAULI_IDENTITY:
-            # This corresponds to a global phase.
-            continue
-        pauli_index_list, pauli_id_list = zip(*pauli)
-        new_param_mapping = {
-            param: -2 * op_coeff.real * old_coeff * coeff
-            for param, old_coeff in param_fn.items()
-        }
-        circuit.add_ParametricPauliRotation_gate(
-            pauli_index_list, pauli_id_list, new_param_mapping
-        )
 
 
 def create_anti_hermitian_sd_excitation_operator(

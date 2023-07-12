@@ -18,12 +18,10 @@ from quri_parts.circuit import (
     ImmutableLinearMappedUnboundParametricQuantumCircuit,
     LinearMappedUnboundParametricQuantumCircuit,
 )
+from quri_parts.core.circuit import add_parametric_commuting_paulis_exp_gate
 
 from ..transforms import OpenFermionQubitMapping, jordan_wigner
-from ..utils import (
-    add_exp_excitation_gates_trotter_decomposition,
-    add_parametric_commuting_paulis_exp_gate,
-)
+from ..utils import add_exp_excitation_gates_trotter_decomposition
 from ..utils.add_exp_excitation_gates_trotter_decomposition import (
     create_anti_hermitian_sd_excitation_operator,
 )

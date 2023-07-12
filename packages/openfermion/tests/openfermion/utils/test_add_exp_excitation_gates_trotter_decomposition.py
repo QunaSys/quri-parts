@@ -9,6 +9,7 @@
 # limitations under the License.
 
 from quri_parts.circuit import LinearMappedUnboundParametricQuantumCircuit
+from quri_parts.core.circuit import add_parametric_commuting_paulis_exp_gate
 from quri_parts.core.operator import Operator, pauli_label
 from quri_parts.openfermion.transforms import (
     bravyi_kitaev,
@@ -17,7 +18,6 @@ from quri_parts.openfermion.transforms import (
 )
 from quri_parts.openfermion.utils.add_exp_excitation_gates_trotter_decomposition import (  # noqa
     add_exp_excitation_gates_trotter_decomposition,
-    add_parametric_commuting_paulis_exp_gate,
     create_anti_hermitian_sd_excitation_operator,
 )
 
