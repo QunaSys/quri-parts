@@ -26,6 +26,7 @@ from quri_parts.circuit import (
     Pauli,
     PauliRotation,
     QuantumCircuit,
+    QuantumGate,
     S,
     Sdag,
     SqrtX,
@@ -39,6 +40,7 @@ from quri_parts.circuit import (
     Z,
 )
 from quri_parts.circuit.transpile import (
+    CliffordRZSetTranspiler,
     CZ2CNOTHTranspiler,
     CZ2RXRYCNOTTranspiler,
     H2RXRYTranspiler,
@@ -74,6 +76,17 @@ from quri_parts.circuit.transpile import (
     Z2HXTranspiler,
     Z2RZTranspiler,
 )
+
+
+def _gates_close(x: QuantumGate, y: QuantumGate) -> bool:
+    return (
+        x.name == y.name
+        and x.target_indices == y.target_indices
+        and x.control_indices == y.control_indices
+        and np.allclose(x.params, y.params)
+        and x.pauli_ids == y.pauli_ids
+        and np.allclose(x.unitary_matrix, y.unitary_matrix)
+    )
 
 
 class TestFTQCSetTranspile:
@@ -449,8 +462,7 @@ class TestRZSetTranspile:
                 RZ(2, -np.pi / 4.0),  # Tdag
                 CNOT(0, 2),
                 RZ(1, np.pi / 4.0),  # T
-                RZ(2, np.pi / 4.0),  # T
-                RZ(2, np.pi / 2.0),  # H
+                RZ(2, np.pi * 3.0 / 4.0),  # T, H
                 SqrtX(2),
                 RZ(2, np.pi / 2.0),
                 CNOT(0, 1),
@@ -475,8 +487,8 @@ class TestRZSetTranspile:
                 RZ(1, 3.0 * np.pi / 2.0),
                 SqrtX(1),
                 RZ(1, 5.0 * np.pi / 2.0),
-                CNOT(1, 0),  # CNOT
                 CNOT(2, 0),  # CNOT
+                CNOT(1, 0),  # CNOT
                 RZ(0, theta),  # RZ
                 CNOT(1, 0),  # CNOT
                 CNOT(2, 0),  # CNOT
@@ -618,3 +630,46 @@ class TestRotationSetTranspile:
         )
 
         assert transpiled.gates == expect.gates
+
+
+class TestCliffordRZSetTranspile:
+    def test_cliffordrzset_transpile(self) -> None:
+        theta, phi, lam = np.pi / 3.0, np.pi / 5.0, np.pi / 7.0
+
+        circuit = QuantumCircuit(1)
+        circuit.extend(
+            [
+                T(0),
+                Tdag(0),
+                RX(0, theta),
+                RY(0, theta),
+                U1(0, lam),
+                U2(0, phi, lam),
+                U3(0, theta, phi, lam),
+            ]
+        )
+        transpiled = CliffordRZSetTranspiler()(circuit)
+
+        expect = QuantumCircuit(3)
+        expect.extend(
+            [
+                S(0),  # T, Tdag, RX
+                SqrtX(0),
+                RZ(0, theta + np.pi),
+                SqrtX(0),
+                S(0),
+                SqrtX(0),  # RY
+                RZ(0, theta + np.pi),
+                SqrtX(0),
+                RZ(0, np.pi / 2.0 + 2.0 * lam),  # U1, U2
+                SqrtX(0),
+                RZ(0, phi + lam + np.pi / 2.0),  # U2, U3
+                SqrtX(0),
+                RZ(0, theta + np.pi),
+                SqrtX(0),
+                RZ(0, phi + 3.0 * np.pi),
+            ]
+        )
+
+        for t, e in zip(transpiled.gates, expect.gates):
+            assert _gates_close(t, e)

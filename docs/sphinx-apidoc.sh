@@ -14,10 +14,11 @@ pkgs="
     openfermion
     stim
     openqasm
-    honeywell
+    quantinuum
     ionq
     itensor
     pyscf
+    tket
 "
 
 for pkg in $pkgs
