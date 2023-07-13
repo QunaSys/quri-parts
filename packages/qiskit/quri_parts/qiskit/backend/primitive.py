@@ -133,7 +133,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         sampler_options: Union[None, Options, Dict[str, Any]] = None,
         run_kwargs: Mapping[str, Any] = {},
         save_data_while_sampling: bool = False,
-        total_time_limit: float = 10.0,
+        total_time_limit: Optional[float] = None,
     ):
         self._backend = backend
         self._service = service
@@ -170,8 +170,12 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             raise ValueError("Invalid type for sampler_options")
 
         # Tracker related
-        self.tracker = tracker.Tracker(total_time_limit)
-        self.__time_limit = total_time_limit
+        self.tracker: Optional[tracker.Tracker] = None
+        self.__time_limit = 0.0
+
+        if total_time_limit is not None:
+            self.tracker = tracker.Tracker(total_time_limit)
+            self.__time_limit = total_time_limit
 
     def close(self) -> None:
         """Close the IBM session.
@@ -202,6 +206,18 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             self._session.__exit__(exc_type, exc_val, exc_tb)
             self._session = None
 
+    def _run_tracker(self) -> None:
+        assert self.tracker is not None
+        tracker_status, jobs_to_be_cancelled = self.tracker.track()
+        if tracker_status == tracker.TrackerStatus.Exceeded:
+            for job in jobs_to_be_cancelled:
+                job._qiskit_job.cancel()
+            raise RuntimeError(
+                "The submission of this job is aborted due to run time limit of"
+                f"{self.__time_limit} seconds is exceeded. Other unfinished jobs"
+                "are also aborted."
+            )
+
     def _execute_shots(
         self,
         runtime_sampler: Sampler,
@@ -211,21 +227,17 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
     ) -> None:
         circuit_qasm_str = qiskit_circuit.qasm()
         for s in shot_dist:
-            tracker_status, jobs_to_be_cancelled = self.tracker.track()
-            if tracker_status == tracker.TrackerStatus.Exceeded:
-                for job in jobs_to_be_cancelled:
-                    job._qiskit_job.cancel()
-                raise RuntimeError(
-                    "The submission of this job is aborted due to run time limit of"
-                    f"{self.__time_limit} seconds is exceeded. Other unfinished jobs"
-                    "are also aborted."
-                )
+            if self.tracker is not None:
+                self._run_tracker()
 
             qiskit_runtime_job = runtime_sampler.run(
                 qiskit_circuit, shots=s, **self._run_kwargs
             )
             qiskit_runtime_sampling_job = QiskitRuntimeSamplingJob(qiskit_runtime_job)
-            # self.tracker.add_job_for_tracking(qiskit_runtime_sampling_job)
+
+            if self.tracker is not None:
+                self.tracker.add_job_for_tracking(qiskit_runtime_sampling_job)
+
             # Saving mode
             if self._save_data_while_sampling:
                 self._saved_data.append(
