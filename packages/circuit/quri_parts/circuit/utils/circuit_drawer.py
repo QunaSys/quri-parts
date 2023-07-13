@@ -117,7 +117,7 @@ def draw_circuit(
 
     # Divide and fold.
     if circuit_picture.shape[1] > line_length:
-        n_divs = circuit_picture.shape[1] // line_length
+        n_divs = np.ceil(circuit_picture.shape[1] / line_length).astype("int")
         output = circuit_picture[:, :line_length]
         for i in range(1, n_divs):
             output = np.concatenate(
@@ -134,13 +134,43 @@ def draw_circuit(
                 ],
                 axis=0,
             )
-            output = np.concatenate(
-                [
-                    output,
-                    circuit_picture[:, line_length * i : line_length * (i + 1)],  # noqa
-                ],
-                axis=0,
-            )
+
+            # Expand the last line in axis=1 to ``line_length'' and append it to
+            # the end of ``output``
+            if i == n_divs - 1 and circuit_picture.shape[1] % line_length:
+                output = np.concatenate(
+                    [
+                        output,
+                        np.concatenate(
+                            [
+                                circuit_picture[
+                                    :, line_length * (n_divs - 1) :  # noqa
+                                ],
+                                np.full(
+                                    (
+                                        circuit_picture.shape[0],
+                                        line_length
+                                        - circuit_picture.shape[1] % line_length,
+                                    ),
+                                    "",
+                                ),
+                            ],
+                            axis=1,
+                        ),
+                    ],
+                    axis=0,
+                )
+            else:
+                output = np.concatenate(
+                    [
+                        output,
+                        circuit_picture[
+                            :, line_length * i : line_length * (i + 1)  # noqa
+                        ],
+                    ],
+                    axis=0,
+                )
+
     else:
         output = circuit_picture
 
