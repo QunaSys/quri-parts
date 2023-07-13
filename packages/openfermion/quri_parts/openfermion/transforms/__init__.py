@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from abc import abstractmethod
-from collections.abc import Collection
+from collections.abc import Collection, Sequence
 from typing import Callable, Optional, Protocol, Union
 
 from openfermion.ops import FermionOperator, InteractionOperator, MajoranaOperator
@@ -49,7 +49,7 @@ OpenFermionQubitOperatorMapper: TypeAlias = Callable[
 
 def _state_transformation_matrix(
     op_mapper: OpenFermionQubitOperatorMapper, n_spin_orbitals: int
-) -> BinaryMatrix:
+) -> tuple[BinaryMatrix, Sequence[int]]:
     """Build a matrix that converts vector of fermion occupancy to binary
     representation on qubit.
 
@@ -58,6 +58,7 @@ def _state_transformation_matrix(
     for the Bravyi-Kitaev method.
     """
     mat = []
+    signs = []
     for number_op in (
         (1 - 2 * FermionOperator(f"{i}^ {i}")) for i in range(n_spin_orbitals)
     ):
@@ -68,13 +69,17 @@ def _state_transformation_matrix(
                 "This method is incompatible with a mapping that converts a number "
                 "operator to a sum of multiple Pauli terms."
             )
-        pauli_label, _ = next(iter(op.items()))
+        pauli_label, coef = next(iter(op.items()))
+
+        assert coef == 1 or coef == -1
+        signs.append(int(coef.real))
+
         for idx, pauli in pauli_label:
             if pauli != SinglePauli.Z:
                 raise ValueError("The action must be Z.")
             row[idx] = 1
         mat.append(row)
-    return inverse(BinaryMatrix(mat))
+    return BinaryMatrix(mat), signs
 
 
 class OpenFermionQubitMapping(FermionQubitMapping, Protocol):
@@ -108,17 +113,19 @@ class OpenFermionQubitMapping(FermionQubitMapping, Protocol):
     def get_state_mapper(
         self, n_spin_orbitals: int, n_fermions: Optional[int] = None
     ) -> FermionQubitStateMapper:
-        trans_mat = _state_transformation_matrix(
-            self.get_of_operator_mapper(n_spin_orbitals, n_fermions), n_spin_orbitals
+        inv_trans_mat, signs = _state_transformation_matrix(
+            self.get_of_operator_mapper(n_spin_orbitals, n_fermions),
+            n_spin_orbitals,
         )
+        trans_mat = inverse(inv_trans_mat)
         n_qubits = self.n_qubits_required(n_spin_orbitals)
 
         def mapper(
             occupied_indices: Collection[int],
         ) -> ComputationalBasisState:
-            occupancy_vector = BinaryArray(
-                (i in occupied_indices) for i in range(n_spin_orbitals)
-            )
+            occ_list = [(i in occupied_indices) for i in range(n_spin_orbitals)]
+            occ_list = [not b if signs[i] == -1 else b for i, b in enumerate(occ_list)]
+            occupancy_vector = BinaryArray(occ_list)
             qubit_vector = trans_mat @ occupancy_vector
             return ComputationalBasisState(
                 n_qubits=n_qubits, bits=qubit_vector.binary & (2**n_qubits - 1)
@@ -132,25 +139,26 @@ class OpenFermionQubitMapping(FermionQubitMapping, Protocol):
         n_fermions: Optional[int] = None,
         n_up_spins: Optional[int] = None,
     ) -> QubitStateFermionMapper:
-        trans_mat = inverse(
-            _state_transformation_matrix(
-                self.get_of_operator_mapper(n_spin_orbitals, n_fermions),
-                n_spin_orbitals,
-            )
+        trans_mat, signs = _state_transformation_matrix(
+            self.get_of_operator_mapper(n_spin_orbitals, n_fermions),
+            n_spin_orbitals,
         )
         n_qubits = self.n_qubits_required(n_spin_orbitals)
 
         def mapper(state: ComputationalBasisState) -> Collection[int]:
             bits = state.bits
             bit_array = [(bits & 1 << index) >> index for index in range(n_qubits)]
-            print(bit_array)
             bit_array = self.augment_dropped_bits(
                 bit_array, n_spin_orbitals, n_fermions, n_up_spins
             )
             qubit_vector = BinaryArray(bit_array)
             occupancy_vector = trans_mat @ qubit_vector
-            occupancy_list = [i for i, o in enumerate(occupancy_vector) if o == 1]
-            return occupancy_list[0:n_fermions]
+            occupancy_list = [
+                i
+                for i, o in enumerate(occupancy_vector)
+                if (o == 1 and signs[i] == 1) or (o == 0 and signs[i] == -1)
+            ]
+            return occupancy_list
 
         return mapper
 
@@ -338,11 +346,11 @@ class OpenFermionSymmetryConservingBravyiKitaev(
         n_fermions: Optional[int] = None,
         n_up_spins: Optional[int] = None,
     ) -> list[int]:
-        if n_up_spins is None or n_fermions is None:
-            raise ValueError("")
-        up_bit = n_up_spins % 2
-        n_bit = n_fermions % 2
-        return bit_array + [up_bit, n_bit]
+        # if n_up_spins is None or n_fermions is None:
+        #     raise ValueError("")
+        # up_bit = n_up_spins % 2
+        # n_bit = n_fermions % 2
+        return bit_array + [0, 0]
 
 
 symmetry_conserving_bravyi_kitaev = OpenFermionSymmetryConservingBravyiKitaev()
