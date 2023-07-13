@@ -177,8 +177,8 @@ def _generate_gate_aa(
             gate_head = "  ___  "
         else:
             gate_head = "  _|_  "
-         g_str = _GATE_STR_MAP.get(gate.name, "UDF").ljust(3)
-         gate_name_part = f" |{g_str}| "
+        g_str = _GATE_STR_MAP.get(gate.name, "UDF").ljust(3)
+        gate_name_part = f" |{g_str}| "
         gate_body_with_wire = "-|   |-"
         gate_body = " |   | "
         gate_bottom = " |___| "
