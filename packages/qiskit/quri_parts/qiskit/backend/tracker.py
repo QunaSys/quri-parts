@@ -60,7 +60,7 @@ class Tracker:
             if finished:
                 finished_id.append(job_id)
                 self.__finished_jobs[job_id] = job
-                self.__total_time += metrics["usage"]["second"]
+                self.__total_time += metrics["usage"]["seconds"]
 
         # Remove finished jobs from running_jobs
         for job_id in finished_id:
