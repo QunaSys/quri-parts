@@ -202,7 +202,6 @@ def _generate_gate_aa(
             is_target_top = True
 
         # Generate target part.
-        gate_size = max(t_idxs) - min(t_idxs) + 1
         if is_target_top:
             gate_head = "  ___  "
         else:
@@ -218,29 +217,34 @@ def _generate_gate_aa(
         g_idx_str = str(gate_idx).ljust(3)
         gate_string.append(f"-|{g_idx_str}|-")
 
-        for i in range(1, gate_size * 4 - 3):
-            q_idx = (i + 2) // 4 + min(t_idxs)
-            if q_idx in t_idxs:
-                if i % 4 == 0:
-                    gate_string.append(gate_body_with_wire)
-                elif i % 4 == 1:
-                    if q_idx + 1 in t_idxs:
-                        gate_string.append(gate_body)
-                    else:
-                        gate_string.append(" |_ _| ")
-                elif i % 4 == 2:
+        if len(t_idxs) == 1:
+            gate_string.append(gate_bottom)
+        else:
+            if min(t_idxs) + 1 in t_idxs:
+                gate_string.append(gate_body)
+            else:
+                gate_string.append(" |_ _| ")
+
+            for q_idx in range(min(t_idxs) + 1, max(t_idxs) + 1):
+                if q_idx in t_idxs:
+                    # Construct top part
                     if q_idx - 1 in t_idxs:
                         gate_string.append(gate_body)
                     else:
                         gate_string.append(" _| |_ ")
-                else:
+                    # Construct middle part
                     gate_string.append(gate_body)
-            else:
-                if i % 4 == 0:
-                    gate_string.append("--| |--")
+                    gate_string.append(gate_body_with_wire)
+                    # Construct bottom part
+                    if q_idx + 1 in t_idxs:
+                        gate_string.append(gate_body)
+                    else:
+                        gate_string.append(gate_bottom)
                 else:
                     gate_string.append("  | |  ")
-        gate_string.append(gate_bottom)
+                    gate_string.append("  | |  ")
+                    gate_string.append("--| |--")
+                    gate_string.append("  | |  ")
 
         if len(c_idxs) != 0 and max(t_idxs) < max(c_idxs):
             gate_string = _create_lower_control_part(gate_string, c_idxs, t_idxs)
