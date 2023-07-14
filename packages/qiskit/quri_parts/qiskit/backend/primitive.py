@@ -213,8 +213,8 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             for job in jobs_to_be_cancelled:
                 job._qiskit_job.cancel()
             raise RuntimeError(
-                "The submission of this job is aborted due to run time limit of"
-                f"{self.__time_limit} seconds is exceeded. Other unfinished jobs"
+                "The submission of this job is aborted due to run time limit of "
+                f"{self.__time_limit} seconds is exceeded. Other unfinished jobs "
                 "are also aborted."
             )
 
@@ -285,7 +285,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
                 except Exception:
                     # Ignore cancel errors
                     pass
-            raise BackendError("Qiskit Device run failed.") from e
+            raise BackendError(f"Qiskit Device run failed. Failed reason:\n{e}") from e
 
         qubit_mapped_jobs = [self._job_mapper(job) for job in jobs]
         return (

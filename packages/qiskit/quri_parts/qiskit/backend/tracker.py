@@ -26,25 +26,36 @@ class TrackerStatus(enum.Enum):
 
 class Tracker:
     def __init__(self, time_limit: float) -> None:
-        # Make all attributes un-accessible
-        self.__status = TrackerStatus.Empty
-        self.__total_time = 0.0
-        self.__time_limit = time_limit
+        self._status = TrackerStatus.Empty
+        self._total_time = 0.0
+        self._time_limit = time_limit
 
-        self.__running_jobs: dict[
+        self._running_jobs: dict[
             str, QiskitRuntimeSamplingJob
         ] = {}  # The key is job id string
-        self.__finished_jobs: dict[
+        self._finished_jobs: dict[
             str, QiskitRuntimeSamplingJob
         ] = {}  # The key is job id string
 
     @property
     def status(self) -> TrackerStatus:
-        return self.__status
+        return self._status
 
     @property
     def total_run_time(self) -> float:
-        return self.__total_time
+        return self._total_time
+
+    @property
+    def available_time_left(self) -> float:
+        return self._time_limit - self._total_time
+
+    @property
+    def finished_jobs(self) -> Sequence["QiskitRuntimeSamplingJob"]:
+        return list(self._finished_jobs.values())
+
+    @property
+    def running_jobs(self) -> Sequence["QiskitRuntimeSamplingJob"]:
+        return list(self._running_jobs.values())
 
     def track(
         self,
@@ -53,36 +64,42 @@ class Tracker:
         jobs_to_be_cancelled: list["QiskitRuntimeSamplingJob"] = []
 
         # Scan through running jobs to see if there are finished ones.
-        for job in self.__running_jobs.values():
+        for job in self._running_jobs.values():
             job_id = job._qiskit_job.job_id()
             metrics = job._qiskit_job.metrics()
             finished = job._qiskit_job.status() == JobStatus.DONE
             if finished:
                 finished_id.append(job_id)
-                self.__finished_jobs[job_id] = job
-                self.__total_time += metrics["usage"]["seconds"]
+                self._finished_jobs[job_id] = job
+                self._total_time += metrics["usage"]["seconds"]
 
         # Remove finished jobs from running_jobs
         for job_id in finished_id:
-            del self.__running_jobs[job_id]
+            del self._running_jobs[job_id]
 
         # Modify tracker status
-        if self.total_run_time > self.__time_limit:
-            self.__status = TrackerStatus.Exceeded
-            jobs_to_be_cancelled.extend(list(self.__running_jobs.values()))
+        if self.total_run_time >= self._time_limit:
+            self._status = TrackerStatus.Exceeded
+            jobs_to_be_cancelled.extend(list(self._running_jobs.values()))
 
-        elif len(self.__running_jobs) == 0 and len(self.__finished_jobs) != 0:
-            self.__status = TrackerStatus.Done
+        else:
+            if len(self._running_jobs) == 0 and len(self._finished_jobs) != 0:
+                self._status = TrackerStatus.Done
+            else:
+                assert (
+                    self._status == TrackerStatus.Running
+                    or self._status == TrackerStatus.Empty
+                )
 
-        return self.__status, jobs_to_be_cancelled
+        return self._status, jobs_to_be_cancelled
 
     def add_job_for_tracking(self, runtime_job: "QiskitRuntimeSamplingJob") -> None:
         assert (
-            runtime_job._qiskit_job.job_id() not in self.__running_jobs
-            and runtime_job._qiskit_job.job_id() not in self.__finished_jobs
+            runtime_job._qiskit_job.job_id() not in self._running_jobs
+            and runtime_job._qiskit_job.job_id() not in self._finished_jobs
         ), "This job is already submitted before."
 
-        if self.__status == TrackerStatus.Done or self.__status == TrackerStatus.Empty:
-            self.__status = TrackerStatus.Running
+        if self._status == TrackerStatus.Done or self._status == TrackerStatus.Empty:
+            self._status = TrackerStatus.Running
 
-        self.__running_jobs[runtime_job._qiskit_job.job_id()] = runtime_job
+        self._running_jobs[runtime_job._qiskit_job.job_id()] = runtime_job
