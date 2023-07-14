@@ -9,7 +9,7 @@
 # limitations under the License.
 
 import warnings
-from dataclasses import dataclass, replace, field
+from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING, Callable, Optional, cast
 
 import numpy as np
