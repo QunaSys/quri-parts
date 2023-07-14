@@ -21,7 +21,9 @@ from quri_parts.qiskit.backend.tracker import Tracker, TrackerStatus
 from .mock.ibm_runtime_service_mock import mock_get_backend
 
 
-def fake_dynamic_run(job_id: str, seconds: float, **kwargs) -> RuntimeJob:  # type: ignore
+def fake_dynamic_run(
+    job_id: str, seconds: float, **kwargs
+) -> RuntimeJob:  # type: ignore
     jjob = MagicMock(spec=RuntimeJob)
 
     jjob._status = JobStatus.RUNNING
