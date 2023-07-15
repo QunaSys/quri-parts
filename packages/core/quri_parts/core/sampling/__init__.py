@@ -26,8 +26,11 @@ MeasurementCounts: TypeAlias = Mapping[int, Union[int, float]]
 Sampler: TypeAlias = Callable[[NonParametricQuantumCircuit, int], MeasurementCounts]
 
 #: IdealSampler represents a function that runs a specified (non-parametric) circuit
-#: on an ideal simulator and returns the measurement probabilities.
-IdealSampler: TypeAlias = Callable[[NonParametricQuantumCircuit], MeasurementCounts]
+#: on an ideal simulator and returns the measurement probabilities. The shot
+#: count is ignored even when passed.
+IdealSampler: TypeAlias = Callable[
+    [NonParametricQuantumCircuit, int], MeasurementCounts
+]
 
 #: ConcurrentSampler represents a function that samples specified (non-parametric)
 #: circuits concurrently.
@@ -43,18 +46,6 @@ def create_sampler_from_sampling_backend(backend: SamplingBackend) -> Sampler:
         circuit: NonParametricQuantumCircuit, n_shots: int
     ) -> MeasurementCounts:
         job = backend.sample(circuit, n_shots)
-        return job.result().counts
-
-    return sampler
-
-
-def create_ideal_sampler_from_ideal_backend(
-    backend: SamplingBackend,
-) -> IdealSampler:
-    """Create a simple :class:`~Sampler` using a :class:`~SamplingBackend`."""
-
-    def sampler(circuit: NonParametricQuantumCircuit) -> MeasurementCounts:
-        job = backend.sample(circuit, n_shots=1)
         return job.result().counts
 
     return sampler

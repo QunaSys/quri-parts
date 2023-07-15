@@ -15,7 +15,6 @@ from quri_parts.circuit import QuantumCircuit
 from quri_parts.core.sampling import (
     MeasurementCounts,
     create_concurrent_sampler_from_sampling_backend,
-    create_ideal_sampler_from_ideal_backend,
     create_sampler_from_sampling_backend,
 )
 
@@ -56,18 +55,6 @@ def test_create_sampler_from_sampling_backend() -> None:
 
     assert sampling_result == counts
     backend.sample.assert_called_with(circuit, 1000)
-
-
-def test_create_ideal_sampler_from_ideal_backend() -> None:
-    probs = {0: 0.1, 1: 0.2, 2: 0.3, 3: 0.4}
-    backend = create_mock_ideal_backend([probs])
-
-    ideal_sampler = create_ideal_sampler_from_ideal_backend(backend)
-    circuit = QuantumCircuit(3)
-    sampling_result = ideal_sampler(circuit)
-
-    assert sampling_result == probs
-    backend.run.assert_called_with(circuit)
 
 
 def test_create_concurrent_sampler_from_sampling_backend() -> None:
