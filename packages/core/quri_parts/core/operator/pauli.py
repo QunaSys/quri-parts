@@ -13,6 +13,7 @@ from abc import abstractmethod
 from collections.abc import Collection, Iterable, Mapping, Sequence, Set
 from enum import IntEnum
 from typing import Optional, Protocol, Union, cast, runtime_checkable
+from weakref import WeakValueDictionary
 
 from typing_extensions import TypeAlias
 
@@ -39,6 +40,8 @@ _pauli_products_map: dict[tuple[int, int], Optional[tuple[int, complex]]] = {
     (SinglePauli.Z, SinglePauli.Y): (SinglePauli.X, -1.0j),
     (SinglePauli.Z, SinglePauli.Z): None,
 }
+
+_pauli_cache = WeakValueDictionary()
 
 
 def pauli_name(p: int) -> str:
@@ -178,6 +181,14 @@ PauliLabel.from_str("X0 Y1 Z2")
     .. _Hashable:
         https://docs.python.org/3/library/collections.abc.html#collections.abc.Hashable
     """
+
+    def __new__(cls, arg: Iterable[tuple[int, int]] = ()) -> "PauliLabel":
+        instance = super().__new__(cls, arg)
+        if instance in _pauli_cache:
+            return _pauli_cache[instance]
+        else:
+            _pauli_cache[instance] = instance
+            return instance
 
     def __str__(self) -> str:
         if self == PAULI_IDENTITY:
