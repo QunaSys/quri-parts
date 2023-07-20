@@ -35,7 +35,7 @@ from quri_parts.qiskit.backend.primitive import (
     QiskitRuntimeSamplingJob,
     QiskitRuntimeSamplingResult,
 )
-from quri_parts.qiskit.backend.tracker import Tracker, TrackerStatus
+from quri_parts.qiskit.backend.tracker import Tracker
 from quri_parts.qiskit.circuit import convert_circuit
 
 from .mock.ibm_runtime_service_mock import mock_get_backend
@@ -598,18 +598,18 @@ class TestQiskitPrimitive:
 
         # Job 1 finished
         job1._qiskit_job._set_status({"new_job_status": JobStatus.DONE})
-        tracker_status, jobs_to_be_cancelled = sampling_backend.tracker.track()
-        assert tracker_status == TrackerStatus.Running
-        assert jobs_to_be_cancelled == []
+        # tracker_status, jobs_to_be_cancelled = sampling_backend.tracker.track()
+        # assert tracker_status == TrackerStatus.Running
+        # assert jobs_to_be_cancelled == []
         assert sampling_backend.tracker.total_run_time == 10.0
         assert sampling_backend.tracker.finished_jobs == [job1]
         assert sampling_backend.tracker.running_jobs == [job2]
 
         # Job 2 finished
         job2._qiskit_job._set_status({"new_job_status": JobStatus.DONE})
-        tracker_status, jobs_to_be_cancelled = sampling_backend.tracker.track()
-        assert tracker_status == TrackerStatus.Done
-        assert jobs_to_be_cancelled == []
+        # tracker_status, jobs_to_be_cancelled = sampling_backend.tracker.track()
+        # assert tracker_status == TrackerStatus.Done
+        # assert jobs_to_be_cancelled == []
         assert sampling_backend.tracker.total_run_time == 20.0
         assert sampling_backend.tracker.finished_jobs == [job1, job2]
         assert sampling_backend.tracker.running_jobs == []

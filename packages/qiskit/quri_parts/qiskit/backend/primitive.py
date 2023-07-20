@@ -171,11 +171,11 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
 
         # Tracker related
         self.tracker: Optional[tracker.Tracker] = None
-        self.__time_limit = 0.0
+        self._time_limit = 0.0
 
         if total_time_limit is not None:
-            self.tracker = tracker.Tracker(total_time_limit)
-            self.__time_limit = total_time_limit
+            self.tracker = tracker.Tracker()
+            self._time_limit = total_time_limit
 
     def close(self) -> None:
         """Close the IBM session.
@@ -208,13 +208,12 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
 
     def _run_tracker(self) -> None:
         assert self.tracker is not None
-        tracker_status, jobs_to_be_cancelled = self.tracker.track()
-        if tracker_status == tracker.TrackerStatus.Exceeded:
-            for job in jobs_to_be_cancelled:
+        if self.tracker.total_run_time >= self._time_limit:
+            for job in self.tracker.running_jobs:
                 job._qiskit_job.cancel()
             raise RuntimeError(
                 "The submission of this job is aborted due to run time limit of "
-                f"{self.__time_limit} seconds is exceeded. Other unfinished jobs "
+                f"{self._time_limit} seconds is exceeded. Other unfinished jobs "
                 "are also aborted."
             )
 

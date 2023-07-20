@@ -16,7 +16,7 @@ import pytest
 from qiskit_ibm_runtime.runtime_job import JobStatus, RuntimeJob
 
 from quri_parts.qiskit.backend.primitive import QiskitRuntimeSamplingJob
-from quri_parts.qiskit.backend.tracker import Tracker, TrackerStatus
+from quri_parts.qiskit.backend.tracker import Tracker
 
 from .mock.ibm_runtime_service_mock import mock_get_backend
 
@@ -53,8 +53,7 @@ def test_add_job_for_tracking() -> None:
     runtime_service = mock_get_backend("FakeVigo")
     service = runtime_service()
 
-    tracker = Tracker(100.0)
-    assert tracker.status == TrackerStatus.Empty
+    tracker = Tracker()
     assert tracker.finished_jobs == []
     assert tracker.running_jobs == []
 
@@ -62,7 +61,6 @@ def test_add_job_for_tracking() -> None:
     service.run = partial(fake_dynamic_run, "aaa", 10)
     job1 = QiskitRuntimeSamplingJob(qiskit_job=service.run())
     tracker.add_job_for_tracking(job1)
-    assert tracker.status == TrackerStatus.Running  # type: ignore
     assert tracker.finished_jobs == []
     assert tracker.running_jobs == [job1]
 
@@ -70,7 +68,6 @@ def test_add_job_for_tracking() -> None:
     service.run = partial(fake_dynamic_run, "bbb", 10)
     job2 = QiskitRuntimeSamplingJob(qiskit_job=service.run())
     tracker.add_job_for_tracking(job2)
-    assert tracker.status == TrackerStatus.Running
     assert tracker.finished_jobs == []
     assert tracker.running_jobs == [job1, job2]
 
@@ -82,25 +79,22 @@ def test_add_job_for_tracking() -> None:
     assert tracker.running_jobs == [job1, job2]
 
     # Register new job after all jobs are done without exceeding time limit.
-    tracker._status = TrackerStatus.Done
     tracker._finished_jobs = {"aaa": job1, "bbb": job2}
     tracker._running_jobs = {}
-    assert tracker.status == TrackerStatus.Done
 
     service.run = partial(fake_dynamic_run, "ccc", 10)
     job3 = QiskitRuntimeSamplingJob(qiskit_job=service.run())
     tracker.add_job_for_tracking(job3)
-    assert tracker.status == TrackerStatus.Running
+
     assert tracker.finished_jobs == [job1, job2]
     assert tracker.running_jobs == [job3]
 
 
-def test_track() -> None:
+def test_total_run_time() -> None:
     runtime_service = mock_get_backend("FakeVigo")
     service = runtime_service()
 
-    tracker = Tracker(100.0)
-    assert tracker.status == TrackerStatus.Empty
+    tracker = Tracker()
 
     service.run = partial(fake_dynamic_run, "aaa", 10)
     job1 = QiskitRuntimeSamplingJob(qiskit_job=service.run())
@@ -118,23 +112,15 @@ def test_track() -> None:
     tracker._running_jobs["bbb"] = job2
     tracker._running_jobs["ccc"] = job3
     tracker._running_jobs["ddd"] = job4
-    tracker._status = TrackerStatus.Running
 
     assert tracker.total_run_time == 0
 
     # Backend finishes Job 1 execution
     job1._qiskit_job._set_status({"new job status": JobStatus.DONE})
-
-    tracker_status, jobs_to_be_cancelled = tracker.track()
-    assert tracker_status == TrackerStatus.Running
-    assert jobs_to_be_cancelled == []
     assert tracker.total_run_time == 10.0
     assert tracker.running_jobs == [job2, job3, job4]
     assert tracker.finished_jobs == [job1]
 
-    tracker_status, jobs_to_be_cancelled = tracker.track()
-    assert tracker_status == TrackerStatus.Running
-    assert jobs_to_be_cancelled == []
     assert tracker.total_run_time == 10.0
     assert tracker.running_jobs == [job2, job3, job4]
     assert tracker.finished_jobs == [job1]
@@ -142,16 +128,10 @@ def test_track() -> None:
     # Backend finishes Job 2 execution
     job2._qiskit_job._set_status({"new job status": JobStatus.DONE})
 
-    tracker_status, jobs_to_be_cancelled = tracker.track()
-    assert tracker_status == TrackerStatus.Running
-    assert jobs_to_be_cancelled == []
     assert tracker.total_run_time == 60.0
     assert tracker.running_jobs == [job3, job4]
     assert tracker.finished_jobs == [job1, job2]
 
-    tracker_status, jobs_to_be_cancelled = tracker.track()
-    assert tracker_status == TrackerStatus.Running
-    assert jobs_to_be_cancelled == []
     assert tracker.total_run_time == 60.0
     assert tracker.running_jobs == [job3, job4]
     assert tracker.finished_jobs == [job1, job2]
@@ -159,9 +139,6 @@ def test_track() -> None:
     # Backend finishes Job 3 execution
     job3._qiskit_job._set_status({"new job status": JobStatus.DONE})
 
-    tracker_status, jobs_to_be_cancelled = tracker.track()
-    assert tracker_status == TrackerStatus.Exceeded
-    assert jobs_to_be_cancelled == [job4]
     assert tracker.total_run_time == 140.0
     assert tracker.running_jobs == [job4]
     assert tracker.finished_jobs == [job1, job2, job3]
