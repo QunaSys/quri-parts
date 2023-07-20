@@ -34,10 +34,12 @@ class Tracker:
 
     @property
     def finished_jobs(self) -> Sequence["QiskitRuntimeSamplingJob"]:
+        self._track()
         return list(self._finished_jobs.values())
 
     @property
     def running_jobs(self) -> Sequence["QiskitRuntimeSamplingJob"]:
+        self._track()
         return list(self._running_jobs.values())
 
     def _track(self) -> None:

@@ -121,16 +121,8 @@ def test_total_run_time() -> None:
     assert tracker.running_jobs == [job2, job3, job4]
     assert tracker.finished_jobs == [job1]
 
-    assert tracker.total_run_time == 10.0
-    assert tracker.running_jobs == [job2, job3, job4]
-    assert tracker.finished_jobs == [job1]
-
     # Backend finishes Job 2 execution
     job2._qiskit_job._set_status({"new job status": JobStatus.DONE})
-
-    assert tracker.total_run_time == 60.0
-    assert tracker.running_jobs == [job3, job4]
-    assert tracker.finished_jobs == [job1, job2]
 
     assert tracker.total_run_time == 60.0
     assert tracker.running_jobs == [job3, job4]
