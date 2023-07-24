@@ -120,7 +120,13 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         save_data_while_sampling: If True, the circuit, n_shots and the
             sampling counts will be saved. Please use the `.jobs` or `.jobs_json`
             to access the saved data.
-    """
+        total_time_limit: The total time limit the jobs submitted by this backend
+            can use.
+
+            - A :class:`~Tracker` is created when the time limit is set. The tracker can be accessed by the .tracker attribute.
+
+            - If the job execution time exceeds the time limit, new call to the :meth:`~sample` will be rejected and all current running jobs will be cancelled.
+    """ # noqa:
 
     def __init__(
         self,

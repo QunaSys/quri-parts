@@ -17,6 +17,9 @@ if TYPE_CHECKING:
 
 
 class Tracker:
+    """A tracker that tracks how much billable time is used by jobs executed on
+    IBM Backends."""
+
     def __init__(self) -> None:
         self._total_time = 0.0
 
@@ -29,16 +32,19 @@ class Tracker:
 
     @property
     def total_run_time(self) -> float:
+        """The total run time that is billable."""
         self._track()
         return self._total_time
 
     @property
     def finished_jobs(self) -> Sequence["QiskitRuntimeSamplingJob"]:
+        """All the jobs that are finished by the IBM backend."""
         self._track()
         return list(self._finished_jobs.values())
 
     @property
     def running_jobs(self) -> Sequence["QiskitRuntimeSamplingJob"]:
+        """All the jobs that are still runnign on the IBM backend."""
         self._track()
         return list(self._running_jobs.values())
 
@@ -59,6 +65,8 @@ class Tracker:
             del self._running_jobs[job_id]
 
     def add_job_for_tracking(self, runtime_job: "QiskitRuntimeSamplingJob") -> None:
+        """Register :class:`~QiskitRuntimeSamplingJob` to the tracker for
+        tracking billable job execution time."""
         assert (
             runtime_job._qiskit_job.job_id() not in self._running_jobs
             and runtime_job._qiskit_job.job_id() not in self._finished_jobs
