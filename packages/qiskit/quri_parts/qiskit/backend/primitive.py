@@ -126,7 +126,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             - A :class:`~Tracker` is created when the time limit is set. The tracker can be accessed by the .tracker attribute.
 
             - If the job execution time exceeds the time limit, new call to the :meth:`~sample` will be rejected and all current running jobs will be cancelled.
-    """ # noqa:
+    """  # noqa:
 
     def __init__(
         self,
