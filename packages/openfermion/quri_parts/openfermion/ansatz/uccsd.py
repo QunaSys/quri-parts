@@ -48,10 +48,10 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
             transition amplitude.
 
             - For single excitations, parameter named s_i_a denotes the excitation
-                is from occupied spatial orbital i to virtial spatial orbital a.
+                from occupied spatial orbital i to virtual spatial orbital a.
 
             - For double excitations, parameter named d_i_j_a_b denotes the excitation
-                is from occupied spin orbital (i, ↑), (j, ↓) to virtual spin orbitals
+                from occupied spin orbital (i, ↑), (j, ↓) to virtual spin orbitals
                 (a, ↑), (b, ↓).
 
     Note:
@@ -62,7 +62,7 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
                 :math:`c_{a↑}^† c_{i↑}` and :math:`c_{a↓}^† c_{i↓}` share the same transition amplitude :math:`t_i^a`,
                 thus sharing the same circuit parameter s_i_a.
             - For mixed spin double excitation:
-                - :math:`c_{a↑}^† c_{b↓}^† c_{j↓} c_{i↑}` and :math:`c_{a↑}^† c_{b↓}^† c_{j↓} c_{i↑}` share the same excitaion amplitude :math:`t_{i↑, j↓}^{a↑, b↓}`,
+                - :math:`c_{a↑}^† c_{b↓}^† c_{j↓} c_{i↑}` and :math:`c_{a↓}^† c_{b↑}^† c_{j↑} c_{i↓}` share the same excitaion amplitude :math:`t_{i↑, j↓}^{a↑, b↓}`,
                 thus sharing the same circuit parameter d_i_j_a_b.
 
                 - All the circuit parameters for double excitation are fixed by
@@ -77,7 +77,7 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
 
             - Single excitations amount for :math:`n_o n_v` parameters.
 
-            - Double excitations amount for :math:`n_o n_v + n_o n_v (n_o n_v - 1)/2` parameters.
+            - Double excitations amount for :math:`n_o n_v (n_o n_v + 1)/2` parameters.
     """  # noqa: E501
 
     def __init__(
