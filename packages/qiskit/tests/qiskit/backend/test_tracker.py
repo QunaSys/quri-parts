@@ -15,13 +15,17 @@ from unittest.mock import MagicMock
 import pytest
 from qiskit_ibm_runtime.runtime_job import JobStatus, RuntimeJob
 
-from quri_parts.qiskit.backend.primitive import QiskitRuntimeSamplingJob
+from quri_parts.circuit import QuantumCircuit
+from quri_parts.qiskit.backend.primitive import (
+    QiskitRuntimeSamplingBackend,
+    QiskitRuntimeSamplingJob,
+)
 from quri_parts.qiskit.backend.tracker import Tracker
 
 from .mock.ibm_runtime_service_mock import mock_get_backend
 
 
-def fake_dynamic_run(job_id: str, seconds: float) -> RuntimeJob:
+def fake_dynamic_run(job_id: str, seconds: float, **kwargs: Any) -> RuntimeJob:
     jjob = MagicMock(spec=RuntimeJob)
 
     jjob._status = JobStatus.RUNNING
@@ -134,3 +138,34 @@ def test_total_run_time() -> None:
     assert tracker.total_run_time == 140.0
     assert tracker.running_jobs == [job4]
     assert tracker.finished_jobs == [job1, job2, job3]
+
+
+def test_tracker_response_during_sampling() -> None:
+    runtime_service = mock_get_backend("FakeVigo")
+    service = runtime_service()
+    backend = service.backend()
+    sampling_backend = QiskitRuntimeSamplingBackend(
+        backend=backend, service=service, total_time_limit=5000
+    )
+    assert isinstance(sampling_backend.tracker, Tracker)
+
+    service.run = partial(fake_dynamic_run, "aaa", 10)
+    job1 = sampling_backend.sample(QuantumCircuit(2), 100)
+    assert isinstance(job1, QiskitRuntimeSamplingJob)
+    service.run = partial(fake_dynamic_run, "bbb", 10)
+    job2 = sampling_backend.sample(QuantumCircuit(2), 100)
+    assert isinstance(job2, QiskitRuntimeSamplingJob)
+
+    assert sampling_backend.tracker.total_run_time == 0
+
+    # Job 1 finished
+    job1._qiskit_job._set_status({"new_job_status": JobStatus.DONE})
+    assert sampling_backend.tracker.total_run_time == 10.0
+    assert sampling_backend.tracker.finished_jobs == [job1]
+    assert sampling_backend.tracker.running_jobs == [job2]
+
+    # Job 2 finished
+    job2._qiskit_job._set_status({"new_job_status": JobStatus.DONE})
+    assert sampling_backend.tracker.total_run_time == 20.0
+    assert sampling_backend.tracker.finished_jobs == [job1, job2]
+    assert sampling_backend.tracker.running_jobs == []

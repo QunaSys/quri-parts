@@ -35,7 +35,6 @@ from quri_parts.qiskit.backend.primitive import (
     QiskitRuntimeSamplingJob,
     QiskitRuntimeSamplingResult,
 )
-from quri_parts.qiskit.backend.tracker import Tracker
 from quri_parts.qiskit.circuit import convert_circuit
 
 from .mock.ibm_runtime_service_mock import mock_get_backend
@@ -578,38 +577,3 @@ class TestQiskitPrimitive:
             sampling_backend.sample(QuantumCircuit(2), 100)
 
         assert job2._qiskit_job.status() == JobStatus.CANCELLED
-
-    def test_tracker_response_during_sampling(self) -> None:
-        runtime_service = mock_get_backend("FakeVigo")
-        service = runtime_service()
-        service.run = fake_dynamic_run
-        backend = service.backend()
-        sampling_backend = QiskitRuntimeSamplingBackend(
-            backend=backend, service=service, total_time_limit=5000
-        )
-        assert isinstance(sampling_backend.tracker, Tracker)
-
-        job1 = sampling_backend.sample(QuantumCircuit(2), 100)
-        assert isinstance(job1, QiskitRuntimeSamplingJob)
-        job2 = sampling_backend.sample(QuantumCircuit(2), 100)
-        assert isinstance(job2, QiskitRuntimeSamplingJob)
-
-        assert sampling_backend.tracker.total_run_time == 0
-
-        # Job 1 finished
-        job1._qiskit_job._set_status({"new_job_status": JobStatus.DONE})
-        # tracker_status, jobs_to_be_cancelled = sampling_backend.tracker.track()
-        # assert tracker_status == TrackerStatus.Running
-        # assert jobs_to_be_cancelled == []
-        assert sampling_backend.tracker.total_run_time == 10.0
-        assert sampling_backend.tracker.finished_jobs == [job1]
-        assert sampling_backend.tracker.running_jobs == [job2]
-
-        # Job 2 finished
-        job2._qiskit_job._set_status({"new_job_status": JobStatus.DONE})
-        # tracker_status, jobs_to_be_cancelled = sampling_backend.tracker.track()
-        # assert tracker_status == TrackerStatus.Done
-        # assert jobs_to_be_cancelled == []
-        assert sampling_backend.tracker.total_run_time == 20.0
-        assert sampling_backend.tracker.finished_jobs == [job1, job2]
-        assert sampling_backend.tracker.running_jobs == []
