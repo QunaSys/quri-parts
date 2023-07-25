@@ -62,173 +62,119 @@ class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
         delta_sz: int = 0,
         singlet_excitation: bool = False,
     ):
-        s_excs = _generalized_single_excitations(n_spin_orbitals, delta_sz)
-        d_excs = _generalized_pair_double_excitations(n_spin_orbitals)
-
         n_qubits = fermion_qubit_mapping.n_qubits_required(n_spin_orbitals)
-        circuit = LinearMappedUnboundParametricQuantumCircuit(n_qubits)
-
         op_mapper = fermion_qubit_mapping.get_of_operator_mapper(
             n_spin_orbitals, n_fermions
         )
+        circuit = LinearMappedUnboundParametricQuantumCircuit(n_qubits)
 
-        if not singlet_excitation:
-            _construct_circuit(circuit, s_excs, d_excs, k, trotter_number, op_mapper)
-        else:
-            assert delta_sz == 0, ValueError(
-                "delta_sz should be 0 when singlet_excitation is True"
-            )
-            _construct_singlet_excitation_circuit(
-                circuit, s_excs, d_excs, k, trotter_number, op_mapper
-            )
+        _construct_circuit(
+            circuit=circuit,
+            n_spin_orb=n_spin_orbitals,
+            delta_sz=delta_sz,
+            k=k,
+            singlet_excitation=singlet_excitation,
+            trotter_number=trotter_number,
+            op_mapper=op_mapper,
+        )
 
         super().__init__(circuit)
 
 
 def _construct_circuit(
     circuit: LinearMappedUnboundParametricQuantumCircuit,
-    s_excs: Sequence[SingleExcitation],
-    d_excs: Sequence[DoubleExcitation],
+    n_spin_orb: int,
+    delta_sz: int,
     k: int,
+    singlet_excitation: bool,
     trotter_number: int,
     op_mapper: OpenFermionQubitOperatorMapper,
 ) -> None:
-    for x in range(k):
-        (
-            independent_s_exc,
-            independent_s_exc_name,
-            independent_d_exc,
-            independent_d_exc_name,
-        ) = get_independent_excitations(s_excs, d_excs, x)
-
-        independent_s_exc_params = [
-            circuit.add_parameter(name) for name in independent_s_exc_name
-        ]
-        independent_d_exc_params = [
-            circuit.add_parameter(name) for name in independent_d_exc_name
-        ]
-
-        for _ in range(trotter_number):
-            add_exp_excitation_gates_trotter_decomposition(
-                circuit,
-                independent_s_exc,
-                independent_s_exc_params,
-                op_mapper,
-                1 / trotter_number,
-            )
-            add_exp_excitation_gates_trotter_decomposition(
-                circuit,
-                independent_d_exc,
-                independent_d_exc_params,
-                op_mapper,
-                1 / trotter_number,
-            )
-
-
-def _construct_singlet_excitation_circuit(
-    circuit: LinearMappedUnboundParametricQuantumCircuit,
-    s_excs: Sequence[SingleExcitation],
-    d_excs: Sequence[DoubleExcitation],
-    k: int,
-    trotter_number: int,
-    op_mapper: OpenFermionQubitOperatorMapper,
-) -> None:
-    for x in range(k):
-        (
-            independent_s_exc,
-            _,
-            independent_d_exc,
-            independent_d_exc_name,
-        ) = get_independent_excitations(s_excs, d_excs, x)
-
-        spin_symmetric_names_recorder: dict[str, Parameter] = {}
-        independent_s_exc_params = []
-        for s_exc in independent_s_exc:
-            start, end = s_exc
-            param_name = f"spatialt1_{x}_{end//2}_{start//2}"
-            if param_name not in spin_symmetric_names_recorder:
-                param = circuit.add_parameter(param_name)
-                spin_symmetric_names_recorder[param_name] = param
-            independent_s_exc_params.append(spin_symmetric_names_recorder[param_name])
-
-        independent_d_exc_params = [
-            circuit.add_parameter(name) for name in independent_d_exc_name
-        ]
-
-        for _ in range(trotter_number):
-            add_exp_excitation_gates_trotter_decomposition(
-                circuit,
-                independent_s_exc,
-                independent_s_exc_params,
-                op_mapper,
-                1 / trotter_number,
-            )
-            add_exp_excitation_gates_trotter_decomposition(
-                circuit,
-                independent_d_exc,
-                independent_d_exc_params,
-                op_mapper,
-                1 / trotter_number,
-            )
-
-
-def get_independent_excitations(
-    s_excs: Sequence[SingleExcitation], d_excs: Sequence[DoubleExcitation], x: int
-) -> tuple[list[SingleExcitation], list[str], list[DoubleExcitation], list[str]]:
-    """Returns the independent excitation list and their correponding circuit
-    parameter names.
-
-    For single excitation operators, c_p^† c_q and c_p^† c_q share the same circuit
-    parameter, so only c_p^† c_q will be included.
-
-    For double excitation operators, c_p^† c_q^† c_r c_s and c_s^† c_r^† c_q c_p
-    share the same circuit parameter, so only c_p^† c_q^† c_r c_s will be included.
-    """
-    independent_s_exc = []
-    independent_s_exc_name = []
-
-    for s_exc in s_excs:
-        p, q = s_exc
-        if (q, p) in independent_s_exc:
-            # if p^ q is in s_excs, q^ p is also in s_exc.
-            continue
-        independent_s_exc.append(s_exc)
-        independent_s_exc_name.append(f"t1_{x}_{q}_{p}")
-
-    independent_d_exc = []
-    independent_d_exc_name = []
-
-    for d_exc in d_excs:
-        p, q, r, s = d_exc
-        if (r, s, p, q) in independent_d_exc:
-            # if q^ p^ s r is in d_excs, s^ r^ q p is also in d_excs.
-            continue
-        independent_d_exc.append(d_exc)
-        independent_d_exc_name.append(f"t2_{x}_{s}_{r}_{q}_{p}")
-
-    return (
+    (
         independent_s_exc,
         independent_s_exc_name,
+    ) = _generalized_single_excitations(n_spin_orb, delta_sz, singlet_excitation, k)
+
+    (
         independent_d_exc,
         independent_d_exc_name,
-    )
+    ) = _generalized_pair_double_excitations(n_spin_orb, k)
+
+    for x in range(k):
+        if singlet_excitation:
+            spin_symmetric_names_recorder: dict[str, Parameter] = {}
+            independent_s_exc_params = []
+
+            for s_exc_name in independent_s_exc_name[x]:
+                if s_exc_name in spin_symmetric_names_recorder:
+                    param = spin_symmetric_names_recorder[s_exc_name]
+                else:
+                    param = circuit.add_parameter(s_exc_name)
+                    spin_symmetric_names_recorder[s_exc_name] = param
+                independent_s_exc_params.append(param)
+
+        else:
+            independent_s_exc_params = [
+                circuit.add_parameter(name) for name in independent_s_exc_name[x]
+            ]
+        independent_d_exc_params = [
+            circuit.add_parameter(name) for name in independent_d_exc_name[x]
+        ]
+
+        for _ in range(trotter_number):
+            add_exp_excitation_gates_trotter_decomposition(
+                circuit,
+                independent_s_exc,
+                independent_s_exc_params,
+                op_mapper,
+                1 / trotter_number,
+            )
+            add_exp_excitation_gates_trotter_decomposition(
+                circuit,
+                independent_d_exc,
+                independent_d_exc_params,
+                op_mapper,
+                1 / trotter_number,
+            )
 
 
 def _generalized_single_excitations(
-    n_spin_orbitals: int, delta_sz: int
-) -> Sequence[SingleExcitation]:
+    n_spin_orbitals: int,
+    delta_sz: int,
+    singlet_excitation: bool,
+    k: int,
+) -> tuple[Sequence[SingleExcitation], list[list[str]]]:
+    if singlet_excitation:
+        assert delta_sz == 0, "delta_sz can only be 0 when singlet_excitation is True."
+
     sz = [0.5 - (i % 2) for i in range(n_spin_orbitals)]
     s_excitations = []
     for r in range(n_spin_orbitals):
         for p in range(n_spin_orbitals):
             if sz[p] - sz[r] == delta_sz and p != r:
                 s_excitations.append((r, p))
-    return s_excitations
+
+    independent_s_exc = []
+    independent_s_exc_name: list[list[str]] = [[] for _ in range(k)]
+
+    for s_exc in s_excitations:
+        p, q = s_exc
+        if (q, p) in independent_s_exc:
+            # if p^ q is in s_excs, q^ p is also in s_exc.
+            continue
+        independent_s_exc.append(s_exc)
+        for x in range(k):
+            if singlet_excitation:
+                independent_s_exc_name[x].append(f"spatialt1_{x}_{q//2}_{p//2}")
+            else:
+                independent_s_exc_name[x].append(f"t1_{x}_{q}_{p}")
+
+    return independent_s_exc, independent_s_exc_name
 
 
 def _generalized_pair_double_excitations(
-    n_spin_orbitals: int,
-) -> Sequence[DoubleExcitation]:
+    n_spin_orbitals: int, k: int
+) -> tuple[Sequence[DoubleExcitation], list[list[str]]]:
     """FermionOperator([(r, 0), (r + 1, 0), (p, 1), (p + 1, 1)])"""
     double_excitations = [
         (r, r + 1, p, p + 1)
@@ -236,4 +182,17 @@ def _generalized_pair_double_excitations(
         for p in range(0, n_spin_orbitals - 1, 2)
         if p != r
     ]
-    return double_excitations
+
+    independent_d_exc = []
+    independent_d_exc_name: list[list[str]] = [[] for _ in range(k)]
+
+    for d_exc in double_excitations:
+        p, q, r, s = d_exc
+        if (r, s, p, q) in independent_d_exc:
+            # if q^ p^ s r is in d_excs, s^ r^ q p is also in d_excs.
+            continue
+        independent_d_exc.append(d_exc)
+        for x in range(k):
+            independent_d_exc_name[x].append(f"t2_{x}_{s}_{r}_{q}_{p}")
+
+    return independent_d_exc, independent_d_exc_name
