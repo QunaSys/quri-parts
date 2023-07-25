@@ -13,7 +13,7 @@ from quri_parts.core.circuit import add_parametric_commuting_paulis_exp_gate
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
 
 
-def test_add_parametric_commuting_paulis_exp_gate():
+def test_add_parametric_commuting_paulis_exp_gate() -> None:
     qp_operator = Operator({PAULI_IDENTITY: 0.5, pauli_label("Z1"): -0.5})
 
     circuit = LinearMappedUnboundParametricQuantumCircuit(2)
