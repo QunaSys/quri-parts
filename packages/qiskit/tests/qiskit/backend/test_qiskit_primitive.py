@@ -30,6 +30,7 @@ from quri_parts.qiskit.backend import (
     QiskitRuntimeSamplingBackend,
     QiskitRuntimeSavedDataSamplingResult,
     QiskitSavedDataSamplingJob,
+    Tracker,
 )
 from quri_parts.qiskit.backend.primitive import (
     QiskitRuntimeSamplingJob,
@@ -577,3 +578,19 @@ class TestQiskitPrimitive:
             sampling_backend.sample(QuantumCircuit(2), 100)
 
         assert job2._qiskit_job.status() == JobStatus.CANCELLED
+
+    def test_job_registered_to_tracker(self) -> None:
+        runtime_service = mock_get_backend("FakeVigo")
+        service = runtime_service()
+        service.run = fake_dynamic_run
+        backend = service.backend()
+        sampling_backend = QiskitRuntimeSamplingBackend(
+            backend=backend, service=service, total_time_limit=5000
+        )
+        assert isinstance(sampling_backend.tracker, Tracker)
+
+        job1 = sampling_backend.sample(QuantumCircuit(2), 100)
+        assert sampling_backend.tracker.running_jobs == [job1]
+
+        job2 = sampling_backend.sample(QuantumCircuit(2), 100)
+        assert sampling_backend.tracker.running_jobs == [job1, job2]
