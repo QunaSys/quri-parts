@@ -22,7 +22,7 @@ from quri_parts.openfermion.utils.add_exp_excitation_gates_trotter_decomposition
 )
 
 
-class TestCreateOperator:
+class TestCreateAntiHermitianSdExcitationOperator:
     def test_single_excitation_jw(self) -> None:
         jw_mapper = jordan_wigner.get_of_operator_mapper()
 
@@ -324,6 +324,10 @@ class TestAddExpExcitationGatesTrotterDecomposition:
 
 
 class TestAddExpPauliGatesFromLinearMappedFunctions:
+    """Tests if the `add_parametric_commuting_paulis_exp_gate` function adds
+    the operator created by `create_anti_hermitian_sd_excitation_operator` to
+    the circuit properly."""
+
     def test_jw(self) -> None:
         n_spin_orbitals = 6
         jw_mapper = jordan_wigner.get_of_operator_mapper()

@@ -65,10 +65,7 @@ def test_parameter_4_2() -> None:
     ) = singlet_excitation_parameters(2 * (n_occ + n_vir), n_occ * 2)
 
     assert len(s_sz_symmetric_set) == n_occ * n_vir
-    assert (
-        len(d_sz_symmetric_set)
-        == n_occ * n_vir + (n_occ * n_vir) * (n_occ * n_vir - 1) / 2
-    )
+    assert len(d_sz_symmetric_set) == (n_occ * n_vir) * (n_occ * n_vir + 1) / 2
     single_excitation_checks(s_sz_symmetric_set, s_exc_param_fn_map)
     double_excitation_checks(d_sz_symmetric_set, d_exc_param_fn_map)
 
@@ -87,10 +84,7 @@ def test_parameter_8_4() -> None:
     ) = singlet_excitation_parameters(2 * (n_occ + n_vir), n_occ * 2)
 
     assert len(s_sz_symmetric_set) == n_occ * n_vir
-    assert (
-        len(d_sz_symmetric_set)
-        == n_occ * n_vir + (n_occ * n_vir) * (n_occ * n_vir - 1) / 2
-    )
+    assert len(d_sz_symmetric_set) == (n_occ * n_vir) * (n_occ * n_vir + 1) / 2
     single_excitation_checks(s_sz_symmetric_set, s_exc_param_fn_map)
     double_excitation_checks(d_sz_symmetric_set, d_exc_param_fn_map)
 
@@ -109,9 +103,6 @@ def test_parameter_12_6() -> None:
     ) = singlet_excitation_parameters(2 * (n_occ + n_vir), n_occ * 2)
 
     assert len(s_sz_symmetric_set) == n_occ * n_vir
-    assert (
-        len(d_sz_symmetric_set)
-        == n_occ * n_vir + (n_occ * n_vir) * (n_occ * n_vir - 1) / 2
-    )
+    assert len(d_sz_symmetric_set) == (n_occ * n_vir) * (n_occ * n_vir + 1) / 2
     single_excitation_checks(s_sz_symmetric_set, s_exc_param_fn_map)
     double_excitation_checks(d_sz_symmetric_set, d_exc_param_fn_map)
