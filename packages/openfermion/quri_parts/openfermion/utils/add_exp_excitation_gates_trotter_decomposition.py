@@ -47,7 +47,7 @@ def create_anti_hermitian_sd_excitation_operator(
     excitation_indices: Union[SingleExcitation, DoubleExcitation],
     operator_mapper: OpenFermionQubitOperatorMapper,
 ) -> Operator:
-    """Create an anti-hermitian :class:`~quri_parts.core.operator.Operator`
+    r"""Create an anti-hermitian :class:`~quri_parts.core.operator.Operator`
     according to the assigned index.
 
     - If there are 2 excitation indices (i, a), it creates the
@@ -58,7 +58,7 @@ def create_anti_hermitian_sd_excitation_operator(
       :class:`~quri_parts.core.operator.Operator` for
       :math:`c_a^{\dagger} c_b^{\dagger} c_j c_i
         - c_i^{\dagger}c_j^{\dagger} c_b c_a`.
-    """  # noqa:
+    """
     op = FermionOperator()
     if len(excitation_indices) == 2:
         op += FermionOperator(
