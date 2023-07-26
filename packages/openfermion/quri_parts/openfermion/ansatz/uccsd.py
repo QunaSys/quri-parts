@@ -183,7 +183,7 @@ def _construct_singlet_excitation_circuit(
         s_exc_param_fn_map,
         d_params,
         d_exc_param_fn_map,
-    ) = singlet_excitation_parameters(n_spin_orbitals, n_fermions)
+    ) = _singlet_excitation_parameters(n_spin_orbitals, n_fermions)
 
     added_parameter_map = {}
 
@@ -221,7 +221,7 @@ def _construct_singlet_excitation_circuit(
     return circuit
 
 
-def singlet_excitation_parameters(
+def _singlet_excitation_parameters(
     n_spin_orbitals: int, n_fermions: int
 ) -> tuple[
     list[str],
