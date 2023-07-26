@@ -165,9 +165,9 @@ def _generalized_single_excitations(
         independent_s_exc.append(s_exc)
         for x in range(k):
             if singlet_excitation:
-                independent_s_exc_name[x].append(f"spatialt1_{x}_{q//2}_{p//2}")
+                independent_s_exc_name[x].append(f"spatialt1_{x}_{p//2}_{q//2}")
             else:
-                independent_s_exc_name[x].append(f"t1_{x}_{q}_{p}")
+                independent_s_exc_name[x].append(f"t1_{x}_{p}_{q}")
 
     return independent_s_exc, independent_s_exc_name
 
@@ -193,6 +193,6 @@ def _generalized_pair_double_excitations(
             continue
         independent_d_exc.append(d_exc)
         for x in range(k):
-            independent_d_exc_name[x].append(f"t2_{x}_{s}_{r}_{q}_{p}")
+            independent_d_exc_name[x].append(f"t2_{x}_{p}_{q}_{r}_{s}")
 
     return independent_d_exc, independent_d_exc_name
