@@ -11,7 +11,7 @@
 import pytest
 
 from quri_parts.circuit import LinearMappedUnboundParametricQuantumCircuit
-from quri_parts.openfermion.ansatz.kupccgsd import (  # noqa: F401
+from quri_parts.openfermion.ansatz.kupccgsd import (
     KUpCCGSD,
     _generalized_pair_double_excitations,
     _generalized_single_excitations,
