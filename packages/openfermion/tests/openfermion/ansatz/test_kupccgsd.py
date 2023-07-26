@@ -8,6 +8,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 from quri_parts.circuit import LinearMappedUnboundParametricQuantumCircuit
 from quri_parts.openfermion.ansatz.kupccgsd import (  # noqa: F401
     KUpCCGSD,
@@ -16,58 +18,173 @@ from quri_parts.openfermion.ansatz.kupccgsd import (  # noqa: F401
 )
 from quri_parts.openfermion.transforms import symmetry_conserving_bravyi_kitaev
 
-# def test_generalized_single_excitations() -> None:
-#     n_spin_orbitals = 4
-#     s_excs, _ = _generalized_single_excitations(n_spin_orbitals, 0, False, 1)
-#     assert s_excs == [(0, 2), (1, 3), (2, 0), (3, 1)]
-#     s_excs, _ = _generalized_single_excitations(n_spin_orbitals, 1, False, 1)
-#     assert s_excs == [(1, 0), (1, 2), (3, 0), (3, 2)]
 
-#     n_spin_orbitals = 6
-#     s_excs, _ = _generalized_single_excitations(n_spin_orbitals, 0, False, 1)
-#     assert s_excs == [
-#         (0, 2),
-#         (0, 4),
-#         (1, 3),
-#         (1, 5),
-#         (2, 0),
-#         (2, 4),
-#         (3, 1),
-#         (3, 5),
-#         (4, 0),
-#         (4, 2),
-#         (5, 1),
-#         (5, 3),
-#     ]
-#     s_excs, _ = _generalized_single_excitations(n_spin_orbitals, -1, False, 1)
-#     assert s_excs == [
-#         (0, 1),
-#         (0, 3),
-#         (0, 5),
-#         (2, 1),
-#         (2, 3),
-#         (2, 5),
-#         (4, 1),
-#         (4, 3),
-#         (4, 5),
-#     ]
+def test_generalized_single_excitations() -> None:
+    n_spin_orbitals = 4
+
+    s_excs, s_names = _generalized_single_excitations(
+        n_spin_orbitals, delta_sz=0, singlet_excitation=False, k=1
+    )
+    assert s_excs == [(0, 2), (1, 3)]
+    assert s_names == [["t1_0_2_0", "t1_0_3_1"]]
+
+    s_excs, s_names = _generalized_single_excitations(
+        n_spin_orbitals, delta_sz=0, singlet_excitation=False, k=2
+    )
+    assert s_excs == [(0, 2), (1, 3)]
+    assert s_names == [["t1_0_2_0", "t1_0_3_1"], ["t1_1_2_0", "t1_1_3_1"]]
+
+    s_excs, s_names = _generalized_single_excitations(
+        n_spin_orbitals, delta_sz=0, singlet_excitation=True, k=1
+    )
+    assert s_excs == [(0, 2), (1, 3)]
+    assert s_names == [["spatialt1_0_1_0", "spatialt1_0_1_0"]]
+
+    s_excs, s_names = _generalized_single_excitations(
+        n_spin_orbitals, delta_sz=1, singlet_excitation=False, k=1
+    )
+    assert s_excs == [(1, 0), (1, 2), (3, 0), (3, 2)]
+    assert s_names == [["t1_0_0_1", "t1_0_2_1", "t1_0_0_3", "t1_0_2_3"]]
+
+    s_excs, s_names = _generalized_single_excitations(n_spin_orbitals, 1, False, 2)
+    assert s_excs == [(1, 0), (1, 2), (3, 0), (3, 2)]
+    assert s_names == [
+        ["t1_0_0_1", "t1_0_2_1", "t1_0_0_3", "t1_0_2_3"],
+        ["t1_1_0_1", "t1_1_2_1", "t1_1_0_3", "t1_1_2_3"],
+    ]
+
+    with pytest.raises(
+        AssertionError, match="delta_sz can only be 0 when singlet_excitation is True."
+    ):
+        s_excs, s_names = _generalized_single_excitations(n_spin_orbitals, 1, True, 1)
+
+    n_spin_orbitals = 6
+    s_excs, s_names = _generalized_single_excitations(n_spin_orbitals, 0, False, 1)
+    assert s_excs == [
+        (0, 2),
+        (0, 4),
+        (1, 3),
+        (1, 5),
+        (2, 4),
+        (3, 5),
+    ]
+    assert s_names == [
+        ["t1_0_2_0", "t1_0_4_0", "t1_0_3_1", "t1_0_5_1", "t1_0_4_2", "t1_0_5_3"]
+    ]
+
+    s_excs, s_names = _generalized_single_excitations(
+        n_spin_orbitals, delta_sz=0, singlet_excitation=False, k=2
+    )
+    assert s_excs == [
+        (0, 2),
+        (0, 4),
+        (1, 3),
+        (1, 5),
+        (2, 4),
+        (3, 5),
+    ]
+    assert s_names == [
+        ["t1_0_2_0", "t1_0_4_0", "t1_0_3_1", "t1_0_5_1", "t1_0_4_2", "t1_0_5_3"],
+        ["t1_1_2_0", "t1_1_4_0", "t1_1_3_1", "t1_1_5_1", "t1_1_4_2", "t1_1_5_3"],
+    ]
+
+    s_excs, s_names = _generalized_single_excitations(
+        n_spin_orbitals, delta_sz=-1, singlet_excitation=False, k=1
+    )
+    assert s_excs == [
+        (0, 1),
+        (0, 3),
+        (0, 5),
+        (2, 1),
+        (2, 3),
+        (2, 5),
+        (4, 1),
+        (4, 3),
+        (4, 5),
+    ]
+    assert s_names == [
+        [
+            "t1_0_1_0",
+            "t1_0_3_0",
+            "t1_0_5_0",
+            "t1_0_1_2",
+            "t1_0_3_2",
+            "t1_0_5_2",
+            "t1_0_1_4",
+            "t1_0_3_4",
+            "t1_0_5_4",
+        ]
+    ]
+
+    s_excs, s_names = _generalized_single_excitations(
+        n_spin_orbitals, delta_sz=-1, singlet_excitation=False, k=2
+    )
+    assert s_excs == [
+        (0, 1),
+        (0, 3),
+        (0, 5),
+        (2, 1),
+        (2, 3),
+        (2, 5),
+        (4, 1),
+        (4, 3),
+        (4, 5),
+    ]
+    assert s_names == [
+        [
+            "t1_0_1_0",
+            "t1_0_3_0",
+            "t1_0_5_0",
+            "t1_0_1_2",
+            "t1_0_3_2",
+            "t1_0_5_2",
+            "t1_0_1_4",
+            "t1_0_3_4",
+            "t1_0_5_4",
+        ],
+        [
+            "t1_1_1_0",
+            "t1_1_3_0",
+            "t1_1_5_0",
+            "t1_1_1_2",
+            "t1_1_3_2",
+            "t1_1_5_2",
+            "t1_1_1_4",
+            "t1_1_3_4",
+            "t1_1_5_4",
+        ],
+    ]
 
 
-# def test_generalized_pair_double_excitations() -> None:
-#     n_spin_orbitals = 4
-#     d_excs, _ = _generalized_pair_double_excitations(n_spin_orbitals, k=1)
-#     assert d_excs == [(0, 1, 2, 3), (2, 3, 0, 1)]
+def test_generalized_pair_double_excitations() -> None:
+    n_spin_orbitals = 4
+    d_excs, d_names = _generalized_pair_double_excitations(n_spin_orbitals, k=1)
+    assert d_excs == [(0, 1, 2, 3)]
+    assert d_names == [["t2_0_3_2_1_0"]]
 
-#     n_spin_orbitals = 6
-#     d_excs, _ = _generalized_pair_double_excitations(n_spin_orbitals, k=1)
-#     assert d_excs == [
-#         (0, 1, 2, 3),
-#         (0, 1, 4, 5),
-#         (2, 3, 0, 1),
-#         (2, 3, 4, 5),
-#         (4, 5, 0, 1),
-#         (4, 5, 2, 3),
-#     ]
+    d_excs, d_names = _generalized_pair_double_excitations(n_spin_orbitals, k=2)
+    assert d_excs == [(0, 1, 2, 3)]
+    assert d_names == [["t2_0_3_2_1_0"], ["t2_1_3_2_1_0"]]
+
+    n_spin_orbitals = 6
+    d_excs, d_names = _generalized_pair_double_excitations(n_spin_orbitals, k=1)
+    assert d_excs == [
+        (0, 1, 2, 3),
+        (0, 1, 4, 5),
+        (2, 3, 4, 5),
+    ]
+    assert d_names == [["t2_0_3_2_1_0", "t2_0_5_4_1_0", "t2_0_5_4_3_2"]]
+
+    d_excs, d_names = _generalized_pair_double_excitations(n_spin_orbitals, k=2)
+    assert d_excs == [
+        (0, 1, 2, 3),
+        (0, 1, 4, 5),
+        (2, 3, 4, 5),
+    ]
+    assert d_names == [
+        ["t2_0_3_2_1_0", "t2_0_5_4_1_0", "t2_0_5_4_3_2"],
+        ["t2_1_3_2_1_0", "t2_1_5_4_1_0", "t2_1_5_4_3_2"],
+    ]
 
 
 class TestkUpCCGSD:
