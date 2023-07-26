@@ -56,8 +56,7 @@ def create_anti_hermitian_sd_excitation_operator(
 
     - If there are 4 excitation indices (i, j, b, a), it creates the
       :class:`~quri_parts.core.operator.Operator` for
-      :math:`c_a^{\dagger} c_b^{\dagger} c_j c_i
-        - c_i^{\dagger}c_j^{\dagger} c_b c_a`.
+      :math:`c_a^{\dagger} c_b^{\dagger} c_j c_i - c_i^{\dagger}c_j^{\dagger} c_b c_a`.
     """
     op = FermionOperator()
     if len(excitation_indices) == 2:
