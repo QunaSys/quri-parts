@@ -144,6 +144,8 @@ def _generalized_single_excitations(
     singlet_excitation: bool,
     k: int,
 ) -> tuple[Sequence[SingleExcitation], list[list[str]]]:
+    """Identify the independent single excitation amplitudes in the KUpGCCSD
+    ansatz and their corresponding circuit parameter names."""
     if singlet_excitation:
         assert delta_sz == 0, "delta_sz can only be 0 when singlet_excitation is True."
 
@@ -175,7 +177,8 @@ def _generalized_single_excitations(
 def _generalized_pair_double_excitations(
     n_spin_orbitals: int, k: int
 ) -> tuple[Sequence[DoubleExcitation], list[list[str]]]:
-    """FermionOperator([(r, 0), (r + 1, 0), (p, 1), (p + 1, 1)])"""
+    """Identify the independent paired excitation amplitudes in the KUpGCCSD
+    ansatz and their corresponding circuit parameter names."""
     double_excitations = [
         (r, r + 1, p, p + 1)
         for r in range(0, n_spin_orbitals - 1, 2)

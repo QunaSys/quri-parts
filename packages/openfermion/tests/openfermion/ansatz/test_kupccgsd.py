@@ -187,7 +187,7 @@ def test_generalized_pair_double_excitations() -> None:
     ]
 
 
-class TestkUpCCGSD:
+class TestKUpCCGSD:
     def test_kupccgsd_k1_trotter1(self) -> None:
         n_spin_orbitals = 4
         n_electrons = 2
