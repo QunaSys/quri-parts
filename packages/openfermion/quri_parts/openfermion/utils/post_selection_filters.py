@@ -21,7 +21,7 @@ from quri_parts.openfermion.transforms import (
 def create_jw_electron_number_post_selection_filter_fn(
     n_electrons: int, sz: Optional[float] = None
 ) -> PostSelectionFilterFunction:
-    """Returns `class`:PostSelectionFilterFunction: that checks if the number
+    """Returns :class:`PostSelectionFilterFunction` that checks if the number
     of occupied orbitals matchs given ``n_electrons`` (and ``sz`` if
     specified).
 
@@ -43,7 +43,7 @@ def create_jw_electron_number_post_selection_filter_fn(
 def create_bk_electron_number_post_selection_filter_fn(
     qubit_count: int, n_electrons: int, sz: Optional[float] = None
 ) -> PostSelectionFilterFunction:
-    """Returns `class`:PostSelectionFilterFunction: that checks if the number
+    """Returns :class:`PostSelectionFilterFunction` that checks if the number
     of occupied orbitals matchs given ``n_electrons`` (and ``sz`` if
     specified).
 
@@ -75,7 +75,7 @@ def create_bk_electron_number_post_selection_filter_fn(
 def create_scbk_electron_number_post_selection_filter_fn(
     qubit_count: int, n_electrons: int
 ) -> PostSelectionFilterFunction:
-    """Returns `class`:PostSelectionFilterFunction: that checks if the number
+    """Returns :class:`PostSelectionFilterFunction` that checks if the number
     of occupied orbitals matchs given ``n_electrons``.
 
     Here ``bits`` is a bitstring obtained by measuring the states mapped
