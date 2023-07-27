@@ -26,7 +26,7 @@ from quri_parts.chem.transforms import (
     FermionQubitMapping,
     FermionQubitStateMapper,
     JordanWigner,
-    QubitStateFermionMapper,
+    QubitFermionStateMapper,
     SymmetryConservingBravyiKitaev,
 )
 from quri_parts.core.operator import Operator, SinglePauli
@@ -47,7 +47,7 @@ OpenFermionQubitOperatorMapper: TypeAlias = Callable[
 ]
 
 
-def _state_transformation_matrix(
+def _inv_state_transformation_matrix(
     op_mapper: OpenFermionQubitOperatorMapper, n_spin_orbitals: int
 ) -> tuple[BinaryMatrix, Sequence[int]]:
     """Build a matrix that converts vector of fermion occupancy to binary
@@ -113,7 +113,7 @@ class OpenFermionQubitMapping(FermionQubitMapping, Protocol):
     def get_state_mapper(
         self, n_spin_orbitals: int, n_fermions: Optional[int] = None
     ) -> FermionQubitStateMapper:
-        inv_trans_mat, signs = _state_transformation_matrix(
+        inv_trans_mat, signs = _inv_state_transformation_matrix(
             self.get_of_operator_mapper(n_spin_orbitals, n_fermions),
             n_spin_orbitals,
         )
@@ -138,8 +138,8 @@ class OpenFermionQubitMapping(FermionQubitMapping, Protocol):
         n_spin_orbitals: int,
         n_fermions: Optional[int] = None,
         n_up_spins: Optional[int] = None,
-    ) -> QubitStateFermionMapper:
-        trans_mat, signs = _state_transformation_matrix(
+    ) -> QubitFermionStateMapper:
+        inv_trans_mat, signs = _inv_state_transformation_matrix(
             self.get_of_operator_mapper(n_spin_orbitals, n_fermions),
             n_spin_orbitals,
         )
@@ -152,13 +152,13 @@ class OpenFermionQubitMapping(FermionQubitMapping, Protocol):
                 bit_array, n_spin_orbitals, n_fermions, n_up_spins
             )
             qubit_vector = BinaryArray(bit_array)
-            occupancy_vector = trans_mat @ qubit_vector
-            occupancy_list = [
+            occupancy_vector = inv_trans_mat @ qubit_vector
+            occupancy_set = {
                 i
                 for i, o in enumerate(occupancy_vector)
                 if (o == 1 and signs[i] == 1) or (o == 0 and signs[i] == -1)
-            ]
-            return occupancy_list
+            }
+            return occupancy_set
 
         return mapper
 
@@ -169,8 +169,8 @@ class OpenFermionQubitMapping(FermionQubitMapping, Protocol):
         n_fermions: Optional[int] = None,
         sz: Optional[int] = None,
     ) -> list[int]:
-        """Returns a bit array which is augmented by adding qubits dropped by
-        a :class:`FermionQubitMapping`."""
+        """Returns a bit array which is augmented by adding qubits dropped by a
+        :class:`FermionQubitMapping`."""
         return bit_array
 
 
