@@ -51,6 +51,8 @@ FermionQubitStateMapper: TypeAlias = Callable[
     [Collection[int]], ComputationalBasisState
 ]
 
+#: Interface for a function that maps a computational basis state of qubits to
+#: a collection of occupied spin orbital indices.
 QubitStateFermionMapper: TypeAlias = Callable[
     [ComputationalBasisState], Collection[int]
 ]
@@ -96,6 +98,19 @@ class FermionQubitMapping(Protocol):
         n_fermions: Optional[int] = None,
         n_up_spins: Optional[int] = None,
     ) -> QubitStateFermionMapper:
+        """Returns a function that maps a computational basis state of qubits
+        to the set of occupied spin orbital indices.
+
+        Args:
+            n_spin_orbitals:
+                The number of spin orbitals.
+            n_fermions:
+                The number of fermions considered when the qubit state is mapped.
+                Some mappings require this argument (e.g. symmetry-conserving
+                Bravyi-Kitaev transformation) while the others ignore it.
+            n_up_spins:
+                The number of spin orbitals (Currently ignored).
+        """
         ...
 
 

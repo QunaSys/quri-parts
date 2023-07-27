@@ -169,6 +169,8 @@ class OpenFermionQubitMapping(FermionQubitMapping, Protocol):
         n_fermions: Optional[int] = None,
         sz: Optional[int] = None,
     ) -> list[int]:
+        """Returns a bit array which is augmented by adding qubits dropped by
+        a :class:`FermionQubitMapping`."""
         return bit_array
 
 
@@ -346,10 +348,7 @@ class OpenFermionSymmetryConservingBravyiKitaev(
         n_fermions: Optional[int] = None,
         n_up_spins: Optional[int] = None,
     ) -> list[int]:
-        # if n_up_spins is None or n_fermions is None:
-        #     raise ValueError("")
-        # up_bit = n_up_spins % 2
-        # n_bit = n_fermions % 2
+        # Add two qubits dropped by the fermion-to-qubit mapping.
         return bit_array + [0, 0]
 
 
