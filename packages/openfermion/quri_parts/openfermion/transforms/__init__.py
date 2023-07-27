@@ -153,11 +153,11 @@ class OpenFermionQubitMapping(FermionQubitMapping, Protocol):
             )
             qubit_vector = BinaryArray(bit_array)
             occupancy_vector = inv_trans_mat @ qubit_vector
-            occupancy_set = {
+            occupancy_set = [
                 i
                 for i, o in enumerate(occupancy_vector)
                 if (o == 1 and signs[i] == 1) or (o == 0 and signs[i] == -1)
-            }
+            ]
             return occupancy_set
 
         return mapper
