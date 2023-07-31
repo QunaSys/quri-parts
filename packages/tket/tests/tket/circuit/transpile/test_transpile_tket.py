@@ -53,12 +53,7 @@ def test_optimization() -> None:
         ]
     )
     target = TketTranspiler(
-        basis_gates=[
-            gate_names.X,
-            gate_names.SqrtX,
-            gate_names.RZ,
-            gate_names.CNOT,
-        ],
+        basis_gates=[gate_names.X, gate_names.SqrtX, gate_names.RZ, gate_names.CNOT],
         optimization_level=2,
     )(circuit)
 
