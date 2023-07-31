@@ -4,16 +4,15 @@ from typing import Optional
 from pytket import OpType
 from pytket.backends import Backend
 from pytket.passes import (
-    auto_rebase_pass,
-    SynthesiseX,
     FullPeepholeOptimise,
     SequencePass,
+    SynthesiseX,
+    auto_rebase_pass,
 )
 
 from quri_parts.circuit import NonParametricQuantumCircuit, gate_names
 from quri_parts.circuit.transpile import CircuitTranspilerProtocol
 from quri_parts.tket.circuit import circuit_from_tket, convert_circuit
-
 
 _qp_tket_gate_name_map: Mapping[str, OpType] = {
     gate_names.Identity: OpType.noop,
