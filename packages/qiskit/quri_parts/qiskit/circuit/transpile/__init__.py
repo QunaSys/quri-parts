@@ -18,7 +18,7 @@ from quri_parts.circuit import NonParametricQuantumCircuit, gate_names
 from quri_parts.circuit.transpile import CircuitTranspilerProtocol
 from quri_parts.qiskit.circuit import circuit_from_qiskit, convert_circuit
 
-_qp_qiskit_gate_name_mapping: Mapping[str, str] = {
+_qp_qiskit_gate_name_map: Mapping[str, str] = {
     gate_names.Identity: "id",
     gate_names.X: "x",
     gate_names.Y: "y",
@@ -72,8 +72,10 @@ class QiskitTranspiler(CircuitTranspilerProtocol):
     ) -> NonParametricQuantumCircuit:
         qiskit_circ = convert_circuit(circuit)
 
-        if basis_gates is not None:
-            basis_gates = [_qp_qiskit_gate_name_mapping[name] for name in basis_gates]
+        if self._basis_gates is not None:
+            self._basis_gates = [
+                _qp_qiskit_gate_name_map[name] for name in self._basis_gates
+            ]
 
         optimized_qiskit_circ = transpile(
             qiskit_circ,
