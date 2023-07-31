@@ -1,3 +1,13 @@
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#      http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from collections.abc import Mapping
 from typing import Optional
 
@@ -6,7 +16,7 @@ from pytket.backends import Backend
 from pytket.passes import (
     FullPeepholeOptimise,
     SequencePass,
-    SynthesiseX,
+    SynthesiseTket,
     auto_rebase_pass,
 )
 
@@ -22,10 +32,10 @@ _qp_tket_gate_name_map: Mapping[str, OpType] = {
     gate_names.H: OpType.H,
     gate_names.S: OpType.S,
     gate_names.Sdag: OpType.Sdg,
-    gate_names.SqrtX: OpType.V,
-    gate_names.SqrtXdag: OpType.Vdg,
+    gate_names.SqrtX: OpType.SX,
+    gate_names.SqrtXdag: OpType.SXdg,
     gate_names.T: OpType.T,
-    gate_names.Tdag: OpType.Tdag,
+    gate_names.Tdag: OpType.Tdg,
     gate_names.RX: OpType.Rx,
     gate_names.RY: OpType.Ry,
     gate_names.RZ: OpType.Rz,
@@ -64,19 +74,17 @@ class TketTranspiler(CircuitTranspilerProtocol):
             return circuit_from_tket(tket_circ)
 
         pass_list = []
+        if self._optimization_level == 1:
+            pass_list.append(SynthesiseTket())
+        elif self._optimization_level == 2:
+            pass_list.append(FullPeepholeOptimise())
+
         if self._basis_gates is not None:
             pass_list.append(
                 auto_rebase_pass(
                     {_qp_tket_gate_name_map[name] for name in self._basis_gates}
                 )
             )
-
-        if self._optimization_level == 0:
-            pass
-        elif self._optimization_level == 1:
-            pass_list.append(SynthesiseX())
-        elif self._optimization_level == 2:
-            pass_list.append(FullPeepholeOptimise())
 
         SequencePass(pass_list).apply(tket_circ)
         return circuit_from_tket(tket_circ)
