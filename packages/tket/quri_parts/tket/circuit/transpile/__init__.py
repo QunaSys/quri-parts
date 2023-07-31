@@ -13,13 +13,6 @@ from typing import Optional
 
 from pytket import OpType, passes
 from pytket.backends import Backend
-# from pytket.passes import (
-#     FullPeepholeOptimise,
-#     SequencePass,
-#     SynthesiseTket,
-#     auto_rebase_pass,
-# )
-import pytket
 
 from quri_parts.circuit import NonParametricQuantumCircuit, gate_names
 from quri_parts.circuit.transpile import CircuitTranspilerProtocol
