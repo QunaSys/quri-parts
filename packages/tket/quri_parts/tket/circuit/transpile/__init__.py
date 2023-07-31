@@ -11,14 +11,15 @@
 from collections.abc import Mapping
 from typing import Optional
 
-from pytket import OpType
+from pytket import OpType, passes
 from pytket.backends import Backend
-from pytket.passes import (
-    FullPeepholeOptimise,
-    SequencePass,
-    SynthesiseTket,
-    auto_rebase_pass,
-)
+# from pytket.passes import (
+#     FullPeepholeOptimise,
+#     SequencePass,
+#     SynthesiseTket,
+#     auto_rebase_pass,
+# )
+import pytket
 
 from quri_parts.circuit import NonParametricQuantumCircuit, gate_names
 from quri_parts.circuit.transpile import CircuitTranspilerProtocol
@@ -75,18 +76,18 @@ class TketTranspiler(CircuitTranspilerProtocol):
 
         pass_list = []
         if self._optimization_level == 1:
-            pass_list.append(SynthesiseTket())
+            pass_list.append(passes.SynthesiseTket())  # type: ignore
         elif self._optimization_level == 2:
-            pass_list.append(FullPeepholeOptimise())
+            pass_list.append(passes.FullPeepholeOptimise())  # type: ignore
 
         if self._basis_gates is not None:
             pass_list.append(
-                auto_rebase_pass(
+                passes.auto_rebase_pass(
                     {_qp_tket_gate_name_map[name] for name in self._basis_gates}
                 )
             )
 
-        SequencePass(pass_list).apply(tket_circ)
+        passes.SequencePass(pass_list).apply(tket_circ)  # type: ignore
         return circuit_from_tket(tket_circ)
 
 
