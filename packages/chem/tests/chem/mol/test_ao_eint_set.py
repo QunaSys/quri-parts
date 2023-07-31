@@ -30,10 +30,13 @@ from quri_parts.chem.mol import (
 
 @dataclass
 class MolecularOrbitalsInfo(MolecularOrbitals):
+    class Config:
+        arbitrary_types_allowed = True
+
     _n_electron: int
     _n_spatial_orb: int
+    _mo_coeff: npt.NDArray[np.complex128]
     _spin: int = 0
-    _mo_coeff: npt.NDArray[np.complex128] = np.zeros((1,), dtype=np.complex128)
 
     @property
     def n_electron(self) -> int:
