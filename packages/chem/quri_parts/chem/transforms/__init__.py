@@ -109,7 +109,7 @@ class FermionQubitMapping(Protocol):
                 Some mappings require this argument (e.g. symmetry-conserving
                 Bravyi-Kitaev transformation) while the others ignore it.
             n_up_spins:
-                The number of spin orbitals (Currently ignored).
+                The number of spin orbitals.
         """
         ...
 

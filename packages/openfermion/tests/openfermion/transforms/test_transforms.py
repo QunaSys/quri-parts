@@ -146,7 +146,7 @@ class TestStateMapper:
             n_spin_orbitals, n_fermions
         )
         inv_state_mapper = symmetry_conserving_bravyi_kitaev.get_inv_state_mapper(
-            n_spin_orbitals, n_fermions, 0
+            n_spin_orbitals, n_fermions, 1
         )
 
         # State transformation:
@@ -192,7 +192,7 @@ class TestStateMapper:
             n_spin_orbitals, n_fermions
         )
         inv_state_mapper = symmetry_conserving_bravyi_kitaev.get_inv_state_mapper(
-            n_spin_orbitals, n_fermions, 0
+            n_spin_orbitals, n_fermions, 2
         )
 
         # State transformation:

@@ -149,7 +149,7 @@ class OpenFermionQubitMapping(FermionQubitMapping, Protocol):
             bits = state.bits
             bit_array = [(bits & 1 << index) >> index for index in range(n_qubits)]
             bit_array = self.augment_dropped_bits(
-                bit_array, n_spin_orbitals, n_fermions, n_up_spins
+                bit_array, n_spin_orbitals, n_fermions
             )
             qubit_vector = BinaryArray(bit_array)
             occupancy_vector = inv_trans_mat @ qubit_vector
@@ -167,7 +167,6 @@ class OpenFermionQubitMapping(FermionQubitMapping, Protocol):
         bit_array: list[int],
         n_spin_orbitals: int,
         n_fermions: Optional[int] = None,
-        sz: Optional[int] = None,
     ) -> list[int]:
         """Returns a bit array which is augmented by adding qubits dropped by a
         :class:`FermionQubitMapping`."""
@@ -341,12 +340,25 @@ class OpenFermionSymmetryConservingBravyiKitaev(
 
         return super().get_state_mapper(n_spin_orbitals, n_fermions)
 
+    def get_inv_state_mapper(
+        self,
+        n_spin_orbitals: int,
+        n_fermions: Optional[int] = None,
+        n_up_spins: Optional[int] = None,
+    ) -> QubitFermionStateMapper:
+        if n_fermions is None:
+            raise ValueError("n_fermions is required.")
+        if n_up_spins is None:
+            raise ValueError("n_up_spins is required.")
+        if 2 * n_up_spins - n_fermions not in [0, 1]:
+            raise ValueError("Current implementation only supports sz = 0.0 or 0.5.")
+        return super().get_inv_state_mapper(n_spin_orbitals, n_fermions, n_up_spins)
+
     def augment_dropped_bits(
         self,
         bit_array: list[int],
         n_spin_orbitals: int,
         n_fermions: Optional[int] = None,
-        n_up_spins: Optional[int] = None,
     ) -> list[int]:
         # Add two qubits dropped by the fermion-to-qubit mapping.
         return bit_array + [0, 0]

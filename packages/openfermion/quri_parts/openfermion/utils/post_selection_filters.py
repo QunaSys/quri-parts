@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+from typing import Collection, Optional
 
 from quri_parts.algo.mitigation.post_selection import PostSelectionFilterFunction
 from quri_parts.core.state import ComputationalBasisState
@@ -57,23 +57,15 @@ def create_bk_electron_number_post_selection_filter_fn(
     def filter_fn(bits: int) -> bool:
         state = ComputationalBasisState(qubit_count, bits=bits)
         occ_indices = inv_st_mapper(state)
-        if sz:
-            n_up = 0
-            n_down = 0
-            for i in occ_indices:
-                if i % 2:
-                    n_down += 1
-                else:
-                    n_up += 1
-            if n_up - n_down != sz * 2:
-                return False
+        if sz and _sz(occ_indices) != sz:
+            return False
         return len(occ_indices) == n_electrons
 
     return filter_fn
 
 
 def create_scbk_electron_number_post_selection_filter_fn(
-    qubit_count: int, n_electrons: int
+    qubit_count: int, n_electrons: int, sz: float
 ) -> PostSelectionFilterFunction:
     """Returns :class:`PostSelectionFilterFunction` that checks if the number
     of occupied orbitals matchs given ``n_electrons``.
@@ -81,19 +73,30 @@ def create_scbk_electron_number_post_selection_filter_fn(
     Here ``bits`` is a bitstring obtained by measuring the states mapped
     by symmetry-conserving Bravyi-Kitaev transformation.
     """
-    if n_electrons % 2:
-        raise ValueError(
-            "'quri_parts.openfermion.transforms.symmetry_conserving_bravyi_kitaev' "
-            "only supports even number of electrons."
-        )
-
+    n_up_spins = int(sz + n_electrons / 2)
     inv_st_mapper = symmetry_conserving_bravyi_kitaev.get_inv_state_mapper(
-        symmetry_conserving_bravyi_kitaev.n_spin_orbitals(qubit_count), n_electrons
+        symmetry_conserving_bravyi_kitaev.n_spin_orbitals(qubit_count),
+        n_electrons,
+        n_up_spins,
     )
 
     def filter_fn(bits: int) -> bool:
         state = ComputationalBasisState(qubit_count, bits=bits)
         occ_indices = inv_st_mapper(state)
+
+        if _sz(occ_indices) != sz:
+            return False
         return len(occ_indices) == n_electrons
 
     return filter_fn
+
+
+def _sz(occ_indices: Collection[int]) -> float:
+    n_up = 0
+    n_down = 0
+    for i in occ_indices:
+        if i % 2:
+            n_down += 1
+        else:
+            n_up += 1
+    return (n_up - n_down) / 2
