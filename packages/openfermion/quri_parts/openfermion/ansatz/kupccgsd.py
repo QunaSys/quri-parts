@@ -50,6 +50,9 @@ class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
           :class:`Operator`
         trotter_number: Number for first-order Trotter product formula.
         delta_sz: Changes of spin in the excitation.
+        singlet_excitation: If ``True``, single excitations that start
+            from and end at the same spatial orbitals will share the same
+            circuit parameter.
     """
 
     def __init__(
