@@ -52,7 +52,9 @@ class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
         delta_sz: Changes of spin in the excitation.
         singlet_excitation: If ``True``, single excitations that start
             from and end at the same spatial orbitals will share the same
-            circuit parameter.
+            circuit parameter. For the double excitations, the excitations
+            are paired, so the singlet excitation condition is satisfied
+            automatically.
     """
 
     def __init__(
