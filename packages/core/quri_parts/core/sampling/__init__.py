@@ -22,15 +22,9 @@ from quri_parts.core.operator import CommutablePauliSet, Operator
 MeasurementCounts: TypeAlias = Mapping[int, Union[int, float]]
 
 #: Sampler represents a function that samples a specified (non-parametric) circuit by
-#: a specified times and returns the count statistics.
+#: a specified times and returns the count statistics. In the case of an ideal Sampler,
+# the return value corresponds to probabilities multiplied by shot count.
 Sampler: TypeAlias = Callable[[NonParametricQuantumCircuit, int], MeasurementCounts]
-
-#: IdealSampler represents a function that runs a specified (non-parametric) circuit
-#: on an ideal simulator and returns the measurement probabilities. The shot
-#: count is ignored even when passed.
-IdealSampler: TypeAlias = Callable[
-    [NonParametricQuantumCircuit, int], MeasurementCounts
-]
 
 #: ConcurrentSampler represents a function that samples specified (non-parametric)
 #: circuits concurrently.

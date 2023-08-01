@@ -18,12 +18,7 @@ from numpy.random import default_rng
 
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.circuit.noise import NoiseModel
-from quri_parts.core.sampling import (
-    ConcurrentSampler,
-    IdealSampler,
-    MeasurementCounts,
-    Sampler,
-)
+from quri_parts.core.sampling import ConcurrentSampler, MeasurementCounts, Sampler
 from quri_parts.core.utils.concurrent import execute_concurrently
 
 from .circuit import convert_circuit
@@ -60,8 +55,8 @@ def _ideal_sample(
     return {i: prob * shots for i, prob in enumerate(probs)}
 
 
-def create_qulacs_vector_ideal_sampler() -> IdealSampler:
-    """Returns a :class:`~IdealSampler` that uses Qulacs vector simulator for
+def create_qulacs_vector_ideal_sampler() -> Sampler:
+    """Returns a :class:`~Sampler` that uses Qulacs vector simulator for
     returning the probabilities."""
     return _ideal_sample
 
@@ -125,8 +120,8 @@ def create_qulacs_stochastic_state_vector_sampler(model: NoiseModel) -> Sampler:
 
 def create_qulacs_stochastic_state_vector_ideal_sampler(
     model: NoiseModel,
-) -> IdealSampler:
-    """Returns a :class:`~IdealSampler` that returns the probabilities after
+) -> Sampler:
+    """Returns a :class:`~Sampler` that returns the probabilities after
     applying noise model."""
 
     def _sample_with_noise(
@@ -168,9 +163,9 @@ def create_qulacs_density_matrix_sampler(model: NoiseModel) -> Sampler:
     return _sample_with_noise
 
 
-def create_qulacs_density_matrix_ideal_sampler(model: NoiseModel) -> IdealSampler:
-    """Returns a :class:`~IdealSampler` that uses Qulacs simulator using
-    density matrix with noise model."""
+def create_qulacs_density_matrix_ideal_sampler(model: NoiseModel) -> Sampler:
+    """Returns a :class:`~Sampler` that uses Qulacs simulator using density
+    matrix with noise model."""
 
     def _sample_with_noise(
         circuit: NonParametricQuantumCircuit, shots: int
