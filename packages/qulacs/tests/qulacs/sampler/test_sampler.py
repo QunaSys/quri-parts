@@ -19,6 +19,7 @@ import pytest
 from quri_parts.circuit import QuantumCircuit
 from quri_parts.circuit.noise import BitFlipNoise, NoiseModel
 from quri_parts.core.sampling import ConcurrentSampler, Sampler
+from quri_parts.qulacs.circuit.compiled_circuit import compile_circuit
 from quri_parts.qulacs.sampler import (
     create_qulacs_density_matrix_concurrent_sampler,
     create_qulacs_density_matrix_ideal_sampler,
@@ -81,6 +82,21 @@ class TestQulacsVectorSampler:
         # Uniform superposition exact value
         assert all(np.isclose(mean_val, x) for x in probs)
 
+    @pytest.mark.parametrize("qubits", [4, 12])
+    @pytest.mark.parametrize("shots", [800, 1200, 2**12 + 100])
+    def test_sampler_with_compiled_circuit(self, qubits: int, shots: int) -> None:
+        circuit = QuantumCircuit(qubits)
+        for i in range(qubits):
+            circuit.add_H_gate(i)
+        compiled_circuit = compile_circuit(circuit)
+
+        sampler = create_qulacs_vector_sampler()
+        counts_with_compiled_circuit = sampler(compiled_circuit, shots)
+
+        assert set(counts_with_compiled_circuit.keys()).issubset(range(2**qubits))
+        assert all(c >= 0 for c in counts_with_compiled_circuit.values())
+        assert sum(counts_with_compiled_circuit.values()) == shots
+
 
 class TestQulacsVectorConcurrentSampler:
     def test_concurrent_sampler(self) -> None:
@@ -99,6 +115,28 @@ class TestQulacsVectorConcurrentSampler:
         assert set(results[1]) == {0b0001, 0b0011}
         assert all(c >= 0 for c in results[1].values())
         assert sum(results[1].values()) == 2000
+
+    def test_concurrent_sampler_with_compiled_circuit(self) -> None:
+        circuit1 = circuit()
+        circuit2 = circuit()
+        circuit2.add_X_gate(3)
+
+        compiled_circuit_1 = compile_circuit(circuit1)
+        compiled_circuit_2 = compile_circuit(circuit2)
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            sampler = create_qulacs_vector_concurrent_sampler(executor, 2)
+            results_with_compiled_circuit = list(
+                sampler([(compiled_circuit_1, 1000), (compiled_circuit_2, 2000)])
+            )
+
+        assert set(results_with_compiled_circuit[0]) == {0b1001, 0b1011}
+        assert all(c >= 0 for c in results_with_compiled_circuit[0].values())
+        assert sum(results_with_compiled_circuit[0].values()) == 1000
+
+        assert set(results_with_compiled_circuit[1]) == {0b0001, 0b0011}
+        assert all(c >= 0 for c in results_with_compiled_circuit[1].values())
+        assert sum(results_with_compiled_circuit[1].values()) == 2000
 
 
 class TestSamplerWithNoiseModel:

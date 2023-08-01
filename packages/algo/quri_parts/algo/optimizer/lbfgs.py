@@ -9,7 +9,7 @@
 # limitations under the License.
 
 import warnings
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING, Callable, Optional, cast
 
 import numpy as np
@@ -35,23 +35,25 @@ from .interface import (
 )
 from .tolerance import gtol as create_gtol
 
-_const_zero_array: Params = readonly_array(np.zeros(0, dtype=float))
+
+def _const_zero_array_factory() -> Params:
+    return readonly_array(np.zeros(0, dtype=float))
 
 
 @dataclass(frozen=True)
 class OptimizerStateLBFGS(OptimizerState):
     """Optimizer state for LBFGS."""
 
-    grad: Params = _const_zero_array
+    grad: Params = field(default_factory=_const_zero_array_factory)
 
-    p: Params = _const_zero_array
-    s: Params = _const_zero_array
-    y: Params = _const_zero_array
-    rho: Params = _const_zero_array
+    p: Params = field(default_factory=_const_zero_array_factory)
+    s: Params = field(default_factory=_const_zero_array_factory)
+    y: Params = field(default_factory=_const_zero_array_factory)
+    rho: Params = field(default_factory=_const_zero_array_factory)
 
-    cost_prev: float = 0
+    cost_prev: float = 0.0
     ind: int = 0
-    a: Params = _const_zero_array
+    a: Params = field(default_factory=_const_zero_array_factory)
 
 
 class LBFGS(Optimizer):
@@ -125,7 +127,7 @@ class LBFGS(Optimizer):
             self._gtol = create_gtol(gtol)
 
     def get_init_state(self, init_params: Params) -> OptimizerStateLBFGS:
-        params = readonly_array(np.array(init_params))
+        params = readonly_array(np.array(init_params, dtype=float))
         zeros2d = readonly_array(np.zeros((self._m, len(params)), dtype=float))
         zeros = readonly_array(np.zeros(self._m, dtype=float))
         return OptimizerStateLBFGS(
@@ -135,7 +137,7 @@ class LBFGS(Optimizer):
             s=zeros2d,
             y=zeros2d,
             rho=zeros,
-            cost_prev=0,
+            cost_prev=0.0,
             ind=0,
             a=zeros,
         )
@@ -168,7 +170,7 @@ class LBFGS(Optimizer):
 
             grad = grad_function(params)
             gradcalls += 1
-            cost_prev = cost + cast(float, np.linalg.norm(grad)) / 2
+            cost_prev = cost + cast(float, np.linalg.norm(grad)) / 2.0
 
             p = -grad
 
@@ -227,7 +229,7 @@ class LBFGS(Optimizer):
         y[ind] = grad_next - grad
 
         rho_inv = np.dot(s[ind], y[ind])
-        rho[ind] = self._rho_const if rho_inv == 0.0 else 1 / rho_inv
+        rho[ind] = self._rho_const if rho_inv == 0.0 else 1.0 / rho_inv
 
         grad = grad_next
 
