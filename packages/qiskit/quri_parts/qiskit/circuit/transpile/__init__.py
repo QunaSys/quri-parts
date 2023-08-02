@@ -53,7 +53,7 @@ class QiskitTranspiler(CircuitTranspilerProtocol):
     Args:
         backend: Qiskit's Backend instance.
         basis_gates: Specify the gate set after decomposition as a list of gate name
-            strings. The gate name notation follows Qiskit.
+            strings.
         optimization_level: Specifies the optimization level of the circuit.
     """
 
