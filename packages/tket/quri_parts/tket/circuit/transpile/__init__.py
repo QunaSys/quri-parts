@@ -44,6 +44,21 @@ _qp_tket_gate_name_map: Mapping[str, OpType] = {
 
 
 class TketTranspiler(CircuitTranspilerProtocol):
+    """A CircuitTranspiler that uses Tket's transpiler to convert circuits to
+    backend-compatible circuits, convert gate sets, perform circuit
+    optimization, etc.
+
+    This transpiler converts NonParametricQuantumCircuit to NonParametricQuantumCircuit
+    just like other transpilers in QURI Parts though the conversion of the circuit to
+    Tket and vice versa is performed internally.
+
+    Args:
+        backend: Tket's Backend instance.
+        basis_gates: Specify the gate set after decomposition as a list of gate name
+            strings.
+        optimization_level: Specifies the optimization level of the circuit from 0 to 2.
+    """
+
     def __init__(
         self,
         backend: Optional[Backend] = None,
