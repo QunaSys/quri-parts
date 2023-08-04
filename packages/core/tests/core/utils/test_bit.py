@@ -9,7 +9,6 @@
 # limitations under the License.
 
 import numpy as np
-import pytest
 
 from quri_parts.core.utils.bit import (
     bit_length,
@@ -48,8 +47,3 @@ def test_bit_length() -> None:
     assert bit_length(np.int16(10)) == 4
     assert bit_length(np.int32(10)) == 4
     assert bit_length(np.int64(10)) == 4
-
-    with pytest.raises(AssertionError, match="The input bits must be an integer."):
-        # Disable type check to make sure error is properly raised
-        # when the wrong type is passed into the function
-        bit_length(float(10))  # type: ignore

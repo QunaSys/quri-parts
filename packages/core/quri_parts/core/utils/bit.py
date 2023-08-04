@@ -14,9 +14,6 @@ import numpy as np
 
 
 def bit_length(bits: Union[int, np.int8, np.int16, np.int32, np.int64]) -> int:
-    assert isinstance(
-        bits, (int, np.int8, np.int16, np.int32, np.int64)
-    ), "The input bits must be an integer."
     return int(bits).bit_length()
 
 
