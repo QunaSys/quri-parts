@@ -52,6 +52,13 @@ class TketTranspiler(CircuitTranspilerProtocol):
     just like other transpilers in QURI Parts though the conversion of the circuit to
     Tket and vice versa is performed internally.
 
+    If the backend is specified, the circuit is transformed and optimized to a form
+    executable in the backend at the optimization level specified in optimization_level.
+    basis_gates is ignored.
+
+    If the backend is not specified, conversion to the gate set specified in basis_gates
+    and optimization in optimization_level are performed.
+
     Args:
         backend: Tket's Backend instance.
         basis_gates: Specify the gate set after decomposition as a list of gate name
@@ -65,10 +72,11 @@ class TketTranspiler(CircuitTranspilerProtocol):
         basis_gates: Optional[list[str]] = None,
         optimization_level: int = 2,
     ):
-        self._backend = backend
-        self._basis_gates = basis_gates
         if optimization_level < 0 or optimization_level > 2:
             raise ValueError("optimization_level must be 0, 1, or 2.")
+
+        self._backend = backend
+        self._basis_gates = basis_gates
         self._optimization_level = optimization_level
 
     def __call__(
