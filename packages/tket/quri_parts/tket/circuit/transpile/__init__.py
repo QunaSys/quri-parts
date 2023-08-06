@@ -64,6 +64,9 @@ class TketTranspiler(CircuitTranspilerProtocol):
         basis_gates: Specify the gate set after decomposition as a list of gate name
             strings.
         optimization_level: Specifies the optimization level of the circuit from 0 to 2.
+
+    Refs:
+        https://cqcl.github.io/pytket/manual/manual_compiler.html
     """
 
     def __init__(
