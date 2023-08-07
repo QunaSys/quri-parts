@@ -27,7 +27,6 @@ from quri_parts.qulacs.sampler import (
     create_qulacs_noisesimulator_concurrent_sampler,
     create_qulacs_noisesimulator_sampler,
     create_qulacs_stochastic_state_vector_concurrent_sampler,
-    create_qulacs_stochastic_state_vector_ideal_sampler,
     create_qulacs_stochastic_state_vector_sampler,
     create_qulacs_vector_concurrent_sampler,
     create_qulacs_vector_ideal_sampler,
@@ -175,7 +174,6 @@ class TestSamplerWithNoiseModel:
         "sampler_creator",
         [
             create_qulacs_density_matrix_ideal_sampler,
-            create_qulacs_stochastic_state_vector_ideal_sampler,
         ],
     )
     def test_ideal_sampler_with_empty_noise(
@@ -239,7 +237,6 @@ class TestSamplerWithNoiseModel:
         "sampler_creator",
         [
             create_qulacs_density_matrix_ideal_sampler,
-            create_qulacs_stochastic_state_vector_ideal_sampler,
         ],
     )
     def test_ideal_sampler_with_bitflip_noise(

@@ -32,19 +32,6 @@ def create_mock_backend(counts: Sequence[MeasurementCounts]) -> mock.Mock:
     return backend
 
 
-def create_mock_ideal_backend(counts: Sequence[MeasurementCounts]) -> mock.Mock:
-    def create_job(c: MeasurementCounts) -> mock.Mock:
-        job = mock.Mock()
-        result = job.result.return_value
-        result.counts = c
-        return job
-
-    backend = mock.Mock()
-    backend.run.side_effect = [create_job(c) for c in counts]
-
-    return backend
-
-
 def test_create_sampler_from_sampling_backend() -> None:
     counts = {0: 100, 1: 200, 2: 300, 3: 400}
     backend = create_mock_backend([counts])

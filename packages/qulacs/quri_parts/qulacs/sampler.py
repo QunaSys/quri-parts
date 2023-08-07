@@ -50,7 +50,10 @@ def _sample(circuit: NonParametricQuantumCircuit, shots: int) -> MeasurementCoun
 def _ideal_sample(
     circuit: NonParametricQuantumCircuit, shots: int
 ) -> MeasurementCounts:
-    qs_circuit = convert_circuit(circuit)
+    if isinstance(circuit, _QulacsCircuit):
+        qs_circuit = circuit._qulacs_circuit
+    else:
+        qs_circuit = convert_circuit(circuit)
     qs_state = qulacs.QuantumState(circuit.qubit_count)
     qs_circuit.update_quantum_state(qs_state)
 
@@ -61,7 +64,7 @@ def _ideal_sample(
 
 def create_qulacs_vector_ideal_sampler() -> Sampler:
     """Returns a :class:`~Sampler` that uses Qulacs vector simulator for
-    returning the probabilities."""
+    returning the probabilities multiplied by the specific shot count."""
     return _ideal_sample
 
 
@@ -122,27 +125,6 @@ def create_qulacs_stochastic_state_vector_sampler(model: NoiseModel) -> Sampler:
     return _sample_with_noise
 
 
-def create_qulacs_stochastic_state_vector_ideal_sampler(
-    model: NoiseModel,
-) -> Sampler:
-    """Returns a :class:`~Sampler` that returns the probabilities after
-    applying noise model."""
-
-    def _sample_with_noise(
-        circuit: NonParametricQuantumCircuit, shots: int
-    ) -> MeasurementCounts:
-        qs_circuit = convert_circuit_with_noise_model(circuit, model)
-
-        qs_state = qulacs.QuantumState(circuit.qubit_count)
-        qs_circuit.update_quantum_state(qs_state)
-
-        probs = np.abs(qs_state.get_vector()) ** 2
-
-        return {i: prob * shots for i, prob in enumerate(probs)}
-
-    return _sample_with_noise
-
-
 def create_qulacs_density_matrix_sampler(model: NoiseModel) -> Sampler:
     """Returns a :class:`~Sampler` that uses Qulacs simulator using density
     matrix with noise model."""
@@ -169,7 +151,8 @@ def create_qulacs_density_matrix_sampler(model: NoiseModel) -> Sampler:
 
 def create_qulacs_density_matrix_ideal_sampler(model: NoiseModel) -> Sampler:
     """Returns a :class:`~Sampler` that uses Qulacs simulator using density
-    matrix with noise model."""
+    matrix with noise model and provides the exact probabilities multiplied
+    with the shot count."""
 
     def _sample_with_noise(
         circuit: NonParametricQuantumCircuit, shots: int
