@@ -2,15 +2,13 @@ Tutorials
 =========
 
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 2
 
     tutorials/estimator_basics
     tutorials/circuits
     tutorials/parametric
     tutorials/variational
     tutorials/sampling_simulation
-    tutorials/sampling_real
-    tutorials/sampling_real_braket
-    tutorials/sampling_real_qiskit
+    tutorials/sampling_backends/index.rst
     tutorials/noise_error
     tutorials/error_mitigation
