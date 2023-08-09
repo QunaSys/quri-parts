@@ -1,4 +1,4 @@
-Sampling backends
+Sampling on a real quantum computer
 ==================
 
 .. toctree::
