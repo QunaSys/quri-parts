@@ -8,9 +8,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from qiskit_ibm_runtime import Sampler, Session
-
 from qiskit.test.reference_circuits import ReferenceCircuits
+from qiskit_ibm_runtime import Sampler, Session
 
 from .ibm_runtime_service_mock import mock_get_backend
 

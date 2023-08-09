@@ -11,6 +11,11 @@
 from collections.abc import Mapping
 from typing import Any, Optional, Sequence
 
+import qiskit
+from qiskit.providers import Job
+from qiskit.providers.backend import Backend
+from qiskit.result import Result
+
 from quri_parts.backend import (
     BackendError,
     CompositeSamplingJob,
@@ -21,11 +26,6 @@ from quri_parts.backend import (
 )
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
-
-import qiskit
-from qiskit.providers import Job
-from qiskit.providers.backend import Backend
-from qiskit.result import Result
 from quri_parts.qiskit.circuit import QiskitCircuitConverter, convert_circuit
 
 from .saved_sampling import (

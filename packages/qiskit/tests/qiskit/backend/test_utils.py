@@ -9,7 +9,6 @@
 # limitations under the License.
 
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
-
 from quri_parts.qiskit.backend import (
     QiskitSavedDataSamplingJob,
     QiskitSavedDataSamplingResult,

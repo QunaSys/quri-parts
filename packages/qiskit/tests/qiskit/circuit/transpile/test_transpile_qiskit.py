@@ -9,9 +9,9 @@
 # limitations under the License.
 
 import numpy as np
-from quri_parts.circuit import QuantumCircuit, gate_names, gates
-
 from qiskit.providers.fake_provider import FakeBelemV2
+
+from quri_parts.circuit import QuantumCircuit, gate_names, gates
 from quri_parts.qiskit.circuit.transpile import QiskitTranspiler
 
 

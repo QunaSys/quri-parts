@@ -10,6 +10,8 @@
 
 from collections.abc import Mapping
 
+from qiskit.circuit import QuantumCircuit as QiskitQuantumCircuit
+
 from quri_parts.circuit import (
     NonParametricQuantumCircuit,
     QuantumCircuit,
@@ -22,8 +24,6 @@ from quri_parts.circuit.gate_names import (
     ThreeQubitGateNameType,
     TwoQubitGateNameType,
 )
-
-from qiskit.circuit import QuantumCircuit as QiskitQuantumCircuit
 
 _single_qubit_gate_qiskit_quri_parts: Mapping[str, SingleQubitGateNameType] = {
     "id": gate_names.Identity,

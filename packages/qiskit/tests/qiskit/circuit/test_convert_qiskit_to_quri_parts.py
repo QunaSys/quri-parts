@@ -8,10 +8,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from quri_parts.circuit import QuantumCircuit, gates
-
 from qiskit import QuantumCircuit as QiskitCircuit
 from qiskit.extensions import UnitaryGate
+
+from quri_parts.circuit import QuantumCircuit, gates
 from quri_parts.qiskit.circuit import circuit_from_qiskit
 
 

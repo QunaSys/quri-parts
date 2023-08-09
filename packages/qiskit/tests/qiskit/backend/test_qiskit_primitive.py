@@ -17,15 +17,15 @@ from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
-from pydantic.json import pydantic_encoder
-from qiskit_ibm_runtime import Options, QiskitRuntimeService
-from qiskit_ibm_runtime.runtime_job import JobStatus, RuntimeJob
-from quri_parts.backend import BackendError, CompositeSamplingJob
-from quri_parts.circuit import QuantumCircuit
-
 import qiskit
+from pydantic.json import pydantic_encoder
 from qiskit.primitives import SamplerResult
 from qiskit.result import QuasiDistribution
+from qiskit_ibm_runtime import Options, QiskitRuntimeService
+from qiskit_ibm_runtime.runtime_job import JobStatus, RuntimeJob
+
+from quri_parts.backend import BackendError, CompositeSamplingJob
+from quri_parts.circuit import QuantumCircuit
 from quri_parts.qiskit.backend import (
     QiskitRuntimeSamplingBackend,
     QiskitRuntimeSavedDataSamplingResult,

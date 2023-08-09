@@ -12,6 +12,13 @@ from collections.abc import Mapping, Sequence
 from typing import Callable, Optional, Type
 
 import numpy as np
+import qiskit.circuit.library as qgate
+from qiskit.circuit import QuantumCircuit
+from qiskit.circuit.gate import Gate
+from qiskit.extensions import UnitaryGate
+from qiskit.opflow import X, Y, Z
+from typing_extensions import TypeAlias
+
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate, gate_names
 from quri_parts.circuit.gate_names import (
     Measurement,
@@ -34,13 +41,6 @@ from quri_parts.circuit.transpile import (
     PauliRotationDecomposeTranspiler,
     SequentialTranspiler,
 )
-from typing_extensions import TypeAlias
-
-import qiskit.circuit.library as qgate
-from qiskit.circuit import QuantumCircuit
-from qiskit.circuit.gate import Gate
-from qiskit.extensions import UnitaryGate
-from qiskit.opflow import X, Y, Z
 
 QiskitCircuitConverter: TypeAlias = Callable[
     [NonParametricQuantumCircuit, Optional[CircuitTranspiler]], QuantumCircuit

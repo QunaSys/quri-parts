@@ -17,9 +17,8 @@
 
 from unittest.mock import MagicMock
 
-from qiskit_ibm_runtime import QiskitRuntimeService
-
 from qiskit.test import mock as backend_mocks
+from qiskit_ibm_runtime import QiskitRuntimeService
 
 
 def mock_get_backend(backend: str) -> QiskitRuntimeService:

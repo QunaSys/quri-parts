@@ -8,10 +8,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
-
 from qiskit.opflow import PauliOp, PauliSumOp, X, Y, Z
 from qiskit.quantum_info import Pauli, SparsePauliOp
+
+from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
 from quri_parts.qiskit.operator import operator_from_qiskit_op
 
 
