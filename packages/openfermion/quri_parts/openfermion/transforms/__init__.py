@@ -148,7 +148,7 @@ class OpenFermionQubitMapping(FermionQubitMapping, Protocol):
         def mapper(state: ComputationalBasisState) -> Collection[int]:
             bits = state.bits
             bit_array = [(bits & 1 << index) >> index for index in range(n_qubits)]
-            bit_array = self.augment_dropped_bits(
+            bit_array = self._augment_dropped_bits(
                 bit_array, n_spin_orbitals, n_fermions
             )
             qubit_vector = BinaryArray(bit_array)
@@ -162,7 +162,7 @@ class OpenFermionQubitMapping(FermionQubitMapping, Protocol):
 
         return mapper
 
-    def augment_dropped_bits(
+    def _augment_dropped_bits(
         self,
         bit_array: list[int],
         n_spin_orbitals: int,
@@ -354,7 +354,7 @@ class OpenFermionSymmetryConservingBravyiKitaev(
             raise ValueError("Current implementation only supports sz = 0.0 or 0.5.")
         return super().get_inv_state_mapper(n_spin_orbitals, n_fermions, n_up_spins)
 
-    def augment_dropped_bits(
+    def _augment_dropped_bits(
         self,
         bit_array: list[int],
         n_spin_orbitals: int,
