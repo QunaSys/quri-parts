@@ -2,7 +2,7 @@ Tutorials
 =========
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
     tutorials/estimator_basics
     tutorials/circuits

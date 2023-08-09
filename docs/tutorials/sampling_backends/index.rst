@@ -2,7 +2,7 @@ Sampling backends
 ==================
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
     sampling_real
     sampling_real_braket
