@@ -11,11 +11,11 @@
 from collections.abc import Mapping
 from typing import Optional
 
-from qiskit import transpile
-from qiskit.providers import Backend
-
 from quri_parts.circuit import NonParametricQuantumCircuit, gate_names
 from quri_parts.circuit.transpile import CircuitTranspilerProtocol
+
+from qiskit import transpile
+from qiskit.providers import Backend
 from quri_parts.qiskit.circuit import circuit_from_qiskit, convert_circuit
 
 _qp_qiskit_gate_name_map: Mapping[str, str] = {

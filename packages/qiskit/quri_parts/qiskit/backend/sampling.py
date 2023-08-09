@@ -11,11 +11,6 @@
 from collections.abc import Mapping
 from typing import Any, Optional, Sequence
 
-import qiskit
-from qiskit.providers import Job
-from qiskit.providers.backend import Backend
-from qiskit.result import Result
-
 from quri_parts.backend import (
     BackendError,
     CompositeSamplingJob,
@@ -26,6 +21,11 @@ from quri_parts.backend import (
 )
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
+
+import qiskit
+from qiskit.providers import Job
+from qiskit.providers.backend import Backend
+from qiskit.result import Result
 from quri_parts.qiskit.circuit import QiskitCircuitConverter, convert_circuit
 
 from .saved_sampling import (
@@ -76,7 +76,7 @@ class QiskitSamplingBackend(SamplingBackend):
             :class:`~quri_parts.circuit.NonParametricQuantumCircuit` to
             a Qiskit :class:`qiskit.circuit.QuantumCircuit`.
         circuit_transpiler: A transpiler applied to the circuit before running it.
-            :class:`~QiskitTranspiler` is used when not specified.
+            :class:`~QiskitSetTranspiler` is used when not specified.
         enable_shots_roundup: If True, when a number of shots specified to
             :meth:`~sample` is smaller than the minimum number of shots supported by
             the device, it is rounded up to the minimum. In this case, it is possible

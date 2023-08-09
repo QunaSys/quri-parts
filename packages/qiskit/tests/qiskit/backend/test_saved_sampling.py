@@ -11,14 +11,14 @@
 import json
 from unittest.mock import MagicMock
 
+from qiskit_aer import AerSimulator
+from qiskit_ibm_runtime.runtime_job import JobStatus, RuntimeJob
+from quri_parts.backend import CompositeSamplingResult
+from quri_parts.circuit import QuantumCircuit
+
 from qiskit import transpile
 from qiskit.primitives import SamplerResult
 from qiskit.result import QuasiDistribution
-from qiskit_aer import AerSimulator
-from qiskit_ibm_runtime.runtime_job import JobStatus, RuntimeJob
-
-from quri_parts.backend import CompositeSamplingResult
-from quri_parts.circuit import QuantumCircuit
 from quri_parts.qiskit.backend import (
     QiskitRuntimeSavedDataSamplingResult,
     QiskitSavedDataSamplingBackend,

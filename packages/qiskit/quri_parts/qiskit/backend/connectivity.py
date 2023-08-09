@@ -1,6 +1,7 @@
 from typing import Union
 
 import networkx as nx
+
 from qiskit.providers import BackendV1, BackendV2
 
 

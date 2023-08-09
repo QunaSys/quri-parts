@@ -13,13 +13,13 @@ from collections import Counter
 from typing import Optional
 
 import pytest
-import qiskit
 from pydantic.json import pydantic_encoder
 from qiskit_aer import AerSimulator
-
 from quri_parts.backend import CompositeSamplingJob
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
+
+import qiskit
 from quri_parts.qiskit.backend import (
     QiskitSamplingBackend,
     QiskitSamplingJob,

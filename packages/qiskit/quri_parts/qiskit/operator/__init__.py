@@ -10,9 +10,9 @@
 
 from typing import Union
 
-from qiskit.opflow import PauliOp, PauliSumOp
-
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
+
+from qiskit.opflow import PauliOp, PauliSumOp
 
 
 def operator_from_qiskit_op(pauli_operator: Union[PauliSumOp, PauliOp]) -> Operator:
