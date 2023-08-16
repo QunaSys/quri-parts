@@ -80,7 +80,7 @@ class TketTranspiler(CircuitTranspilerProtocol):
 
         if basis_gates is not None:
             self._basis_gates = {
-                _qp_tket_gate_name_map[name] for name in self.basis_gates
+                _qp_tket_gate_name_map[name] for name in basis_gates
             }
         else:
             self._basis_gates = basis_gates
