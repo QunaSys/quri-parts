@@ -78,7 +78,7 @@ class TketTranspiler(CircuitTranspilerProtocol):
         if optimization_level < 0 or optimization_level > 2:
             raise ValueError("optimization_level must be 0, 1, or 2.")
 
-        self._basis_gates: Optional[Sequence[str]] = None
+        self._basis_gates: Optional[set[str]] = None
         if basis_gates is not None:
             self._basis_gates = {_qp_tket_gate_name_map[name] for name in basis_gates}
 
