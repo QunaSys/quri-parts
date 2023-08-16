@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import Optional
 
 from pytket import OpType, passes
@@ -72,14 +72,20 @@ class TketTranspiler(CircuitTranspilerProtocol):
     def __init__(
         self,
         backend: Optional[Backend] = None,
-        basis_gates: Optional[list[str]] = None,
+        basis_gates: Optional[Sequence[str]] = None,
         optimization_level: int = 2,
     ):
         if optimization_level < 0 or optimization_level > 2:
             raise ValueError("optimization_level must be 0, 1, or 2.")
 
+        if basis_gates is not None:
+            self._basis_gates = {
+                _qp_tket_gate_name_map[name] for name in self._basis_gates
+            }
+        else:
+            self._basis_gates = None
+
         self._backend = backend
-        self._basis_gates = basis_gates
         self._optimization_level = optimization_level
 
     def __call__(
@@ -100,11 +106,7 @@ class TketTranspiler(CircuitTranspilerProtocol):
             pass_list.append(passes.FullPeepholeOptimise())  # type: ignore
 
         if self._basis_gates is not None:
-            pass_list.append(
-                passes.auto_rebase_pass(
-                    {_qp_tket_gate_name_map[name] for name in self._basis_gates}
-                )
-            )
+            pass_list.append(passes.auto_rebase_pass(self._basis_gates))
 
         passes.SequencePass(pass_list).apply(tket_circ)  # type: ignore
         return circuit_from_tket(tket_circ)
