@@ -227,7 +227,7 @@ class OpenFermionBravyiKitaev(BravyiKitaev, OpenFermionQubitMapping):
 
     def __init__(
         self,
-        n_spin_orbitals: Optional[int] = None,
+        n_spin_orbitals: int,
         n_fermions: Optional[int] = None,
         sz: Optional[float] = None,
     ) -> None:
@@ -296,9 +296,9 @@ class OpenFermionSymmetryConservingBravyiKitaev(
 
     def __init__(
         self,
-        n_spin_orbitals: Optional[int] = None,
-        n_fermions: Optional[int] = None,
-        sz: Optional[float] = None,
+        n_spin_orbitals: int,
+        n_fermions: int,
+        sz: float,
     ) -> None:
         if n_fermions is None:
             raise ValueError("n_fermions is required.")
