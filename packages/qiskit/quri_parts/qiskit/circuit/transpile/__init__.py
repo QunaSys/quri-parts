@@ -64,9 +64,7 @@ class QiskitTranspiler(CircuitTranspilerProtocol):
         optimization_level: Optional[int] = None,
     ):
         if basis_gates is not None:
-            self._basis_gates = [
-                _qp_qiskit_gate_name_map[name] for name in basis_gates
-            ]
+            self._basis_gates = [_qp_qiskit_gate_name_map[name] for name in basis_gates]
         else:
             self._basis_gates = basis_gates
 
