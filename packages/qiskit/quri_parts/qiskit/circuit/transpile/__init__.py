@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import Optional
 
 from qiskit import transpile
@@ -60,7 +60,7 @@ class QiskitTranspiler(CircuitTranspilerProtocol):
     def __init__(
         self,
         backend: Optional[Backend] = None,
-        basis_gates: Optional[list[str]] = None,
+        basis_gates: Optional[Sequence[str]] = None,
         optimization_level: Optional[int] = None,
     ):
         if basis_gates is not None:
