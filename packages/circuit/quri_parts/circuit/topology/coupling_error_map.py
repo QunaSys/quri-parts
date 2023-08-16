@@ -127,7 +127,7 @@ def _two_qubit_path_fidelity(
     )
 
 
-def _circuit_fidelity(
+def _circuit_fidelity_for_repetitive_ansatz(
     two_qubit_errors: CouplingMapWithErrors,
     readout_errors: Mapping[int, float],
     reps: int,
@@ -136,6 +136,30 @@ def _circuit_fidelity(
     two_qubit_1_line = _two_qubit_path_fidelity(two_qubit_errors, path)
     readout = cast(float, np.prod([1.0 - readout_errors[q] for q in path]))
     return two_qubit_1_line**reps * readout
+
+
+def circuit_fidelity(
+    two_qubit_errors: CouplingMapWithErrors,
+    readout_errors: Mapping[int, float],
+    circuit: NonParametricQuantumCircuit,
+) -> float:
+    fidelity = 1.0
+
+    two_qubit_gates = [
+        g for g in circuit.gates if len(g.control_indices) + len(g.target_indices) == 2
+    ]
+    for gate in two_qubit_gates:
+        qs = tuple(gate.control_indices) + tuple(gate.target_indices)
+        error = two_qubit_errors.get(qs, 0.0)
+        fidelity *= 1.0 - error
+
+    qubits = set()
+    for gate in circuit.gates:
+        qubits |= set(gate.control_indices)
+        qubits |= set(gate.target_indices)
+    readout = cast(float, np.prod([1.0 - readout_errors[q] for q in qubits]))
+
+    return fidelity * readout
 
 
 def reliable_coupling_single_stroke_path(
