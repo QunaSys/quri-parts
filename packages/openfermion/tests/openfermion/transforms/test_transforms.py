@@ -135,7 +135,7 @@ class TestStateMapper:
     def test_scbk_state_mapper(self) -> None:
         n_spin_orbitals = 4
 
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             # Disable type check to test if error is properly raised.
             SCBK(n_spin_orbitals).get_state_mapper()  # type: ignore
 
