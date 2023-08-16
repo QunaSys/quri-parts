@@ -194,7 +194,9 @@ def reliable_coupling_single_stroke_path(
     return (
         max(
             ps,
-            key=lambda p: _circuit_fidelity(two_qubit_errors, readout_errors, reps, p),
+            key=lambda p: _circuit_fidelity_for_repetitive_ansatz(
+                two_qubit_errors, readout_errors, reps, p
+            ),
         )
         if ps
         else []
