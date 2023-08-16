@@ -9,6 +9,7 @@
 # limitations under the License.
 
 from collections.abc import Mapping, MutableMapping
+from copy import deepcopy
 from types import TracebackType
 from typing import Any, Dict, Optional, Sequence, Type, Union
 
@@ -140,6 +141,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         run_kwargs: Mapping[str, Any] = {},
         save_data_while_sampling: bool = False,
         total_time_limit: Optional[float] = None,
+        single_job_max_execution_time: Optional[float] = None,
     ):
         self._backend = backend
         self._service = service
@@ -178,6 +180,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         # Tracker related
         self.tracker: Optional[tracker.Tracker] = None
         self._time_limit = 0.0
+        self._single_job_max_execution_time = single_job_max_execution_time
 
         if total_time_limit is not None:
             self.tracker = tracker.Tracker()
@@ -223,6 +226,36 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
                 "are also aborted."
             )
 
+    def _get_time_limit_with_sampler_option(
+        self, batch_time: Optional[float]
+    ) -> Options:
+        options = (
+            deepcopy(self._qiskit_sampler_options)
+            if self._qiskit_sampler_options is not None
+            else Options()
+        )
+
+        if batch_time is not None and self.tracker is not None:
+            time_left = self._time_limit - self.tracker.total_run_time
+            options.max_execution_time = max(
+                300, self._single_job_max_execution_time, time_left
+            )
+
+        elif batch_time is not None and self.tracker is None:
+            options.max_execution_time = max(300, self._single_job_max_execution_time)
+
+        elif batch_time is None and self.tracker is not None:
+            time_left = self._time_limit - self.tracker.total_run_time
+            options.max_execution_time = max(300, time_left)
+
+        return options
+
+    def _get_batch_execution_time(self, shot_dist: Sequence[int]) -> Optional[float]:
+        if self._single_job_max_execution_time is None:
+            return None
+        n_batch = len(shot_dist)
+        return self._single_job_max_execution_time / n_batch
+
     def _execute_shots(
         self,
         runtime_sampler: Sampler,
@@ -257,6 +290,10 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         shot_dist = distribute_backend_shots(
             n_shots, self._min_shots, self._max_shots, self._enable_shots_roundup
         )
+        single_batch_execution_time = self._get_batch_execution_time(shot_dist)
+        qiskit_sampler_options = self._get_time_limit_with_sampler_option(
+            single_batch_execution_time
+        )
 
         qiskit_circuit = self._circuit_converter(circuit, self._circuit_transpiler)
         qiskit_circuit.measure_all()
@@ -268,7 +305,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
                 # Create a session if there is no session
                 with Session(service=self._service, backend=self._backend) as session:
                     runtime_sampler = Sampler(
-                        session=session, options=self._qiskit_sampler_options
+                        session=session, options=qiskit_sampler_options
                     )
                     self._execute_shots(
                         runtime_sampler, transpiled_circuit, shot_dist, jobs
@@ -277,7 +314,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             else:
                 # Do not end the session if it has been already created
                 runtime_sampler = Sampler(
-                    session=self._session, options=self._qiskit_sampler_options
+                    session=self._session, options=qiskit_sampler_options
                 )
                 self._execute_shots(
                     runtime_sampler, transpiled_circuit, shot_dist, jobs
