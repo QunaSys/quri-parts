@@ -14,7 +14,7 @@ from numpy import allclose, array, complex128, isclose
 from numpy.typing import NDArray
 from pyscf import gto, scf
 
-from quri_parts.chem.mol import ActiveSpace, ActiveSpaceMolecularOrbitals, cas
+from quri_parts.chem.mol import ActiveSpaceMolecularOrbitals, cas
 from quri_parts.pyscf.mol import (
     PySCFAO1eInt,
     PySCFAO2eInt,
@@ -214,11 +214,9 @@ class TestSpinMOIntegralsFromMole:
         mf = scf.RHF(gto_mol)
         mf.kernel()
 
-        active_space, spin_mo_eint_set = get_spin_mo_integrals_from_mole(
-            gto_mol, mf.mo_coeff
-        )
-        active_space.n_active_ele == 2
-        active_space.n_active_orb == 2
+        asmo, spin_mo_eint_set = get_spin_mo_integrals_from_mole(gto_mol, mf.mo_coeff)
+        asmo.n_active_ele == 2
+        asmo.n_active_ele == 2
 
         nuc_energy = spin_mo_eint_set.const
         spin_mo_1e_int_array = spin_mo_eint_set.mo_1e_int.array
@@ -353,7 +351,7 @@ class TestSpinMOIntegralsFromMole:
         mf = scf.ROHF(gto_mol)
         mf.kernel()
 
-        active_space, spin_mo_eint_set = get_spin_mo_integrals_from_mole(
+        asmo, spin_mo_eint_set = get_spin_mo_integrals_from_mole(
             gto_mol, mf.mo_coeff, cas(1, 1)
         )
 
@@ -361,9 +359,9 @@ class TestSpinMOIntegralsFromMole:
         spin_mo_1e_int_array = spin_mo_eint_set.mo_1e_int.array
         spin_mo_2e_int_array = spin_mo_eint_set.mo_2e_int.array
 
-        assert isinstance(active_space, ActiveSpace)
-        assert active_space.n_active_ele == 1
-        assert active_space.n_active_orb == 1
+        assert isinstance(asmo, ActiveSpaceMolecularOrbitals)
+        assert asmo.n_active_ele == 1
+        assert asmo.n_active_orb == 1
 
         expected_nuc_energy = -1.18702694476004
         expected_spin_mo_1e_int = array([[-0.33696926, 0.0], [0.0, -0.33696926]])

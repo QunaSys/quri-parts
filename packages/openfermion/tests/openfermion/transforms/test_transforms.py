@@ -19,10 +19,10 @@ from quri_parts.openfermion.operator import (
     FermionOperator,
     operator_from_openfermion_op,
 )
+from quri_parts.openfermion.transforms import OpenFermionBravyiKitaev as BravyiKitaev
+from quri_parts.openfermion.transforms import OpenFermionJordanWigner as JordanWigner
 from quri_parts.openfermion.transforms import (
-    bravyi_kitaev,
-    jordan_wigner,
-    symmetry_conserving_bravyi_kitaev,
+    OpenFermionSymmetryConservingBravyiKitaev as SCBK,
 )
 
 
@@ -47,9 +47,7 @@ class TestOperatorMapper:
 
         of_op_symmetry_conserve = of_const + of_f_op1 + of_f_op2
 
-        op_mapper = symmetry_conserving_bravyi_kitaev.get_of_operator_mapper(
-            n_spin_orbitals, n_fermions
-        )
+        op_mapper = SCBK(n_spin_orbitals, n_fermions, 0.0).get_of_operator_mapper()
         total_transformed = op_mapper(op_total)
         of_total_transformed = op_mapper(of_op_total)
 
@@ -64,8 +62,8 @@ class TestOperatorMapper:
 class TestStateMapper:
     def test_jw_state_mapper(self) -> None:
         n_spin_orbitals = 4
-        state_mapper = jordan_wigner.get_state_mapper(n_spin_orbitals)
-        inv_state_mapper = jordan_wigner.get_inv_state_mapper(n_spin_orbitals)
+        state_mapper = JordanWigner(n_spin_orbitals).get_state_mapper()
+        inv_state_mapper = JordanWigner(n_spin_orbitals).get_inv_state_mapper()
 
         mapped = state_mapper([0, 1])
         assert mapped == ComputationalBasisState(n_spin_orbitals, bits=0b0011)
@@ -77,9 +75,8 @@ class TestStateMapper:
 
     def test_bk_state_mapper(self) -> None:
         n_spin_orbitals = 4
-        state_mapper = bravyi_kitaev.get_state_mapper(n_spin_orbitals)
-        inv_state_mapper = bravyi_kitaev.get_inv_state_mapper(n_spin_orbitals)
-
+        state_mapper = BravyiKitaev(n_spin_orbitals).get_state_mapper()
+        inv_state_mapper = BravyiKitaev(n_spin_orbitals).get_inv_state_mapper()
         # State transformation matrix for BK(n_spin_orbitals=4, n_fermions=2):
         # [[1, 0, 0, 0]
         #  [1, 1, 0, 0]
@@ -104,10 +101,10 @@ class TestStateMapper:
 
         n_spin_orbitals = 8
         n_fermions = 4
-        state_mapper = bravyi_kitaev.get_state_mapper(n_spin_orbitals, n_fermions)
-        inv_state_mapper = bravyi_kitaev.get_inv_state_mapper(
+        state_mapper = BravyiKitaev(n_spin_orbitals, n_fermions).get_state_mapper()
+        inv_state_mapper = BravyiKitaev(
             n_spin_orbitals, n_fermions
-        )
+        ).get_inv_state_mapper()
 
         # State transformation matrix for BK(n_spin_orbitals=8, n_fermions=4):
         # [[1, 0, 0, 0, 0, 0, 0, 0]
@@ -139,15 +136,11 @@ class TestStateMapper:
         n_spin_orbitals = 4
 
         with pytest.raises(ValueError):
-            symmetry_conserving_bravyi_kitaev.get_state_mapper(n_spin_orbitals)
+            SCBK(n_spin_orbitals).get_state_mapper()
 
         n_fermions = 2
-        state_mapper = symmetry_conserving_bravyi_kitaev.get_state_mapper(
-            n_spin_orbitals, n_fermions
-        )
-        inv_state_mapper = symmetry_conserving_bravyi_kitaev.get_inv_state_mapper(
-            n_spin_orbitals, n_fermions, 1
-        )
+        state_mapper = SCBK(n_spin_orbitals, n_fermions, 0.0).get_state_mapper()
+        inv_state_mapper = SCBK(n_spin_orbitals, n_fermions, 0.0).get_inv_state_mapper()
 
         # State transformation:
         # 1. Reorder to "all spin-up orbitals, then all spin-down orbitals"
@@ -188,12 +181,8 @@ class TestStateMapper:
 
         n_spin_orbitals = 8
         n_fermions = 4
-        state_mapper = symmetry_conserving_bravyi_kitaev.get_state_mapper(
-            n_spin_orbitals, n_fermions
-        )
-        inv_state_mapper = symmetry_conserving_bravyi_kitaev.get_inv_state_mapper(
-            n_spin_orbitals, n_fermions, 2
-        )
+        state_mapper = SCBK(n_spin_orbitals, n_fermions, 0.0).get_state_mapper()
+        inv_state_mapper = SCBK(n_spin_orbitals, n_fermions, 0.0).get_inv_state_mapper()
 
         # State transformation:
         # 1. Reorder to "all spin-up orbitals, then all spin-down orbitals"

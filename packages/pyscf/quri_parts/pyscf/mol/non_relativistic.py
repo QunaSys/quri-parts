@@ -299,7 +299,7 @@ def get_spin_mo_integrals_from_mole(
     mole: gto.Mole,
     mo_coeff: npt.NDArray[np.complex128],
     active_space: Optional[ActiveSpace] = None,
-) -> tuple[ActiveSpace, SpinMOeIntSet]:
+) -> tuple[ActiveSpaceMolecularOrbitals, SpinMOeIntSet]:
     """Computes the spin MO electron integrals and the corresponding
     :class:`~quri_parts.chem.mol.ActiveSpace` object."""
     mo = PySCFMolecularOrbitals(mole, mo_coeff)
@@ -307,9 +307,11 @@ def get_spin_mo_integrals_from_mole(
 
     if active_space is None:
         return (
-            ActiveSpace(mo.n_electron, mo.n_spatial_orb),
+            ActiveSpaceMolecularOrbitals(
+                mo, ActiveSpace(mo.n_electron, mo.n_spatial_orb)
+            ),
             ao_eint_set.to_full_space_mo_int(mo),
         )
 
     asmo = ActiveSpaceMolecularOrbitals(mo, active_space)
-    return active_space, ao_eint_set.to_active_space_mo_int(asmo)
+    return asmo, ao_eint_set.to_active_space_mo_int(asmo)

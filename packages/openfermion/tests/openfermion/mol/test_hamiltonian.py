@@ -8,11 +8,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from dataclasses import dataclass
 
+import numpy as np
+import numpy.typing as npt
 from numpy import array, isclose
 from openfermion import FermionOperator
 
-from quri_parts.chem.mol import SpinMO1eIntArray, SpinMO2eIntArray, SpinMOeIntSet, cas
+from quri_parts.chem.mol import (
+    ActiveSpaceMolecularOrbitals,
+    MolecularOrbitals,
+    SpinMO1eIntArray,
+    SpinMO2eIntArray,
+    SpinMOeIntSet,
+    cas,
+)
 from quri_parts.core.operator import (
     PAULI_IDENTITY,
     Operator,
@@ -25,10 +35,34 @@ from quri_parts.openfermion.mol import (
     get_qubit_mapped_hamiltonian,
     operator_from_of_fermionic_op,
 )
+from quri_parts.openfermion.transforms import OpenFermionBravyiKitaev as BravyiKitaev
 from quri_parts.openfermion.transforms import (
-    bravyi_kitaev,
-    symmetry_conserving_bravyi_kitaev,
+    OpenFermionSymmetryConservingBravyiKitaev as SCBK,
 )
+
+
+@dataclass
+class MolecularOrbitalsInfo(MolecularOrbitals):
+    _n_electron: int
+    _n_spatial_orb: int
+    _mo_coeff: npt.NDArray[np.complex128]
+    _spin: int = 0
+
+    @property
+    def n_electron(self) -> int:
+        return self._n_electron
+
+    @property
+    def spin(self) -> int:
+        return self._spin
+
+    @property
+    def n_spatial_orb(self) -> int:
+        return self._n_spatial_orb
+
+    @property
+    def mo_coeff(self) -> "npt.NDArray[np.complex128]":
+        return self._mo_coeff
 
 
 def test_get_fermionic_hamiltonian() -> None:
@@ -174,10 +208,17 @@ class TestOperatorFromOfFermionicOp:
             FermionOperator(((3, 1), (3, 1), (3, 0), (3, 0))) * 0.326535373471287
         )
         fermionic_operator += 0.52917721092
-
-        jw_qubit_operator, _, _ = operator_from_of_fermionic_op(
-            fermionic_operator, cas(2, 2)
+        asmo = ActiveSpaceMolecularOrbitals(
+            MolecularOrbitalsInfo(
+                _n_electron=2,
+                _n_spatial_orb=2,
+                _spin=0,
+                _mo_coeff=np.array([1.0], dtype=np.complex128),
+            ),
+            cas(2, 2),
         )
+
+        jw_qubit_operator, _ = operator_from_of_fermionic_op(fermionic_operator, asmo)
 
         expected_jw_qubit_operator = Operator(
             {
@@ -201,10 +242,10 @@ class TestOperatorFromOfFermionicOp:
 
         assert truncate(expected_jw_qubit_operator - jw_qubit_operator) == zero()
 
-        bk_qubit_operator, _, _ = operator_from_of_fermionic_op(
+        bk_qubit_operator, _ = operator_from_of_fermionic_op(
             fermionic_operator,
-            cas(2, 2),
-            bravyi_kitaev,
+            asmo,
+            BravyiKitaev,
         )
         expected_bk_qubit_operator = Operator(
             {
@@ -227,10 +268,10 @@ class TestOperatorFromOfFermionicOp:
         )
         assert truncate(expected_bk_qubit_operator - bk_qubit_operator) == zero()
 
-        scbk_qubit_operator, _, _ = operator_from_of_fermionic_op(
+        scbk_qubit_operator, _ = operator_from_of_fermionic_op(
             fermionic_operator,
-            cas(2, 2),
-            symmetry_conserving_bravyi_kitaev,
+            asmo,
+            SCBK,
         )
         expected_scbk_qubit_operator = Operator(
             {
@@ -261,8 +302,19 @@ class TestOperatorFromOfFermionicOp:
         )
         fermionic_operator += -1.18702694476004
 
-        jw_qubit_operator, _, _ = operator_from_of_fermionic_op(
-            fermionic_operator, cas(1, 1)
+        asmo = ActiveSpaceMolecularOrbitals(
+            MolecularOrbitalsInfo(
+                _n_electron=3,
+                _n_spatial_orb=3,
+                _spin=1,
+                _mo_coeff=np.array([1.0], dtype=np.complex128),
+            ),
+            cas(1, 1),
+        )
+
+        jw_qubit_operator, _ = operator_from_of_fermionic_op(
+            fermionic_operator,
+            asmo,
         )
         jw_expected_qubit_operator = Operator(
             {
@@ -274,8 +326,10 @@ class TestOperatorFromOfFermionicOp:
         )
         assert truncate(jw_qubit_operator - jw_expected_qubit_operator) == zero()
 
-        bk_qubit_operator, _, _ = operator_from_of_fermionic_op(
-            fermionic_operator, cas(1, 1), bravyi_kitaev
+        bk_qubit_operator, _ = operator_from_of_fermionic_op(
+            fermionic_operator,
+            asmo,
+            BravyiKitaev,
         )
         expected_bk_qubit_operator = Operator(
             {
@@ -414,8 +468,17 @@ class TestGetQubitMappedHamiltonianOperator:
         mo_eint_set = SpinMOeIntSet(
             const=nuc_energy, mo_1e_int=spin_mo_1e_int, mo_2e_int=spin_mo_2e_int
         )
+        asmo = ActiveSpaceMolecularOrbitals(
+            MolecularOrbitalsInfo(
+                _n_electron=2,
+                _n_spatial_orb=2,
+                _spin=0,
+                _mo_coeff=np.array([[1.0]], dtype=np.complex128),
+            ),
+            cas(2, 2),
+        )
 
-        jw_qubit_operator, _, _ = get_qubit_mapped_hamiltonian(cas(2, 2), mo_eint_set)
+        jw_qubit_operator, _ = get_qubit_mapped_hamiltonian(asmo, mo_eint_set)
 
         expected_jw_qubit_operator = Operator(
             {
@@ -439,8 +502,8 @@ class TestGetQubitMappedHamiltonianOperator:
 
         assert truncate(expected_jw_qubit_operator - jw_qubit_operator) == zero()
 
-        bk_qubit_operator, _, _ = get_qubit_mapped_hamiltonian(
-            cas(2, 2), mo_eint_set, bravyi_kitaev
+        bk_qubit_operator, _ = get_qubit_mapped_hamiltonian(
+            asmo, mo_eint_set, BravyiKitaev
         )
 
         expected_bk_qubit_operator = Operator(
@@ -464,9 +527,7 @@ class TestGetQubitMappedHamiltonianOperator:
         )
         assert truncate(expected_bk_qubit_operator - bk_qubit_operator) == zero()
 
-        scbk_qubit_operator, _, _ = get_qubit_mapped_hamiltonian(
-            cas(2, 2), mo_eint_set, symmetry_conserving_bravyi_kitaev
-        )
+        scbk_qubit_operator, _ = get_qubit_mapped_hamiltonian(asmo, mo_eint_set, SCBK)
         expected_scbk_qubit_operator = Operator(
             {
                 PAULI_IDENTITY: -0.5400662794919303,
@@ -494,8 +555,17 @@ class TestGetQubitMappedHamiltonianOperator:
         mo_eint_set = SpinMOeIntSet(
             const=nuc_energy, mo_1e_int=spin_mo_1e_int, mo_2e_int=spin_mo_2e_int
         )
+        asmo = ActiveSpaceMolecularOrbitals(
+            MolecularOrbitalsInfo(
+                _n_electron=3,
+                _n_spatial_orb=3,
+                _spin=1,
+                _mo_coeff=np.array([[1.0]], dtype=np.complex128),
+            ),
+            cas(1, 1),
+        )
 
-        jw_qubit_operator, _, _ = get_qubit_mapped_hamiltonian(cas(1, 1), mo_eint_set)
+        jw_qubit_operator, _ = get_qubit_mapped_hamiltonian(asmo, mo_eint_set)
         expected_jw_qubit_operator = Operator(
             {
                 PAULI_IDENTITY: -1.3903301703637687,
@@ -506,8 +576,8 @@ class TestGetQubitMappedHamiltonianOperator:
         )
         assert truncate(jw_qubit_operator - expected_jw_qubit_operator) == zero()
 
-        bk_qubit_operator, _, _ = get_qubit_mapped_hamiltonian(
-            cas(1, 1), mo_eint_set, bravyi_kitaev
+        bk_qubit_operator, _ = get_qubit_mapped_hamiltonian(
+            asmo, mo_eint_set, BravyiKitaev
         )
         expected_bk_qubit_operator = Operator(
             {

@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, abstractproperty
 from collections.abc import Collection, Sequence
 from typing import Callable, Optional, Protocol
 
@@ -61,22 +61,18 @@ QubitFermionStateMapper: TypeAlias = Callable[
 class FermionQubitMapping(Protocol):
     """Mapping from Fermionic states to qubit states."""
 
-    @abstractmethod
-    def n_qubits_required(self, n_spin_orbitals: int) -> int:
+    n_spin_orbitals: Optional[int]
+    n_fermions: Optional[int]
+    sz: Optional[float]
+
+    @abstractproperty
+    def n_qubits_required(self) -> Optional[int]:
         """Returns a number of qubits the mapping requires for a given number
         of spin orbitals."""
         ...
 
     @abstractmethod
-    def n_spin_orbitals(self, n_qubits: int) -> int:
-        """Returns a number of spin orbitals that the mapping can represent
-        with a given number of qubits."""
-        ...
-
-    @abstractmethod
-    def get_state_mapper(
-        self, n_spin_orbitals: int, n_fermions: Optional[int] = None
-    ) -> FermionQubitStateMapper:
+    def get_state_mapper(self) -> FermionQubitStateMapper:
         """Returns a function that maps occupied spin orbital indices to a
         computational basis state of qubits.
 
@@ -92,12 +88,7 @@ class FermionQubitMapping(Protocol):
         ...
 
     @abstractmethod
-    def get_inv_state_mapper(
-        self,
-        n_spin_orbitals: int,
-        n_fermions: Optional[int] = None,
-        n_up_spins: Optional[int] = None,
-    ) -> QubitFermionStateMapper:
+    def get_inv_state_mapper(self) -> QubitFermionStateMapper:
         """Returns a function that maps a computational basis state of qubits
         to the set of occupied spin orbital indices.
 
@@ -117,21 +108,17 @@ class FermionQubitMapping(Protocol):
 class JordanWigner(FermionQubitMapping, ABC):
     """Jordan-Wigner transformation."""
 
-    def n_qubits_required(self, n_spin_orbitals: int) -> int:
-        return n_spin_orbitals
-
-    def n_spin_orbitals(self, n_qubits: int) -> int:
-        return n_qubits
+    @property
+    def n_qubits_required(self) -> Optional[int]:
+        return self.n_spin_orbitals if self.n_spin_orbitals is not None else None
 
 
 class BravyiKitaev(FermionQubitMapping, ABC):
     """Bravyi-Kitaev transformation."""
 
-    def n_qubits_required(self, n_spin_orbitals: int) -> int:
-        return n_spin_orbitals
-
-    def n_spin_orbitals(self, n_qubits: int) -> int:
-        return n_qubits
+    @property
+    def n_qubits_required(self) -> Optional[int]:
+        return self.n_spin_orbitals if self.n_spin_orbitals is not None else None
 
 
 class SymmetryConservingBravyiKitaev(FermionQubitMapping, ABC):
@@ -145,8 +132,6 @@ class SymmetryConservingBravyiKitaev(FermionQubitMapping, ABC):
     and spin.
     """
 
-    def n_qubits_required(self, n_spin_orbitals: int) -> int:
-        return n_spin_orbitals - 2
-
-    def n_spin_orbitals(self, n_qubits: int) -> int:
-        return n_qubits + 2
+    @property
+    def n_qubits_required(self) -> Optional[int]:
+        return self.n_spin_orbitals - 2 if self.n_spin_orbitals is not None else None

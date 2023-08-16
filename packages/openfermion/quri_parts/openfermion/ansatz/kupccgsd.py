@@ -19,7 +19,6 @@ from quri_parts.circuit import (
 from quri_parts.openfermion.transforms import (
     OpenFermionQubitMapping,
     OpenFermionQubitOperatorMapper,
-    jordan_wigner,
 )
 from quri_parts.openfermion.utils import add_exp_excitation_gates_trotter_decomposition
 
@@ -59,18 +58,22 @@ class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
 
     def __init__(
         self,
-        n_spin_orbitals: int,
-        n_fermions: int,
+        fermion_qubit_mapping: OpenFermionQubitMapping,
         k: int = 1,
-        fermion_qubit_mapping: OpenFermionQubitMapping = jordan_wigner,
         trotter_number: int = 1,
         delta_sz: int = 0,
         singlet_excitation: bool = False,
     ):
-        n_qubits = fermion_qubit_mapping.n_qubits_required(n_spin_orbitals)
-        op_mapper = fermion_qubit_mapping.get_of_operator_mapper(
-            n_spin_orbitals, n_fermions
-        )
+        n_spin_orbitals = fermion_qubit_mapping.n_spin_orbitals
+        n_fermions = fermion_qubit_mapping.n_fermions
+        n_qubits = fermion_qubit_mapping.n_qubits_required
+
+        assert (
+            n_spin_orbitals is not None
+            and n_fermions is not None
+            and n_qubits is not None
+        ), "n_spin_orbitals and n_fermions must not be None for ansatz construction."
+        op_mapper = fermion_qubit_mapping.get_of_operator_mapper()
         circuit = LinearMappedUnboundParametricQuantumCircuit(n_qubits)
 
         _construct_circuit(
