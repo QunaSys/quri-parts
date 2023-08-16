@@ -63,19 +63,20 @@ class QiskitTranspiler(CircuitTranspilerProtocol):
         basis_gates: Optional[list[str]] = None,
         optimization_level: Optional[int] = None,
     ):
+        if basis_gates is not None:
+            self._basis_gates = [
+                _qp_qiskit_gate_name_map[name] for name in basis_gates
+            ]
+        else:
+            self._basis_gates = basis_gates
+
         self._backend = backend
-        self._basis_gates = basis_gates
         self._optimization_level = optimization_level
 
     def __call__(
         self, circuit: NonParametricQuantumCircuit
     ) -> NonParametricQuantumCircuit:
         qiskit_circ = convert_circuit(circuit)
-
-        if self._basis_gates is not None:
-            self._basis_gates = [
-                _qp_qiskit_gate_name_map[name] for name in self._basis_gates
-            ]
 
         optimized_qiskit_circ = transpile(
             qiskit_circ,
