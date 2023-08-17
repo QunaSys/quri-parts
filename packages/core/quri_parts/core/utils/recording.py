@@ -256,7 +256,7 @@ def _to_logging_level(level: RecordLevel) -> int:
 
 
 class RecordSession:
-    """ "A session used to store information about :class:`RecordableFunctionId`
+    """A session used to store information about :class:`RecordableFunctionId`
     of functions and their :class:`RecordLevel`s, and :class:`RecordGroup`s as
     a :class:`RecordSet`."""
 
