@@ -83,15 +83,36 @@ def test_create_scbk_electron_number_post_selection_filter_fn() -> None:
     filter_fn = create_scbk_electron_number_post_selection_filter_fn(
         qubit_count, 2, sz=1.0
     )
-    assert filter_fn(0b1)  # [0, 1]
+    assert filter_fn(0b1)  # [0, 2]
+    assert filter_fn(0b111)  # [0, 4]
+    assert filter_fn(0b11)  # [0, 6]
     assert filter_fn(0b110)  # [2, 4]
+    assert filter_fn(0b10)  # [2, 6]
+    assert filter_fn(0b100)  # [4, 6]
     assert not filter_fn(0b11011)  # [0, 1]
+    assert not filter_fn(0b110000)  # [3, 5]
+    assert not filter_fn(0b10010)  # [2, 3]
 
     filter_fn = create_scbk_electron_number_post_selection_filter_fn(
         qubit_count, 3, sz=-0.5
     )
     assert filter_fn(0b1011)  # [0, 1, 3]
+    assert filter_fn(0b111011)  # [0, 1, 5]
+    assert filter_fn(0b11011)  # [0, 1, 7]
+    assert filter_fn(0b110011)  # [0, 3, 5]
+    assert filter_fn(0b10011)  # [0, 3, 7]
+    assert filter_fn(0b100011)  # [0, 5, 7]
+    assert filter_fn(0b1010)  # [1, 2, 3]
+    assert filter_fn(0b111010)  # [1, 2, 5]
+    assert filter_fn(0b11010)  # [1, 2, 7]
+    assert filter_fn(0b1100)  # [1, 3, 4]
+    assert filter_fn(0b1000)  # [1, 3, 6]
+    assert filter_fn(0b1100)  # [1, 4, 5]
     assert not filter_fn(0b11001)  # [0, 1, 2]
+    assert not filter_fn(0b11111)  # [0, 1, 4]
+    assert not filter_fn(0b1)  # [0, 2, 7]
+    assert not filter_fn(0b111)  # [0, 4, 6]
+    assert not filter_fn(0b11110)  # [1, 2, 4]
 
 
 def test_sz() -> None:

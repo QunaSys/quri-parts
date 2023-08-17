@@ -394,3 +394,63 @@ class TestStateMapper:
             ComputationalBasisState(n_spin_orbitals - 2, bits=0b111111)
         )
         assert inv_mapped == [0, 1, 4, 5]
+
+        # Test for generic spin SCBK: integer spin
+        n_spin_orbitals = 8
+        n_fermions = 4
+        state_mapper = SCBK(n_spin_orbitals, n_fermions, 1.0).get_state_mapper()
+        inv_state_mapper = SCBK(n_spin_orbitals, n_fermions, 1.0).get_inv_state_mapper()
+
+        mapped = state_mapper([0, 1, 2, 4])
+        assert mapped == ComputationalBasisState(n_spin_orbitals - 2, bits=0b11101)
+
+        inv_mapped = inv_state_mapper(
+            ComputationalBasisState(n_spin_orbitals - 2, bits=0b11101)
+        )
+        assert inv_mapped == [0, 1, 2, 4]
+
+        mapped = state_mapper([0, 2, 3, 4])
+        assert mapped == ComputationalBasisState(n_spin_orbitals - 2, bits=0b10101)
+
+        inv_mapped = inv_state_mapper(
+            ComputationalBasisState(n_spin_orbitals - 2, bits=0b10101)
+        )
+        assert inv_mapped == [0, 2, 3, 4]
+
+        mapped = state_mapper([0, 1, 2, 6])
+        assert mapped == ComputationalBasisState(n_spin_orbitals - 2, bits=0b11001)
+
+        inv_mapped = inv_state_mapper(
+            ComputationalBasisState(n_spin_orbitals - 2, bits=0b11001)
+        )
+        assert inv_mapped == [0, 1, 2, 6]
+
+        # Test for generic spin SCBK: half integer spin
+        n_spin_orbitals = 8
+        n_fermions = 3
+        state_mapper = SCBK(n_spin_orbitals, n_fermions, 1.0).get_state_mapper()
+        inv_state_mapper = SCBK(n_spin_orbitals, n_fermions, 1.0).get_inv_state_mapper()
+
+        mapped = state_mapper([1, 3, 5])
+        assert mapped == ComputationalBasisState(n_spin_orbitals - 2, bits=0b101000)
+
+        inv_mapped = inv_state_mapper(
+            ComputationalBasisState(n_spin_orbitals - 2, bits=0b101000)
+        )
+        assert inv_mapped == [1, 3, 5]
+
+        mapped = state_mapper([1, 3, 7])
+        assert mapped == ComputationalBasisState(n_spin_orbitals - 2, bits=0b1000)
+
+        inv_mapped = inv_state_mapper(
+            ComputationalBasisState(n_spin_orbitals - 2, bits=0b1000)
+        )
+        assert inv_mapped == [1, 3, 7]
+
+        mapped = state_mapper([3, 5, 7])
+        assert mapped == ComputationalBasisState(n_spin_orbitals - 2, bits=0b110000)
+
+        inv_mapped = inv_state_mapper(
+            ComputationalBasisState(n_spin_orbitals - 2, bits=0b110000)
+        )
+        assert inv_mapped == [3, 5, 7]
