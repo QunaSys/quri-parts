@@ -226,7 +226,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
                 "are also aborted."
             )
 
-    def _get_time_limit_with_sampler_option(
+    def _get_sampler_option_with_time_limit(
         self, batch_time: Optional[float]
     ) -> Options:
         options = (
@@ -289,7 +289,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             n_shots, self._min_shots, self._max_shots, self._enable_shots_roundup
         )
         single_batch_execution_time = self._get_batch_execution_time(shot_dist)
-        qiskit_sampler_options = self._get_time_limit_with_sampler_option(
+        qiskit_sampler_options = self._get_sampler_option_with_time_limit(
             single_batch_execution_time
         )
 
