@@ -66,14 +66,14 @@ class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
     ):
         n_spin_orbitals = fermion_qubit_mapping.n_spin_orbitals
         n_fermions = fermion_qubit_mapping.n_fermions
-        n_qubits = fermion_qubit_mapping.n_qubits_required
+        n_qubits = fermion_qubit_mapping.n_qubits
 
         assert (
             n_spin_orbitals is not None
             and n_fermions is not None
             and n_qubits is not None
         ), "n_spin_orbitals and n_fermions must not be None for ansatz construction."
-        op_mapper = fermion_qubit_mapping.get_of_operator_mapper()
+        op_mapper = fermion_qubit_mapping.operator_mapper
         circuit = LinearMappedUnboundParametricQuantumCircuit(n_qubits)
 
         _construct_circuit(

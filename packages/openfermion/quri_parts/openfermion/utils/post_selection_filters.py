@@ -12,10 +12,7 @@ from typing import Collection, Optional
 
 from quri_parts.algo.mitigation.post_selection import PostSelectionFilterFunction
 from quri_parts.core.state import ComputationalBasisState
-from quri_parts.openfermion.transforms import OpenFermionBravyiKitaev as BravyiKitaev
-from quri_parts.openfermion.transforms import (
-    OpenFermionSymmetryConservingBravyiKitaev as SCBK,
-)
+from quri_parts.openfermion.transforms import bravyi_kitaev, symmetry_conserving_bravyi_kitaev
 
 
 def create_jw_electron_number_post_selection_filter_fn(
@@ -50,7 +47,9 @@ def create_bk_electron_number_post_selection_filter_fn(
     Here ``bits`` is a bitstring obtained by measuring the states mapped
     by Bravyi-Kitaev transformation.
     """
-    inv_st_mapper = BravyiKitaev(qubit_count).get_inv_state_mapper()
+    inv_st_mapper = bravyi_kitaev.get_inv_state_mapper(
+        bravyi_kitaev.n_spin_orbitals_required(qubit_count)
+    )
 
     def filter_fn(bits: int) -> bool:
         state = ComputationalBasisState(qubit_count, bits=bits)
@@ -71,11 +70,11 @@ def create_scbk_electron_number_post_selection_filter_fn(
     Here ``bits`` is a bitstring obtained by measuring the states mapped
     by symmetry-conserving Bravyi-Kitaev transformation.
     """
-    inv_st_mapper = SCBK(
-        qubit_count + 2,
+    inv_st_mapper = symmetry_conserving_bravyi_kitaev.get_inv_state_mapper(
+        symmetry_conserving_bravyi_kitaev.n_spin_orbitals_required(qubit_count),
         n_electrons,
-        sz,
-    ).get_inv_state_mapper()
+        sz
+    )
 
     def filter_fn(bits: int) -> bool:
         state = ComputationalBasisState(qubit_count, bits=bits)

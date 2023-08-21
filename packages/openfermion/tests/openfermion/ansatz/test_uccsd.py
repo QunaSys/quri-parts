@@ -48,7 +48,7 @@ class TestConstructCircuit:
         )
         expected_circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
         params = expected_circuit.add_parameters("param1", "param2", "param3")
-        op_mapper = fermion_qubit_mapping.get_of_operator_mapper()
+        op_mapper = fermion_qubit_mapping.operator_mapper
         s_excs, d_excs = excitations(n_spin_orbitals, n_electrons)
         add_exp_excitation_gates_trotter_decomposition(
             expected_circuit, d_excs, [params[-1]], op_mapper, 1 / trotter_number
@@ -77,7 +77,7 @@ class TestConstructCircuit:
         )
         expected_circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
         param = expected_circuit.add_parameter("param")
-        op_mapper = fermion_qubit_mapping.get_of_operator_mapper()
+        op_mapper = fermion_qubit_mapping.operator_mapper
         _, d_excs = excitations(n_spin_orbitals, n_electrons)
         add_exp_excitation_gates_trotter_decomposition(
             expected_circuit, d_excs, [param], op_mapper, 1 / trotter_number
@@ -101,9 +101,9 @@ class TestConstructCircuit:
             trotter_number,
             use_singles,
         )
-        n_qubits = fermion_qubit_mapping.n_qubits_required
+        n_qubits = fermion_qubit_mapping.n_qubits
         assert isinstance(n_qubits, int)
-        op_mapper = fermion_qubit_mapping.get_of_operator_mapper()
+        op_mapper = fermion_qubit_mapping.operator_mapper
         expected_circuit = LinearMappedUnboundParametricQuantumCircuit(n_qubits)
         params = expected_circuit.add_parameters("param1", "param2", "param3")
         s_excs, d_excs = excitations(n_spin_orbitals, n_electrons)
@@ -156,7 +156,7 @@ class TestConstructSpinSymmetricCircuit:
         d_1_1_2_3 = expected_circuit.add_parameter("d_1_1_2_3")
         d_1_1_3_3 = expected_circuit.add_parameter("d_1_1_3_3")
 
-        op_mapper = fermion_qubit_mapping.get_of_operator_mapper()
+        op_mapper = fermion_qubit_mapping.operator_mapper
 
         operator_0_4 = (
             create_anti_hermitian_sd_excitation_operator((0, 4), op_mapper) * -1j
@@ -417,7 +417,7 @@ class TestSingletUCCSD:
                 (-1) ** (i % 2) * FermionOperator([(i, 1)]) * FermionOperator([(i, 0)])
             )
 
-        operator_mapper = operator_mapping.get_of_operator_mapper()
+        operator_mapper = operator_mapping.operator_mapper
         s2_operator = operator_mapper(Sx * Sx + Sy * Sy + Sz * Sz)
 
         # Sum all exponents together
