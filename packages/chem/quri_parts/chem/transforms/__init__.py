@@ -77,7 +77,7 @@ class FermionQubitMapping(Protocol):
 
     @staticmethod
     @abstractmethod
-    def n_qubits_required(self, n_spin_orbitals: int) -> int:
+    def n_qubits_required(n_spin_orbitals: int) -> int:
         """Returns a number of qubits the mapping requires for a given number
         of spin orbitals."""
         ...
@@ -98,7 +98,7 @@ class FermionQubitMapping(Protocol):
 
     @staticmethod
     @abstractmethod
-    def n_spin_orbitals_required(self, n_qubits: int) -> int:
+    def n_spin_orbitals_required(n_qubits: int) -> int:
         """Returns a number of qubits the mapping requires for a given number
         of spin orbitals."""
         ...
@@ -143,7 +143,6 @@ class FermionQubitMapping(Protocol):
     @staticmethod
     @abstractmethod
     def get_inv_state_mapper(
-        self,
         n_spin_orbitals: int,
         n_fermions: Optional[int] = None,
         sz: Optional[float] = None,
@@ -164,10 +163,9 @@ class FermionQubitMapping(Protocol):
         ...
 
     @abstractproperty
-    def inv_state_mapper(self) -> FermionQubitStateMapper:
+    def inv_state_mapper(self) -> QubitFermionStateMapper:
         """Returns a function that maps occupied spin orbital indices to a
-        computational basis state of qubits.
-        """
+        computational basis state of qubits."""
         ...
 
 
@@ -179,7 +177,7 @@ class JordanWigner(FermionQubitMapping, ABC):
         return n_spin_orbitals
 
     @staticmethod
-    def n_spin_orbitals_required(self, n_qubits: int) -> int:
+    def n_spin_orbitals_required(n_qubits: int) -> int:
         return n_qubits
 
 

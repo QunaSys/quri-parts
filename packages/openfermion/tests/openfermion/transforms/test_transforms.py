@@ -24,7 +24,6 @@ from quri_parts.openfermion.transforms import OpenFermionJordanWigner as JordanW
 from quri_parts.openfermion.transforms import (
     OpenFermionSymmetryConservingBravyiKitaev as SCBK,
 )
-from quri_parts.openfermion.transforms import jordan_wigner
 
 
 class TestOperatorMapper:

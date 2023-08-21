@@ -12,7 +12,10 @@ from typing import Collection, Optional
 
 from quri_parts.algo.mitigation.post_selection import PostSelectionFilterFunction
 from quri_parts.core.state import ComputationalBasisState
-from quri_parts.openfermion.transforms import bravyi_kitaev, symmetry_conserving_bravyi_kitaev
+from quri_parts.openfermion.transforms import (
+    bravyi_kitaev,
+    symmetry_conserving_bravyi_kitaev,
+)
 
 
 def create_jw_electron_number_post_selection_filter_fn(
@@ -73,7 +76,7 @@ def create_scbk_electron_number_post_selection_filter_fn(
     inv_st_mapper = symmetry_conserving_bravyi_kitaev.get_inv_state_mapper(
         symmetry_conserving_bravyi_kitaev.n_spin_orbitals_required(qubit_count),
         n_electrons,
-        sz
+        sz,
     )
 
     def filter_fn(bits: int) -> bool:

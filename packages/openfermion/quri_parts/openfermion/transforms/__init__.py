@@ -114,7 +114,7 @@ def _get_inv_state_mapper(
     n_spin_orbitals: int,
     n_fermions: Optional[int] = None,
     sz: Optional[float] = None,
-) -> FermionQubitStateMapper:
+) -> QubitFermionStateMapper:
     if n_spin_orbitals is None:
         raise ValueError(
             "To perform inverse state mapping, n_spin_orbital cannot be None"
@@ -199,6 +199,9 @@ class OpenFermionQubitMapping(FermionQubitMapping, Protocol):
 
     @property
     def state_mapper(self) -> FermionQubitStateMapper:
+        assert (
+            self.n_spin_orbitals is not None
+        ), "n_spin_orbitals must not be None in order to perform state mapping."
         return self.get_state_mapper(self.n_spin_orbitals, self.n_fermions, self.sz)
 
     @staticmethod
@@ -211,7 +214,10 @@ class OpenFermionQubitMapping(FermionQubitMapping, Protocol):
         ...
 
     @property
-    def inv_state_mapper(self) -> FermionQubitStateMapper:
+    def inv_state_mapper(self) -> QubitFermionStateMapper:
+        assert (
+            self.n_spin_orbitals is not None
+        ), "n_spin_orbitals must not be None in order to perform inverse state mapping."
         return self.get_inv_state_mapper(self.n_spin_orbitals, self.n_fermions, self.sz)
 
     @staticmethod
@@ -282,7 +288,7 @@ class OpenFermionJordanWigner(JordanWigner, OpenFermionQubitMapping):
         n_spin_orbitals: int,
         n_fermions: Optional[int] = None,
         sz: Optional[float] = None,
-    ) -> FermionQubitStateMapper:
+    ) -> QubitFermionStateMapper:
         return _get_inv_state_mapper(
             OpenFermionJordanWigner, n_spin_orbitals, n_fermions, sz
         )
@@ -306,7 +312,7 @@ class OpenFermionBravyiKitaev(BravyiKitaev, OpenFermionQubitMapping):
 
     @staticmethod
     def get_of_operator_mapper(
-        n_spin_orbitals: int,
+        n_spin_orbitals: Optional[int] = None,
         n_fermions: Optional[int] = None,
         sz: Optional[float] = None,
     ) -> OpenFermionQubitOperatorMapper:
@@ -325,6 +331,9 @@ class OpenFermionBravyiKitaev(BravyiKitaev, OpenFermionQubitMapping):
             n_fermions:
                 This argument is ignored since the mapping does not depend on it.
         """
+        assert (
+            n_spin_orbitals is not None
+        ), "n_spin_orbitals is required to perform Bravyi-Kitaev mapping."
         n_qubits = OpenFermionBravyiKitaev.n_qubits_required(n_spin_orbitals)
 
         def mapper(
@@ -336,7 +345,9 @@ class OpenFermionBravyiKitaev(BravyiKitaev, OpenFermionQubitMapping):
 
     @staticmethod
     def get_state_mapper(
-        n_spin_orbitals, n_fermions: Optional[int] = None, sz: Optional[float] = None
+        n_spin_orbitals: int,
+        n_fermions: Optional[int] = None,
+        sz: Optional[float] = None,
     ) -> FermionQubitStateMapper:
         """Returns a function that maps occupied spin orbital indices to a
         computational basis state of qubits with Bravyi-Kitaev transformation.
@@ -356,7 +367,7 @@ class OpenFermionBravyiKitaev(BravyiKitaev, OpenFermionQubitMapping):
         n_spin_orbitals: int,
         n_fermions: Optional[int] = None,
         sz: Optional[float] = None,
-    ) -> FermionQubitStateMapper:
+    ) -> QubitFermionStateMapper:
         return _get_inv_state_mapper(
             OpenFermionBravyiKitaev, n_spin_orbitals, n_fermions, sz
         )
@@ -396,8 +407,8 @@ class OpenFermionSymmetryConservingBravyiKitaev(
 
     @staticmethod
     def get_of_operator_mapper(
-        n_spin_orbitals: int,
-        n_fermions: int,
+        n_spin_orbitals: Optional[int] = None,
+        n_fermions: Optional[int] = None,
         sz: Optional[float] = None,
     ) -> OpenFermionQubitOperatorMapper:
         """Returns a function that maps a
@@ -409,6 +420,10 @@ class OpenFermionSymmetryConservingBravyiKitaev(
 
         Both the arguments (``n_spin_orbitals`` and ``n_fermions``) are required.
         """
+        assert n_spin_orbitals is not None, "n_spin_orbitals is required to perform "
+        "Symmetry-Conserving Bravyi-Kitaev mapping."
+        assert n_fermions is not None, "n_fermions is required to perform "
+        "Symmetry-Conserving Bravyi-Kitaev mapping."
 
         def mapper(
             op: Union["FermionOperator", "InteractionOperator", "MajoranaOperator"]
@@ -460,7 +475,7 @@ class OpenFermionSymmetryConservingBravyiKitaev(
         n_spin_orbitals: int,
         n_fermions: Optional[int] = None,
         sz: Optional[float] = None,
-    ) -> FermionQubitStateMapper:
+    ) -> QubitFermionStateMapper:
         if sz not in [0.0, 0.5]:
             raise ValueError("Current implementation only supports sz = 0.0 or 0.5.")
         return _get_inv_state_mapper(
