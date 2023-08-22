@@ -107,7 +107,7 @@ def extract_qubit_coupling_path(
     for qs in qubit_couplings(circuit):
         if len(qs) > 2:
             raise ValueError("The given circuit contains a more than 2 qubits gate.")
-        couplings |= {qs, (qs[1], qs[0])}
+        couplings |= {qs}
     graph = nx.parse_adjlist([f"{a} {b}" for a, b in couplings])
     paths = []
     nodes = set(graph.nodes)
