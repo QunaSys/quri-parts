@@ -1,5 +1,5 @@
 from collections import defaultdict
-from collections.abc import Mapping, Sequence
+from collections.abc import Collection, Mapping, Sequence
 
 import networkx as nx
 
@@ -20,10 +20,9 @@ def gate_weighted_depth(
             If the argument is omitted, 0 is used by default.
     """
     qubit_depths: dict[int, int] = defaultdict()
-    _weights = dict(weights)
     for gate in circuit.gates:
         qubits = tuple(gate.control_indices) + tuple(gate.target_indices)
-        depth = _weights.get(gate.name, default_weight) + max(
+        depth = weights.get(gate.name, default_weight) + max(
             qubit_depths.get(q, 0) for q in qubits
         )
         for q in qubits:
@@ -33,8 +32,8 @@ def gate_weighted_depth(
 
 def gate_count(
     circuit: NonParametricQuantumCircuit,
-    qubit_indices: Sequence[int] = (),
-    gate_names: Sequence[str] = (),
+    qubit_indices: Collection[int] = (),
+    gate_names: Collection[str] = (),
 ) -> int:
     """Count the number of gates that satisfy the given qubit indices and gate
     names.
@@ -47,13 +46,12 @@ def gate_count(
             are covered.
     """
     any_qubits, any_gates = not qubit_indices, not gate_names
-    target_qubits, target_gates = set(qubit_indices), set(gate_names)
     count = 0
     for gate in circuit.gates:
-        qubits = set(tuple(gate.control_indices) + tuple(gate.target_indices))
-        if (any_gates or gate.name in target_gates) and (
-            any_qubits or qubits & target_qubits
-        ):
+        satisfy_qubits = any(
+            q in qubit_indices for q in (*gate.control_indices, *gate.target_indices)
+        )
+        if (any_gates or gate.name in gate_names) and (any_qubits or satisfy_qubits):
             count += 1
     return count
 
