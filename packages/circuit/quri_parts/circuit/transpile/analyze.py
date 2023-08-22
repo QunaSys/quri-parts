@@ -1,5 +1,6 @@
 from collections import defaultdict
 from collections.abc import Collection, Mapping, Sequence
+from itertools import combinations
 
 import networkx as nx
 
@@ -77,7 +78,8 @@ def coupled_qubit_graphs(
     edges."""
     adjlist = []
     for qs in qubit_couplings(circuit, include_singles):
-        adjlist.append(" ".join(map(str, qs)))
+        for pair in combinations(qs, 2):
+            adjlist.append(" ".join(map(str, pair)))
     graph = nx.parse_adjlist(adjlist)
     return [graph.subgraph(c).copy() for c in nx.connected_components(graph)]
 
