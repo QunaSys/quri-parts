@@ -398,8 +398,8 @@ class TestStateMapper:
         # Test for generic spin SCBK: integer spin
         n_spin_orbitals = 8
         n_fermions = 4
-        state_mapper = SCBK(n_spin_orbitals, n_fermions, 1.0).get_state_mapper()
-        inv_state_mapper = SCBK(n_spin_orbitals, n_fermions, 1.0).get_inv_state_mapper()
+        state_mapper = SCBK(n_spin_orbitals, n_fermions, 1.0).state_mapper
+        inv_state_mapper = SCBK(n_spin_orbitals, n_fermions, 1.0).inv_state_mapper
 
         mapped = state_mapper([0, 1, 2, 4])
         assert mapped == ComputationalBasisState(n_spin_orbitals - 2, bits=0b11101)
@@ -428,8 +428,8 @@ class TestStateMapper:
         # Test for generic spin SCBK: half integer spin
         n_spin_orbitals = 8
         n_fermions = 3
-        state_mapper = SCBK(n_spin_orbitals, n_fermions, 1.0).get_state_mapper()
-        inv_state_mapper = SCBK(n_spin_orbitals, n_fermions, 1.0).get_inv_state_mapper()
+        state_mapper = SCBK(n_spin_orbitals, n_fermions, 1.0).state_mapper
+        inv_state_mapper = SCBK(n_spin_orbitals, n_fermions, 1.0).inv_state_mapper
 
         mapped = state_mapper([1, 3, 5])
         assert mapped == ComputationalBasisState(n_spin_orbitals - 2, bits=0b101000)
