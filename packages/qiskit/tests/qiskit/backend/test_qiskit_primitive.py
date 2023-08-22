@@ -595,145 +595,194 @@ class TestQiskitPrimitive:
         job2 = sampling_backend.sample(QuantumCircuit(2), 100)
         assert sampling_backend.tracker.running_jobs == [job1, job2]
 
-    # def test_get_batch_execution_time(self) -> None:
-    #     runtime_service = mock_get_backend("FakeVigo")
-    #     service = runtime_service()
-    #     backend = service.backend()
-    #     sampling_backend = QiskitRuntimeSamplingBackend(
-    #         backend=backend, service=service, single_job_max_execution_time=500
-    #     )
-    #     assert sampling_backend._get_batch_execution_time([50, 50, 50, 50]) == 500 / 4
-    #     assert sampling_backend._get_batch_execution_time([50, 50, 50, 1]) == 500 / 4
-    #     assert sampling_backend._get_batch_execution_time([50]) == 500
+    def test_get_batch_execution_time(self) -> None:
+        runtime_service = mock_get_backend("FakeVigo")
+        service = runtime_service()
+        backend = service.backend()
 
-    #     sampling_backend = QiskitRuntimeSamplingBackend(
-    #         backend=backend, service=service
-    #     )
-    #     assert sampling_backend._get_batch_execution_time([50, 50, 50, 50]) is None
+        sampling_backend = QiskitRuntimeSamplingBackend(
+            backend=backend,
+            service=service,
+            single_job_max_execution_time=500,
+            total_time_limit=1000,
+        )
+        assert sampling_backend._get_batch_execution_time_and_time_left(
+            [50, 50, 50, 50]
+        ) == (500 / 4, 1000 / 4)
+        assert sampling_backend._get_batch_execution_time_and_time_left(
+            [50, 50, 50, 1]
+        ) == (500 / 4, 1000 / 4)
+        assert sampling_backend._get_batch_execution_time_and_time_left([50]) == (
+            500,
+            1000,
+        )
 
-    # def test_get_sampler_option_with_time_limit(self) -> None:
-    #     runtime_service = mock_get_backend("FakeVigo")
-    #     service = runtime_service()
-    #     service.run = fake_dynamic_run
-    #     backend = service.backend()
+        sampling_backend = QiskitRuntimeSamplingBackend(
+            backend=backend, service=service, total_time_limit=1000
+        )
+        assert sampling_backend._get_batch_execution_time_and_time_left(
+            [50, 50, 50, 50]
+        ) == (None, 1000 / 4)
+        assert sampling_backend._get_batch_execution_time_and_time_left(
+            [50, 50, 50, 1]
+        ) == (None, 1000 / 4)
+        assert sampling_backend._get_batch_execution_time_and_time_left([50]) == (
+            None,
+            1000,
+        )
 
-    #     sampling_backend = QiskitRuntimeSamplingBackend(
-    #         backend=backend, service=service, single_job_max_execution_time=500
-    #     )
-    #     assert (
-    #         sampling_backend._get_sampler_option_with_time_limit(30).max_execution_time
-    #         == 300
-    #     )
-    #     assert (
-    #         sampling_backend._get_sampler_option_with_time_limit(400).max_execution_time
-    #         == 400
-    #     )
+        sampling_backend = QiskitRuntimeSamplingBackend(
+            backend=backend, service=service, single_job_max_execution_time=500
+        )
+        assert sampling_backend._get_batch_execution_time_and_time_left(
+            [50, 50, 50, 50]
+        ) == (500 / 4, None)
+        assert sampling_backend._get_batch_execution_time_and_time_left(
+            [50, 50, 50, 1]
+        ) == (500 / 4, None)
+        assert sampling_backend._get_batch_execution_time_and_time_left([50]) == (
+            500,
+            None,
+        )
 
-    #     sampling_backend = QiskitRuntimeSamplingBackend(
-    #         backend=backend, service=service, total_time_limit=3000
-    #     )
-    #     assert (
-    #         sampling_backend._get_sampler_option_with_time_limit(
-    #             None
-    #         ).max_execution_time
-    #         == 3000
-    #     )
+        sampling_backend = QiskitRuntimeSamplingBackend(
+            backend=backend, service=service
+        )
+        assert sampling_backend._get_batch_execution_time_and_time_left(
+            [50, 50, 50, 50]
+        ) == (None, None)
 
-    #     sampling_backend = QiskitRuntimeSamplingBackend(
-    #         backend=backend, service=service, total_time_limit=30
-    #     )
-    #     assert (
-    #         sampling_backend._get_sampler_option_with_time_limit(
-    #             None
-    #         ).max_execution_time
-    #         == 300
-    #     )
+    def test_get_sampler_option_with_time_limit(self) -> None:
+        runtime_service = mock_get_backend("FakeVigo")
+        service = runtime_service()
+        service.run = fake_dynamic_run
+        backend = service.backend()
 
-    #     sampling_backend = QiskitRuntimeSamplingBackend(
-    #         backend=backend,
-    #         service=service,
-    #         total_time_limit=800,
-    #         single_job_max_execution_time=700,
-    #     )
-    #     assert (
-    #         sampling_backend._get_sampler_option_with_time_limit(350).max_execution_time
-    #         == 350
-    #     )
-    #     assert (
-    #         sampling_backend._get_sampler_option_with_time_limit(70).max_execution_time
-    #         == 300
-    #     )
+        sampling_backend = QiskitRuntimeSamplingBackend(
+            backend=backend, service=service, single_job_max_execution_time=500
+        )
+        assert (
+            sampling_backend._get_sampler_option_with_time_limit(
+                30, None
+            ).max_execution_time
+            == 300
+        )
+        assert (
+            sampling_backend._get_sampler_option_with_time_limit(
+                400, None
+            ).max_execution_time
+            == 400
+        )
 
-    #     # Test sampling backend with both total_time_limit and
-    #     # single_job_max_execution_time settings.
-    #     sampling_backend = QiskitRuntimeSamplingBackend(
-    #         backend=backend,
-    #         service=service,
-    #         total_time_limit=800,
-    #         single_job_max_execution_time=700,
-    #     )
-    #     assert isinstance(sampling_backend.tracker, Tracker)
+        sampling_backend = QiskitRuntimeSamplingBackend(
+            backend=backend, service=service, total_time_limit=3000
+        )
+        assert (
+            sampling_backend._get_sampler_option_with_time_limit(
+                None, 3000
+            ).max_execution_time
+            == 3000
+        )
 
-    #     # tl > tb > 300
-    #     time_batch = 700
-    #     assert (
-    #         sampling_backend._get_sampler_option_with_time_limit(
-    #             time_batch
-    #         ).max_execution_time
-    #         == 700
-    #     )
+        sampling_backend = QiskitRuntimeSamplingBackend(
+            backend=backend, service=service, total_time_limit=30
+        )
+        assert (
+            sampling_backend._get_sampler_option_with_time_limit(
+                None, 30
+            ).max_execution_time
+            == 300
+        )
 
-    #     # tb > tl > 300
-    #     for _ in range(20):
-    #         job = sampling_backend.sample(QuantumCircuit(4), 100)
-    #         assert isinstance(job, QiskitRuntimeSamplingJob)
-    #         job._qiskit_job._set_status({"new_job_status": JobStatus.DONE})
+        sampling_backend = QiskitRuntimeSamplingBackend(
+            backend=backend,
+            service=service,
+            total_time_limit=800,
+            single_job_max_execution_time=700,
+        )
+        assert (
+            sampling_backend._get_sampler_option_with_time_limit(
+                350, 800
+            ).max_execution_time
+            == 350
+        )
+        assert (
+            sampling_backend._get_sampler_option_with_time_limit(
+                70, 800
+            ).max_execution_time
+            == 300
+        )
 
-    #     time_batch = 700
-    #     assert (
-    #         sampling_backend._get_sampler_option_with_time_limit(
-    #             time_batch
-    #         ).max_execution_time
-    #         == 600
-    #     )
+        # Test sampling backend with both total_time_limit and
+        # single_job_max_execution_time settings.
+        sampling_backend = QiskitRuntimeSamplingBackend(
+            backend=backend,
+            service=service,
+            total_time_limit=800,
+            single_job_max_execution_time=700,
+        )
+        assert isinstance(sampling_backend.tracker, Tracker)
 
-    #     # tl  > 300 > tb
-    #     time_batch = 70
-    #     assert (
-    #         sampling_backend._get_sampler_option_with_time_limit(
-    #             time_batch
-    #         ).max_execution_time
-    #         == 300
-    #     )
+        # tl > tb > 300
+        time_batch = 700
+        assert (
+            sampling_backend._get_sampler_option_with_time_limit(
+                time_batch, 800
+            ).max_execution_time
+            == 700
+        )
 
-    #     # tb > 300 > tl
-    #     for _ in range(50):
-    #         job = sampling_backend.sample(QuantumCircuit(4), 100)
-    #         assert isinstance(job, QiskitRuntimeSamplingJob)
-    #         job._qiskit_job._set_status({"new_job_status": JobStatus.DONE})
+        # tb > tl > 300
+        for _ in range(20):
+            job = sampling_backend.sample(QuantumCircuit(4), 100)
+            assert isinstance(job, QiskitRuntimeSamplingJob)
+            job._qiskit_job._set_status({"new_job_status": JobStatus.DONE})
 
-    #     time_batch = 350
-    #     assert (
-    #         sampling_backend._get_sampler_option_with_time_limit(
-    #             time_batch
-    #         ).max_execution_time
-    #         == 300
-    #     )
+        time_batch = 700
+        assert (
+            sampling_backend._get_sampler_option_with_time_limit(
+                time_batch, 600
+            ).max_execution_time
+            == 600
+        )
 
-    #     # 300 > tb > tl
-    #     time_batch = 140
-    #     assert (
-    #         sampling_backend._get_sampler_option_with_time_limit(
-    #             time_batch
-    #         ).max_execution_time
-    #         == 300
-    #     )
+        # tl  > 300 > tb
+        time_batch = 70
+        assert (
+            sampling_backend._get_sampler_option_with_time_limit(
+                time_batch, 600
+            ).max_execution_time
+            == 300
+        )
 
-    #     # 300 > tl > tb
-    #     time_batch = 10
-    #     assert (
-    #         sampling_backend._get_sampler_option_with_time_limit(
-    #             time_batch
-    #         ).max_execution_time
-    #         == 300
-    #     )
+        # tb > 300 > tl
+        for _ in range(50):
+            job = sampling_backend.sample(QuantumCircuit(4), 100)
+            assert isinstance(job, QiskitRuntimeSamplingJob)
+            job._qiskit_job._set_status({"new_job_status": JobStatus.DONE})
+
+        time_batch = 350
+        assert (
+            sampling_backend._get_sampler_option_with_time_limit(
+                time_batch, 100
+            ).max_execution_time
+            == 300
+        )
+
+        # 300 > tb > tl
+        time_batch = 140
+        assert (
+            sampling_backend._get_sampler_option_with_time_limit(
+                time_batch, 100
+            ).max_execution_time
+            == 300
+        )
+
+        # 300 > tl > tb
+        time_batch = 10
+        assert (
+            sampling_backend._get_sampler_option_with_time_limit(
+                time_batch, 100
+            ).max_execution_time
+            == 300
+        )
