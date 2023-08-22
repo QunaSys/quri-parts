@@ -146,21 +146,16 @@ def circuit_fidelity(
     default_readout_error: float = 0.0,
 ) -> float:
     fidelity = 1.0
+    qubits = set()
 
-    two_qubit_gates = [
-        g for g in circuit.gates if len(g.control_indices) + len(g.target_indices) == 2
-    ]
-    for gate in two_qubit_gates:
-        qs = cast(
-            tuple[int, int], tuple(gate.control_indices) + tuple(gate.target_indices)
-        )
-        error = two_qubit_errors.get(qs, default_two_qubit_error)
+    for gate in circuit.gates:
+        qs = tuple[int, int], tuple(gate.control_indices) + tuple(gate.target_indices)
+        qubits |= set(qs)
+        if len(qs) != 2:
+            continue
+        error = two_qubit_errors.get(cast(tuple[int, int], qs), default_two_qubit_error)
         fidelity *= 1.0 - error
 
-    qubits = set()
-    for gate in circuit.gates:
-        qubits |= set(gate.control_indices)
-        qubits |= set(gate.target_indices)
     readout = cast(
         float,
         np.prod([1.0 - readout_errors.get(q, default_readout_error) for q in qubits]),
