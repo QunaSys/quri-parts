@@ -149,7 +149,7 @@ def circuit_fidelity(
     qubits = set()
 
     for gate in circuit.gates:
-        qs = tuple[int, int], tuple(gate.control_indices) + tuple(gate.target_indices)
+        qs = tuple(gate.control_indices) + tuple(gate.target_indices)
         qubits |= set(qs)
         if len(qs) != 2:
             continue
