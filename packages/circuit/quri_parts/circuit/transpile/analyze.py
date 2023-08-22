@@ -113,6 +113,6 @@ def extract_qubit_coupling_path(
         for e in nodes - {s}:
             ps = nx.all_simple_paths(graph, s, e)
             paths.extend([list(map(int, p)) for p in ps if len(p) == len(nodes)])
-    if len(paths) == 2 and set(paths[0]) == set(paths[1]):
+    if len(paths) == 2 and paths[0] == list(reversed(paths[1])):
         return list(map(int, sorted(paths)[0]))
     return []
