@@ -29,6 +29,7 @@ python = "^3.9.8"
 typing-extensions = "^4.1.1"
 numpy = ">=1.22.0"
 quri-parts-circuit = "*"
+networkx = "^2.8.8"
 
 [tool.poetry.group.dev.dependencies]
 quri-parts-circuit = {path = "../circuit", develop = true}
