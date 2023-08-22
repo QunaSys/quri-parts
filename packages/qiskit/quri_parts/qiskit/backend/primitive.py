@@ -239,6 +239,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         )
 
         if batch_exe_time is not None and self.tracker is not None:
+            assert batch_time_left is not None
             if batch_time_left > batch_exe_time:
                 options.max_execution_time = max(300, batch_exe_time)
             else:
@@ -248,6 +249,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             options.max_execution_time = max(300, batch_exe_time)
 
         elif batch_exe_time is None and self.tracker is not None:
+            assert batch_time_left is not None
             options.max_execution_time = max(300, batch_time_left)
 
         return options
@@ -305,7 +307,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             single_batch_execution_time,
             single_batch_time_left,
         ) = self._get_batch_execution_time_and_time_left(shot_dist)
-        if single_batch_time_left < 300:
+        if single_batch_time_left is not None and single_batch_time_left < 300:
             if self._strict:
                 raise BackendError(
                     f"Time left: {single_batch_time_left} seconds."
