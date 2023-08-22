@@ -8,6 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import warnings
 from collections.abc import Mapping, MutableMapping
 from copy import deepcopy
 from types import TracebackType
@@ -142,6 +143,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         save_data_while_sampling: bool = False,
         total_time_limit: Optional[float] = None,
         single_job_max_execution_time: Optional[float] = None,
+        strict_time_limit: bool = False,
     ):
         self._backend = backend
         self._service = service
@@ -181,6 +183,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         self.tracker: Optional[tracker.Tracker] = None
         self._time_limit = 0.0
         self._single_job_max_execution_time = single_job_max_execution_time
+        self._strict = strict_time_limit
 
         if total_time_limit is not None:
             self.tracker = tracker.Tracker()
@@ -227,7 +230,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             )
 
     def _get_sampler_option_with_time_limit(
-        self, batch_time: Optional[float]
+        self, batch_exe_time: Optional[float], batch_time_left: Optional[float]
     ) -> Options:
         options = (
             deepcopy(self._qiskit_sampler_options)
@@ -235,27 +238,34 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             else Options()
         )
 
-        if batch_time is not None and self.tracker is not None:
-            time_left = self._time_limit - self.tracker.total_run_time
-            if time_left > batch_time:
-                options.max_execution_time = max(300, batch_time)
+        if batch_exe_time is not None and self.tracker is not None:
+            if batch_time_left > batch_exe_time:
+                options.max_execution_time = max(300, batch_exe_time)
             else:
-                options.max_execution_time = max(300, time_left)
+                options.max_execution_time = max(300, batch_time_left)
 
-        elif batch_time is not None and self.tracker is None:
-            options.max_execution_time = max(300, batch_time)
+        elif batch_exe_time is not None and self.tracker is None:
+            options.max_execution_time = max(300, batch_exe_time)
 
-        elif batch_time is None and self.tracker is not None:
-            time_left = self._time_limit - self.tracker.total_run_time
-            options.max_execution_time = max(300, time_left)
+        elif batch_exe_time is None and self.tracker is not None:
+            options.max_execution_time = max(300, batch_time_left)
 
         return options
 
-    def _get_batch_execution_time(self, shot_dist: Sequence[int]) -> Optional[float]:
-        if self._single_job_max_execution_time is None:
-            return None
+    def _get_batch_execution_time_and_time_left(
+        self, shot_dist: Sequence[int]
+    ) -> tuple[Optional[float], Optional[float]]:
         n_batch = len(shot_dist)
-        return self._single_job_max_execution_time / n_batch
+        batch_execution_time, batch_time_left = None, None
+
+        if self._single_job_max_execution_time is not None:
+            batch_execution_time = self._single_job_max_execution_time / n_batch
+
+        if self.tracker is not None:
+            time_left = self._time_limit - self.tracker.total_run_time
+            batch_time_left = time_left / n_batch
+
+        return batch_execution_time, batch_time_left
 
     def _execute_shots(
         self,
@@ -291,9 +301,24 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         shot_dist = distribute_backend_shots(
             n_shots, self._min_shots, self._max_shots, self._enable_shots_roundup
         )
-        single_batch_execution_time = self._get_batch_execution_time(shot_dist)
+        (
+            single_batch_execution_time,
+            single_batch_time_left,
+        ) = self._get_batch_execution_time_and_time_left(shot_dist)
+        if single_batch_time_left < 300:
+            if self._strict:
+                raise BackendError(
+                    f"Time left: {single_batch_time_left} seconds."
+                    "The time limit cannot be followed strictly."
+                )
+            else:
+                warnings.warn(
+                    f"The time limit of {single_batch_time_left} seconds for this job"
+                    "is likely going to be exceeded."
+                )
+
         qiskit_sampler_options = self._get_sampler_option_with_time_limit(
-            single_batch_execution_time
+            single_batch_execution_time, single_batch_time_left
         )
 
         qiskit_circuit = self._circuit_converter(circuit, self._circuit_transpiler)
