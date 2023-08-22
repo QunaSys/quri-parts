@@ -142,6 +142,8 @@ def circuit_fidelity(
     two_qubit_errors: CouplingMapWithErrors,
     readout_errors: Mapping[int, float],
     circuit: NonParametricQuantumCircuit,
+    default_two_qubit_error: float = 0.0,
+    default_readout_error: float = 0.0,
 ) -> float:
     fidelity = 1.0
 
@@ -150,14 +152,17 @@ def circuit_fidelity(
     ]
     for gate in two_qubit_gates:
         qs = tuple(gate.control_indices) + tuple(gate.target_indices)
-        error = two_qubit_errors.get(qs, 0.0)
+        error = two_qubit_errors.get(qs, default_two_qubit_error)
         fidelity *= 1.0 - error
 
     qubits = set()
     for gate in circuit.gates:
         qubits |= set(gate.control_indices)
         qubits |= set(gate.target_indices)
-    readout = cast(float, np.prod([1.0 - readout_errors[q] for q in qubits]))
+    readout = cast(
+        float,
+        np.prod([1.0 - readout_errors.get(q, default_readout_error) for q in qubits]),
+    )
 
     return fidelity * readout
 
