@@ -232,6 +232,30 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
     def _get_sampler_option_with_time_limit(
         self, batch_exe_time: Optional[float], batch_time_left: Optional[float]
     ) -> Options:
+        if batch_exe_time is not None and batch_exe_time < 300:
+            if self._strict:
+                raise BackendError(
+                    f"Max execution time limit of: {batch_exe_time}"
+                    "seconds cannot be followed strictly."
+                )
+            else:
+                warnings.warn(
+                    f"The time limit of {batch_exe_time} seconds for"
+                    "this job is likely going to be exceeded."
+                )
+
+        if batch_time_left is not None and batch_time_left < 300:
+            if self._strict:
+                raise BackendError(
+                    f"Max execution time limit of: {batch_time_left}"
+                    "seconds cannot be followed strictly."
+                )
+            else:
+                warnings.warn(
+                    f"The time limit of {batch_time_left} seconds for"
+                    "this job is likely going to be exceeded."
+                )
+
         options = (
             deepcopy(self._qiskit_sampler_options)
             if self._qiskit_sampler_options is not None
@@ -307,20 +331,6 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             single_batch_execution_time,
             single_batch_time_left,
         ) = self._get_batch_execution_time_and_time_left(shot_dist)
-        if (
-            single_batch_execution_time is not None
-            and single_batch_execution_time < 300
-        ):
-            if self._strict:
-                raise BackendError(
-                    f"Max execution time limit of: {single_batch_execution_time}"
-                    "seconds cannot be followed strictly."
-                )
-            else:
-                warnings.warn(
-                    f"The time limit of {single_batch_execution_time} seconds for"
-                    "this job is likely going to be exceeded."
-                )
 
         qiskit_sampler_options = self._get_sampler_option_with_time_limit(
             single_batch_execution_time, single_batch_time_left
