@@ -82,66 +82,6 @@ def _inv_state_transformation_matrix(
     return BinaryMatrix(mat), signs
 
 
-def _get_state_mapper(
-    transformation: type["OpenFermionQubitMapping"],
-    n_spin_orbitals: int,
-    n_fermions: Optional[int] = None,
-    sz: Optional[float] = None,
-) -> FermionQubitStateMapper:
-    inv_trans_mat, signs = _inv_state_transformation_matrix(
-        transformation.get_of_operator_mapper(n_spin_orbitals, n_fermions, sz),
-        n_spin_orbitals,
-    )
-    trans_mat = inverse(inv_trans_mat)
-    n_qubits = transformation.n_qubits_required(n_spin_orbitals)
-
-    def mapper(
-        occupied_indices: Collection[int],
-    ) -> ComputationalBasisState:
-        occ_list = [(i in occupied_indices) for i in range(n_spin_orbitals)]
-        occ_list = [not b if signs[i] == -1 else b for i, b in enumerate(occ_list)]
-        occupancy_vector = BinaryArray(occ_list)
-        qubit_vector = trans_mat @ occupancy_vector
-        return ComputationalBasisState(
-            n_qubits=n_qubits, bits=qubit_vector.binary & (2**n_qubits - 1)
-        )
-
-    return mapper
-
-
-def _get_inv_state_mapper(
-    transformation: type["OpenFermionQubitMapping"],
-    n_spin_orbitals: int,
-    n_fermions: Optional[int] = None,
-    sz: Optional[float] = None,
-) -> QubitFermionStateMapper:
-    if n_spin_orbitals is None:
-        raise ValueError(
-            "To perform inverse state mapping, n_spin_orbital cannot be None"
-        )
-
-    inv_trans_mat, signs = _inv_state_transformation_matrix(
-        transformation.get_of_operator_mapper(n_spin_orbitals, n_fermions, sz),
-        n_spin_orbitals,
-    )
-    n_qubits = transformation.n_qubits_required(n_spin_orbitals)
-
-    def mapper(state: ComputationalBasisState) -> Collection[int]:
-        bits = state.bits
-        bit_array = [(bits & 1 << index) >> index for index in range(n_qubits)]
-        bit_array = transformation._augment_dropped_bits(bit_array)
-        qubit_vector = BinaryArray(bit_array)
-        occupancy_vector = inv_trans_mat @ qubit_vector
-        occupancy_set = [
-            i
-            for i, o in enumerate(occupancy_vector)
-            if (o == 1 and signs[i] == 1) or (o == 0 and signs[i] == -1)
-        ]
-        return occupancy_set
-
-    return mapper
-
-
 class OpenFermionQubitMapping(FermionQubitMapping, Protocol):
     """Mapping from Fermionic operators and states to :class:`Operator`s and
     states using OpenFermion."""
@@ -200,9 +140,29 @@ class OpenFermionQubitMapping(FermionQubitMapping, Protocol):
     @property
     def state_mapper(self) -> FermionQubitStateMapper:
         assert (
-            self.n_spin_orbitals is not None
+            self.n_spin_orbitals is not None and self.n_qubits is not None
         ), "n_spin_orbitals must not be None in order to perform state mapping."
-        return self.get_state_mapper(self.n_spin_orbitals, self.n_fermions, self.sz)
+
+        inv_trans_mat, signs = _inv_state_transformation_matrix(
+            self.operator_mapper,
+            self.n_spin_orbitals,
+        )
+        trans_mat = inverse(inv_trans_mat)
+        n_qubits = self.n_qubits
+        n_n_spin_orbitals = self.n_spin_orbitals
+
+        def mapper(
+            occupied_indices: Collection[int],
+        ) -> ComputationalBasisState:
+            occ_list = [(i in occupied_indices) for i in range(n_n_spin_orbitals)]
+            occ_list = [not b if signs[i] == -1 else b for i, b in enumerate(occ_list)]
+            occupancy_vector = BinaryArray(occ_list)
+            qubit_vector = trans_mat @ occupancy_vector
+            return ComputationalBasisState(
+                n_qubits=n_qubits, bits=qubit_vector.binary & (2**n_qubits - 1)
+            )
+
+        return mapper
 
     @staticmethod
     @abstractmethod
@@ -215,10 +175,31 @@ class OpenFermionQubitMapping(FermionQubitMapping, Protocol):
 
     @property
     def inv_state_mapper(self) -> QubitFermionStateMapper:
-        assert (
-            self.n_spin_orbitals is not None
-        ), "n_spin_orbitals must not be None in order to perform inverse state mapping."
-        return self.get_inv_state_mapper(self.n_spin_orbitals, self.n_fermions, self.sz)
+        if self.n_spin_orbitals is None or self.n_qubits is None:
+            raise ValueError(
+                "To perform inverse state mapping, n_spin_orbital cannot be None"
+            )
+
+        inv_trans_mat, signs = _inv_state_transformation_matrix(
+            self.operator_mapper,
+            self.n_spin_orbitals,
+        )
+        n_qubits = self.n_qubits
+
+        def mapper(state: ComputationalBasisState) -> Collection[int]:
+            bits = state.bits
+            bit_array = [(bits & 1 << index) >> index for index in range(n_qubits)]
+            bit_array = self._augment_dropped_bits(bit_array)
+            qubit_vector = BinaryArray(bit_array)
+            occupancy_vector = inv_trans_mat @ qubit_vector
+            occupancy_set = [
+                i
+                for i, o in enumerate(occupancy_vector)
+                if (o == 1 and signs[i] == 1) or (o == 0 and signs[i] == -1)
+            ]
+            return occupancy_set
+
+        return mapper
 
     @staticmethod
     def _augment_dropped_bits(bit_array: list[int]) -> list[int]:
@@ -279,9 +260,7 @@ class OpenFermionJordanWigner(JordanWigner, OpenFermionQubitMapping):
             n_fermions:
                 This argument is ignored since the mapping does not depend on it.
         """
-        return _get_state_mapper(
-            OpenFermionJordanWigner, n_spin_orbitals, n_fermions, sz
-        )
+        return OpenFermionJordanWigner(n_spin_orbitals, n_fermions, sz).state_mapper
 
     @staticmethod
     def get_inv_state_mapper(
@@ -289,9 +268,7 @@ class OpenFermionJordanWigner(JordanWigner, OpenFermionQubitMapping):
         n_fermions: Optional[int] = None,
         sz: Optional[float] = None,
     ) -> QubitFermionStateMapper:
-        return _get_inv_state_mapper(
-            OpenFermionJordanWigner, n_spin_orbitals, n_fermions, sz
-        )
+        return OpenFermionJordanWigner(n_spin_orbitals, n_fermions, sz).inv_state_mapper
 
 
 jordan_wigner = OpenFermionJordanWigner
@@ -358,9 +335,7 @@ class OpenFermionBravyiKitaev(BravyiKitaev, OpenFermionQubitMapping):
             n_fermions:
                 This argument is ignored since the mapping does not depend on it.
         """
-        return _get_state_mapper(
-            OpenFermionBravyiKitaev, n_spin_orbitals, n_fermions, sz
-        )
+        return OpenFermionBravyiKitaev(n_spin_orbitals, n_fermions, sz).state_mapper
 
     @staticmethod
     def get_inv_state_mapper(
@@ -368,9 +343,7 @@ class OpenFermionBravyiKitaev(BravyiKitaev, OpenFermionQubitMapping):
         n_fermions: Optional[int] = None,
         sz: Optional[float] = None,
     ) -> QubitFermionStateMapper:
-        return _get_inv_state_mapper(
-            OpenFermionBravyiKitaev, n_spin_orbitals, n_fermions, sz
-        )
+        return OpenFermionBravyiKitaev(n_spin_orbitals, n_fermions, sz).inv_state_mapper
 
 
 bravyi_kitaev = OpenFermionBravyiKitaev
@@ -464,11 +437,14 @@ class OpenFermionSymmetryConservingBravyiKitaev(
                 Restrict the mapping to a subspace spanned by states
                 containing the fixed number of Fermions. This argument is required.
         """
+        if n_fermions is None:
+            raise ValueError("n_fermions is required.")
         if sz not in [0.0, 0.5]:
             raise ValueError("Current implementation only supports sz = 0.0 or 0.5.")
-        return _get_state_mapper(
-            OpenFermionSymmetryConservingBravyiKitaev, n_spin_orbitals, n_fermions, sz
-        )
+
+        return OpenFermionSymmetryConservingBravyiKitaev(
+            n_spin_orbitals, n_fermions, sz
+        ).state_mapper
 
     @staticmethod
     def get_inv_state_mapper(
@@ -476,11 +452,13 @@ class OpenFermionSymmetryConservingBravyiKitaev(
         n_fermions: Optional[int] = None,
         sz: Optional[float] = None,
     ) -> QubitFermionStateMapper:
+        if n_fermions is None:
+            raise ValueError("n_fermions is required.")
         if sz not in [0.0, 0.5]:
             raise ValueError("Current implementation only supports sz = 0.0 or 0.5.")
-        return _get_inv_state_mapper(
-            OpenFermionSymmetryConservingBravyiKitaev, n_spin_orbitals, n_fermions, sz
-        )
+        return OpenFermionSymmetryConservingBravyiKitaev(
+            n_spin_orbitals, n_fermions, sz
+        ).inv_state_mapper
 
     @staticmethod
     def _augment_dropped_bits(bit_array: list[int]) -> list[int]:
