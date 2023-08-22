@@ -70,7 +70,7 @@ def test_convert_simple_gate_mapping() -> None:
     ]
     model = NoiseModel(noises)
     qp_gates = [gates.X(0), gates.H(1), gates.CNOT(1, 2)]
-    circuit = QuantumCircuit(3, qp_gates)
+    circuit = QuantumCircuit(3, gates=qp_gates)
     converted = convert_circuit_with_noise_model(circuit, model)
     expected_gates = [
         qulacs.gate.X(0),
@@ -112,7 +112,7 @@ def test_convert_gate_interval_noise() -> None:
         gates.H(1),
         gates.X(1),
     ]
-    circuit = QuantumCircuit(2, qp_gates)
+    circuit = QuantumCircuit(2, gates=qp_gates)
     converted = convert_circuit_with_noise_model(circuit, model)
     expected_gates = [
         qulacs.gate.X(0),
@@ -158,7 +158,7 @@ def test_convert_depth_interval_noise() -> None:
         gates.H(1),
         gates.X(1),
     ]
-    circuit = QuantumCircuit(2, qp_gates)
+    circuit = QuantumCircuit(2, gates=qp_gates)
     converted = convert_circuit_with_noise_model(circuit, model)
     expected_gates = [
         qulacs.gate.X(0),
@@ -200,7 +200,7 @@ def test_convert_measurement_noise() -> None:
         gates.H(1),
         gates.X(1),
     ]
-    circuit = QuantumCircuit(2, qp_gates)
+    circuit = QuantumCircuit(2, gates=qp_gates)
     converted = convert_circuit_with_noise_model(circuit, model)
     expected_gates = [
         qulacs.gate.X(0),
@@ -260,7 +260,7 @@ def test_convert_kraus_cptp() -> None:
 
     noise_model = NoiseModel([noise])
     qp_gates = [gates.H(0)]
-    circuit = QuantumCircuit(1, qp_gates)
+    circuit = QuantumCircuit(1, gates=qp_gates)
     converted = convert_circuit_with_noise_model(circuit, noise_model)
     matrix = qulacs.DensityMatrix(1)
     matrix.set_zero_state()
@@ -276,3 +276,15 @@ def test_convert_kraus_cptp() -> None:
     # We need to disable type check due to an error in qulacs type annotation
     # https://github.com/qulacs/qulacs/issues/537
     assert np.allclose(cptp, matrix.get_matrix())  # type: ignore
+
+
+def test_convert_empty_circuit() -> None:
+    circuit = QuantumCircuit(1)
+
+    noise_model_empty = NoiseModel([])
+    converted_empty = convert_circuit_with_noise_model(circuit, noise_model_empty)
+    assert converted_empty.get_gate_count() == 0
+
+    noise_model_readout = NoiseModel([MeasurementNoise([BitFlipNoise(1.0)])])
+    converted_readout = convert_circuit_with_noise_model(circuit, noise_model_readout)
+    assert converted_readout.get_gate_count() == 1

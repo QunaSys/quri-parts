@@ -12,7 +12,11 @@ from .connectivity import (
     coupling_map_with_2_qubit_gate_errors,
     device_connectivity_graph,
 )
-from .primitive import QiskitRuntimeSamplingBackend
+from .primitive import (
+    QiskitRuntimeSamplingBackend,
+    QiskitRuntimeSamplingJob,
+    QiskitRuntimeSamplingResult,
+)
 from .sampling import QiskitSamplingBackend, QiskitSamplingJob, QiskitSamplingResult
 from .saved_sampling import (
     QiskitRuntimeSavedDataSamplingResult,
@@ -20,6 +24,7 @@ from .saved_sampling import (
     QiskitSavedDataSamplingJob,
     QiskitSavedDataSamplingResult,
 )
+from .tracker import Tracker
 from .utils import (
     convert_qiskit_sampling_count_to_qp_sampling_count,
     distribute_backend_shots,
@@ -32,6 +37,8 @@ __all__ = [
     "QiskitSamplingJob",
     "QiskitSamplingResult",
     "QiskitRuntimeSamplingBackend",
+    "QiskitRuntimeSamplingJob",
+    "QiskitRuntimeSamplingResult",
     "QiskitRuntimeSavedDataSamplingResult",
     "QiskitSavedDataSamplingJob",
     "QiskitSavedDataSamplingResult",
@@ -42,4 +49,7 @@ __all__ = [
     "distribute_backend_shots",
     "get_job_mapper_and_circuit_transpiler",
     "get_backend_min_max_shot",
+    "distribute_backend_shots",
+    "convert_qiskit_sampling_count_to_qp_sampling_count",
+    "Tracker",
 ]
