@@ -229,50 +229,53 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
                 "are also aborted."
             )
 
-    def _get_sampler_option_with_time_limit(
+    def _check_execution_time_limitability(
         self, batch_exe_time: Optional[float], batch_time_left: Optional[float]
-    ) -> Options:
-        if batch_exe_time is not None and batch_exe_time < 300:
-            if self._strict:
-                raise BackendError(
-                    f"Max execution time limit of: {batch_exe_time}"
-                    "seconds cannot be followed strictly."
-                )
-            else:
-                warnings.warn(
-                    f"The time limit of {batch_exe_time} seconds for"
-                    "this job is likely going to be exceeded."
-                )
-
+    ) -> None:
         if batch_time_left is not None and batch_time_left < 300:
             if self._strict:
                 raise BackendError(
-                    f"Max execution time limit of: {batch_time_left}"
+                    f"Max execution time limit of {batch_time_left} "
                     "seconds cannot be followed strictly."
                 )
             else:
                 warnings.warn(
-                    f"The time limit of {batch_time_left} seconds for"
-                    "this job is likely going to be exceeded."
+                    f"The time limit of {batch_time_left} seconds "
+                    "is likely going to be exceeded."
                 )
 
+        if batch_exe_time is not None and batch_exe_time < 300:
+            if self._strict:
+                raise BackendError(
+                    f"Max execution time limit of {batch_exe_time} "
+                    "seconds cannot be followed strictly."
+                )
+            else:
+                warnings.warn(
+                    f"The time limit of {batch_exe_time} seconds "
+                    "is likely going to be exceeded."
+                )
+
+    def _get_sampler_option_with_time_limit(
+        self, batch_exe_time: Optional[float], batch_time_left: Optional[float]
+    ) -> Options:
         options = (
             deepcopy(self._qiskit_sampler_options)
             if self._qiskit_sampler_options is not None
             else Options()
         )
 
-        if batch_exe_time is not None and self.tracker is not None:
+        if batch_exe_time is not None and batch_time_left is not None:
             assert batch_time_left is not None
             if batch_time_left > batch_exe_time:
                 options.max_execution_time = max(300, batch_exe_time)
             else:
                 options.max_execution_time = max(300, batch_time_left)
 
-        elif batch_exe_time is not None and self.tracker is None:
+        elif batch_exe_time is not None and batch_time_left is None:
             options.max_execution_time = max(300, batch_exe_time)
 
-        elif batch_exe_time is None and self.tracker is not None:
+        elif batch_exe_time is None and batch_time_left is not None:
             assert batch_time_left is not None
             options.max_execution_time = max(300, batch_time_left)
 
@@ -331,6 +334,10 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             single_batch_execution_time,
             single_batch_time_left,
         ) = self._get_batch_execution_time_and_time_left(shot_dist)
+
+        self._check_execution_time_limitability(
+            single_batch_execution_time, single_batch_time_left
+        )
 
         qiskit_sampler_options = self._get_sampler_option_with_time_limit(
             single_batch_execution_time, single_batch_time_left
