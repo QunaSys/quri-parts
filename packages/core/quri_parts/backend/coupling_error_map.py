@@ -151,7 +151,9 @@ def circuit_fidelity(
         g for g in circuit.gates if len(g.control_indices) + len(g.target_indices) == 2
     ]
     for gate in two_qubit_gates:
-        qs = tuple(gate.control_indices) + tuple(gate.target_indices)
+        qs = cast(
+            tuple[int, int], tuple(gate.control_indices) + tuple(gate.target_indices)
+        )
         error = two_qubit_errors.get(qs, default_two_qubit_error)
         fidelity *= 1.0 - error
 
