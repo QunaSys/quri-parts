@@ -10,13 +10,13 @@
 
 from collections.abc import Mapping
 
-from quri_parts.circuit import CNOT, H, QuantumCircuit
 from quri_parts.backend.coupling_error_map import (
     approx_reliable_coupling_subgraph,
     effectively_coupled_qubit_counts,
     reliable_coupling_single_stroke_path,
     reliable_coupling_single_stroke_path_qubit_mapping,
 )
+from quri_parts.circuit import CNOT, H, QuantumCircuit
 
 
 def _cnot_errors_3_loops() -> dict[tuple[int, int], float]:
