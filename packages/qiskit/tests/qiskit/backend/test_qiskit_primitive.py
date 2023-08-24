@@ -12,11 +12,10 @@ import json
 import random
 import re
 import string
+import warnings
 from collections import Counter
-from functools import partial
 from typing import Any
 from unittest.mock import MagicMock
-import warnings
 
 import pytest
 import qiskit
