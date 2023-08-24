@@ -22,11 +22,11 @@ from quri_parts.openfermion.ansatz.uccsd import (
     _construct_circuit,
     _construct_singlet_excitation_circuit,
 )
-from quri_parts.openfermion.transforms import OpenFermionBravyiKitaev as BravyiKitaev
-from quri_parts.openfermion.transforms import OpenFermionJordanWigner as JordanWigner
-from quri_parts.openfermion.transforms import OpenFermionQubitMapping
 from quri_parts.openfermion.transforms import (
-    OpenFermionSymmetryConservingBravyiKitaev as SCBK,
+    OpenFermionQubitMapping,
+    bravyi_kitaev,
+    jordan_wigner,
+    symmetry_conserving_bravyi_kitaev,
 )
 from quri_parts.openfermion.utils import add_exp_excitation_gates_trotter_decomposition
 from quri_parts.openfermion.utils.add_exp_excitation_gates_trotter_decomposition import (  # noqa: E501
@@ -38,7 +38,7 @@ class TestConstructCircuit:
     def test_construct_circuit_w_singles_trotter1(self) -> None:
         n_spin_orbitals = 4
         n_electrons = 2
-        fermion_qubit_mapping = JordanWigner(n_spin_orbitals, n_electrons)
+        fermion_qubit_mapping = jordan_wigner(n_spin_orbitals, n_electrons)
         trotter_number = 1
         use_singles = True
         circuit = _construct_circuit(
@@ -66,7 +66,7 @@ class TestConstructCircuit:
     def test_construct_circuit_wo_singles_trotter1(self) -> None:
         n_spin_orbitals = 4
         n_electrons = 2
-        fermion_qubit_mapping = JordanWigner(n_spin_orbitals, n_electrons)
+        fermion_qubit_mapping = jordan_wigner(n_spin_orbitals, n_electrons)
         trotter_number = 1
         use_singles = False
 
@@ -92,7 +92,9 @@ class TestConstructCircuit:
     def test_construct_circuit_w_singles_trotter2_scbk(self) -> None:
         n_spin_orbitals = 4
         n_electrons = 2
-        fermion_qubit_mapping = SCBK(n_spin_orbitals, n_electrons, 0.0)
+        fermion_qubit_mapping = symmetry_conserving_bravyi_kitaev(
+            n_spin_orbitals, n_electrons, 0.0
+        )
         use_singles = True
         trotter_number = 2
 
@@ -131,7 +133,7 @@ class TestConstructSpinSymmetricCircuit:
     def test_construct_circuit_w_singles_trotter1(self) -> None:
         n_spin_orbitals = 8
         n_electrons = 4
-        fermion_qubit_mapping = JordanWigner(n_spin_orbitals, n_electrons)
+        fermion_qubit_mapping = jordan_wigner(n_spin_orbitals, n_electrons)
         trotter_number = 1
         use_singles = True
 
@@ -328,11 +330,11 @@ class TestUCCSD:
     def test_trotter_singlet_uccsd_w_singles_jw(self) -> None:
         n_spin_orbitals = 4
         n_electrons = 2
-        fermion_qubit_mapping = JordanWigner(n_spin_orbitals, n_electrons)
+        fermion_qubit_mapping = jordan_wigner(n_spin_orbitals, n_electrons)
         trotter_number = 1
         ansatz = TrotterUCCSD(fermion_qubit_mapping, trotter_number=trotter_number)
         expected_ansatz = _construct_circuit(
-            JordanWigner(n_spin_orbitals, n_electrons),
+            jordan_wigner(n_spin_orbitals, n_electrons),
             trotter_number=trotter_number,
             use_singles=True,
         )
@@ -348,12 +350,12 @@ class TestUCCSD:
         n_electrons = 2
         trotter_number = 1
         ansatz = TrotterUCCSD(
-            BravyiKitaev(n_spin_orbitals, n_electrons),
+            bravyi_kitaev(n_spin_orbitals, n_electrons),
             trotter_number=trotter_number,
             use_singles=False,
         )
         expected_ansatz = _construct_circuit(
-            BravyiKitaev(n_spin_orbitals, n_electrons),
+            bravyi_kitaev(n_spin_orbitals, n_electrons),
             trotter_number=trotter_number,
             use_singles=False,
         )
@@ -369,11 +371,11 @@ class TestUCCSD:
         n_electrons = 2
         trotter_number = 2
         ansatz = TrotterUCCSD(
-            SCBK(n_spin_orbitals, n_electrons, 0.0),
+            symmetry_conserving_bravyi_kitaev(n_spin_orbitals, n_electrons, 0.0),
             trotter_number=trotter_number,
         )
         expected_ansatz = _construct_circuit(
-            SCBK(n_spin_orbitals, n_electrons, 0.0),
+            symmetry_conserving_bravyi_kitaev(n_spin_orbitals, n_electrons, 0.0),
             trotter_number=trotter_number,
             use_singles=True,
         )
@@ -386,9 +388,9 @@ class TestUCCSD:
 
     def test_singlet_uccsd_invalid_input(self) -> None:
         with pytest.raises(ValueError):
-            TrotterUCCSD(JordanWigner(4, 3))
+            TrotterUCCSD(jordan_wigner(4, 3))
         with pytest.raises(ValueError):
-            TrotterUCCSD(JordanWigner(4, 4))
+            TrotterUCCSD(jordan_wigner(4, 4))
 
 
 class TestSingletUCCSD:
@@ -441,7 +443,7 @@ class TestSingletUCCSD:
     def test_sinlget_excited_uccsd_trotter_1(self) -> None:
         n_spin_orbitals = 8
         n_electrons = 4
-        fermion_qubit_mapping = JordanWigner(n_spin_orbitals, n_electrons)
+        fermion_qubit_mapping = jordan_wigner(n_spin_orbitals, n_electrons)
         trotter_number = 1
         ansatz = TrotterUCCSD(
             fermion_qubit_mapping,
@@ -465,7 +467,7 @@ class TestSingletUCCSD:
             n_spin_orbitals,
             n_electrons,
             param_vals,
-            operator_mapping=JordanWigner(n_spin_orbitals, n_electrons),
+            operator_mapping=jordan_wigner(n_spin_orbitals, n_electrons),
         )
 
     def test_sinlget_excited_uccsd_trotter_2(self) -> None:
@@ -473,12 +475,12 @@ class TestSingletUCCSD:
         n_electrons = 4
         trotter_number = 1
         ansatz = TrotterUCCSD(
-            fermion_qubit_mapping=BravyiKitaev(n_spin_orbitals, n_electrons),
+            fermion_qubit_mapping=bravyi_kitaev(n_spin_orbitals, n_electrons),
             trotter_number=trotter_number,
             singlet_excitation=True,
         )
         expected_ansatz = _construct_singlet_excitation_circuit(
-            BravyiKitaev(n_spin_orbitals, n_electrons),
+            bravyi_kitaev(n_spin_orbitals, n_electrons),
             trotter_number=trotter_number,
             use_singles=True,
         )
@@ -494,5 +496,5 @@ class TestSingletUCCSD:
             n_spin_orbitals,
             n_electrons,
             param_vals,
-            operator_mapping=BravyiKitaev(n_spin_orbitals, n_electrons),
+            operator_mapping=bravyi_kitaev(n_spin_orbitals, n_electrons),
         )

@@ -19,11 +19,6 @@ from quri_parts.openfermion.operator import (
     FermionOperator,
     operator_from_openfermion_op,
 )
-from quri_parts.openfermion.transforms import OpenFermionBravyiKitaev as BravyiKitaev
-from quri_parts.openfermion.transforms import OpenFermionJordanWigner as JordanWigner
-from quri_parts.openfermion.transforms import (
-    OpenFermionSymmetryConservingBravyiKitaev as SCBK,
-)
 from quri_parts.openfermion.transforms import (
     bravyi_kitaev,
     jordan_wigner,
@@ -65,7 +60,9 @@ class TestOperatorMapper:
         assert total_transformed == expected
         assert of_total_transformed == expected
 
-        op_mapper = SCBK(n_spin_orbitals, n_fermions, 0.0).operator_mapper
+        op_mapper = symmetry_conserving_bravyi_kitaev(
+            n_spin_orbitals, n_fermions, 0.0
+        ).operator_mapper
         total_transformed = op_mapper(op_total)
         of_total_transformed = op_mapper(of_op_total)
         assert total_transformed == expected
@@ -88,8 +85,8 @@ class TestStateMapper:
 
     def test_jw_state_mapper_property(self) -> None:
         n_spin_orbitals = 4
-        state_mapper = JordanWigner(n_spin_orbitals).state_mapper
-        inv_state_mapper = JordanWigner(n_spin_orbitals).inv_state_mapper
+        state_mapper = jordan_wigner(n_spin_orbitals).state_mapper
+        inv_state_mapper = jordan_wigner(n_spin_orbitals).inv_state_mapper
 
         mapped = state_mapper([0, 1])
         assert mapped == ComputationalBasisState(n_spin_orbitals, bits=0b0011)
@@ -161,8 +158,8 @@ class TestStateMapper:
 
     def test_bk_state_mapper_property(self) -> None:
         n_spin_orbitals = 4
-        state_mapper = BravyiKitaev(n_spin_orbitals).state_mapper
-        inv_state_mapper = BravyiKitaev(n_spin_orbitals).inv_state_mapper
+        state_mapper = bravyi_kitaev(n_spin_orbitals).state_mapper
+        inv_state_mapper = bravyi_kitaev(n_spin_orbitals).inv_state_mapper
         # State transformation matrix for BK(n_spin_orbitals=4, n_fermions=2):
         # [[1, 0, 0, 0]
         #  [1, 1, 0, 0]
@@ -185,13 +182,13 @@ class TestStateMapper:
         )
         assert inv_mapped == [0, 2]
 
-        state_mapper = BravyiKitaev(n_spin_orbitals).state_mapper
-        inv_state_mapper = BravyiKitaev(n_spin_orbitals).inv_state_mapper
+        state_mapper = bravyi_kitaev(n_spin_orbitals).state_mapper
+        inv_state_mapper = bravyi_kitaev(n_spin_orbitals).inv_state_mapper
 
         n_spin_orbitals = 8
         n_fermions = 4
-        state_mapper = BravyiKitaev(n_spin_orbitals, n_fermions).state_mapper
-        inv_state_mapper = BravyiKitaev(n_spin_orbitals, n_fermions).inv_state_mapper
+        state_mapper = bravyi_kitaev(n_spin_orbitals, n_fermions).state_mapper
+        inv_state_mapper = bravyi_kitaev(n_spin_orbitals, n_fermions).inv_state_mapper
 
         # State transformation matrix for BK(n_spin_orbitals=8, n_fermions=4):
         # [[1, 0, 0, 0, 0, 0, 0, 0]
@@ -315,11 +312,17 @@ class TestStateMapper:
 
         with pytest.raises(TypeError):
             # Disable type check to test if error is properly raised.
-            SCBK(n_spin_orbitals).state_mapper  # type: ignore
+            symmetry_conserving_bravyi_kitaev(
+                n_spin_orbitals
+            ).state_mapper  # type: ignore
 
         n_fermions = 2
-        state_mapper = SCBK(n_spin_orbitals, n_fermions, 0.0).state_mapper
-        inv_state_mapper = SCBK(n_spin_orbitals, n_fermions, 0.0).inv_state_mapper
+        state_mapper = symmetry_conserving_bravyi_kitaev(
+            n_spin_orbitals, n_fermions, 0.0
+        ).state_mapper
+        inv_state_mapper = symmetry_conserving_bravyi_kitaev(
+            n_spin_orbitals, n_fermions, 0.0
+        ).inv_state_mapper
 
         # State transformation:
         # 1. Reorder to "all spin-up orbitals, then all spin-down orbitals"
@@ -360,8 +363,12 @@ class TestStateMapper:
 
         n_spin_orbitals = 8
         n_fermions = 4
-        state_mapper = SCBK(n_spin_orbitals, n_fermions, 0.0).state_mapper
-        inv_state_mapper = SCBK(n_spin_orbitals, n_fermions, 0.0).inv_state_mapper
+        state_mapper = symmetry_conserving_bravyi_kitaev(
+            n_spin_orbitals, n_fermions, 0.0
+        ).state_mapper
+        inv_state_mapper = symmetry_conserving_bravyi_kitaev(
+            n_spin_orbitals, n_fermions, 0.0
+        ).inv_state_mapper
 
         # State transformation:
         # 1. Reorder to "all spin-up orbitals, then all spin-down orbitals"

@@ -14,8 +14,7 @@ from openfermion import FermionOperator, InteractionOperator, MajoranaOperator
 
 from quri_parts.chem.mol import ActiveSpaceMolecularOrbitals, SpinMOeIntSet
 from quri_parts.core.operator import Operator
-from quri_parts.openfermion.transforms import OpenFermionJordanWigner as JordanWigner
-from quri_parts.openfermion.transforms import OpenFermionQubitMapping
+from quri_parts.openfermion.transforms import OpenFermionQubitMapping, jordan_wigner
 
 
 def get_fermionic_hamiltonian(
@@ -34,7 +33,7 @@ def operator_from_of_fermionic_op(
         FermionOperator, InteractionOperator, MajoranaOperator
     ],
     asmo: ActiveSpaceMolecularOrbitals,
-    fermion_qubit_mapping: type[OpenFermionQubitMapping] = JordanWigner,
+    fermion_qubit_mapping: type[OpenFermionQubitMapping] = jordan_wigner,
 ) -> tuple[Operator, OpenFermionQubitMapping]:
     """Converts the fermionic hamiltonian into qubit hamiltonian with a given
     mapping method, and returns the operator mapper along with the state
@@ -50,7 +49,7 @@ def operator_from_of_fermionic_op(
 def get_qubit_mapped_hamiltonian(
     asmo: ActiveSpaceMolecularOrbitals,
     spin_mo_eint_set: SpinMOeIntSet,
-    fermion_qubit_mapping: type[OpenFermionQubitMapping] = JordanWigner,
+    fermion_qubit_mapping: type[OpenFermionQubitMapping] = jordan_wigner,
 ) -> tuple[Operator, OpenFermionQubitMapping]:
     """Computes the qubit hamiltonian and returns the operator mapper along
     with the state mapper."""
