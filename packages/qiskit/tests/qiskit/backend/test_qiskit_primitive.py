@@ -16,6 +16,7 @@ from collections import Counter
 from functools import partial
 from typing import Any
 from unittest.mock import MagicMock
+import warnings
 
 import pytest
 import qiskit
@@ -858,26 +859,10 @@ class TestQiskitPrimitive:
             )
 
         # test no warnings raised
-        no_warning_funcs = map(
-            lambda t: partial(
-                sampling_backend._check_execution_time_limitability,
-                batch_exe_time=t[0],
-                batch_time_left=t[1],
-            ),
-            [
-                (300, 300),
-                (800, 500),
-                (800, None),
-                (None, 500),
-                (None, None),
-            ],
-        )
-
-        for f in no_warning_funcs:
-            try:
-                with pytest.warns(UserWarning):
-                    f()
-            except:  # noqa: E722
-                assert True
-            else:
-                assert False
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            sampling_backend._check_execution_time_limitability(300, 300)
+            sampling_backend._check_execution_time_limitability(800, 500)
+            sampling_backend._check_execution_time_limitability(800, None)
+            sampling_backend._check_execution_time_limitability(None, 500)
+            sampling_backend._check_execution_time_limitability(None, None)
