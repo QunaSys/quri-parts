@@ -189,7 +189,7 @@ def _sequential_parametric_estimate(
 
 
 def create_itensor_mps_parametric_estimator(
-    **kwargs:Any,
+    **kwargs: Any,
 ) -> ParametricQuantumEstimator[ITensorParametricStateT]:
     return create_parametric_estimator(create_itensor_mps_estimator(**kwargs))
 
