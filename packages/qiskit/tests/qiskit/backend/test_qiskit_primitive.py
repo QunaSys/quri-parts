@@ -858,14 +858,6 @@ class TestQiskitPrimitive:
             )
 
         # test no warnings raised
-        try:
-            with pytest.warns(UserWarning):
-                sampling_backend._check_execution_time_limitability(
-                    batch_exe_time=300, batch_time_left=300
-                )
-        except:  # noqa: E722
-            assert True
-
         no_warning_funcs = map(
             lambda t: partial(
                 sampling_backend._check_execution_time_limitability,

@@ -50,6 +50,8 @@ from .utils import (
     get_job_mapper_and_circuit_transpiler,
 )
 
+RUNTIME_BACKEND_MAX_EXE_TIME = 300.0
+
 
 class QiskitRuntimeSamplingResult(SamplingResult):
     """Class for the results by Qiskit sampler job."""
@@ -128,6 +130,11 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             - A :class:`~Tracker` is created when the time limit is set. The tracker can be accessed by the .tracker attribute.
 
             - If the job execution time exceeds the time limit, new call to the :meth:`~sample` will be rejected and all current running jobs will be cancelled.
+        single_job_max_execution_time:
+            Maximum execution time limit of a submitted (circuit, n_shot) pair. The value should be greater or equal to 300 seconds.
+        strict_time_limit:
+            The Runtime backend can only abort jobs that has been executed longer than 300 seconds or above.
+            If this option is set to True, the sampling backend will reject jobs whose time limit setting is less than 300 seconds.
     """  # noqa:
 
     def __init__(
@@ -232,7 +239,10 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
     def _check_execution_time_limitability(
         self, batch_exe_time: Optional[float], batch_time_left: Optional[float]
     ) -> None:
-        if batch_time_left is not None and batch_time_left < 300:
+        if (
+            batch_time_left is not None
+            and batch_time_left < RUNTIME_BACKEND_MAX_EXE_TIME
+        ):
             if self._strict:
                 raise BackendError(
                     f"Max execution time limit of {batch_time_left} "
@@ -244,7 +254,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
                     "is likely going to be exceeded."
                 )
 
-        if batch_exe_time is not None and batch_exe_time < 300:
+        if batch_exe_time is not None and batch_exe_time < RUNTIME_BACKEND_MAX_EXE_TIME:
             if self._strict:
                 raise BackendError(
                     f"Max execution time limit of {batch_exe_time} "
@@ -266,18 +276,19 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         )
 
         if batch_exe_time is not None and batch_time_left is not None:
-            assert batch_time_left is not None
-            if batch_time_left > batch_exe_time:
-                options.max_execution_time = max(300, batch_exe_time)
-            else:
-                options.max_execution_time = max(300, batch_time_left)
+            options.max_execution_time = max(
+                RUNTIME_BACKEND_MAX_EXE_TIME, min(batch_time_left, batch_exe_time)
+            )
 
-        elif batch_exe_time is not None and batch_time_left is None:
-            options.max_execution_time = max(300, batch_exe_time)
+        elif batch_exe_time is not None:
+            options.max_execution_time = max(
+                RUNTIME_BACKEND_MAX_EXE_TIME, batch_exe_time
+            )
 
-        elif batch_exe_time is None and batch_time_left is not None:
-            assert batch_time_left is not None
-            options.max_execution_time = max(300, batch_time_left)
+        elif batch_time_left is not None:
+            options.max_execution_time = max(
+                RUNTIME_BACKEND_MAX_EXE_TIME, batch_time_left
+            )
 
         return options
 
@@ -327,6 +338,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         if not n_shots >= 1:
             raise ValueError("n_shots should be a positive integer.")
 
+        # Distribute shot count and execution time
         shot_dist = distribute_backend_shots(
             n_shots, self._min_shots, self._max_shots, self._enable_shots_roundup
         )
@@ -343,6 +355,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             single_batch_execution_time, single_batch_time_left
         )
 
+        # Convert and transpile circuits
         qiskit_circuit = self._circuit_converter(circuit, self._circuit_transpiler)
         qiskit_circuit.measure_all()
         transpiled_circuit = qiskit.transpile(qiskit_circuit, self._backend)
