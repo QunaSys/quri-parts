@@ -68,9 +68,9 @@ def create_itensor_mps_estimator(**kwargs: Any) -> QuantumEstimator[ITensorState
     """Returns a :class:`~QuantumEstimator` that uses ITensor MPS simulator to
     calculate expectation values.
 
-    Keyword arguments are passed to
-    `ITensors.apply <https://itensor.github.io/ITensors.jl/dev/MPSandMPO.html#ITensors.
-    product-Tuple{ITensor,%20ITensors.AbstractMPS}>`_
+    Keyword arguments are passed to `ITensors.apply
+
+    <https://itensor.github.io/ITensors.jl/dev/MPSandMPO.html#ITensors.product-Tuple{ITensor,%20ITensors.AbstractMPS}>`_
     """
 
     def estimator(operator: Estimatable, state: ITensorStateT) -> Estimate[complex]:
