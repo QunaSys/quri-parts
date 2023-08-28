@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from collections.abc import Mapping
-from typing import Callable, Union
+from typing import Callable, Literal, Sequence, Union
 
 from quri_parts.circuit import (
     NonParametricQuantumCircuit,
@@ -50,6 +50,13 @@ _rotation_gate_dagger: Mapping[
     gate_names.U3: gates.U3,
 }
 
+_multi_rotation_gate_dagger: Mapping[
+    Literal["PauliRotation"],
+    Callable[[Sequence[int], Sequence[int], float], QuantumGate],
+] = {
+    gate_names.PauliRotation: gates.PauliRotation,
+}
+
 
 def inverse_gate(gate: QuantumGate) -> QuantumGate:
     target_indices = gate.target_indices
@@ -62,6 +69,13 @@ def inverse_gate(gate: QuantumGate) -> QuantumGate:
             inverse_gate = _rotation_gate_dagger[gate.name](*target_indices, *inv_param)
         else:
             inverse_gate = gate
+    elif gate.name == gate_names.PauliRotation:
+        pauli_ids = gate.pauli_ids
+        angle = gate.params[0]
+        neg_angle = -angle
+        inverse_gate = _multi_rotation_gate_dagger[gate.name](
+            target_indices, pauli_ids, neg_angle
+        )
     else:
         inverse_gate = gate
     return inverse_gate
