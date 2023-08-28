@@ -138,7 +138,7 @@ def _circuit_fidelity_for_repetitive_ansatz(
     return two_qubit_1_line**reps * readout
 
 
-def circuit_fidelity(
+def circuit_fidelity_by_two_qubit_gate_and_readout_errors(
     two_qubit_errors: CouplingMapWithErrors,
     readout_errors: Mapping[int, float],
     circuit: NonParametricQuantumCircuit,
