@@ -48,14 +48,9 @@ def _sorted_undirected(
 ) -> Sequence[tuple[int, int]]:
     ud = []
     for (a, b), e in sorted(two_qubit_errors.items()):
-        if (a, b) not in ud and (b, a) not in ud:
+        if (b, a) not in ud:
             ud.append(((a, b), e))
     return next(zip(*sorted(ud, key=lambda x: x[1])))
-
-
-def _directed(g: Sequence[tuple[int, int]]) -> Sequence[tuple[int, int]]:
-    rs = set((b, a) for a, b in g)
-    return list(rs | set(g))
 
 
 def _list_to_graph(coupling_list: Sequence[tuple[int, int]]) -> nx.Graph:
@@ -69,7 +64,7 @@ def approx_reliable_coupling_subgraph(
     that contain the specified number or more qubits."""
     sorted_edges = _sorted_undirected(two_qubit_errors)
     for i in range(qubit_count - 1, len(sorted_edges)):
-        best_nodes = _list_to_graph(_directed(sorted_edges[:i]))
+        best_nodes = _list_to_graph(sorted_edges[:i])
         enough_nodes = [
             best_nodes.subgraph(c)
             for c in nx.connected_components(best_nodes)
@@ -103,7 +98,7 @@ def _approx_reliable_coupling_single_stroke_paths(
 ) -> Sequence[Sequence[int]]:
     sorted_edges = _sorted_undirected(two_qubit_errors)
     for i in range(qubit_count - 1, len(sorted_edges)):
-        best_nodes = _list_to_graph(_directed(sorted_edges[:i]))
+        best_nodes = _list_to_graph(sorted_edges[:i])
         enough_nodes = [
             best_nodes.subgraph(c)
             for c in nx.connected_components(best_nodes)
