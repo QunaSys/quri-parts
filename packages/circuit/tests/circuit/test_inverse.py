@@ -1,6 +1,8 @@
 from typing import Callable, Sequence, Union
 
 import numpy as np
+import numpy.typing as npt
+from scipy.stats import unitary_group
 from typing_extensions import TypeAlias
 
 from quri_parts.circuit import (
@@ -23,6 +25,7 @@ from quri_parts.circuit import (
     SqrtYdag,
     T,
     Tdag,
+    UnitaryMatrix,
     inverse_circuit,
     inverse_gate,
 )
@@ -75,6 +78,16 @@ _multi_idx_param_rotation_circuit: Callable[
     ],
 )
 
+_multi_idx_unitary_circuit: Callable[
+    [Sequence[Sequence[int]], Sequence[npt.NDArray[np.complex128]]], QuantumCircuit
+] = lambda target_indices, unitaries: QuantumCircuit(
+    8,
+    gates=[
+        UnitaryMatrix(target_idx, unitary.tolist())
+        for target_idx, unitary in zip(target_indices, unitaries)
+    ],
+)
+
 
 def _assert_inverse_gates(a: QuantumGate, b: QuantumGate) -> None:
     assert a == inverse_gate(b)
@@ -104,6 +117,13 @@ def test_inverse_gate() -> None:
     _assert_inverse_gates(
         PauliRotation(target_idx, pauli_ids, angle),
         PauliRotation(target_idx, pauli_ids, -angle),
+    )
+
+    # unitary
+    unitary = unitary_group.rvs(2**4)
+    _assert_inverse_gates(
+        UnitaryMatrix(target_idx, unitary.tolist()),
+        UnitaryMatrix(target_idx, unitary.conjugate().T.tolist()),
     )
 
 
@@ -141,4 +161,16 @@ def test_inverse_circuit() -> None:
         rc = _multi_idx_param_rotation_circuit(
             inv_target_indices, inv_pauli_ids, theta_inv
         )
+        _assert_inverse_circuits(lc, rc)
+
+        # circuit with multi-qubit unitary gates
+        target_indices = [
+            np.random.choice(range(8), 4, replace=False).tolist() for _ in range(depth)
+        ]
+        unitaries_list = [unitary_group.rvs(16) for _ in range(depth)]
+        lc = _multi_idx_unitary_circuit(target_indices, unitaries_list)
+
+        unitary_daggers_list = [u.conjugate().T for u in reversed(unitaries_list)]
+        inv_target_indices = target_indices[::-1]
+        rc = _multi_idx_unitary_circuit(inv_target_indices, unitary_daggers_list)
         _assert_inverse_circuits(lc, rc)

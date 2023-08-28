@@ -11,6 +11,8 @@
 from collections.abc import Mapping
 from typing import Callable, Union
 
+import numpy as np
+
 from quri_parts.circuit import (
     NonParametricQuantumCircuit,
     QuantumCircuit,
@@ -50,6 +52,13 @@ _rotation_gate_dagger: Mapping[
     gate_names.U3: gates.U3,
 }
 
+_unitary_gate_dagger: Mapping[
+    Literal["UnitaryMatrix"],
+    Callable[[Sequence[int], Sequence[Sequence[complex]]], QuantumGate],
+] = {
+    gate_names.UnitaryMatrix: gates.UnitaryMatrix,
+}
+
 
 def inverse_gate(gate: QuantumGate) -> QuantumGate:
     target_indices = gate.target_indices
@@ -67,6 +76,12 @@ def inverse_gate(gate: QuantumGate) -> QuantumGate:
         angle = gate.params[0]
         neg_angle = -angle
         inverse_gate = gates.PauliRotation(target_indices, pauli_ids, neg_angle)
+    elif gate.name == gate_names.UnitaryMatrix:
+        unitary = gate.unitary_matrix
+        inverse_unitary = np.array(unitary, dtype=np.complex128).conj().T
+        inverse_gate = _unitary_gate_dagger[gate.name](
+            target_indices, inverse_unitary.tolist()
+        )
     else:
         inverse_gate = gate
     return inverse_gate
