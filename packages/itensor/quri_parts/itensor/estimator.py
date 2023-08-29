@@ -64,7 +64,12 @@ def _estimate(
     return _Estimate(value=exp, error=0.0)
 
 
-def create_itensor_mps_estimator(**kwargs: Any) -> QuantumEstimator[ITensorStateT]:
+def create_itensor_mps_estimator(
+    mindim: Optional[int] = None,
+    maxdim: Optional[int] = None,
+    cutoff: Optional[float] = None,
+    **kwargs: Any,
+) -> QuantumEstimator[ITensorStateT]:
     """Returns a :class:`~QuantumEstimator` that uses ITensor MPS simulator to
     calculate expectation values.
 
