@@ -39,6 +39,8 @@ _inverse_pairs: list[
 _single_param_rotations: list[Callable[[int, float], QuantumGate]] = [RX, RY, RZ, U1]
 
 
+_unitary_1, _unitary_2 = unitary_group.rvs(16), unitary_group.rvs(16)
+
 _inverse_circuit_pairs: list[tuple[QuantumCircuit, QuantumCircuit]] = [
     (QuantumCircuit(8, gates=gatelist), QuantumCircuit(8, gates=inv_gatelist))
     for gatelist, inv_gatelist in zip(
@@ -50,6 +52,10 @@ _inverse_circuit_pairs: list[tuple[QuantumCircuit, QuantumCircuit]] = [
                 PauliRotation((0, 1, 2), (3, 2, 1), np.pi / 7),
                 PauliRotation((2, 3, 1), (3, 2, 2), -np.pi / 11),
             ],
+            [
+                UnitaryMatrix((1, 3, 2, 6), _unitary_1.tolist()),
+                UnitaryMatrix((2, 5, 4, 6), _unitary_2.tolist()), 
+            ]
         ],
         [
             [Tdag(0), Sdag(0)],
@@ -59,6 +65,10 @@ _inverse_circuit_pairs: list[tuple[QuantumCircuit, QuantumCircuit]] = [
                 PauliRotation((2, 3, 1), (3, 2, 2), np.pi / 11),
                 PauliRotation((0, 1, 2), (3, 2, 1), -np.pi / 7),
             ],
+            [
+                UnitaryMatrix((2, 5, 4, 6), _unitary_2.conj().T.tolist()),
+                UnitaryMatrix((1, 3, 2, 6), _unitary_1.conj().T.tolist()),
+            ]
         ],
     )
 ]
