@@ -310,11 +310,8 @@ class TestStateMapper:
     def test_scbk_state_mapper_property(self) -> None:
         n_spin_orbitals = 4
 
-        with pytest.raises(TypeError):
-            # Disable type check to test if error is properly raised.
-            symmetry_conserving_bravyi_kitaev(
-                n_spin_orbitals
-            ).state_mapper  # type: ignore
+        with pytest.raises(ValueError):
+            symmetry_conserving_bravyi_kitaev(n_spin_orbitals).state_mapper
 
         n_fermions = 2
         state_mapper = symmetry_conserving_bravyi_kitaev(

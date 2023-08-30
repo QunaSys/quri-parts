@@ -8,18 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from abc import abstractmethod
-from collections.abc import Collection, Sequence
-from typing import Callable, Optional, Protocol, Union
-
-from openfermion.ops import FermionOperator, InteractionOperator, MajoranaOperator
-from openfermion.transforms import bravyi_kitaev as of_bravyi_kitaev
-from openfermion.transforms import get_fermion_operator
-from openfermion.transforms import jordan_wigner as of_jordan_wigner
-from openfermion.transforms import (
-    symmetry_conserving_bravyi_kitaev as of_symmetry_conserving_bravyi_kitaev,
-)
-from typing_extensions import TypeAlias
+from typing import Optional
 
 from quri_parts.chem.transforms import (
     BravyiKitaev,
@@ -29,75 +18,32 @@ from quri_parts.chem.transforms import (
     QubitFermionStateMapper,
     SymmetryConservingBravyiKitaev,
 )
-from quri_parts.core.operator import Operator, SinglePauli
-from quri_parts.core.state import ComputationalBasisState
-from quri_parts.core.utils.binary_field import BinaryArray, BinaryMatrix, inverse
-from quri_parts.openfermion.operator import (
-    has_particle_number_symmetry,
-    operator_from_openfermion_op,
+
+from .mappings import (
+    OpenFermionBravyiKitaev,
+    OpenFermionJordanWigner,
+    OpenFermionQubitMapping,
+    OpenFermionQubitOperatorMapper,
+    OpenFermionSymmetryConservingBravyiKitaev,
 )
 
-#: Interface for a function that maps a :class:`openfermion.ops.FermionOperator`,
-#: :class:`openfermion.ops.InteractionOperator` or
-#: :class:`openfermion.ops.MajoranaOperator` to
-#: a :class:`Operator`.
-OpenFermionQubitOperatorMapper: TypeAlias = Callable[
-    [Union["FermionOperator", "InteractionOperator", "MajoranaOperator"]],
-    "Operator",
-]
 
-
-def _inv_state_transformation_matrix(
-    op_mapper: OpenFermionQubitOperatorMapper, n_spin_orbitals: int
-) -> tuple[BinaryMatrix, Sequence[int]]:
-    """Build a matrix that converts vector of fermion occupancy to binary
-    representation on qubit.
-
-    It is assumed that mapping method maps the occupancy to Z operator.
-    For example, the matrix is (29) in http://arxiv.org/abs/1208.5986
-    for the Bravyi-Kitaev method.
-    """
-    mat = []
-    signs = []
-    for number_op in (
-        (1 - 2 * FermionOperator(f"{i}^ {i}")) for i in range(n_spin_orbitals)
-    ):
-        op = op_mapper(number_op)
-        row = list(0 for _ in range(n_spin_orbitals))
-        if len(op) > 1:
-            raise ValueError(
-                "This method is incompatible with a mapping that converts a number "
-                "operator to a sum of multiple Pauli terms."
-            )
-        pauli_label, coef = next(iter(op.items()))
-
-        assert coef == 1 or coef == -1
-        signs.append(int(coef.real))
-
-        for idx, pauli in pauli_label:
-            if pauli != SinglePauli.Z:
-                raise ValueError("The action must be Z.")
-            row[idx] = 1
-        mat.append(row)
-    return BinaryMatrix(mat), signs
-
-
-class OpenFermionQubitMapping(FermionQubitMapping, Protocol):
+class OpenFermionQubitMapperFactory(FermionQubitMapping):
     """Mapping from Fermionic operators and states to :class:`Operator`s and
     states using OpenFermion."""
 
-    @abstractmethod
-    def __init__(
+    mapping_method: type[OpenFermionQubitMapping]
+
+    def __call__(
         self,
-        n_spin_orbitals: Optional[int] = None,
+        n_spin_orbs: Optional[int] = None,
         n_fermions: Optional[int] = None,
         sz: Optional[float] = None,
-    ) -> None:
-        ...
+    ) -> OpenFermionQubitMapping:
+        return self.mapping_method(n_spin_orbs, n_fermions, sz)
 
-    @staticmethod
-    @abstractmethod
     def get_of_operator_mapper(
+        self,
         n_spin_orbitals: Optional[int] = None,
         n_fermions: Optional[int] = None,
         sz: Optional[float] = None,
@@ -120,243 +66,45 @@ class OpenFermionQubitMapping(FermionQubitMapping, Protocol):
                 argument (e.g. :class:`~OpenFermionSymmetryConservingBravyiKitaev`)
                 while the others ignore it.
         """
-        ...
+        return self(n_spin_orbitals, n_fermions, sz).operator_mapper
 
-    @property
-    def operator_mapper(self) -> OpenFermionQubitOperatorMapper:
-        return self.get_of_operator_mapper(
-            self.n_spin_orbitals, self.n_fermions, self.sz
-        )
-
-    @staticmethod
-    @abstractmethod
     def get_state_mapper(
+        self,
         n_spin_orbitals: int,
         n_fermions: Optional[int] = None,
         sz: Optional[float] = None,
     ) -> FermionQubitStateMapper:
-        ...
+        return self(n_spin_orbitals, n_fermions, sz).state_mapper
 
-    @property
-    def state_mapper(self) -> FermionQubitStateMapper:
-        assert (
-            self.n_spin_orbitals is not None and self.n_qubits is not None
-        ), "n_spin_orbitals must not be None in order to perform state mapping."
-
-        inv_trans_mat, signs = _inv_state_transformation_matrix(
-            self.operator_mapper,
-            self.n_spin_orbitals,
-        )
-        trans_mat = inverse(inv_trans_mat)
-        n_qubits = self.n_qubits
-        n_spin_orbitals = self.n_spin_orbitals
-
-        def mapper(
-            occupied_indices: Collection[int],
-        ) -> ComputationalBasisState:
-            occ_list = [(i in occupied_indices) for i in range(n_spin_orbitals)]
-            occ_list = [not b if signs[i] == -1 else b for i, b in enumerate(occ_list)]
-            occupancy_vector = BinaryArray(occ_list)
-            qubit_vector = trans_mat @ occupancy_vector
-            return ComputationalBasisState(
-                n_qubits=n_qubits, bits=qubit_vector.binary & (2**n_qubits - 1)
-            )
-
-        return mapper
-
-    @staticmethod
-    @abstractmethod
     def get_inv_state_mapper(
+        self,
         n_spin_orbitals: int,
         n_fermions: Optional[int] = None,
         sz: Optional[float] = None,
     ) -> QubitFermionStateMapper:
-        ...
-
-    @property
-    def inv_state_mapper(self) -> QubitFermionStateMapper:
-        if self.n_spin_orbitals is None or self.n_qubits is None:
-            raise ValueError(
-                "To perform inverse state mapping, n_spin_orbital cannot be None"
-            )
-
-        inv_trans_mat, signs = _inv_state_transformation_matrix(
-            self.operator_mapper,
-            self.n_spin_orbitals,
-        )
-        n_qubits = self.n_qubits
-        n_spin_orbitals = self.n_spin_orbitals
-
-        def mapper(state: ComputationalBasisState) -> Collection[int]:
-            bits = state.bits
-            bit_array = [(bits & 1 << index) >> index for index in range(n_qubits)]
-            bit_array = self._augment_dropped_bits(
-                bit_array, n_spin_orbitals, self.n_fermions, self.sz
-            )
-            qubit_vector = BinaryArray(bit_array)
-            occupancy_vector = inv_trans_mat @ qubit_vector
-            occupancy_set = [
-                i
-                for i, o in enumerate(occupancy_vector)
-                if (o == 1 and signs[i] == 1) or (o == 0 and signs[i] == -1)
-            ]
-            return occupancy_set
-
-        return mapper
-
-    @staticmethod
-    def _augment_dropped_bits(
-        bit_array: list[int],
-        n_spin_orbitals: int,
-        n_fermions: Optional[int] = None,
-        sz: Optional[float] = None,
-    ) -> list[int]:
-        """Returns a bit array which is augmented by adding qubits dropped by a
-        :class:`FermionQubitMapping`."""
-        return bit_array
+        return self(n_spin_orbitals, n_fermions, sz).inv_state_mapper
 
 
-class OpenFermionJordanWigner(JordanWigner, OpenFermionQubitMapping):
+class OpenFermionJordanWignerFactory(JordanWigner, OpenFermionQubitMapperFactory):
     """Jordan-Wigner transformation using OpenFermion."""
 
-    def __init__(
-        self,
-        n_spin_orbitals: Optional[int] = None,
-        n_fermions: Optional[int] = None,
-        sz: Optional[float] = None,
-    ) -> None:
-        self._n_spin_orbitals = n_spin_orbitals
-        self._n_fermions = n_fermions
-        self._sz = sz
-
-    @staticmethod
-    def get_of_operator_mapper(
-        n_spin_orbitals: Optional[int] = None,
-        n_fermions: Optional[int] = None,
-        sz: Optional[float] = None,
-    ) -> OpenFermionQubitOperatorMapper:
-        """Returns a function that maps a
-        :class:`~openfermion.ops.FermionOperator`,
-        :class:`~openfermion.ops.InteractionOperator` or
-        :class:`~openfermion.ops.MajoranaOperator`
-        to a :class:`openfermion.ops.QubitOperator`
-        with Jordan-Wigner transformation.
-
-        Both the arguments (``n_spin_orbitals`` and ``n_fermions``) are ignored since
-        the mapping does not depend on them.
-        """
-
-        def mapper(
-            op: Union["FermionOperator", "InteractionOperator", "MajoranaOperator"]
-        ) -> "Operator":
-            return operator_from_openfermion_op(of_jordan_wigner(op))
-
-        return mapper
-
-    @staticmethod
-    def get_state_mapper(
-        n_spin_orbitals: int,
-        n_fermions: Optional[int] = None,
-        sz: Optional[float] = None,
-    ) -> FermionQubitStateMapper:
-        """Returns a function that maps occupied spin orbital indices to a
-        computational basis state of qubits with Jordan-Wigner transformation.
-
-        Args:
-            n_spin_orbitals:
-                The number of spin orbitals to be mapped to qubits.
-            n_fermions:
-                This argument is ignored since the mapping does not depend on it.
-        """
-        return OpenFermionJordanWigner(n_spin_orbitals, n_fermions, sz).state_mapper
-
-    @staticmethod
-    def get_inv_state_mapper(
-        n_spin_orbitals: int,
-        n_fermions: Optional[int] = None,
-        sz: Optional[float] = None,
-    ) -> QubitFermionStateMapper:
-        return OpenFermionJordanWigner(n_spin_orbitals, n_fermions, sz).inv_state_mapper
+    mapping_method = OpenFermionJordanWigner
 
 
-jordan_wigner = OpenFermionJordanWigner
+jordan_wigner = OpenFermionJordanWignerFactory()
 
 
-class OpenFermionBravyiKitaev(BravyiKitaev, OpenFermionQubitMapping):
+class OpenFermionBravyiKitaevFactory(BravyiKitaev, OpenFermionQubitMapperFactory):
     """Bravyi-Kitaev transformation using OpenFermion."""
 
-    def __init__(
-        self,
-        n_spin_orbitals: int,
-        n_fermions: Optional[int] = None,
-        sz: Optional[float] = None,
-    ) -> None:
-        self._n_spin_orbitals = n_spin_orbitals
-        self._n_fermions = n_fermions
-        self._sz = sz
-
-    @staticmethod
-    def get_of_operator_mapper(
-        n_spin_orbitals: Optional[int] = None,
-        n_fermions: Optional[int] = None,
-        sz: Optional[float] = None,
-    ) -> OpenFermionQubitOperatorMapper:
-        """Returns a function that maps a
-        :class:`~openfermion.ops.FermionOperator`,
-        :class:`~openfermion.ops.InteractionOperator` or
-        :class:`~openfermion.ops.MajoranaOperator`
-        to a :class:`openfermion.ops.QubitOperator`
-        with Bravyi-Kitaev transformation.
-
-        Args:
-            n_spin_orbitals:
-                The number of spin orbitals to be mapped to qubits. When omitted, it is
-                automatically calculated from the largest orbital index contained in
-                the operator.
-            n_fermions:
-                This argument is ignored since the mapping does not depend on it.
-        """
-
-        def mapper(
-            op: Union["FermionOperator", "InteractionOperator", "MajoranaOperator"]
-        ) -> "Operator":
-            return operator_from_openfermion_op(
-                of_bravyi_kitaev(op, n_qubits=n_spin_orbitals)
-            )
-
-        return mapper
-
-    @staticmethod
-    def get_state_mapper(
-        n_spin_orbitals: int,
-        n_fermions: Optional[int] = None,
-        sz: Optional[float] = None,
-    ) -> FermionQubitStateMapper:
-        """Returns a function that maps occupied spin orbital indices to a
-        computational basis state of qubits with Bravyi-Kitaev transformation.
-
-        Args:
-            n_spin_orbitals:
-                The number of spin orbitals to be mapped to qubits.
-            n_fermions:
-                This argument is ignored since the mapping does not depend on it.
-        """
-        return OpenFermionBravyiKitaev(n_spin_orbitals, n_fermions, sz).state_mapper
-
-    @staticmethod
-    def get_inv_state_mapper(
-        n_spin_orbitals: int,
-        n_fermions: Optional[int] = None,
-        sz: Optional[float] = None,
-    ) -> QubitFermionStateMapper:
-        return OpenFermionBravyiKitaev(n_spin_orbitals, n_fermions, sz).inv_state_mapper
+    mapping_method = OpenFermionBravyiKitaev
 
 
-bravyi_kitaev = OpenFermionBravyiKitaev
+bravyi_kitaev = OpenFermionBravyiKitaevFactory()
 
 
-class OpenFermionSymmetryConservingBravyiKitaev(
-    SymmetryConservingBravyiKitaev, OpenFermionQubitMapping
+class OpenFermionSymmetryConservingBravyiKitaevFactory(
+    SymmetryConservingBravyiKitaev, OpenFermionQubitMapperFactory
 ):
     """Symmetry-conserving Bravyi-Kitaev transformation described in
     arXiv:1701.08213, using OpenFermion.
@@ -372,110 +120,10 @@ class OpenFermionSymmetryConservingBravyiKitaev(
     states.
     """
 
-    def __init__(
-        self,
-        n_spin_orbitals: int,
-        n_fermions: int,
-        sz: float,
-    ) -> None:
-        if sz not in [0.0, 0.5]:
-            raise ValueError("Current implementation only supports sz = 0.0 or 0.5.")
-        self._n_spin_orbitals = n_spin_orbitals
-        self._n_fermions = n_fermions
-        self._sz = sz
-
-    @staticmethod
-    def get_of_operator_mapper(
-        n_spin_orbitals: Optional[int] = None,
-        n_fermions: Optional[int] = None,
-        sz: Optional[float] = None,
-    ) -> OpenFermionQubitOperatorMapper:
-        """Returns a function that maps a
-        :class:`~openfermion.ops.FermionOperator`,
-        :class:`~openfermion.ops.InteractionOperator` or
-        :class:`~openfermion.ops.MajoranaOperator`
-        to a :class:`openfermion.ops.QubitOperator`
-        with symmetry-conserving Bravyi-Kitaev transformation.
-
-        Both the arguments (``n_spin_orbitals`` and ``n_fermions``) are required.
-        """
-
-        if n_spin_orbitals is None:
-            raise ValueError("n_spin_orbitals is required.")
-        if n_fermions is None:
-            raise ValueError("n_fermions is required.")
-
-        def mapper(
-            op: Union["FermionOperator", "InteractionOperator", "MajoranaOperator"]
-        ) -> "Operator":
-            if not isinstance(op, FermionOperator):
-                op = get_fermion_operator(op)
-
-            openfermion_op = FermionOperator()
-            for pauli_product, coef in op.terms.items():
-                openfermion_op += FermionOperator(pauli_product, coef)
-
-            operator = Operator()
-            for single_term in openfermion_op.get_operators():
-                if has_particle_number_symmetry(single_term, check_spin_symmetry=True):
-                    operator += operator_from_openfermion_op(
-                        of_symmetry_conserving_bravyi_kitaev(
-                            single_term, n_spin_orbitals, n_fermions
-                        )
-                    )
-            return operator
-
-        return mapper
-
-    @staticmethod
-    def get_state_mapper(
-        n_spin_orbitals: int,
-        n_fermions: Optional[int] = None,
-        sz: Optional[float] = None,
-    ) -> FermionQubitStateMapper:
-        """Returns a function that maps occupied spin orbital indices to a
-        computational basis state of qubits with symmetry-conserving Bravyi-
-        Kitaev transformation.
-
-        Args:
-            n_spin_orbitals:
-                The number of spin orbitals to be mapped to qubits.
-            n_fermions:
-                Restrict the mapping to a subspace spanned by states
-                containing the fixed number of Fermions. This argument is required.
-        """
-        if n_fermions is None:
-            raise ValueError("n_fermions is required.")
-        if sz not in [0.0, 0.5]:
-            raise ValueError("Current implementation only supports sz = 0.0 or 0.5.")
-
-        return OpenFermionSymmetryConservingBravyiKitaev(
-            n_spin_orbitals, n_fermions, sz
-        ).state_mapper
-
-    @staticmethod
-    def get_inv_state_mapper(
-        n_spin_orbitals: int,
-        n_fermions: Optional[int] = None,
-        sz: Optional[float] = None,
-    ) -> QubitFermionStateMapper:
-        if n_fermions is None:
-            raise ValueError("n_fermions is required.")
-        if sz not in [0.0, 0.5]:
-            raise ValueError("Current implementation only supports sz = 0.0 or 0.5.")
-        return OpenFermionSymmetryConservingBravyiKitaev(
-            n_spin_orbitals, n_fermions, sz
-        ).inv_state_mapper
-
-    @staticmethod
-    def _augment_dropped_bits(
-        bit_array: list[int],
-        n_spin_orbitals: int,
-        n_fermions: Optional[int] = None,
-        sz: Optional[float] = None,
-    ) -> list[int]:
-        # Add two qubits dropped by the fermion-to-qubit mapping.
-        return bit_array + [0, 0]
+    mapping_method = OpenFermionSymmetryConservingBravyiKitaev
 
 
-symmetry_conserving_bravyi_kitaev = OpenFermionSymmetryConservingBravyiKitaev
+symmetry_conserving_bravyi_kitaev = OpenFermionSymmetryConservingBravyiKitaevFactory()
+
+
+__all__ = ["OpenFermionQubitMapping", "OpenFermionQubitOperatorMapper"]
