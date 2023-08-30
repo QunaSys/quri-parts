@@ -54,8 +54,8 @@ _inverse_circuit_pairs: list[tuple[QuantumCircuit, QuantumCircuit]] = [
             ],
             [
                 UnitaryMatrix((1, 3, 2, 6), _unitary_1.tolist()),
-                UnitaryMatrix((2, 5, 4, 6), _unitary_2.tolist()), 
-            ]
+                UnitaryMatrix((2, 5, 4, 6), _unitary_2.tolist()),
+            ],
         ],
         [
             [Tdag(0), Sdag(0)],
@@ -68,7 +68,7 @@ _inverse_circuit_pairs: list[tuple[QuantumCircuit, QuantumCircuit]] = [
             [
                 UnitaryMatrix((2, 5, 4, 6), _unitary_2.conj().T.tolist()),
                 UnitaryMatrix((1, 3, 2, 6), _unitary_1.conj().T.tolist()),
-            ]
+            ],
         ],
     )
 ]
