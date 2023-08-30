@@ -128,11 +128,11 @@ def test_inverse_circuit() -> None:
         rc = _single_param_rotation_circuit(gateset_inv, theta_inv)
         _assert_inverse_circuits(lc, rc)
 
-        # circuit with single qubit rotation gates
+        # circuit with multi pauli rotation gates
         target_indices = [
             np.random.choice(range(8), 4, replace=False).tolist() for _ in range(depth)
         ]
-        pauli_ids = [[np.random.randint(1, 4) for _ in range(4)] for _ in range(depth)]
+        pauli_ids = [np.random.randint(1, 4, size=4).tolist() for _ in range(depth)]
         lc = _multi_idx_param_rotation_circuit(
             target_indices, pauli_ids, theta.tolist()
         )
