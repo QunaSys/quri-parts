@@ -73,12 +73,20 @@ def create_itensor_mps_estimator(
     """Returns a :class:`~QuantumEstimator` that uses ITensor MPS simulator to
     calculate expectation values.
 
+    Args:
+        mindim: The minimum number of singular values. The value is passed to `ITensors.apply`.
+        maxdim: ...
+        cutoff: ...
     Keyword arguments are passed to `ITensors.apply
 
     <https://itensor.github.io/ITensors.jl/dev/MPSandMPO.html#ITensors.product-Tuple{ITensor,%20ITensors.AbstractMPS}>`_
     """
 
     def estimator(operator: Estimatable, state: ITensorStateT) -> Estimate[complex]:
+        if mindim:
+            kwargs["mindim"] = mindim
+        if ...
+        
         return _estimate(operator, state, **kwargs)
 
     return estimator
