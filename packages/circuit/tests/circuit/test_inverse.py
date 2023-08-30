@@ -1,6 +1,8 @@
 from typing import Callable, Sequence, Union
 
 import numpy as np
+import numpy.typing as npt
+from scipy.stats import unitary_group
 from typing_extensions import TypeAlias
 
 from quri_parts.circuit import (
@@ -23,6 +25,7 @@ from quri_parts.circuit import (
     SqrtYdag,
     T,
     Tdag,
+    UnitaryMatrix,
     inverse_circuit,
     inverse_gate,
 )
@@ -36,6 +39,8 @@ _inverse_pairs: list[
 _single_param_rotations: list[Callable[[int, float], QuantumGate]] = [RX, RY, RZ, U1]
 
 
+_unitary_1, _unitary_2 = unitary_group.rvs(16), unitary_group.rvs(16)
+
 _inverse_circuit_pairs: list[tuple[QuantumCircuit, QuantumCircuit]] = [
     (QuantumCircuit(8, gates=gatelist), QuantumCircuit(8, gates=inv_gatelist))
     for gatelist, inv_gatelist in zip(
@@ -47,6 +52,10 @@ _inverse_circuit_pairs: list[tuple[QuantumCircuit, QuantumCircuit]] = [
                 PauliRotation((0, 1, 2), (3, 2, 1), np.pi / 7),
                 PauliRotation((2, 3, 1), (3, 2, 2), -np.pi / 11),
             ],
+            [
+                UnitaryMatrix((1, 3, 2, 6), _unitary_1.tolist()),
+                UnitaryMatrix((2, 5, 4, 6), _unitary_2.tolist()),
+            ],
         ],
         [
             [Tdag(0), Sdag(0)],
@@ -55,6 +64,10 @@ _inverse_circuit_pairs: list[tuple[QuantumCircuit, QuantumCircuit]] = [
             [
                 PauliRotation((2, 3, 1), (3, 2, 2), np.pi / 11),
                 PauliRotation((0, 1, 2), (3, 2, 1), -np.pi / 7),
+            ],
+            [
+                UnitaryMatrix((2, 5, 4, 6), _unitary_2.conj().T.tolist()),
+                UnitaryMatrix((1, 3, 2, 6), _unitary_1.conj().T.tolist()),
             ],
         ],
     )
@@ -72,6 +85,16 @@ _multi_idx_param_rotation_circuit: Callable[
     gates=[
         PauliRotation(target_idx, pauli_id, param)
         for target_idx, pauli_id, param in zip(target_indices, pauli_ids, thetas)
+    ],
+)
+
+_multi_idx_unitary_circuit: Callable[
+    [Sequence[Sequence[int]], Sequence[npt.NDArray[np.complex128]]], QuantumCircuit
+] = lambda target_indices, unitaries: QuantumCircuit(
+    8,
+    gates=[
+        UnitaryMatrix(target_idx, unitary.tolist())
+        for target_idx, unitary in zip(target_indices, unitaries)
     ],
 )
 
@@ -104,6 +127,13 @@ def test_inverse_gate() -> None:
     _assert_inverse_gates(
         PauliRotation(target_idx, pauli_ids, angle),
         PauliRotation(target_idx, pauli_ids, -angle),
+    )
+
+    # unitary
+    unitary = unitary_group.rvs(2**4)
+    _assert_inverse_gates(
+        UnitaryMatrix(target_idx, unitary.tolist()),
+        UnitaryMatrix(target_idx, unitary.conjugate().T.tolist()),
     )
 
 
@@ -141,4 +171,16 @@ def test_inverse_circuit() -> None:
         rc = _multi_idx_param_rotation_circuit(
             inv_target_indices, inv_pauli_ids, theta_inv
         )
+        _assert_inverse_circuits(lc, rc)
+
+        # circuit with multi-qubit unitary gates
+        target_indices = [
+            np.random.choice(range(8), 4, replace=False).tolist() for _ in range(depth)
+        ]
+        unitaries_list = [unitary_group.rvs(16) for _ in range(depth)]
+        lc = _multi_idx_unitary_circuit(target_indices, unitaries_list)
+
+        unitary_daggers_list = [u.conjugate().T for u in reversed(unitaries_list)]
+        inv_target_indices = target_indices[::-1]
+        rc = _multi_idx_unitary_circuit(inv_target_indices, unitary_daggers_list)
         _assert_inverse_circuits(lc, rc)
