@@ -98,10 +98,8 @@ def coupled_qubit_indices(
 def extract_qubit_coupling_path(
     circuit: NonParametricQuantumCircuit,
 ) -> Sequence[int]:
-    """When a single path containing all the qubits can be found from the graph
-    with the coupled qubits in the circuit as edges, this path is returned.
-
-    If no such path is found, an empty list is returned.
+    """Returns paths containing all the qubits from the graph with the coupled qubits
+    in the circuit as edges.
     """
     couplings = set(qubit_couplings(circuit))
     if any(len(qs) > 2 for qs in couplings):
@@ -113,6 +111,4 @@ def extract_qubit_coupling_path(
         for e in nodes - {s}:
             ps = nx.all_simple_paths(graph, s, e)
             paths.extend([list(map(int, p)) for p in ps if len(p) == len(nodes)])
-    if len(paths) == 2 and paths[0] == list(reversed(paths[1])):
-        return list(map(int, sorted(paths)[0]))
-    return []
+    return [list(map(int, path)) for path in paths]

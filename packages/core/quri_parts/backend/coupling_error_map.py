@@ -224,8 +224,14 @@ def reliable_coupling_single_stroke_path_qubit_mapping(
             can also be selected when the target graph is large and the computational
             cost is high.
     """
-    circuit_path = extract_qubit_coupling_path(circuit)
-    if circuit_path is None or len(circuit_path) != circuit.qubit_count:
+    paths = extract_qubit_coupling_path(circuit)
+    if (
+        len(paths) == 2
+        and paths[0] == list(reversed(paths[1]))
+        and len(paths[0]) == circuit.qubit_count
+    ):
+        circuit_path = sorted(paths)[0]
+    else:
         raise ValueError("Qubits in the given circuit is not sequentially coupled.")
     two_qubit_depth = gate_weighted_depth(
         circuit, {gate_names.CNOT: 1, gate_names.CZ: 1, gate_names.SWAP: 1}
