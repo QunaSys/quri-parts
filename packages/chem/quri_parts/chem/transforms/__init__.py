@@ -58,7 +58,7 @@ QubitFermionStateMapper: TypeAlias = Callable[
 ]
 
 
-class FermionQubitMapping(Protocol):
+class FermionQubitMapperFactory(Protocol):
     """Mapping from Fermionic states to qubit states."""
 
     @staticmethod
@@ -119,7 +119,7 @@ class FermionQubitMapping(Protocol):
         ...
 
 
-class JordanWigner(FermionQubitMapping, ABC):
+class JordanWignerMapperFactory(FermionQubitMapperFactory, ABC):
     """Jordan-Wigner transformation."""
 
     @staticmethod
@@ -131,7 +131,7 @@ class JordanWigner(FermionQubitMapping, ABC):
         return n_qubits
 
 
-class BravyiKitaev(FermionQubitMapping, ABC):
+class BravyiKitaevMapperFactory(FermionQubitMapperFactory, ABC):
     """Bravyi-Kitaev transformation."""
 
     @staticmethod
@@ -143,7 +143,7 @@ class BravyiKitaev(FermionQubitMapping, ABC):
         return n_qubits
 
 
-class SymmetryConservingBravyiKitaev(FermionQubitMapping, ABC):
+class SymmetryConservingBravyiKitaevMapperFactory(FermionQubitMapperFactory, ABC):
     """Symmetry-conserving Bravyi-Kitaev transformation described in
     arXiv:1701.08213.
 

@@ -23,12 +23,11 @@ from openfermion.transforms import (
 )
 from typing_extensions import TypeAlias
 
-from quri_parts.chem.transforms import (
+from quri_parts.chem.transforms import FermionQubitStateMapper, QubitFermionStateMapper
+from quri_parts.chem.transforms.mappings import (
     BravyiKitaev,
     FermionQubitMapping,
-    FermionQubitStateMapper,
     JordanWigner,
-    QubitFermionStateMapper,
     SymmetryConservingBravyiKitaev,
 )
 from quri_parts.core.operator import Operator, SinglePauli
@@ -84,9 +83,7 @@ def _inv_state_transformation_matrix(
     return BinaryMatrix(mat), signs
 
 
-class OpenFermionQubitMapping(ABC):
-    mapping_method: type[FermionQubitMapping]
-
+class OpenFermionQubitMapping(FermionQubitMapping, ABC):
     def __init__(
         self,
         n_spin_orbitals: Optional[int] = None,
@@ -98,22 +95,12 @@ class OpenFermionQubitMapping(ABC):
         self._sz = sz
 
     @property
-    def n_spin_orbitals(self) -> Optional[int]:
-        return self._n_spin_orbitals
-
-    @property
     def n_fermions(self) -> Optional[int]:
         return self._n_fermions
 
     @property
     def sz(self) -> Optional[float]:
         return self._sz
-
-    @property
-    def n_qubits(self) -> Optional[int]:
-        if self._n_spin_orbitals is None:
-            return None
-        return self.mapping_method.n_qubits_required(self._n_spin_orbitals)
 
     @abstractproperty
     def operator_mapper(self) -> OpenFermionQubitOperatorMapper:
@@ -211,9 +198,7 @@ class OpenFermionQubitMapping(ABC):
         return bit_array
 
 
-class OpenFermionJordanWigner(OpenFermionQubitMapping):
-    mapping_method = JordanWigner
-
+class OpenFermionJordanWigner(JordanWigner, OpenFermionQubitMapping):
     @property
     def operator_mapper(self) -> OpenFermionQubitOperatorMapper:
         """Returns a function that maps a
@@ -235,9 +220,7 @@ class OpenFermionJordanWigner(OpenFermionQubitMapping):
         return mapper
 
 
-class OpenFermionBravyiKitaev(OpenFermionQubitMapping):
-    mapping_method = BravyiKitaev
-
+class OpenFermionBravyiKitaev(BravyiKitaev, OpenFermionQubitMapping):
     @property
     def operator_mapper(self) -> OpenFermionQubitOperatorMapper:
         """Returns a function that maps a
@@ -266,9 +249,9 @@ class OpenFermionBravyiKitaev(OpenFermionQubitMapping):
         return mapper
 
 
-class OpenFermionSymmetryConservingBravyiKitaev(OpenFermionQubitMapping):
-    mapping_method = SymmetryConservingBravyiKitaev
-
+class OpenFermionSymmetryConservingBravyiKitaev(
+    SymmetryConservingBravyiKitaev, OpenFermionQubitMapping
+):
     @property
     def operator_mapper(self) -> OpenFermionQubitOperatorMapper:
         """Returns a function that maps a

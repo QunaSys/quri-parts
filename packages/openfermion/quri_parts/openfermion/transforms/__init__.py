@@ -11,12 +11,12 @@
 from typing import Optional
 
 from quri_parts.chem.transforms import (
-    BravyiKitaev,
-    FermionQubitMapping,
+    BravyiKitaevMapperFactory,
+    FermionQubitMapperFactory,
     FermionQubitStateMapper,
-    JordanWigner,
+    JordanWignerMapperFactory,
     QubitFermionStateMapper,
-    SymmetryConservingBravyiKitaev,
+    SymmetryConservingBravyiKitaevMapperFactory,
 )
 
 from .mappings import (
@@ -28,7 +28,7 @@ from .mappings import (
 )
 
 
-class OpenFermionQubitMapperFactory(FermionQubitMapping):
+class OpenFermionQubitMapperFactory(FermionQubitMapperFactory):
     """Mapping from Fermionic operators and states to :class:`Operator`s and
     states using OpenFermion."""
 
@@ -85,7 +85,9 @@ class OpenFermionQubitMapperFactory(FermionQubitMapping):
         return self(n_spin_orbitals, n_fermions, sz).inv_state_mapper
 
 
-class OpenFermionJordanWignerFactory(JordanWigner, OpenFermionQubitMapperFactory):
+class OpenFermionJordanWignerFactory(
+    JordanWignerMapperFactory, OpenFermionQubitMapperFactory
+):
     """Jordan-Wigner transformation using OpenFermion."""
 
     mapping_method = OpenFermionJordanWigner
@@ -94,7 +96,9 @@ class OpenFermionJordanWignerFactory(JordanWigner, OpenFermionQubitMapperFactory
 jordan_wigner = OpenFermionJordanWignerFactory()
 
 
-class OpenFermionBravyiKitaevFactory(BravyiKitaev, OpenFermionQubitMapperFactory):
+class OpenFermionBravyiKitaevFactory(
+    BravyiKitaevMapperFactory, OpenFermionQubitMapperFactory
+):
     """Bravyi-Kitaev transformation using OpenFermion."""
 
     mapping_method = OpenFermionBravyiKitaev
@@ -104,7 +108,7 @@ bravyi_kitaev = OpenFermionBravyiKitaevFactory()
 
 
 class OpenFermionSymmetryConservingBravyiKitaevFactory(
-    SymmetryConservingBravyiKitaev, OpenFermionQubitMapperFactory
+    SymmetryConservingBravyiKitaevMapperFactory, OpenFermionQubitMapperFactory
 ):
     """Symmetry-conserving Bravyi-Kitaev transformation described in
     arXiv:1701.08213, using OpenFermion.
