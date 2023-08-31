@@ -75,18 +75,20 @@ def create_itensor_mps_estimator(
 
     Args:
         mindim: The minimum number of singular values. The value is passed to `ITensors.apply`.
-        maxdim: ...
-        cutoff: ...
+        maxdim: The maximum numer of singular values. The value is passed to `ITensors.apply`.
+        cutoff: Singular value truncation cutoff. The value is passed to `ITensors.apply`.
     Keyword arguments are passed to `ITensors.apply
 
     <https://itensor.github.io/ITensors.jl/dev/MPSandMPO.html#ITensors.product-Tuple{ITensor,%20ITensors.AbstractMPS}>`_
     """
 
     def estimator(operator: Estimatable, state: ITensorStateT) -> Estimate[complex]:
-        if mindim:
+        if mindim is not None:
             kwargs["mindim"] = mindim
-        if ...
-        
+        if maxdim is not None:
+            kwargs["maxdim"] = maxdim
+        if cutoff is not None:
+            kwargs["cutoff"] = cutoff
         return _estimate(operator, state, **kwargs)
 
     return estimator
