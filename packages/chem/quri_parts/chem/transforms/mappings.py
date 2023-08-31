@@ -25,15 +25,13 @@ class FermionQubitMapping(Protocol):
     mapping_method: type[FermionQubitMapperFactory]
     _n_spin_orbitals: Optional[int]
 
-    @property
+    @abstractproperty
     def n_spin_orbitals(self) -> Optional[int]:
-        return self._n_spin_orbitals
+        ...
 
-    @property
+    @abstractproperty
     def n_qubits(self) -> Optional[int]:
-        if self._n_spin_orbitals is None:
-            return None
-        return self.mapping_method.n_qubits_required(self._n_spin_orbitals)
+        ...
 
     @abstractproperty
     def state_mapper(self) -> FermionQubitStateMapper:
