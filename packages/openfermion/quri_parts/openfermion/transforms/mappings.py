@@ -13,6 +13,7 @@ from abc import ABC, abstractproperty
 from collections.abc import Collection, Sequence
 from typing import Callable, Optional, Union
 
+import numpy as np
 from openfermion.ops import FermionOperator, InteractionOperator, MajoranaOperator
 from openfermion.transforms import bravyi_kitaev as of_bravyi_kitaev
 from openfermion.transforms import get_fermion_operator
@@ -135,6 +136,28 @@ class OpenFermionQubitMapping(ABC):
         def mapper(
             occupied_indices: Collection[int],
         ) -> ComputationalBasisState:
+            if len(set(occupied_indices)) != len(occupied_indices):
+                raise ValueError(
+                    "Repeated indices are not allowed in occupied_indeces."
+                )
+
+            if self.n_fermions is not None and len(occupied_indices) != self.n_fermions:
+                raise ValueError(
+                    f"Expected number of fermions to be {self.n_fermions}, "
+                    f"but got {len(occupied_indices)}."
+                )
+
+            if self.sz is not None:
+                occupied_array = np.array(occupied_indices)
+                n_spin_up = len(np.where(occupied_array % 2 == 0)[0])
+                n_spin_dn = len(np.where(occupied_array % 2 == 1)[0])
+                state_sz = 0.5 * (n_spin_up - n_spin_dn)
+                if self.sz != state_sz:
+                    raise ValueError(
+                        f"Expected sz of the state to be {self.sz}, "
+                        f"but got sz={state_sz}."
+                    )
+
             occ_list = [(i in occupied_indices) for i in range(n_spin_orbitals)]
             occ_list = [not b if signs[i] == -1 else b for i, b in enumerate(occ_list)]
             occupancy_vector = BinaryArray(occ_list)
