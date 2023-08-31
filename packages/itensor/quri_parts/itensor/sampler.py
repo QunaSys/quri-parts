@@ -15,21 +15,47 @@ if TYPE_CHECKING:
     from concurrent.futures import Executor
 
 
-def _sample(circuit: NonParametricQuantumCircuit, shots: int) -> MeasurementCounts:
+def _sample(
+    circuit: NonParametricQuantumCircuit, shots: int, **kwargs: Any
+) -> MeasurementCounts:
     ensure_itensor_loaded()
     qubits = circuit.qubit_count
     s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
     psi: juliacall.AnyValue = jl.init_state(s, qubits)
     circuit_ops = convert_circuit(circuit, s)
-    psi = jl.apply(circuit_ops, psi)
+    psi = jl.apply(circuit_ops, psi, **kwargs)
     result: list[int] = jl.sampling(psi, shots)
     return Counter(result)
 
 
-def create_itensor_mps_sampler() -> Sampler:
+def create_itensor_mps_sampler(
+    mindim: Optional[int] = None,
+    maxdim: Optional[int] = None,
+    cutoff: Optional[float] = None,
+    **kwargs: Any,
+) -> Sampler:
     """Returns a :class:`~Sampler` that uses ITensor mps simulator for
-    sampling."""
-    return _sample
+    sampling.
+
+    Args:
+        mindim: The minimum number of singular values. The value is passed to `ITensors.apply`.
+        maxdim: The maximum numer of singular values. The value is passed to `ITensors.apply`.
+        cutoff: Singular value truncation cutoff. The value is passed to `ITensors.apply`.
+    Keyword arguments are passed to `ITensors.apply
+
+    <https://itensor.github.io/ITensors.jl/dev/MPSandMPO.html#ITensors.product-Tuple{ITensor,%20ITensors.AbstractMPS}>`_
+    """
+
+    def sample(circuit: NonParametricQuantumCircuit, shots: int) -> MeasurementCounts:
+        if mindim is not None:
+            kwargs["mindim"] = mindim
+        if maxdim is not None:
+            kwargs["maxdim"] = maxdim
+        if cutoff is not None:
+            kwargs["cutoff"] = cutoff
+        return _sample(circuit, shots, **kwargs)
+
+    return sample
 
 
 def _sample_sequentially(
