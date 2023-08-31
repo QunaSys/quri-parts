@@ -433,10 +433,10 @@ class TestStateMapper:
         n_spin_orbitals = 8
         n_fermions = 3
         state_mapper = symmetry_conserving_bravyi_kitaev(
-            n_spin_orbitals, n_fermions, 1.0
+            n_spin_orbitals, n_fermions, -1.5
         ).state_mapper
         inv_state_mapper = symmetry_conserving_bravyi_kitaev(
-            n_spin_orbitals, n_fermions, 1.0
+            n_spin_orbitals, n_fermions, -1.5
         ).inv_state_mapper
 
         mapped = state_mapper([1, 3, 5])
