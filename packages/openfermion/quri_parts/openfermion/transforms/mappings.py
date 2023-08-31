@@ -102,7 +102,7 @@ class OpenFermionQubitMapping(FermionQubitMapping, ABC):
     def n_qubits(self) -> Optional[int]:
         if self._n_spin_orbitals is None:
             return None
-        return self.mapping_method.n_qubits_required(self._n_spin_orbitals)
+        return self._mapping_method.n_qubits_required(self._n_spin_orbitals)
 
     @property
     def n_fermions(self) -> Optional[int]:

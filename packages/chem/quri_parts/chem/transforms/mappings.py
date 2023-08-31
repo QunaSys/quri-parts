@@ -22,7 +22,7 @@ from . import (
 
 
 class FermionQubitMapping(Protocol):
-    mapping_method: type[FermionQubitMapperFactory]
+    _mapping_method: type[FermionQubitMapperFactory]
     _n_spin_orbitals: Optional[int]
 
     @abstractproperty
@@ -43,12 +43,12 @@ class FermionQubitMapping(Protocol):
 
 
 class JordanWigner(FermionQubitMapping, ABC):
-    mapping_method = JordanWignerMapperFactory
+    _mapping_method = JordanWignerMapperFactory
 
 
 class BravyiKitaev(FermionQubitMapping, ABC):
-    mapping_method = BravyiKitaevMapperFactory
+    _mapping_method = BravyiKitaevMapperFactory
 
 
 class SymmetryConservingBravyiKitaev(FermionQubitMapping, ABC):
-    mapping_method = SymmetryConservingBravyiKitaevMapperFactory
+    _mapping_method = SymmetryConservingBravyiKitaevMapperFactory
