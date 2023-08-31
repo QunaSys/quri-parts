@@ -23,7 +23,6 @@ from . import (
 
 class FermionQubitMapping(Protocol):
     _mapping_method: type[FermionQubitMapperFactory]
-    _n_spin_orbitals: Optional[int]
 
     @abstractproperty
     def n_spin_orbitals(self) -> Optional[int]:
