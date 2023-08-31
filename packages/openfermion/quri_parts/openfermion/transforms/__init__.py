@@ -32,7 +32,7 @@ class OpenFermionQubitMapperFactory(FermionQubitMapperFactory):
     """Mapping from Fermionic operators and states to :class:`Operator`s and
     states using OpenFermion."""
 
-    mapping_method: type[OpenFermionQubitMapping]
+    _mapping_method: type[OpenFermionQubitMapping]
 
     def __call__(
         self,
@@ -40,7 +40,7 @@ class OpenFermionQubitMapperFactory(FermionQubitMapperFactory):
         n_fermions: Optional[int] = None,
         sz: Optional[float] = None,
     ) -> OpenFermionQubitMapping:
-        return self.mapping_method(n_spin_orbitals, n_fermions, sz)
+        return self._mapping_method(n_spin_orbitals, n_fermions, sz)
 
     def get_of_operator_mapper(
         self,
@@ -90,7 +90,7 @@ class OpenFermionJordanWignerFactory(
 ):
     """Jordan-Wigner transformation using OpenFermion."""
 
-    mapping_method = OpenFermionJordanWigner
+    _mapping_method = OpenFermionJordanWigner
 
 
 jordan_wigner = OpenFermionJordanWignerFactory()
@@ -101,7 +101,7 @@ class OpenFermionBravyiKitaevFactory(
 ):
     """Bravyi-Kitaev transformation using OpenFermion."""
 
-    mapping_method = OpenFermionBravyiKitaev
+    _mapping_method = OpenFermionBravyiKitaev
 
 
 bravyi_kitaev = OpenFermionBravyiKitaevFactory()
@@ -124,7 +124,7 @@ class OpenFermionSymmetryConservingBravyiKitaevFactory(
     states.
     """
 
-    mapping_method = OpenFermionSymmetryConservingBravyiKitaev
+    _mapping_method = OpenFermionSymmetryConservingBravyiKitaev
 
 
 symmetry_conserving_bravyi_kitaev = OpenFermionSymmetryConservingBravyiKitaevFactory()
