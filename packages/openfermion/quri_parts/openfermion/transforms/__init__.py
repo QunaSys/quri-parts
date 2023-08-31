@@ -36,11 +36,11 @@ class OpenFermionQubitMapperFactory(FermionQubitMapping):
 
     def __call__(
         self,
-        n_spin_orbs: Optional[int] = None,
+        n_spin_orbitals: Optional[int] = None,
         n_fermions: Optional[int] = None,
         sz: Optional[float] = None,
     ) -> OpenFermionQubitMapping:
-        return self.mapping_method(n_spin_orbs, n_fermions, sz)
+        return self.mapping_method(n_spin_orbitals, n_fermions, sz)
 
     def get_of_operator_mapper(
         self,
