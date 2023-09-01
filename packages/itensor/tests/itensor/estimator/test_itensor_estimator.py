@@ -44,6 +44,8 @@ class TestITensorEstimator:
         estimate = estimator(operator, state)
         assert estimate.value == -0.25 + 0.5j
 
+        # Note that the results of numerical calculations differ
+        # depending on the presence or absence of keyword arguments.
         estimator_with_kwargs = create_itensor_mps_estimator(
             mindim=1, maxdim=2, cutoff=0.01
         )
