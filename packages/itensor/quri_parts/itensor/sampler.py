@@ -29,6 +29,7 @@ def _sample(
 
 
 def create_itensor_mps_sampler(
+    *,
     mindim: Optional[int] = None,
     maxdim: Optional[int] = None,
     cutoff: Optional[float] = None,
