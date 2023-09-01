@@ -41,7 +41,7 @@ def create_itensor_mps_sampler(
         mindim: The minimum number of singular values. The value is passed to `ITensors.apply`.
         maxdim: The maximum numer of singular values. The value is passed to `ITensors.apply`.
         cutoff: Singular value truncation cutoff. The value is passed to `ITensors.apply`.
-    Keyword arguments are passed to `ITensors.apply
+    Keyword arguments are passed to `ITensors.apply`
 
     <https://itensor.github.io/ITensors.jl/dev/MPSandMPO.html#ITensors.product-Tuple{ITensor,%20ITensors.AbstractMPS}>`_
     """
