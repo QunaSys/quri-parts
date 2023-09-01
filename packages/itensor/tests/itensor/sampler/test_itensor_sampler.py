@@ -1,5 +1,6 @@
 from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import get_context
+from typing import Any
 
 import pytest
 
@@ -22,12 +23,20 @@ def circuit() -> QuantumCircuit:
 class TestITensorMPSSampler:
     @pytest.mark.parametrize("qubits", [4, 12])
     @pytest.mark.parametrize("shots", [800, 1200, 2**12 + 100])
-    def test_sampler(self, qubits: int, shots: int) -> None:
+    @pytest.mark.parametrize(
+        "sampler_kwargs",
+        [
+            {},
+            {"maxdim": 100, "mindim": 10, "cutoff": 0.1},
+            {"apply_dag": False, "move_sites_back": True},
+        ],
+    )
+    def test_sampler(self, qubits: int, shots: int, sampler_kwargs: Any) -> None:
         circuit = QuantumCircuit(qubits)
         for i in range(qubits):
             circuit.add_H_gate(i)
 
-        sampler = create_itensor_mps_sampler()
+        sampler = create_itensor_mps_sampler(**sampler_kwargs)
         counts = sampler(circuit, shots)
 
         assert set(counts.keys()).issubset(range(2**qubits))
