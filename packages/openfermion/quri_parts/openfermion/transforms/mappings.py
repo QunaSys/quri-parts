@@ -269,7 +269,6 @@ def _get_scbk_parity_factor(n_fermions: int, sz: float) -> tuple[int, int]:
     return (-1) ** n_spin_ups, (-1) ** n_fermions
 
 
-
 class OpenFermionSymmetryConservingBravyiKitaev(
     SymmetryConservingBravyiKitaev, OpenFermionQubitMapping
 ):
