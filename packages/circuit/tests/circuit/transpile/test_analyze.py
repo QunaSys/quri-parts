@@ -94,4 +94,5 @@ def test_coupled_qubit_indices() -> None:
 
 
 def test_extract_qubit_path() -> None:
-    assert list(extract_qubit_coupling_path(_circuit_3())) == [0, 1, 2]
+    paths = extract_qubit_coupling_path(_circuit_3())
+    assert list(sorted(paths)[0]) == [0, 1, 2]

@@ -1,5 +1,5 @@
 from collections.abc import Mapping
-from typing import Union
+from typing import Union, cast
 
 import networkx as nx
 from qiskit.providers import BackendV1, BackendV2
@@ -51,7 +51,7 @@ def coupling_map_with_2_qubit_gate_errors(
         props = device.properties().to_dict()
         gates = [gate for gate in props["gates"] if gate["gate"] == gate_name]
         return {
-            tuple(gate["qubits"]): gate["parameters"][0]["value"]
+            cast(tuple[int, int], tuple(gate["qubits"])): gate["parameters"][0]["value"]
             for gate in gates
             if gate["qubits"] in cmap
         }

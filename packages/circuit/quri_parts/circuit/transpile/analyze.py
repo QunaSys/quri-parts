@@ -97,7 +97,7 @@ def coupled_qubit_indices(
 
 def extract_qubit_coupling_path(
     circuit: NonParametricQuantumCircuit,
-) -> Sequence[int]:
+) -> list[list[int]]:
     """Returns paths containing all the qubits from the graph with the coupled
     qubits in the circuit as edges."""
     couplings = set(qubit_couplings(circuit))
