@@ -98,9 +98,8 @@ def coupled_qubit_indices(
 def extract_qubit_coupling_path(
     circuit: NonParametricQuantumCircuit,
 ) -> Sequence[int]:
-    """Returns paths containing all the qubits from the graph with the coupled qubits
-    in the circuit as edges.
-    """
+    """Returns paths containing all the qubits from the graph with the coupled
+    qubits in the circuit as edges."""
     couplings = set(qubit_couplings(circuit))
     if any(len(qs) > 2 for qs in couplings):
         raise ValueError("The given circuit contains a more than 2 qubits gate.")
