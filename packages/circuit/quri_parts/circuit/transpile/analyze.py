@@ -33,26 +33,34 @@ def gate_weighted_depth(
 
 def gate_count(
     circuit: NonParametricQuantumCircuit,
-    qubit_indices: Collection[int] = (),
     gate_names: Collection[str] = (),
+    qubit_indices: Collection[int] = (),
+    qubit_counts: Collection[int] = (),
 ) -> int:
     """Count the number of gates that satisfy the given qubit indices and gate
     names.
 
     Args:
         circuit: Target NonParametricQuantumCircuit.
-        qubit_indices: Target a gate that acts on one of the specified qubits.
-            If omitted, all qubits are covered.
         gate_names: Specify the target gate names. If omitted, all gate types
             are covered.
+        qubit_indices: Specify qubit indices to which the target gates act on.
+            If any one of the qubits matches, the gate is counted. If omitted,
+            all qubits are covered.
+        qubit_counts: Specify number of qubits of the target gates. If omitted,
+            all number of qubits are covered.
     """
-    any_qubits, any_gates = not qubit_indices, not gate_names
     count = 0
     for gate in circuit.gates:
-        satisfy_qubits = any(
+        qubit_count = len(gate.control_indices) + len(gate.target_indices)
+        satisfy_qubit_indices = any(
             q in qubit_indices for q in (*gate.control_indices, *gate.target_indices)
         )
-        if (any_gates or gate.name in gate_names) and (any_qubits or satisfy_qubits):
+        if (
+            (not gate_names or gate.name in gate_names)
+            and (not qubit_indices or satisfy_qubit_indices)
+            and (not qubit_counts or qubit_count in qubit_counts)
+        ):
             count += 1
     return count
 
