@@ -26,9 +26,7 @@ class TestITensorEstimator:
         estimate = estimator(pauli, state)
         assert estimate.value == -1
 
-        estimator_with_kwargs = create_itensor_mps_estimator(
-            mindim=1, maxdim=2, cutoff=0.01
-        )
+        estimator_with_kwargs = create_itensor_mps_estimator(maxdim=2, cutoff=0.01)
         estimate_with_kwargs = estimator_with_kwargs(pauli, state)
         assert estimate_with_kwargs.value == -1
 
@@ -46,9 +44,7 @@ class TestITensorEstimator:
 
         # Note that the results of numerical calculations differ
         # depending on the presence or absence of keyword arguments.
-        estimator_with_kwargs = create_itensor_mps_estimator(
-            mindim=1, maxdim=2, cutoff=0.01
-        )
+        estimator_with_kwargs = create_itensor_mps_estimator(maxdim=2, cutoff=0.01)
         estimate_with_kwargs = estimator_with_kwargs(operator, state)
         assert estimate_with_kwargs.value == -0.25 + 0.5j
 
@@ -230,7 +226,7 @@ class TestITensorParametricEstimator:
         # Note that the results of numerical calculations differ
         # depending on the presence or absence of keyword arguments.
         estimator_with_kwargs = create_itensor_mps_parametric_estimator(
-            mindim=1, maxdim=2, cutoff=0.01
+            maxdim=2, cutoff=0.01
         )
         estimate_with_kwargs = estimator_with_kwargs(operator, state, params)
         assert estimate_with_kwargs.value == pytest.approx(

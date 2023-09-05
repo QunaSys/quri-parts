@@ -27,7 +27,7 @@ class TestITensorMPSSampler:
         "sampler_kwargs",
         [
             {},
-            {"maxdim": 100, "mindim": 10, "cutoff": 0.1},
+            {"maxdim": 100, "cutoff": 0.1},
             {"apply_dag": False, "move_sites_back": True},
         ],
     )

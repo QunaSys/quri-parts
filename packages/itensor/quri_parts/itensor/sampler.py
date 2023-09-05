@@ -39,7 +39,6 @@ def create_itensor_mps_sampler(
     sampling.
 
     Args:
-        mindim: The minimum number of singular values. The value is passed to `ITensors.apply`.
         maxdim: The maximum numer of singular values. The value is passed to `ITensors.apply`.
         cutoff: Singular value truncation cutoff. The value is passed to `ITensors.apply`.
     Keyword arguments are passed to `ITensors.apply
@@ -47,8 +46,6 @@ def create_itensor_mps_sampler(
     """
 
     def sample(circuit: NonParametricQuantumCircuit, shots: int) -> MeasurementCounts:
-        if mindim is not None:
-            kwargs["mindim"] = mindim
         if maxdim is not None:
             kwargs["maxdim"] = maxdim
         if cutoff is not None:
