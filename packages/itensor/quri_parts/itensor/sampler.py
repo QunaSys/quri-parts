@@ -30,7 +30,6 @@ def _sample(
 
 def create_itensor_mps_sampler(
     *,
-    mindim: Optional[int] = None,
     maxdim: Optional[int] = None,
     cutoff: Optional[float] = None,
     **kwargs: Any,
@@ -38,11 +37,13 @@ def create_itensor_mps_sampler(
     """Returns a :class:`~Sampler` that uses ITensor mps simulator for
     sampling.
 
-    Args:
-        maxdim: The maximum numer of singular values. The value is passed to `ITensors.apply`.
-        cutoff: Singular value truncation cutoff. The value is passed to `ITensors.apply`.
-    Keyword arguments are passed to `ITensors.apply
+    The following parameters including
+    keyword arguments `**kwargs` are passed to `ITensors.apply
     <https://itensor.github.io/ITensors.jl/dev/MPSandMPO.html#ITensors.product-Tuple{ITensor,%20ITensors.AbstractMPS}>`_
+
+    Args:
+        maxdim: The maximum numer of singular values.
+        cutoff: Singular value truncation cutoff.
     """
 
     def sample(circuit: NonParametricQuantumCircuit, shots: int) -> MeasurementCounts:

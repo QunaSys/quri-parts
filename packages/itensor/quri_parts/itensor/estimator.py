@@ -66,19 +66,18 @@ def _estimate(
 
 def create_itensor_mps_estimator(
     *,
-    mindim: Optional[int] = None,
     maxdim: Optional[int] = None,
     cutoff: Optional[float] = None,
     **kwargs: Any,
 ) -> QuantumEstimator[ITensorStateT]:
     """Returns a :class:`~QuantumEstimator` that uses ITensor MPS simulator to
-    calculate expectation values.
+    calculate expectation values. The following parameters including
+    keyword arguments `**kwargs` are passed to `ITensors.apply
+    <https://itensor.github.io/ITensors.jl/dev/MPSandMPO.html#ITensors.product-Tuple{ITensor,%20ITensors.AbstractMPS}>`_
 
     Args:
-        maxdim: The maximum numer of singular values. The value is passed to `ITensors.apply`.
-        cutoff: Singular value truncation cutoff. The value is passed to `ITensors.apply`.
-    Keyword arguments are passed to `ITensors.apply
-    <https://itensor.github.io/ITensors.jl/dev/MPSandMPO.html#ITensors.product-Tuple{ITensor,%20ITensors.AbstractMPS}>`_
+        maxdim: The maximum numer of singular values.
+        cutoff: Singular value truncation cutoff.
     """
 
     def estimator(operator: Estimatable, state: ITensorStateT) -> Estimate[complex]:
