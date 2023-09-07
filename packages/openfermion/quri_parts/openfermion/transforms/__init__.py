@@ -12,7 +12,6 @@ from abc import ABC, abstractproperty
 from collections.abc import Collection, Sequence
 from typing import Callable, Optional, Union
 
-import numpy as np
 from openfermion.ops import FermionOperator, InteractionOperator, MajoranaOperator
 from openfermion.transforms import bravyi_kitaev as of_bravyi_kitaev
 from openfermion.transforms import get_fermion_operator
@@ -34,6 +33,7 @@ from quri_parts.chem.transforms import (
     SymmetryConservingBravyiKitaev,
     SymmetryConservingBravyiKitaevMapperFactory,
 )
+from quri_parts.chem.utils.spin import occupation_state_sz
 from quri_parts.core.operator import Operator, SinglePauli
 from quri_parts.core.state import ComputationalBasisState
 from quri_parts.core.utils.binary_field import BinaryArray, BinaryMatrix, inverse
@@ -152,10 +152,7 @@ class OpenFermionQubitMapping(FermionQubitMapping, ABC):
                 )
 
             if self.sz is not None:
-                occupied_array = np.array(occupied_indices)
-                n_spin_up = len(np.where(occupied_array % 2 == 0)[0])
-                n_spin_dn = len(np.where(occupied_array % 2 == 1)[0])
-                state_sz = 0.5 * (n_spin_up - n_spin_dn)
+                state_sz = occupation_state_sz(occupied_indices)
                 if self.sz != state_sz:
                     raise ValueError(
                         f"Expected sz of the state to be {self.sz}, "
