@@ -8,24 +8,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from abc import ABC, abstractmethod
-from collections.abc import Sequence
-from typing import Optional, Protocol
+from abc import ABC, abstractmethod, abstractproperty
+from collections.abc import Collection, Sequence
+from typing import Callable, Optional, Protocol
 
-from .mappings import (
-    BravyiKitaev,
-    FermionQubitMapping,
-    FermionQubitStateMapper,
-    JordanWigner,
-    QubitFermionStateMapper,
-    SymmetryConservingBravyiKitaev,
-    bravyi_kitaev_n_qubits_required,
-    bravyi_kitaev_n_spin_orbitals,
-    jordan_wigner_n_qubits_required,
-    jordan_wigner_n_spin_orbitals,
-    symmetry_conserving_bravyi_kitaev_n_qubits_required,
-    symmetry_conserving_bravyi_kitaev_n_spin_orbitals,
-)
+from typing_extensions import TypeAlias
+
+from quri_parts.core.state import ComputationalBasisState
+
+#: Interface for a function that maps a collection of occupied spin orbital indices to
+#: a computational basis state of qubits.
+#: Note that the mapping does not depend on the order of the occupied indices.
+#: A computational basis state with a positive sign should always be returned.
+FermionQubitStateMapper: TypeAlias = Callable[
+    [Collection[int]], ComputationalBasisState
+]
+
+#: Interface for a function that maps a computational basis state of qubits to
+#: a collection of occupied spin orbital indices.
+QubitFermionStateMapper: TypeAlias = Callable[
+    [ComputationalBasisState], Collection[int]
+]
 
 
 class FermionCreationTerm:
@@ -115,6 +118,32 @@ class FermionQubitMapperFactory(Protocol):
         ...
 
 
+class FermionQubitMapping(Protocol):
+    @abstractproperty
+    def n_spin_orbitals(self) -> int:
+        ...
+
+    @abstractproperty
+    def n_qubits(self) -> int:
+        ...
+
+    @abstractproperty
+    def state_mapper(self) -> "FermionQubitStateMapper":
+        ...
+
+    @abstractproperty
+    def inv_state_mapper(self) -> "QubitFermionStateMapper":
+        ...
+
+
+def jordan_wigner_n_qubits_required(n_spin_orbtals: int) -> int:
+    return n_spin_orbtals
+
+
+def jordan_wigner_n_spin_orbitals(n_qubits: int) -> int:
+    return n_qubits
+
+
 class JordanWignerMapperFactory(FermionQubitMapperFactory, ABC):
     """Jordan-Wigner transformation."""
 
@@ -127,6 +156,20 @@ class JordanWignerMapperFactory(FermionQubitMapperFactory, ABC):
         return jordan_wigner_n_spin_orbitals(n_qubits)
 
 
+class JordanWigner(FermionQubitMapping, ABC):
+    @property
+    def n_qubits(self) -> int:
+        return jordan_wigner_n_qubits_required(self.n_spin_orbitals)
+
+
+def bravyi_kitaev_n_qubits_required(n_spin_orbtals: int) -> int:
+    return n_spin_orbtals
+
+
+def bravyi_kitaev_n_spin_orbitals(n_qubits: int) -> int:
+    return n_qubits
+
+
 class BravyiKitaevMapperFactory(FermionQubitMapperFactory, ABC):
     """Bravyi-Kitaev transformation."""
 
@@ -137,6 +180,20 @@ class BravyiKitaevMapperFactory(FermionQubitMapperFactory, ABC):
     @staticmethod
     def n_spin_orbitals(n_qubits: int) -> int:
         return bravyi_kitaev_n_spin_orbitals(n_qubits)
+
+
+class BravyiKitaev(FermionQubitMapping, ABC):
+    @property
+    def n_qubits(self) -> int:
+        return bravyi_kitaev_n_qubits_required(self.n_spin_orbitals)
+
+
+def symmetry_conserving_bravyi_kitaev_n_qubits_required(n_spin_orbtals: int) -> int:
+    return n_spin_orbtals - 2
+
+
+def symmetry_conserving_bravyi_kitaev_n_spin_orbitals(n_qubits: int) -> int:
+    return n_qubits + 2
 
 
 class SymmetryConservingBravyiKitaevMapperFactory(FermionQubitMapperFactory, ABC):
@@ -159,17 +216,7 @@ class SymmetryConservingBravyiKitaevMapperFactory(FermionQubitMapperFactory, ABC
         return symmetry_conserving_bravyi_kitaev_n_spin_orbitals(n_qubits)
 
 
-__all__ = [
-    "FermionQubitMapping",
-    "JordanWigner",
-    "BravyiKitaev",
-    "SymmetryConservingBravyiKitaev",
-    "symmetry_conserving_bravyi_kitaev_n_qubits_required",
-    "symmetry_conserving_bravyi_kitaev_n_spin_orbitals",
-    "jordan_wigner_n_qubits_required",
-    "jordan_wigner_n_spin_orbitals",
-    "bravyi_kitaev_n_qubits_required",
-    "bravyi_kitaev_n_spin_orbitals",
-    "FermionQubitStateMapper",
-    "QubitFermionStateMapper",
-]
+class SymmetryConservingBravyiKitaev(FermionQubitMapping, ABC):
+    @property
+    def n_qubits(self) -> int:
+        return symmetry_conserving_bravyi_kitaev_n_qubits_required(self.n_spin_orbitals)
