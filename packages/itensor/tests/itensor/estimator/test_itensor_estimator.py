@@ -1,7 +1,7 @@
 import math
 from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import get_context
-from typing import Union
+from typing import Any, Union
 
 import pytest
 
@@ -62,7 +62,14 @@ class TestITensorConcurrentEstimator:
             estimator([pauli] * 3, [state] * 2)
 
     @pytest.mark.skip(reason="This test is too slow.")
-    def test_concurrent_estimate(self) -> None:
+    @pytest.mark.parametrize(
+        "jl_apply_kwargs",
+        [
+            {},
+            {"maxdim": 2, "cutoff": 0.01},
+        ],
+    )
+    def test_concurrent_estimate(self, jl_apply_kwargs: Any) -> None:
         operators: list[Union[PauliLabel, Operator]] = [
             pauli_label("Z0 Z2 Z5"),
             Operator(
@@ -80,7 +87,7 @@ class TestITensorConcurrentEstimator:
         with ProcessPoolExecutor(
             max_workers=2, mp_context=get_context("spawn")
         ) as executor:
-            estimator = create_itensor_mps_concurrent_estimator(executor, concurrency=2)
+            estimator = create_itensor_mps_concurrent_estimator(executor, concurrency=2, **jl_apply_kwargs)
             result = list(estimator(operators, states))
         assert result[0].value == -1
         assert result[1].value == -0.25 + 0.5j

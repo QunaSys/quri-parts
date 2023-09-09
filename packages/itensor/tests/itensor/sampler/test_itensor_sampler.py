@@ -46,14 +46,22 @@ class TestITensorMPSSampler:
 
 class TestITensorMPSConcurrentSampler:
     @pytest.mark.skip(reason="This test is too slow.")
-    def test_concurrent_sampler(self) -> None:
+    @pytest.mark.parametrize(
+        "sampler_kwargs",
+        [
+            {},
+            {"maxdim": 100, "cutoff": 0.1},
+            {"apply_dag": False, "move_sites_back": True},
+        ],
+    )
+    def test_concurrent_sampler(self,  sampler_kwargs: Any) -> None:
         circuit1 = circuit()
         circuit2 = circuit()
         circuit2.add_X_gate(3)
         with ProcessPoolExecutor(
             max_workers=2, mp_context=get_context("spawn")
         ) as executor:
-            sampler = create_itensor_mps_concurrent_sampler(executor, 2)
+            sampler = create_itensor_mps_concurrent_sampler(executor, 2, **sampler_kwargs)
             results = list(sampler([(circuit1, 1000), (circuit2, 2000)]))
         assert set(results[0]) == {0b1001, 0b1011}
         assert all(c >= 0 for c in results[0].values())
