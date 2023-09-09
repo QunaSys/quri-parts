@@ -56,24 +56,31 @@ def create_itensor_mps_sampler(
     return sample
 
 
-def _sample_sequentially(
-    _: Any, circuit_shots_tuples: Iterable[tuple[NonParametricQuantumCircuit, int]]
-) -> Iterable[MeasurementCounts]:
-    return [_sample(circuit, shots) for circuit, shots in circuit_shots_tuples]
-
-
 def _sample_concurrently(
     circuit_shots_tuples: Iterable[tuple[NonParametricQuantumCircuit, int]],
     executor: Optional["Executor"],
     concurrency: int = 1,
+    **kwargs: Any,
 ) -> Iterable[MeasurementCounts]:
+    def _sample_sequentially(
+        _: Any, circuit_shots_tuples: Iterable[tuple[NonParametricQuantumCircuit, int]]
+    ) -> Iterable[MeasurementCounts]:
+        return [
+            _sample(circuit, shots, **kwargs) for circuit, shots in circuit_shots_tuples
+        ]
+
     return execute_concurrently(
         _sample_sequentially, None, circuit_shots_tuples, executor, concurrency
     )
 
 
 def create_itensor_mps_concurrent_sampler(
-    executor: Optional["Executor"] = None, concurrency: int = 1
+    executor: Optional["Executor"] = None,
+    concurrency: int = 1,
+    *,
+    maxdim: Optional[int] = None,
+    cutoff: Optional[float] = None,
+    **kwargs: Any,
 ) -> ConcurrentSampler:
     """Returns a :class:`~ConcurrentSampler` that uses ITensor mps simulator
     for sampling.
@@ -83,7 +90,20 @@ def create_itensor_mps_concurrent_sampler(
     >>> with ProcessPoolExecutor(
     ...     max_workers=2, mp_context=get_context("spawn")
     ... ) as executor:
+
+    The following parameters including
+    keyword arguments `**kwargs` are passed to `ITensors.apply
+    <https://itensor.github.io/ITensors.jl/dev/MPSandMPO.html#ITensors.product-Tuple{ITensor,%20ITensors.AbstractMPS}>`_
+
+    Args:
+        maxdim: The maximum numer of singular values.
+        cutoff: Singular value truncation cutoff.
     """
+
+    if maxdim is not None:
+        kwargs["maxdim"] = maxdim
+    if cutoff is not None:
+        kwargs["cutoff"] = cutoff
 
     def sampler(
         circuit_shots_tuples: Iterable[tuple[NonParametricQuantumCircuit, int]]
