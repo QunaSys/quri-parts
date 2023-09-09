@@ -4,8 +4,6 @@ from typing import TYPE_CHECKING, Any, Callable, NamedTuple, Optional
 import juliacall
 import numpy as np
 from juliacall import Main as jl
-from typing_extensions import TypeAlias
-
 from quri_parts.core.estimator import (
     ConcurrentParametricQuantumEstimator,
     ConcurrentQuantumEstimator,
@@ -18,6 +16,8 @@ from quri_parts.core.estimator import (
 from quri_parts.core.operator import zero
 from quri_parts.core.state import CircuitQuantumState, ParametricCircuitQuantumState
 from quri_parts.core.utils.concurrent import execute_concurrently
+from typing_extensions import TypeAlias
+
 from quri_parts.itensor.load_itensor import ensure_itensor_loaded
 
 from .circuit import convert_circuit
@@ -90,21 +90,17 @@ def create_itensor_mps_estimator(
     return estimator
 
 
-def _sequential_estimate(
-    _: Any, op_state_tuples: Sequence[tuple[Estimatable, ITensorStateT]]
-) -> Sequence[Estimate[complex]]:
-    return [_estimate(operator, state) for operator, state in op_state_tuples]
-
-
 def _sequential_estimate_single_state(
-    state: ITensorStateT, operators: Sequence[Estimatable]
+    state: ITensorStateT,
+    operators: Sequence[Estimatable],
+    **kwargs: Any,
 ) -> Sequence[Estimate[complex]]:
     ensure_itensor_loaded()
     qubits = state.qubit_count
     s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
     psi: juliacall.AnyValue = jl.init_state(s, qubits)
     circuit = convert_circuit(state.circuit, s)
-    psi = jl.apply(circuit, psi)
+    psi = jl.apply(circuit, psi, **kwargs)
     results = []
     for op in operators:
         if op == zero():
@@ -159,7 +155,12 @@ def _concurrent_estimate(
 
 
 def create_itensor_mps_concurrent_estimator(
-    executor: Optional["Executor"] = None, concurrency: int = 1
+    executor: Optional["Executor"] = None,
+    concurrency: int = 1,
+    *,
+    maxdim: Optional[int] = None,
+    cutoff: Optional[float] = None,
+    **kwargs: Any,
 ) -> ConcurrentQuantumEstimator[ITensorStateT]:
     """Returns a :class:`~ConcurrentQuantumEstimator` that uses ITensor MPS
     simulator to calculate expectation values.
@@ -169,15 +170,40 @@ def create_itensor_mps_concurrent_estimator(
     >>> with ProcessPoolExecutor(
     ...     max_workers=2, mp_context=get_context("spawn")
     ... ) as executor:
+
+    The following parameters including
+    keyword arguments `**kwargs` are passed to `ITensors.apply
+    <https://itensor.github.io/ITensors.jl/dev/MPSandMPO.html#ITensors.product-Tuple{ITensor,%20ITensors.AbstractMPS}>`_
+
+    Args:
+        maxdim: The maximum numer of singular values.
+        cutoff: Singular value truncation cutoff.
     """
+
+    if maxdim is not None:
+        kwargs["maxdim"] = maxdim
+    if cutoff is not None:
+        kwargs["cutoff"] = cutoff
+
+    mps_estimator = create_itensor_mps_estimator(**kwargs)
+
+    def _estimate_sequentially(
+        _: Any, op_state_tuples: Sequence[tuple[Estimatable, ITensorStateT]]
+    ) -> Sequence[Estimate[complex]]:
+        return [mps_estimator(operator, state) for operator, state in op_state_tuples]
+
+    def _estimate_single_state_sequentially(
+        state: ITensorStateT, operators: Sequence[Estimatable]
+    ) -> Sequence[Estimate[complex]]:
+        return _sequential_estimate_single_state(state, operators, **kwargs)
 
     def estimator(
         operators: Collection[Estimatable],
         states: Collection[ITensorStateT],
     ) -> Iterable[Estimate[complex]]:
         return _concurrent_estimate(
-            _sequential_estimate,
-            _sequential_estimate_single_state,
+            _estimate_sequentially,
+            _estimate_single_state_sequentially,
             operators,
             states,
             executor,
@@ -190,31 +216,82 @@ def create_itensor_mps_concurrent_estimator(
 def _sequential_parametric_estimate(
     op_state: tuple[Estimatable, ITensorParametricStateT],
     params: Sequence[Sequence[float]],
+    **kwargs: Any,
 ) -> Sequence[Estimate[complex]]:
     operator, state = op_state
     estimates = []
-    estimator = create_parametric_estimator(create_itensor_mps_estimator())
+    estimator = create_itensor_mps_parametric_estimator(**kwargs)
     for param in params:
         estimates.append(estimator(operator, state, param))
     return estimates
 
 
 def create_itensor_mps_parametric_estimator(
+    *,
+    maxdim: Optional[int] = None,
+    cutoff: Optional[float] = None,
     **kwargs: Any,
 ) -> ParametricQuantumEstimator[ITensorParametricStateT]:
+    """Creates parametric estimator that uses ITensor MPS simulator to
+    calculate expectation values.
+
+    The following parameters including
+    keyword arguments `**kwargs` are passed to `ITensors.apply
+    <https://itensor.github.io/ITensors.jl/dev/MPSandMPO.html#ITensors.product-Tuple{ITensor,%20ITensors.AbstractMPS}>`_
+
+    Args:
+        maxdim: The maximum numer of singular values.
+        cutoff: Singular value truncation cutoff.
+    """
+    if maxdim is not None:
+        kwargs["maxdim"] = maxdim
+    if cutoff is not None:
+        kwargs["cutoff"] = cutoff
+
     return create_parametric_estimator(create_itensor_mps_estimator(**kwargs))
 
 
 def create_itensor_mps_concurrent_parametric_estimator(
-    executor: Optional["Executor"] = None, concurrency: int = 1
+    executor: Optional["Executor"] = None,
+    concurrency: int = 1,
+    *,
+    maxdim: Optional[int] = None,
+    cutoff: Optional[float] = None,
+    **kwargs: Any,
 ) -> ConcurrentParametricQuantumEstimator[ITensorParametricStateT]:
+    """Creates concurrent parametric estimator from parametric estimator.
+
+    The following parameters including
+    keyword arguments `**kwargs` are passed to `ITensors.apply
+    <https://itensor.github.io/ITensors.jl/dev/MPSandMPO.html#ITensors.product-Tuple{ITensor,%20ITensors.AbstractMPS}>`_
+
+    Args:
+        maxdim: The maximum numer of singular values.
+        cutoff: Singular value truncation cutoff.
+    """
+
+    if maxdim is not None:
+        kwargs["maxdim"] = maxdim
+    if cutoff is not None:
+        kwargs["cutoff"] = cutoff
+
+    def _estimate_sequentially(
+        op_state: tuple[Estimatable, ITensorParametricStateT],
+        params: Sequence[Sequence[float]],
+    ) -> Sequence[Estimate[complex]]:
+        return _sequential_parametric_estimate(
+            op_state,
+            params,
+            **kwargs,
+        )
+
     def estimator(
         operator: Estimatable,
         state: ITensorParametricStateT,
         params: Sequence[Sequence[float]],
     ) -> Sequence[Estimate[complex]]:
         return execute_concurrently(
-            _sequential_parametric_estimate,
+            _estimate_sequentially,
             (operator, state),
             params,
             executor,
