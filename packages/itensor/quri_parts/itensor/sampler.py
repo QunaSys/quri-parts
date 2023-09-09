@@ -85,12 +85,6 @@ def create_itensor_mps_concurrent_sampler(
     """Returns a :class:`~ConcurrentSampler` that uses ITensor mps simulator
     for sampling.
 
-    For now, this function works when the executor is defined like below::
-
-    >>> with ProcessPoolExecutor(
-    ...     max_workers=2, mp_context=get_context("spawn")
-    ... ) as executor:
-
     The following parameters including
     keyword arguments `**kwargs` are passed to `ITensors.apply
     <https://itensor.github.io/ITensors.jl/dev/MPSandMPO.html#ITensors.product-Tuple{ITensor,%20ITensors.AbstractMPS}>`_
@@ -98,6 +92,17 @@ def create_itensor_mps_concurrent_sampler(
     Args:
         maxdim: The maximum numer of singular values.
         cutoff: Singular value truncation cutoff.
+
+    For now, this function works when the executor is defined like below
+
+    Examples:
+        >>> with ProcessPoolExecutor(
+                max_workers=2, mp_context=get_context("spawn")
+            ) as executor:
+                sampler = create_itensor_mps_concurrent_sampler(
+                    executor, 2, **kwargs
+                )
+                results = list(sampler([(circuit1, 1000), (circuit2, 2000)]))
     """
 
     if maxdim is not None:
