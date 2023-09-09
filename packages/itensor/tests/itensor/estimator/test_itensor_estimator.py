@@ -87,7 +87,9 @@ class TestITensorConcurrentEstimator:
         with ProcessPoolExecutor(
             max_workers=2, mp_context=get_context("spawn")
         ) as executor:
-            estimator = create_itensor_mps_concurrent_estimator(executor, concurrency=2, **jl_apply_kwargs)
+            estimator = create_itensor_mps_concurrent_estimator(
+                executor, concurrency=2, **jl_apply_kwargs
+            )
             result = list(estimator(operators, states))
         assert result[0].value == -1
         assert result[1].value == -0.25 + 0.5j
