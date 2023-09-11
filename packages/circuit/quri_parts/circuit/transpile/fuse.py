@@ -58,6 +58,43 @@ class TwoGateFuser(CircuitTranspilerProtocol, ABC):
         return ret
 
 
+class AdjacentGateExclusiveFuser(CircuitTranspilerProtocol, ABC):
+    @property
+    @abstractmethod
+    def target_gate_count(self) -> int:
+        ...
+
+    @abstractmethod
+    def is_target_sequence(self, gates: Sequence[QuantumGate]) -> bool:
+        ...
+
+    @abstractmethod
+    def fuse(self, gates: Sequence[QuantumGate]) -> Sequence[QuantumGate]:
+        ...
+
+    def __call__(
+        self, circuit: NonParametricQuantumCircuit
+    ) -> NonParametricQuantumCircuit:
+        xs = list(circuit.gates)
+        ys: list[QuantumGate] = []
+
+        while len(xs) >= self.target_gate_count:
+            ts = xs[: self.target_gate_count]
+
+            if self.is_target_sequence(ts):
+                ys.extend(self.fuse(ts))
+                xs = xs[self.target_gate_count :]  # noqa
+            else:
+                ys.append(xs[0])
+                xs = xs[1:]
+
+        ys.extend(xs)
+
+        ret = QuantumCircuit(circuit.qubit_count)
+        ret.extend(ys)
+        return ret
+
+
 class FuseRotationTranspiler(TwoGateFuser):
     """CircuitTranspiler, which fuses consecutive rotation gates of the same
     kind acting on the same qubit."""
@@ -206,3 +243,30 @@ class RZ2NamedTranspiler(GateKindDecomposer):
             return [gates.Tdag(target)]
         else:
             return [gate]
+
+
+class CNOTHCNOTFusingTranspiler(AdjacentGateExclusiveFuser):
+    def target_gate_count(self) -> int:
+        return 3
+
+    def is_target_sequence(self, gates: Sequence[QuantumGate]) -> bool:
+        return (
+            gates[0].name == gate_names.CNOT
+            and gates[1].name == gate_names.H
+            and gates[2].name == gate_names.CNOT
+            and gates[0].control_indices == gates[2].control_indices
+            and gates[0].target_indices == gates[2].target_indices
+            and gates[0].control_indices == gates[1].target_indices
+        )
+
+    def fuse(self, gates: Sequence[QuantumGate]) -> Sequence[QuantumGate]:
+        q0, q1 = gates[0].control_indices[0], gates[0].target_indices[0]
+        return [
+            gates.S(q0),
+            gates.H(q1),
+            gates.CNOT(q1, q0),
+            gates.Sdag(q0),
+            gates.S(q1),
+            gates.H(q0),
+            gates.H(q1),
+        ]
