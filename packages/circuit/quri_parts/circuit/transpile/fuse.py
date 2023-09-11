@@ -58,7 +58,7 @@ class TwoGateFuser(CircuitTranspilerProtocol, ABC):
         return ret
 
 
-class AdjacentGateExclusiveFuser(CircuitTranspilerProtocol, ABC):
+class AdjacentGateFuser(CircuitTranspilerProtocol, ABC):
     @property
     @abstractmethod
     def target_gate_count(self) -> int:
@@ -82,8 +82,7 @@ class AdjacentGateExclusiveFuser(CircuitTranspilerProtocol, ABC):
             ts = xs[: self.target_gate_count]
 
             if self.is_target_sequence(ts):
-                ys.extend(self.fuse(ts))
-                xs = xs[self.target_gate_count :]  # noqa
+                xs[: self.target_gate_count] = self.fuse(ts)
             else:
                 ys.append(xs[0])
                 xs = xs[1:]
@@ -245,7 +244,7 @@ class RZ2NamedTranspiler(GateKindDecomposer):
             return [gate]
 
 
-class CNOTHCNOTFusingTranspiler(AdjacentGateExclusiveFuser):
+class CNOTHCNOTFusingTranspiler(AdjacentGateFuser):
     def target_gate_count(self) -> int:
         return 3
 
