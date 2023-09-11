@@ -65,11 +65,11 @@ class AdjacentGateFuser(CircuitTranspilerProtocol, ABC):
         ...
 
     @abstractmethod
-    def is_target_sequence(self, gates: Sequence[QuantumGate]) -> bool:
+    def is_target_sequence(self, seq: Sequence[QuantumGate]) -> bool:
         ...
 
     @abstractmethod
-    def fuse(self, gates: Sequence[QuantumGate]) -> Sequence[QuantumGate]:
+    def fuse(self, seq: Sequence[QuantumGate]) -> Sequence[QuantumGate]:
         ...
 
     def __call__(
@@ -249,18 +249,18 @@ class CNOTHCNOTFusingTranspiler(AdjacentGateFuser):
     def target_gate_count(self) -> int:
         return 3
 
-    def is_target_sequence(self, gates: Sequence[QuantumGate]) -> bool:
+    def is_target_sequence(self, seq: Sequence[QuantumGate]) -> bool:
         return (
-            gates[0].name == gate_names.CNOT
-            and gates[1].name == gate_names.H
-            and gates[2].name == gate_names.CNOT
-            and gates[0].control_indices == gates[2].control_indices
-            and gates[0].target_indices == gates[2].target_indices
-            and gates[0].control_indices == gates[1].target_indices
+            seq[0].name == gate_names.CNOT
+            and seq[1].name == gate_names.H
+            and seq[2].name == gate_names.CNOT
+            and seq[0].control_indices == seq[2].control_indices
+            and seq[0].target_indices == seq[2].target_indices
+            and seq[0].control_indices == seq[1].target_indices
         )
 
-    def fuse(self, gates: Sequence[QuantumGate]) -> Sequence[QuantumGate]:
-        q0, q1 = gates[0].control_indices[0], gates[0].target_indices[0]
+    def fuse(self, seq: Sequence[QuantumGate]) -> Sequence[QuantumGate]:
+        q0, q1 = seq[0].control_indices[0], seq[0].target_indices[0]
         return [
             gates.S(q0),
             gates.H(q1),
