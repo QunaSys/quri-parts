@@ -245,6 +245,7 @@ class RZ2NamedTranspiler(GateKindDecomposer):
 
 
 class CNOTHCNOTFusingTranspiler(AdjacentGateFuser):
+    @property
     def target_gate_count(self) -> int:
         return 3
 
