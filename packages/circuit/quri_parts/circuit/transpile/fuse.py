@@ -24,41 +24,9 @@ from quri_parts.circuit import (
 from .transpiler import CircuitTranspilerProtocol, GateKindDecomposer
 
 
-class TwoGateFuser(CircuitTranspilerProtocol, ABC):
+class AdjacentGateFuser(CircuitTranspilerProtocol, ABC):
     """Abstract base class of adjacent gates fusing transpilers."""
 
-    @abstractmethod
-    def is_target_pair(self, left: QuantumGate, right: QuantumGate) -> bool:
-        ...
-
-    @abstractmethod
-    def fuse(self, left: QuantumGate, right: QuantumGate) -> Sequence[QuantumGate]:
-        ...
-
-    def __call__(
-        self, circuit: NonParametricQuantumCircuit
-    ) -> NonParametricQuantumCircuit:
-        xs = list(circuit.gates)
-        ys: list[QuantumGate] = []
-
-        while xs:
-            x = xs.pop(0)
-            if not ys:
-                ys.append(x)
-                continue
-            y = ys.pop(-1)
-
-            if self.is_target_pair(y, x):
-                ys.extend(self.fuse(y, x))
-            else:
-                ys.extend([y, x])
-
-        ret = QuantumCircuit(circuit.qubit_count)
-        ret.extend(ys)
-        return ret
-
-
-class AdjacentGateFuser(CircuitTranspilerProtocol, ABC):
     @property
     @abstractmethod
     def target_gate_count(self) -> int:
@@ -94,18 +62,52 @@ class AdjacentGateFuser(CircuitTranspilerProtocol, ABC):
         return ret
 
 
-class FuseRotationTranspiler(TwoGateFuser):
+class CNOTHCNOTFusingTranspiler(AdjacentGateFuser):
+    @property
+    def target_gate_count(self) -> int:
+        return 3
+
+    def is_target_sequence(self, seq: Sequence[QuantumGate]) -> bool:
+        return (
+            seq[0].name == gate_names.CNOT
+            and seq[1].name == gate_names.H
+            and seq[2].name == gate_names.CNOT
+            and seq[0].control_indices == seq[2].control_indices
+            and seq[0].target_indices == seq[2].target_indices
+            and seq[0].control_indices == seq[1].target_indices
+        )
+
+    def fuse(self, seq: Sequence[QuantumGate]) -> Sequence[QuantumGate]:
+        q0, q1 = seq[0].control_indices[0], seq[0].target_indices[0]
+        return [
+            gates.S(q0),
+            gates.H(q1),
+            gates.CNOT(q1, q0),
+            gates.Sdag(q0),
+            gates.S(q1),
+            gates.H(q0),
+            gates.H(q1),
+        ]
+
+
+class FuseRotationTranspiler(AdjacentGateFuser):
     """CircuitTranspiler, which fuses consecutive rotation gates of the same
     kind acting on the same qubit."""
 
-    def is_target_pair(self, left: QuantumGate, right: QuantumGate) -> bool:
+    @property
+    def target_gate_count(self) -> int:
+        return 2
+
+    def is_target_sequence(self, seq: Sequence[QuantumGate]) -> bool:
+        left, right = seq
         return (
             left.name in [gate_names.RX, gate_names.RY, gate_names.RZ]
             and left.name == right.name
             and left.target_indices == right.target_indices
         )
 
-    def fuse(self, left: QuantumGate, right: QuantumGate) -> Sequence[QuantumGate]:
+    def fuse(self, seq: Sequence[QuantumGate]) -> Sequence[QuantumGate]:
+        left, right = seq
         theta = (left.params[0] + right.params[0]) % (2.0 * np.pi)
         return [
             QuantumGate(
@@ -242,31 +244,3 @@ class RZ2NamedTranspiler(GateKindDecomposer):
             return [gates.Tdag(target)]
         else:
             return [gate]
-
-
-class CNOTHCNOTFusingTranspiler(AdjacentGateFuser):
-    @property
-    def target_gate_count(self) -> int:
-        return 3
-
-    def is_target_sequence(self, seq: Sequence[QuantumGate]) -> bool:
-        return (
-            seq[0].name == gate_names.CNOT
-            and seq[1].name == gate_names.H
-            and seq[2].name == gate_names.CNOT
-            and seq[0].control_indices == seq[2].control_indices
-            and seq[0].target_indices == seq[2].target_indices
-            and seq[0].control_indices == seq[1].target_indices
-        )
-
-    def fuse(self, seq: Sequence[QuantumGate]) -> Sequence[QuantumGate]:
-        q0, q1 = seq[0].control_indices[0], seq[0].target_indices[0]
-        return [
-            gates.S(q0),
-            gates.H(q1),
-            gates.CNOT(q1, q0),
-            gates.Sdag(q0),
-            gates.S(q1),
-            gates.H(q0),
-            gates.H(q1),
-        ]
