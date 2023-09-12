@@ -10,6 +10,7 @@ from quri_parts.backend.qubit_mapping import BackendQubitMapping
 from quri_parts.circuit import NonParametricQuantumCircuit, gate_names
 from quri_parts.circuit.transpile import (
     extract_qubit_coupling_path,
+    gate_count,
     gate_weighted_depth,
 )
 
@@ -233,15 +234,20 @@ def reliable_coupling_single_stroke_path_qubit_mapping(
         circuit_path = sorted(paths)[0]
     else:
         raise ValueError("Qubits in the given circuit is not sequentially coupled.")
-    two_qubit_depth = gate_weighted_depth(
-        circuit, {gate_names.CNOT: 1, gate_names.CZ: 1, gate_names.SWAP: 1}
+    two_qubit_gate_count_for_each_qubit = max(
+        gate_count(
+            circuit,
+            gate_names={gate_names.CNOT, gate_names.CZ, gate_names.SWAP},
+            qubit_indices={q},
+        )
+        for q in range(circuit.qubit_count)
     )
     qubit_path = reliable_coupling_single_stroke_path(
         two_qubit_errors,
         readout_errors,
-        circuit.qubit_count,
-        two_qubit_depth // 2,
-        exact,
+        qubit_count=circuit.qubit_count,
+        reps=two_qubit_gate_count_for_each_qubit // 2,
+        exact=exact,
     )
     if not qubit_path:
         raise ValueError(
