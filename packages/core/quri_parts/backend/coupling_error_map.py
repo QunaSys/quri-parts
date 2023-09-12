@@ -11,7 +11,6 @@ from quri_parts.circuit import NonParametricQuantumCircuit, gate_names
 from quri_parts.circuit.transpile import (
     extract_qubit_coupling_path,
     gate_count,
-    gate_weighted_depth,
 )
 
 #: Represents qubit couplings and their interested 2 qubit gate error rates.
