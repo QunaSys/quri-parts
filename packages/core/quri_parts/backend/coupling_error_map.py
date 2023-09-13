@@ -8,10 +8,7 @@ from typing_extensions import TypeAlias
 
 from quri_parts.backend.qubit_mapping import BackendQubitMapping
 from quri_parts.circuit import NonParametricQuantumCircuit
-from quri_parts.circuit.transpile import (
-    extract_qubit_coupling_path,
-    gate_count,
-)
+from quri_parts.circuit.transpile import extract_qubit_coupling_path, gate_count
 
 #: Represents qubit couplings and their interested 2 qubit gate error rates.
 CouplingMapWithErrors: TypeAlias = Mapping[tuple[int, int], float]
