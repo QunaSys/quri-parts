@@ -7,7 +7,7 @@ import numpy as np
 from typing_extensions import TypeAlias
 
 from quri_parts.backend.qubit_mapping import BackendQubitMapping
-from quri_parts.circuit import NonParametricQuantumCircuit, gate_names
+from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.circuit.transpile import (
     extract_qubit_coupling_path,
     gate_count,
@@ -234,11 +234,7 @@ def reliable_coupling_single_stroke_path_qubit_mapping(
     else:
         raise ValueError("Qubits in the given circuit is not sequentially coupled.")
     two_qubit_gate_count_for_each_qubit = max(
-        gate_count(
-            circuit,
-            gate_names={gate_names.CNOT, gate_names.CZ, gate_names.SWAP},
-            qubit_indices={q},
-        )
+        gate_count(circuit, qubit_indices={q}, qubit_counts={2})
         for q in range(circuit.qubit_count)
     )
     qubit_path = reliable_coupling_single_stroke_path(
