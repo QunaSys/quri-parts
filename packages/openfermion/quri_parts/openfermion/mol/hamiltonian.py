@@ -8,11 +8,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union
+from typing import Optional, Union
 
 from openfermion import FermionOperator, InteractionOperator, MajoranaOperator
 
-from quri_parts.chem.mol import ActiveSpaceMolecularOrbitals, SpinMOeIntSet
+from quri_parts.chem.mol import ActiveSpace, SpinMOeIntSet
 from quri_parts.core.operator import Operator
 from quri_parts.openfermion.transforms import (
     OpenFermionQubitMapperFactory,
@@ -36,28 +36,30 @@ def operator_from_of_fermionic_op(
     fermionic_hamiltonian: Union[
         FermionOperator, InteractionOperator, MajoranaOperator
     ],
-    asmo: ActiveSpaceMolecularOrbitals,
+    active_space: ActiveSpace,
+    sz: Optional[float] = None,
     fermion_qubit_mapping: OpenFermionQubitMapperFactory = jordan_wigner,
 ) -> tuple[Operator, OpenFermionQubitMapping]:
     """Converts the fermionic hamiltonian into qubit hamiltonian with a given
     mapping method, and returns the operator mapper along with the state
     mapper."""
 
-    n_spin_orbitals = 2 * asmo.n_active_orb
-    n_electrons = asmo.n_active_ele
-    mapping = fermion_qubit_mapping(n_spin_orbitals, n_electrons, asmo.spin / 2)
+    n_spin_orbitals = 2 * active_space.n_active_orb
+    n_electrons = active_space.n_active_ele
+    mapping = fermion_qubit_mapping(n_spin_orbitals, n_electrons, sz)
     operator_mapper = mapping.operator_mapper
     return operator_mapper(fermionic_hamiltonian), mapping
 
 
 def get_qubit_mapped_hamiltonian(
-    asmo: ActiveSpaceMolecularOrbitals,
+    active_space: ActiveSpace,
     spin_mo_eint_set: SpinMOeIntSet,
+    sz: Optional[float] = None,
     fermion_qubit_mapping: OpenFermionQubitMapperFactory = jordan_wigner,
 ) -> tuple[Operator, OpenFermionQubitMapping]:
     """Computes the qubit hamiltonian and returns the operator mapper along
     with the state mapper."""
     fermionic_hamiltonian = get_fermionic_hamiltonian(spin_mo_eint_set)
     return operator_from_of_fermionic_op(
-        fermionic_hamiltonian, asmo, fermion_qubit_mapping
+        fermionic_hamiltonian, active_space, sz, fermion_qubit_mapping
     )
