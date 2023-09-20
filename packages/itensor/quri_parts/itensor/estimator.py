@@ -61,7 +61,12 @@ def _estimate(
     psi = jl.apply(circuit, psi, **kwargs)
     exp: float = jl.expectation(psi, op)
 
-    return _Estimate(value=exp, error=0.0)
+    # See https://github.com/QunaSys/quri-parts/pull/203#discussion_r1329458816
+    error = 0.0
+    if "maxdim" in kwargs or "cutoff" in kwargs:
+        error = np.nan
+
+    return _Estimate(value=exp, error=error)
 
 
 def create_itensor_mps_estimator(
@@ -108,7 +113,13 @@ def _sequential_estimate_single_state(
             results.append(_Estimate(value=0.0, error=0.0))
             continue
         itensor_op = convert_operator(op, s)
-        results.append(_Estimate(value=jl.expectation(psi, itensor_op), error=0.0))
+
+        # See https://github.com/QunaSys/quri-parts/pull/203#discussion_r1329458816
+        error = 0.0
+        if "maxdim" in kwargs or "cutoff" in kwargs:
+            error = np.nan
+
+        results.append(_Estimate(value=jl.expectation(psi, itensor_op), error=error))
     return results
 
 
