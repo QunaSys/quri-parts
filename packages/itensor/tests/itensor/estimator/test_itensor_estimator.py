@@ -3,6 +3,7 @@ from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import get_context
 from typing import Any, Union
 
+import numpy as np
 import pytest
 
 from quri_parts.circuit import (
@@ -25,10 +26,12 @@ class TestITensorEstimator:
         estimator = create_itensor_mps_estimator()
         estimate = estimator(pauli, state)
         assert estimate.value == -1
+        assert estimate.error == 0.0
 
         estimator_with_kwargs = create_itensor_mps_estimator(maxdim=2, cutoff=0.01)
         estimate_with_kwargs = estimator_with_kwargs(pauli, state)
         assert estimate_with_kwargs.value == -1
+        assert np.isnan(estimate_with_kwargs.error)
 
     def test_estimate_operator(self) -> None:
         operator = Operator(
@@ -41,12 +44,13 @@ class TestITensorEstimator:
         estimator = create_itensor_mps_estimator()
         estimate = estimator(operator, state)
         assert estimate.value == -0.25 + 0.5j
-
+        assert estimate.error == 0.0
         # Note that the results of numerical calculations differ
         # depending on the presence or absence of keyword arguments.
         estimator_with_kwargs = create_itensor_mps_estimator(maxdim=2, cutoff=0.01)
         estimate_with_kwargs = estimator_with_kwargs(operator, state)
         assert estimate_with_kwargs.value == -0.25 + 0.5j
+        assert np.isnan(estimate_with_kwargs.error)
 
 
 class TestITensorConcurrentEstimator:
@@ -93,6 +97,9 @@ class TestITensorConcurrentEstimator:
             result = list(estimator(operators, states))
         assert result[0].value == -1
         assert result[1].value == -0.25 + 0.5j
+        if "maxdim" in jl_apply_kwargs or "cutoff" in jl_apply_kwargs:
+            assert result[0].error == np.nan
+            assert result[1].error == np.nan
 
     @pytest.mark.skip(reason="This test is too slow.")
     def test_concurrent_estimate_single_state(self) -> None:
@@ -115,6 +122,8 @@ class TestITensorConcurrentEstimator:
             result = list(estimator(operators, states))
         assert result[0].value == -1
         assert result[1].value == -0.25 + 0.5j
+        assert result[0].error == 0.0
+        assert result[1].error == 0.0
 
     @pytest.mark.skip(reason="This test is too slow.")
     def test_concurrent_estimate_single_operator(self) -> None:
@@ -137,6 +146,8 @@ class TestITensorConcurrentEstimator:
             result = list(estimator(operators, states))
         assert result[0].value == -0.25 + 0.5j
         assert result[1].value == 0.25 + 0.5j
+        assert result[0].error == 0.0
+        assert result[1].error == 0.0
 
 
 def parametric_circuit() -> UnboundParametricQuantumCircuitProtocol:
@@ -175,6 +186,7 @@ class TestITensorParametricEstimator:
         ):
             estimate = estimator(pauli, state, params)
             assert estimate.value == pytest.approx(expected_list[i])
+            assert estimate.error == 0.0
 
     def test_estimate_operator(self) -> None:
         operator = Operator(
@@ -201,6 +213,7 @@ class TestITensorParametricEstimator:
         ):
             estimate = estimator(operator, state, params)
             assert estimate.value == pytest.approx(expected_list[i])
+            assert estimate.error == 0.0
 
     def test_estimate_operator_with_jl_apply_kwargs(self) -> None:
         operator = Operator(
@@ -232,6 +245,7 @@ class TestITensorParametricEstimator:
         assert estimate.value == pytest.approx(
             0.024541701187281842 + 0.02441865385682042j
         )
+        assert estimate.error == 0
         # Note that the results of numerical calculations differ
         # depending on the presence or absence of keyword arguments.
         estimator_with_kwargs = create_itensor_mps_parametric_estimator(
@@ -241,3 +255,4 @@ class TestITensorParametricEstimator:
         assert estimate_with_kwargs.value == pytest.approx(
             0.024748751563436706 + 0.02891269249339678j
         )
+        assert np.isnan(estimate_with_kwargs.error)
