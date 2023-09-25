@@ -218,7 +218,7 @@ class TestSpinMOIntegralsFromMole:
             gto_mol, mf.mo_coeff
         )
         assert active_space.n_active_ele == 2
-        assert active_space.n_active_ele == 2
+        assert active_space.n_active_orb == 2
 
         nuc_energy = spin_mo_eint_set.const
         spin_mo_1e_int_array = spin_mo_eint_set.mo_1e_int.array
