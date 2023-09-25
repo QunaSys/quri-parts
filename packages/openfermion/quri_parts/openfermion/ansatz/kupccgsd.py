@@ -84,7 +84,6 @@ class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
         op_mapper = mapping.operator_mapper
         n_qubits = mapping.n_qubits
 
-        # op_mapper = fermion_qubit_mapping.operator_mapper
         circuit = LinearMappedUnboundParametricQuantumCircuit(n_qubits)
 
         _construct_circuit(
