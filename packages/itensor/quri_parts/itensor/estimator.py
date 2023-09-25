@@ -77,9 +77,8 @@ def create_itensor_mps_estimator(
 ) -> QuantumEstimator[ITensorStateT]:
     """Returns a :class:`~QuantumEstimator` that uses ITensor MPS simulator to
     calculate expectation values. The following parameters including keyword
-    arguments `**kwargs` are passed to `ITensors.apply.
-
-    <https://itensor.github.io/ITensors.jl/dev/MPSandMPO.html#ITensors.product-Tuple{ITensor,%20ITensors.AbstractMPS}>`_
+    arguments `**kwargs` are passed to `ITensors.apply
+    <https://itensor.github.io/ITensors.jl/dev/MPSandMPO.html#ITensors.product-Tuple{ITensor,%20ITensors.AbstractMPS}>`_.
 
     Args:
         maxdim: The maximum numer of singular values.
