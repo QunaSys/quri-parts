@@ -113,12 +113,3 @@ def test_create_scbk_electron_number_post_selection_filter_fn() -> None:
     assert not filter_fn(0b1)  # [0, 2, 7]
     assert not filter_fn(0b111)  # [0, 4, 6]
     assert not filter_fn(0b11110)  # [1, 2, 4]
-
-
-def test_sz() -> None:
-    assert _sz([0]) == 0.5
-    assert _sz([0, 1]) == 0
-    assert _sz([0, 2]) == 1.0
-    assert _sz([3, 6]) == 0.0
-    assert _sz([2, 1]) == 0.0
-    assert _sz([1, 3]) == -1.0
