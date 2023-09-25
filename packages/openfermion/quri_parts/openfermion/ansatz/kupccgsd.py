@@ -8,9 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence, Union
-
-from typing_extensions import TypeAlias
+from typing import Sequence
 
 from quri_parts.chem.utils.excitations import DoubleExcitation, SingleExcitation
 from quri_parts.circuit import (
@@ -19,16 +17,12 @@ from quri_parts.circuit import (
     Parameter,
 )
 from quri_parts.openfermion.transforms import (
+    OpenFermionMappingMethods,
     OpenFermionQubitMapperFactory,
-    OpenFermionQubitMapping,
     OpenFermionQubitOperatorMapper,
     jordan_wigner,
 )
 from quri_parts.openfermion.utils import add_exp_excitation_gates_trotter_decomposition
-
-OpenFermionMappingMethods: TypeAlias = Union[
-    OpenFermionQubitMapping, OpenFermionQubitMapperFactory
-]
 
 
 class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):

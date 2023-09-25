@@ -52,6 +52,11 @@ OpenFermionQubitOperatorMapper: TypeAlias = Callable[
 ]
 
 
+OpenFermionMappingMethods: TypeAlias = Union[
+    "OpenFermionQubitMapping", "OpenFermionQubitMapperFactory"
+]
+
+
 def _inv_state_transformation_matrix(
     op_mapper: OpenFermionQubitOperatorMapper, n_spin_orbitals: int
 ) -> tuple[BinaryMatrix, Sequence[int]]:
