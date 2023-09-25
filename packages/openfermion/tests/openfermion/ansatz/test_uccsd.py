@@ -402,6 +402,10 @@ class TestUCCSD:
             TrotterUCCSD(4, 3)
         with pytest.raises(ValueError):
             TrotterUCCSD(4, 4)
+        with pytest.raises(AssertionError):
+            TrotterUCCSD(4, 4, fermion_qubit_mapping=jordan_wigner(8))
+        with pytest.raises(AssertionError):
+            TrotterUCCSD(4, 4, fermion_qubit_mapping=jordan_wigner(4, 2))
 
 
 class TestSingletUCCSD:

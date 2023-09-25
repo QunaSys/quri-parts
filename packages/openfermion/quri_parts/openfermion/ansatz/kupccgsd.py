@@ -73,7 +73,8 @@ class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
             else fermion_qubit_mapping
         )
 
-        assert mapping.n_spin_orbitals == n_spin_orbitals
+        assert mapping.n_spin_orbitals == n_spin_orbitals, "n_spin_orbital specified "
+        "in the mapping is not consistent with that specified to the first arguement."
 
         op_mapper = mapping.operator_mapper
         n_qubits = mapping.n_qubits

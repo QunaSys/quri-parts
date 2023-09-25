@@ -109,8 +109,10 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
             if isinstance(fermion_qubit_mapping, OpenFermionQubitMapperFactory)
             else fermion_qubit_mapping
         )
-        assert mapping.n_spin_orbitals == n_spin_orbitals
-        assert mapping.n_fermions == n_fermions
+        assert mapping.n_spin_orbitals == n_spin_orbitals, "n_spin_orbital specified "
+        "in the mapping is not consistent with that specified to the first arguement."
+        assert mapping.n_fermions == n_fermions, "n_fermions specified "
+        "in the mapping is not consistent with that specified to the second arguement."
 
         assert (
             n_spin_orbitals is not None and n_fermions is not None

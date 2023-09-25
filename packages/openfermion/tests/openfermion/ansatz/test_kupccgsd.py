@@ -16,7 +16,10 @@ from quri_parts.openfermion.ansatz.kupccgsd import (
     _generalized_pair_double_excitations,
     _generalized_single_excitations,
 )
-from quri_parts.openfermion.transforms import symmetry_conserving_bravyi_kitaev
+from quri_parts.openfermion.transforms import (
+    jordan_wigner,
+    symmetry_conserving_bravyi_kitaev,
+)
 
 
 def test_generalized_single_excitations() -> None:
@@ -188,6 +191,10 @@ def test_generalized_pair_double_excitations() -> None:
 
 
 class TestKUpCCGSD:
+    def test_invalid_kupccgsd(self) -> None:
+        with pytest.raises(AssertionError):
+            KUpCCGSD(4, fermion_qubit_mapping=jordan_wigner(8))
+
     def test_kupccgsd_k1_trotter1(self) -> None:
         n_spin_orbitals = 4
         ansatz = KUpCCGSD(n_spin_orbitals)
