@@ -178,9 +178,10 @@ def create_itensor_mps_concurrent_estimator(
 
     For now, this function works when the executor is defined like below::
 
-    >>> with ProcessPoolExecutor(
-    ...     max_workers=2, mp_context=get_context("spawn")
-    ... ) as executor:
+    Examples:
+        >>> with ProcessPoolExecutor(
+                max_workers=2, mp_context=get_context("spawn")
+            ) as executor:
 
     The following parameters including
     keyword arguments `**kwargs` are passed to `ITensors.apply
