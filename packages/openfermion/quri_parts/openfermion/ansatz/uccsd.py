@@ -8,6 +8,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Union
+
+from typing_extensions import TypeAlias
+
 from quri_parts.chem.utils.excitations import (
     DoubleExcitation,
     SingleExcitation,
@@ -20,11 +24,19 @@ from quri_parts.circuit import (
 )
 from quri_parts.core.circuit import add_parametric_commuting_paulis_exp_gate
 
-from ..transforms import OpenFermionQubitMapping
+from ..transforms import (
+    OpenFermionQubitMapperFactory,
+    OpenFermionQubitMapping,
+    jordan_wigner,
+)
 from ..utils import add_exp_excitation_gates_trotter_decomposition
 from ..utils.add_exp_excitation_gates_trotter_decomposition import (
     create_anti_hermitian_sd_excitation_operator,
 )
+
+OpenFermionMappingMethods: TypeAlias = Union[
+    OpenFermionQubitMapping, OpenFermionQubitMapperFactory
+]
 
 
 class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
@@ -90,14 +102,22 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
 
     def __init__(
         self,
-        fermion_qubit_mapping: OpenFermionQubitMapping,
+        n_spin_orbitals: int,
+        n_fermions: int,
+        fermion_qubit_mapping: OpenFermionMappingMethods = jordan_wigner,
         trotter_number: int = 1,
         use_singles: bool = True,
         delta_sz: int = 0,
         singlet_excitation: bool = False,
     ):
-        n_spin_orbitals = fermion_qubit_mapping.n_spin_orbitals
-        n_fermions = fermion_qubit_mapping.n_fermions
+        mapping = (
+            fermion_qubit_mapping(n_spin_orbitals, n_fermions)
+            if isinstance(fermion_qubit_mapping, OpenFermionQubitMapperFactory)
+            else fermion_qubit_mapping
+        )
+        assert mapping.n_spin_orbitals == n_spin_orbitals
+        assert mapping.n_fermions == n_fermions
+
         assert (
             n_spin_orbitals is not None and n_fermions is not None
         ), "n_spin_orbitals and n_fermions must not be None for ansatz construction."
@@ -114,13 +134,13 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
 
         circuit = (
             _construct_singlet_excitation_circuit(
-                fermion_qubit_mapping,
+                mapping,
                 trotter_number,
                 use_singles,
             )
             if singlet_excitation
             else _construct_circuit(
-                fermion_qubit_mapping,
+                mapping,
                 trotter_number,
                 use_singles,
                 delta_sz,

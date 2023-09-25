@@ -332,7 +332,12 @@ class TestUCCSD:
         n_electrons = 2
         fermion_qubit_mapping = jordan_wigner(n_spin_orbitals, n_electrons)
         trotter_number = 1
-        ansatz = TrotterUCCSD(fermion_qubit_mapping, trotter_number=trotter_number)
+        ansatz = TrotterUCCSD(
+            n_spin_orbitals,
+            n_electrons,
+            fermion_qubit_mapping=fermion_qubit_mapping,
+            trotter_number=trotter_number,
+        )
         expected_ansatz = _construct_circuit(
             jordan_wigner(n_spin_orbitals, n_electrons),
             trotter_number=trotter_number,
@@ -350,7 +355,9 @@ class TestUCCSD:
         n_electrons = 2
         trotter_number = 1
         ansatz = TrotterUCCSD(
-            bravyi_kitaev(n_spin_orbitals, n_electrons),
+            n_spin_orbitals,
+            n_electrons,
+            fermion_qubit_mapping=bravyi_kitaev(n_spin_orbitals, n_electrons),
             trotter_number=trotter_number,
             use_singles=False,
         )
@@ -371,7 +378,11 @@ class TestUCCSD:
         n_electrons = 2
         trotter_number = 2
         ansatz = TrotterUCCSD(
-            symmetry_conserving_bravyi_kitaev(n_spin_orbitals, n_electrons, 0.0),
+            n_spin_orbitals,
+            n_electrons,
+            fermion_qubit_mapping=symmetry_conserving_bravyi_kitaev(
+                n_spin_orbitals, n_electrons, 0.0
+            ),
             trotter_number=trotter_number,
         )
         expected_ansatz = _construct_circuit(
@@ -388,9 +399,9 @@ class TestUCCSD:
 
     def test_singlet_uccsd_invalid_input(self) -> None:
         with pytest.raises(ValueError):
-            TrotterUCCSD(jordan_wigner(4, 3))
+            TrotterUCCSD(4, 3)
         with pytest.raises(ValueError):
-            TrotterUCCSD(jordan_wigner(4, 4))
+            TrotterUCCSD(4, 4)
 
 
 class TestSingletUCCSD:
@@ -446,7 +457,9 @@ class TestSingletUCCSD:
         fermion_qubit_mapping = jordan_wigner(n_spin_orbitals, n_electrons)
         trotter_number = 1
         ansatz = TrotterUCCSD(
-            fermion_qubit_mapping,
+            n_spin_orbitals,
+            n_electrons,
+            fermion_qubit_mapping=fermion_qubit_mapping,
             trotter_number=trotter_number,
             singlet_excitation=True,
         )
@@ -475,6 +488,8 @@ class TestSingletUCCSD:
         n_electrons = 4
         trotter_number = 1
         ansatz = TrotterUCCSD(
+            n_spin_orbitals,
+            n_electrons,
             fermion_qubit_mapping=bravyi_kitaev(n_spin_orbitals, n_electrons),
             trotter_number=trotter_number,
             singlet_excitation=True,

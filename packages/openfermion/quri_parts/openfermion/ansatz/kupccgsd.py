@@ -8,7 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence
+from typing import Sequence, Union
+
+from typing_extensions import TypeAlias
 
 from quri_parts.chem.utils.excitations import DoubleExcitation, SingleExcitation
 from quri_parts.circuit import (
@@ -17,10 +19,16 @@ from quri_parts.circuit import (
     Parameter,
 )
 from quri_parts.openfermion.transforms import (
+    OpenFermionQubitMapperFactory,
     OpenFermionQubitMapping,
     OpenFermionQubitOperatorMapper,
+    jordan_wigner,
 )
 from quri_parts.openfermion.utils import add_exp_excitation_gates_trotter_decomposition
+
+OpenFermionMappingMethods: TypeAlias = Union[
+    OpenFermionQubitMapping, OpenFermionQubitMapperFactory
+]
 
 
 class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
@@ -58,22 +66,25 @@ class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
 
     def __init__(
         self,
-        fermion_qubit_mapping: OpenFermionQubitMapping,
+        n_spin_orbitals: int,
         k: int = 1,
+        fermion_qubit_mapping: OpenFermionMappingMethods = jordan_wigner,
         trotter_number: int = 1,
         delta_sz: int = 0,
         singlet_excitation: bool = False,
     ):
-        n_spin_orbitals = fermion_qubit_mapping.n_spin_orbitals
-        n_fermions = fermion_qubit_mapping.n_fermions
-        n_qubits = fermion_qubit_mapping.n_qubits
+        mapping = (
+            fermion_qubit_mapping(n_spin_orbitals)
+            if isinstance(fermion_qubit_mapping, OpenFermionQubitMapperFactory)
+            else fermion_qubit_mapping
+        )
 
-        assert (
-            n_spin_orbitals is not None
-            and n_fermions is not None
-            and n_qubits is not None
-        ), "n_spin_orbitals and n_fermions must not be None for ansatz construction."
-        op_mapper = fermion_qubit_mapping.operator_mapper
+        assert mapping.n_spin_orbitals == n_spin_orbitals
+
+        op_mapper = mapping.operator_mapper
+        n_qubits = mapping.n_qubits
+
+        # op_mapper = fermion_qubit_mapping.operator_mapper
         circuit = LinearMappedUnboundParametricQuantumCircuit(n_qubits)
 
         _construct_circuit(
