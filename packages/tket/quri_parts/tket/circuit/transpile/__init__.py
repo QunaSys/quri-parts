@@ -15,10 +15,11 @@ from pytket import OpType, passes
 from pytket.backends import Backend
 
 from quri_parts.circuit import NonParametricQuantumCircuit, gate_names
+from quri_parts.circuit.gate_names import GateNameType
 from quri_parts.circuit.transpile import CircuitTranspilerProtocol
 from quri_parts.tket.circuit import circuit_from_tket, convert_circuit
 
-_qp_tket_gate_name_map: Mapping[str, OpType] = {
+_qp_tket_gate_name_map: Mapping[GateNameType, OpType] = {
     gate_names.Identity: OpType.noop,
     gate_names.X: OpType.X,
     gate_names.Y: OpType.Y,
@@ -60,7 +61,8 @@ class TketTranspiler(CircuitTranspilerProtocol):
     and optimization in optimization_level are performed.
 
     Args:
-        backend: Tket's Backend instance.
+        backend: Tket's Backend instance. If specified, the gate set for the device
+            is used for the output and the basis_gates option is ignored.
         basis_gates: Specify the gate set after decomposition as a list of gate name
             strings.
         optimization_level: Specifies the optimization level of the circuit from 0 to 2.
@@ -75,7 +77,7 @@ class TketTranspiler(CircuitTranspilerProtocol):
         basis_gates: Optional[Sequence[str]] = None,
         optimization_level: int = 2,
     ):
-        if optimization_level < 0 or optimization_level > 2:
+        if not (0 <= optimization_level <= 2):
             raise ValueError("optimization_level must be 0, 1, or 2.")
 
         self._basis_gates: Optional[set[str]] = None
