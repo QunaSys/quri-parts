@@ -74,7 +74,7 @@ class TketTranspiler(CircuitTranspilerProtocol):
     def __init__(
         self,
         backend: Optional[Backend] = None,
-        basis_gates: Optional[Sequence[str]] = None,
+        basis_gates: Optional[Sequence[GateNameType]] = None,
         optimization_level: int = 2,
     ):
         if not (0 <= optimization_level <= 2):
