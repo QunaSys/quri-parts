@@ -596,7 +596,6 @@ class TestQiskitPrimitive:
         job2 = sampling_backend.sample(QuantumCircuit(2), 100)
         assert sampling_backend.tracker.running_jobs == [job1, job2]
 
-    
     def test_get_batch_execution_time_not_divisible(self) -> None:
         runtime_service = mock_get_backend("FakeVigo")
         service = runtime_service()
