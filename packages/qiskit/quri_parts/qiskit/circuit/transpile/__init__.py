@@ -15,10 +15,11 @@ from qiskit import transpile
 from qiskit.providers import Backend
 
 from quri_parts.circuit import NonParametricQuantumCircuit, gate_names
+from quri_parts.circuit.gate_names import GateNameType
 from quri_parts.circuit.transpile import CircuitTranspilerProtocol
 from quri_parts.qiskit.circuit import circuit_from_qiskit, convert_circuit
 
-_qp_qiskit_gate_name_map: Mapping[str, str] = {
+_qp_qiskit_gate_name_map: Mapping[GateNameType, str] = {
     gate_names.Identity: "id",
     gate_names.X: "x",
     gate_names.Y: "y",
@@ -53,7 +54,7 @@ class QiskitTranspiler(CircuitTranspilerProtocol):
     Args:
         backend: Qiskit's Backend instance.
         basis_gates: Specify the gate set after decomposition as a list of gate name
-            strings.
+            strings. If omitted, all gates compatible with Qiskit may exist in output.
         optimization_level: Specifies the optimization level of the circuit.
     """
 

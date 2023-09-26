@@ -98,7 +98,7 @@ class BraketSamplingBackend(SamplingBackend):
         self,
         device: Device,
         circuit_converter: BraketCircuitConverter = convert_circuit,
-        circuit_transpiler: Optional[CircuitTranspiler] = None,
+        circuit_transpiler: Optional[CircuitTranspiler] = BraketSetTranspiler(),
         enable_shots_roundup: bool = True,
         qubit_mapping: Optional[Mapping[int, int]] = None,
         run_kwargs: Mapping[str, Any] = {},
@@ -110,8 +110,6 @@ class BraketSamplingBackend(SamplingBackend):
         if qubit_mapping is not None:
             self._qubit_mapping = BackendQubitMapping(qubit_mapping)
 
-        if circuit_transpiler is None:
-            circuit_transpiler = BraketSetTranspiler()
         if isinstance(device, AwsDevice):
             circuit_transpiler = SequentialTranspiler(
                 [circuit_transpiler, AwsDeviceTranspiler(device)]
