@@ -52,9 +52,11 @@ class QiskitTranspiler(CircuitTranspilerProtocol):
     Qiskit and vice versa is performed internally.
 
     Args:
-        backend: Qiskit's Backend instance.
+        backend: Qiskit's Backend instance. If specified, the gate set for the device
+            is used for the output and the basis_gates option is ignored.
         basis_gates: Specify the gate set after decomposition as a list of gate name
-            strings. If omitted, all gates compatible with Qiskit may exist in output.
+            strings. If omitted, all gates compatible with Qiskit may exist in the
+            output.
         optimization_level: Specifies the optimization level of the circuit.
     """
 
