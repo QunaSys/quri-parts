@@ -98,7 +98,7 @@ class BraketSamplingBackend(SamplingBackend):
         self,
         device: Device,
         circuit_converter: BraketCircuitConverter = convert_circuit,
-        circuit_transpiler: Optional[CircuitTranspiler] = None,
+        circuit_transpiler: Optional[CircuitTranspiler] = BraketSetTranspiler(),
         enable_shots_roundup: bool = True,
         qubit_mapping: Optional[Mapping[int, int]] = None,
         run_kwargs: Mapping[str, Any] = {},
