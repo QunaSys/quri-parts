@@ -299,11 +299,11 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         batch_execution_time, batch_time_left = None, None
 
         if self._single_job_max_execution_time is not None:
-            batch_execution_time = self._single_job_max_execution_time / n_batch
+            batch_execution_time = self._single_job_max_execution_time // n_batch
 
         if self.tracker is not None:
             time_left = self._time_limit - self.tracker.total_run_time
-            batch_time_left = time_left / n_batch
+            batch_time_left = time_left // n_batch
 
         return batch_execution_time, batch_time_left
 
