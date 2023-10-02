@@ -1,5 +1,6 @@
 from typing import Union
 
+import numpy as np
 import qulacs as ql
 from numpy import cfloat, zeros
 from numpy.typing import NDArray
@@ -60,3 +61,27 @@ def run_circuit(
     new_state_vector: NDArray[cfloat] = qulacs_state.get_vector()  # type: ignore
 
     return new_state_vector
+
+
+def get_marginal_probability(
+    state_vector: NDArray[cfloat], measured_values: dict[int, int]
+) -> float:
+    """Compute the probability of obtaining a result when measuring on a subset
+    of the qubits.
+
+    state_vector:
+        A 1-dimensional array representing the state vector.
+    measured_values:
+        A dictionary representing the desired measurement outcome on the specified
+        qubtis. Suppose {0: 1, 2: 0} is passed in, it computes the probability of
+        obtaining 1 on the 0th qubit and 0 on the 2nd qubit.
+    """
+    n_qubits = np.log2(state_vector)
+    assert int(n_qubits) == n_qubits, "Length of the state vector must be a power of 2."
+    assert (
+        max(measured_values.keys()) < n_qubits
+    ), f"The specified qubit index {max(measured_values.keys())} is out of range."
+
+    qulacs_state = ql.QuantumState(int(n_qubits))
+    measured = [measured_values.get(i, 2) for i in range(n_qubits)]
+    return qulacs_state.get_marginal_probability(measured)
