@@ -55,10 +55,14 @@ class TketTranspiler(CircuitTranspilerProtocol):
 
     If the backend is specified, the circuit is transformed and optimized to a form
     executable in the backend at the optimization level specified in optimization_level.
-    basis_gates is ignored.
+    Since the corresponding gate set in the backend takes precedence, basis_gates
+    argument is ignored.
 
     If the backend is not specified, conversion to the gate set specified in basis_gates
     and optimization in optimization_level are performed.
+
+    Note that this transpiler may perform optimization assuming that the input state of
+    all qubits is |0>.
 
     Args:
         backend: Tket's Backend instance. If specified, the gate set for the device
