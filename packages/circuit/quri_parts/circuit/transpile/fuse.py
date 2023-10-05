@@ -63,6 +63,18 @@ class AdjacentGateFuser(CircuitTranspilerProtocol, ABC):
 
 
 class CNOTHCNOTFusingTranspiler(AdjacentGateFuser):
+    """A CircuitTranspiler that reduces the number of CNOT gates by replacing
+    partial circuits that satisfy certain conditions with equivalent circuits.
+
+    The number of Clifford gates (here H, S, Sdag) and the circuit depth will increase,
+    but the number of CNOT gates will decrease, which is expected to help reduce the
+    error rate of the circuit in typical NISQ devices.
+
+    Ref:
+        Joshua Goings, et al., Molecular Symmetry in VQE: A Dual Approach for
+        Trapped-Ion Simulations of Benzene, arXiv:2308.00667v1, pp.3-4, (2023).
+    """
+
     @property
     def target_gate_count(self) -> int:
         return 3
