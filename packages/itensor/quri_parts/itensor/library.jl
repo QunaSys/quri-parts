@@ -57,6 +57,7 @@ function init_state(s, qubits::Integer)
 end
 
 function expectation(psi, op)
+    normalize!(psi)
     exp = inner(psi', op, psi)
     return exp
 end
@@ -126,6 +127,7 @@ end
 
 function sampling(psi, shots)
     orthogonalize!(psi, 1)
+    normalize!(psi)
     result = []
     for i in 1:shots
         sampling = sample(psi)
