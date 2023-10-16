@@ -51,7 +51,7 @@ def create_itensor_mps_sampler(
     <https://itensor.github.io/ITensors.jl/dev/MPSandMPO.html#ITensors.product-Tuple{ITensor,%20ITensors.AbstractMPS}>`_
 
     Args:
-        maxdim: The maximum numer of singular values.
+        maxdim: The maximum number of singular values.
         cutoff: Singular value truncation cutoff.
     """
     ensure_itensor_loaded()
@@ -100,7 +100,7 @@ def create_itensor_mps_concurrent_sampler(
     <https://itensor.github.io/ITensors.jl/dev/MPSandMPO.html#ITensors.product-Tuple{ITensor,%20ITensors.AbstractMPS}>`_
 
     Args:
-        maxdim: The maximum numer of singular values.
+        maxdim: The maximum number of singular values.
         cutoff: Singular value truncation cutoff.
 
     For now, this function works when the executor is defined like below
