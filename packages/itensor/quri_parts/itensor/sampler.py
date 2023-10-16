@@ -33,6 +33,8 @@ def _sample(
     psi: juliacall.AnyValue = jl.init_state(s, qubits)
     circuit_ops = convert_circuit(circuit, s)
     psi = jl.apply(circuit_ops, psi, **kwargs)
+    if kwargs:
+        psi = jl.normalize(psi)
     result: list[int] = jl.sampling(psi, shots)
     return Counter(result)
 
