@@ -44,7 +44,6 @@ ITensorParametricStateT: TypeAlias = ParametricCircuitQuantumState
 def _estimate(
     operator: Estimatable, state: ITensorStateT, **kwargs: Any
 ) -> Estimate[complex]:
-    ensure_itensor_loaded()
     if operator == zero():
         return _Estimate(value=0.0, error=0.0)
     qubits = state.qubit_count
@@ -86,6 +85,7 @@ def create_itensor_mps_estimator(
         maxdim: The maximum numer of singular values.
         cutoff: Singular value truncation cutoff.
     """
+    ensure_itensor_loaded()
 
     def estimator(operator: Estimatable, state: ITensorStateT) -> Estimate[complex]:
         if maxdim is not None:
@@ -102,7 +102,6 @@ def _sequential_estimate_single_state(
     operators: Sequence[Estimatable],
     **kwargs: Any,
 ) -> Sequence[Estimate[complex]]:
-    ensure_itensor_loaded()
     qubits = state.qubit_count
     s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
     psi: juliacall.AnyValue = jl.init_state(s, qubits)
@@ -193,6 +192,7 @@ def create_itensor_mps_concurrent_estimator(
         maxdim: The maximum numer of singular values.
         cutoff: Singular value truncation cutoff.
     """
+    ensure_itensor_loaded()
 
     if maxdim is not None:
         kwargs["maxdim"] = maxdim
@@ -257,6 +257,8 @@ def create_itensor_mps_parametric_estimator(
         maxdim: The maximum numer of singular values.
         cutoff: Singular value truncation cutoff.
     """
+    ensure_itensor_loaded()
+
     if maxdim is not None:
         kwargs["maxdim"] = maxdim
     if cutoff is not None:
@@ -283,6 +285,7 @@ def create_itensor_mps_concurrent_parametric_estimator(
         maxdim: The maximum numer of singular values.
         cutoff: Singular value truncation cutoff.
     """
+    ensure_itensor_loaded()
 
     if maxdim is not None:
         kwargs["maxdim"] = maxdim

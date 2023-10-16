@@ -18,7 +18,6 @@ if TYPE_CHECKING:
 def _sample(
     circuit: NonParametricQuantumCircuit, shots: int, **kwargs: Any
 ) -> MeasurementCounts:
-    ensure_itensor_loaded()
     qubits = circuit.qubit_count
     s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
     psi: juliacall.AnyValue = jl.init_state(s, qubits)
@@ -45,6 +44,7 @@ def create_itensor_mps_sampler(
         maxdim: The maximum numer of singular values.
         cutoff: Singular value truncation cutoff.
     """
+    ensure_itensor_loaded()
 
     def sample(circuit: NonParametricQuantumCircuit, shots: int) -> MeasurementCounts:
         if maxdim is not None:
@@ -104,6 +104,7 @@ def create_itensor_mps_concurrent_sampler(
                 )
                 results = list(sampler([(circuit1, 1000), (circuit2, 2000)]))
     """
+    ensure_itensor_loaded()
 
     if maxdim is not None:
         kwargs["maxdim"] = maxdim
