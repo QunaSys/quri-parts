@@ -25,5 +25,6 @@ def ensure_itensor_loaded() -> None:
 
     if not _is_jl_library_included:
         from juliacall import Main as jl
+
         jl.seval(_INCLUDE_STATEMENT)
         _is_jl_library_included = True

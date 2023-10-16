@@ -263,6 +263,6 @@ class TestITensorParametricEstimator:
         )
         estimate_with_kwargs = estimator_with_kwargs(operator, state, params)
         assert estimate_with_kwargs.value == pytest.approx(
-            0.02485533900849108+0.029037213118795355j
+            0.02485533900849108 + 0.029037213118795355j
         )
         assert np.isnan(estimate_with_kwargs.error)
