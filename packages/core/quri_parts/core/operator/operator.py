@@ -9,11 +9,6 @@
 # limitations under the License.
 
 import cmath
-from functools import reduce
-from typing import Optional, Union
-
-import numpy as np
-import scipy.sparse as sparse
 
 from .pauli import PAULI_IDENTITY, PauliLabel, pauli_product
 
@@ -213,64 +208,3 @@ def truncate(op: Operator, atol: float = 1e-8) -> Operator:
 def is_hermitian(op: Operator, atol: float = 1e-8) -> bool:
     """Returns ``True`` if given operator is hermitian."""
     return is_ops_close(op, op.hermitian_conjugated(), atol)
-
-
-_sparse_pauli_x = sparse.csc_matrix([[0.0, 1.0], [1.0, 0.0]], dtype=np.complex128)
-_sparse_pauli_y = sparse.csc_matrix([[0.0, -1.0j], [1.0j, 0.0]], dtype=np.complex128)
-_sparse_pauli_z = sparse.csc_matrix([[1.0, 0.0], [0.0, -1.0]], dtype=np.complex128)
-
-_pauli_map = {
-    1: _sparse_pauli_x,
-    2: _sparse_pauli_y,
-    3: _sparse_pauli_z,
-}
-
-
-def _convert_pauli_label_to_sparse(
-    single_pauli_label: PauliLabel, n_qubit: Optional[int] = None
-) -> sparse.csc_matrix:
-    """Convert :class:`~PauliLabel` into scipy sparse matrix."""
-    if n_qubit is None:
-        assert single_pauli_label != PAULI_IDENTITY
-        n_qubit = max(single_pauli_label.qubit_indices()) + 1
-
-    single_pauli_list = [
-        sparse.identity(2, np.complex128, format="csc") for _ in range(n_qubit)
-    ]
-
-    if single_pauli_label != PAULI_IDENTITY:
-        assert n_qubit >= max(single_pauli_label.qubit_indices()) + 1
-        for bit, pauli in zip(*single_pauli_label.index_and_pauli_id_list):
-            single_pauli_list[n_qubit - bit - 1] = _pauli_map[pauli]
-
-    return reduce(lambda o1, o2: sparse.kron(o1, o2, "csc"), single_pauli_list)
-
-
-def _convert_operator_to_sparse(
-    operator: Operator, n_qubit: Optional[int] = None
-) -> sparse.csc_matrix:
-    """Convert :class:`~Operator` into scipy sparse matrix."""
-    if n_qubit is None:
-        n_qubit = max(
-            [max(op.qubit_indices()) + 1 for op in operator if op != PAULI_IDENTITY]
-        )
-
-    return sum(
-        [
-            coeff * _convert_pauli_label_to_sparse(op, n_qubit)
-            for op, coeff in operator.items()
-        ]
-    )
-
-
-def get_sparse_matrix(
-    operator: Union[PauliLabel, Operator], n_qubit: Optional[int] = None
-) -> sparse.csc_matrix:
-    """Convert :class:`~PauliLabel` and :class:`~Operator` into scipy sparse
-    matrix."""
-    if isinstance(operator, PauliLabel):
-        return _convert_pauli_label_to_sparse(operator, n_qubit)
-    elif isinstance(operator, Operator):
-        return _convert_operator_to_sparse(operator, n_qubit)
-    else:
-        assert False, "operator should be either a PauliLabel or an Operator object."
