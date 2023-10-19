@@ -14,7 +14,7 @@ from typing import Optional, Union
 import numpy as np
 import scipy.sparse as sparse
 
-from . import PAULI_IDENTITY, Operator, PauliLabel
+from . import PAULI_IDENTITY, Operator, PauliLabel, zero
 
 _sparse_pauli_x = sparse.csc_matrix([[0.0, 1.0], [1.0, 0.0]], dtype=np.complex128)
 _sparse_pauli_y = sparse.csc_matrix([[0.0, -1.0j], [1.0j, 0.0]], dtype=np.complex128)
@@ -43,7 +43,10 @@ def _convert_pauli_label_to_sparse(
     ]
 
     if single_pauli_label != PAULI_IDENTITY:
-        assert n_qubits >= max(single_pauli_label.qubit_indices()) + 1
+        assert n_qubits >= max(single_pauli_label.qubit_indices()) + 1, (
+            "The number of specified qubit should not be less then the length"
+            " of the pauli operator."
+        )
         for bit, pauli in zip(*single_pauli_label.index_and_pauli_id_list):
             single_pauli_list[n_qubits - bit - 1] = _pauli_map[pauli]
 
@@ -54,6 +57,9 @@ def _convert_operator_to_sparse(
     operator: Operator, n_qubits: Optional[int] = None
 ) -> sparse.csc_matrix:
     """Convert :class:`~Operator` into scipy sparse matrix."""
+    if operator == zero():
+        return sparse.csc_matrix(np.zeros((1, 1), dtype=np.complex128))
+
     if n_qubits is None:
         n_qubits = max(
             [max(op.qubit_indices()) + 1 for op in operator if op != PAULI_IDENTITY]
