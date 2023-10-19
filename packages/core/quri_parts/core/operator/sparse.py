@@ -44,7 +44,7 @@ def _convert_pauli_label_to_sparse(
 
     if single_pauli_label != PAULI_IDENTITY:
         assert n_qubits >= max(single_pauli_label.qubit_indices()) + 1, (
-            "The number of specified qubit should not be less then the length"
+            "The specified number of qubits should not be less then the length"
             " of the pauli operator."
         )
         for bit, pauli in zip(*single_pauli_label.index_and_pauli_id_list):

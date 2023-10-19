@@ -60,7 +60,7 @@ def test_convert_pauli_label_to_sparse() -> None:
     with pytest.raises(
         AssertionError,
         match=(
-            "The number of specified qubit should not be less then the length"
+            "The specified number of qubits should not be less then the length"
             " of the pauli operator."
         ),
     ):
