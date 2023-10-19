@@ -14,7 +14,7 @@ from typing import Optional, Union
 import numpy as np
 import scipy.sparse as sparse
 
-from .operator import PAULI_IDENTITY, Operator, PauliLabel
+from . import PAULI_IDENTITY, Operator, PauliLabel
 
 _sparse_pauli_x = sparse.csc_matrix([[0.0, 1.0], [1.0, 0.0]], dtype=np.complex128)
 _sparse_pauli_y = sparse.csc_matrix([[0.0, -1.0j], [1.0j, 0.0]], dtype=np.complex128)
