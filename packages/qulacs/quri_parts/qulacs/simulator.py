@@ -86,8 +86,8 @@ def get_marginal_probability(
         qubtis. Suppose {0: 1, 2: 0} is passed in, it computes the probability of
         obtaining 1 on the 0th qubit and 0 on the 2nd qubit.
     """
-    n_qubits = np.log2(state_vector.shape[0])
-    assert int(n_qubits) == n_qubits, "Length of the state vector must be a power of 2."
+    n_qubits: float = np.log2(state_vector.shape[0])
+    assert n_qubits.is_integer(), "Length of the state vector must be a power of 2."
     assert (
         max(measured_values.keys()) < n_qubits
     ), f"The specified qubit index {max(measured_values.keys())} is out of range."
