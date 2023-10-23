@@ -9,10 +9,11 @@
 # limitations under the License.
 
 from functools import reduce
-from typing import Optional, Union
+from typing import Literal, Optional, Union
 
 import numpy as np
 import scipy.sparse as sparse
+from typing_extensions import TypeAlias
 
 from . import PAULI_IDENTITY, Operator, PauliLabel, zero
 
@@ -27,10 +28,59 @@ _pauli_map = {
 }
 
 
+_sparse_matrix_map: dict[str, sparse.spmatrix] = {
+    "csc": sparse.csc_matrix,
+    "csr": sparse.csr_matrix,
+    "bsr": sparse.bsr_matrix,
+    "coo": sparse.coo_matrix,
+    "dok": sparse.dok_matrix,
+    "dia": sparse.dia_matrix,
+    "lil": sparse.lil_matrix,
+}
+
+SparseMatrixName: TypeAlias = Literal["csc", "csr", "bsr", "coo", "dok", "dia", "lil"]
+
+
+def _convert_pauli_map_to_other_format(format: SparseMatrixName) -> None:
+    if (
+        isinstance(_sparse_pauli_x, _sparse_matrix_map[format])
+        and isinstance(_sparse_pauli_y, _sparse_matrix_map[format])
+        and isinstance(_sparse_pauli_z, _sparse_matrix_map[format])
+    ):
+        return
+
+    if format == "csc":
+        for i in _pauli_map:
+            _pauli_map[i] = _pauli_map[i].tocsc()
+    elif format == "csr":
+        for i in _pauli_map:
+            _pauli_map[i] = _pauli_map[i].tocsr()
+    elif format == "bsr":
+        for i in _pauli_map:
+            _pauli_map[i] = _pauli_map[i].tobsr()
+    elif format == "coo":
+        for i in _pauli_map:
+            _pauli_map[i] = _pauli_map[i].tocoo()
+    elif format == "dok":
+        for i in _pauli_map:
+            _pauli_map[i] = _pauli_map[i].todok()
+    elif format == "dia":
+        for i in _pauli_map:
+            _pauli_map[i] = _pauli_map[i].todia()
+    elif format == "lil":
+        for i in _pauli_map:
+            _pauli_map[i] = _pauli_map[i].tolil()
+    else:
+        assert False, f"format {format} is not supported."
+
+
 def _convert_pauli_label_to_sparse(
-    single_pauli_label: PauliLabel, n_qubits: Optional[int] = None
-) -> sparse.csc_matrix:
+    single_pauli_label: PauliLabel,
+    n_qubits: Optional[int] = None,
+    format: SparseMatrixName = "csc",
+) -> sparse.spmatrix:
     """Convert :class:`~PauliLabel` into scipy sparse matrix."""
+    _convert_pauli_map_to_other_format(format)
     if n_qubits is None:
         assert single_pauli_label != PAULI_IDENTITY, (
             "n_qubits needs to be specified for PAULI_IDENTITY"
@@ -39,7 +89,7 @@ def _convert_pauli_label_to_sparse(
         n_qubits = max(single_pauli_label.qubit_indices()) + 1
 
     single_pauli_list = [
-        sparse.identity(2, np.complex128, format="csc") for _ in range(n_qubits)
+        sparse.identity(2, np.complex128, format=format) for _ in range(n_qubits)
     ]
 
     if single_pauli_label != PAULI_IDENTITY:
@@ -50,15 +100,15 @@ def _convert_pauli_label_to_sparse(
         for bit, pauli in zip(*single_pauli_label.index_and_pauli_id_list):
             single_pauli_list[n_qubits - bit - 1] = _pauli_map[pauli]
 
-    return reduce(lambda o1, o2: sparse.kron(o1, o2, "csc"), single_pauli_list)
+    return reduce(lambda o1, o2: sparse.kron(o1, o2, format), single_pauli_list)
 
 
 def _convert_operator_to_sparse(
-    operator: Operator, n_qubits: Optional[int] = None
-) -> sparse.csc_matrix:
+    operator: Operator, n_qubits: Optional[int] = None, format: SparseMatrixName = "csc"
+) -> sparse.spmatrix:
     """Convert :class:`~Operator` into scipy sparse matrix."""
     if operator == zero():
-        return sparse.csc_matrix(np.zeros((1, 1), dtype=np.complex128))
+        return _sparse_matrix_map[format](np.zeros((1, 1), dtype=np.complex128))
 
     if n_qubits is None:
         n_qubits = max(
@@ -67,20 +117,22 @@ def _convert_operator_to_sparse(
 
     return sum(
         [
-            coeff * _convert_pauli_label_to_sparse(op, n_qubits)
+            coeff * _convert_pauli_label_to_sparse(op, n_qubits, format)
             for op, coeff in operator.items()
         ]
     )
 
 
 def get_sparse_matrix(
-    operator: Union[PauliLabel, Operator], n_qubits: Optional[int] = None
-) -> sparse.csc_matrix:
+    operator: Union[PauliLabel, Operator],
+    n_qubits: Optional[int] = None,
+    format: SparseMatrixName = "csc",
+) -> sparse.spmatrix:
     """Convert :class:`~PauliLabel` and :class:`~Operator` into scipy sparse
     matrix."""
     if isinstance(operator, PauliLabel):
-        return _convert_pauli_label_to_sparse(operator, n_qubits)
+        return _convert_pauli_label_to_sparse(operator, n_qubits, format)
     elif isinstance(operator, Operator):
-        return _convert_operator_to_sparse(operator, n_qubits)
+        return _convert_operator_to_sparse(operator, n_qubits, format)
     else:
         assert False, "operator should be either a PauliLabel or an Operator object."

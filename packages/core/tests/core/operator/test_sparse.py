@@ -12,6 +12,7 @@ from functools import reduce
 
 import numpy as np
 import pytest
+import scipy.sparse as sparse
 
 from quri_parts.core.operator import (
     PAULI_IDENTITY,
@@ -23,12 +24,40 @@ from quri_parts.core.operator import (
 from quri_parts.core.operator.sparse import (
     _convert_operator_to_sparse,
     _convert_pauli_label_to_sparse,
+    _convert_pauli_map_to_other_format,
+    _pauli_map,
 )
 
 I = np.eye(2, dtype=np.complex128)  # noqa: E741
 X = np.array([[0, 1], [1, 0]], dtype=np.complex128)
 Y = np.array([[0, -1j], [1j, 0]], dtype=np.complex128)
 Z = np.array([[1, 0], [0, -1]], dtype=np.complex128)
+
+
+def test_convert_pauli_map_to_other_format() -> None:
+    _convert_pauli_map_to_other_format("csc")
+    for p in _pauli_map.values():
+        assert isinstance(p, sparse.csc_matrix)
+
+    _convert_pauli_map_to_other_format("csr")
+    for p in _pauli_map.values():
+        assert isinstance(p, sparse.csr_matrix)
+
+    _convert_pauli_map_to_other_format("bsr")
+    for p in _pauli_map.values():
+        assert isinstance(p, sparse.bsr_matrix)
+
+    _convert_pauli_map_to_other_format("dia")
+    for p in _pauli_map.values():
+        assert isinstance(p, sparse.dia_matrix)
+
+    _convert_pauli_map_to_other_format("dok")
+    for p in _pauli_map.values():
+        assert isinstance(p, sparse.dok_matrix)
+
+    _convert_pauli_map_to_other_format("lil")
+    for p in _pauli_map.values():
+        assert isinstance(p, sparse.lil_matrix)
 
 
 def test_convert_operator_to_sparse() -> None:
