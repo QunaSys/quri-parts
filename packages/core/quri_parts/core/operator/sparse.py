@@ -15,16 +15,16 @@ import numpy as np
 import scipy.sparse as sparse
 from typing_extensions import TypeAlias
 
-from . import PAULI_IDENTITY, Operator, PauliLabel, zero
+from . import PAULI_IDENTITY, Operator, PauliLabel, SinglePauli, zero
 
 _sparse_pauli_x = sparse.csc_matrix([[0.0, 1.0], [1.0, 0.0]], dtype=np.complex128)
 _sparse_pauli_y = sparse.csc_matrix([[0.0, -1.0j], [1.0j, 0.0]], dtype=np.complex128)
 _sparse_pauli_z = sparse.csc_matrix([[1.0, 0.0], [0.0, -1.0]], dtype=np.complex128)
 
 _pauli_map = {
-    1: _sparse_pauli_x,
-    2: _sparse_pauli_y,
-    3: _sparse_pauli_z,
+    SinglePauli.X: _sparse_pauli_x,
+    SinglePauli.Y: _sparse_pauli_y,
+    SinglePauli.Z: _sparse_pauli_z,
 }
 
 
@@ -98,7 +98,7 @@ def _convert_pauli_label_to_sparse(
             " of the pauli operator."
         )
         for bit, pauli in zip(*single_pauli_label.index_and_pauli_id_list):
-            single_pauli_list[n_qubits - bit - 1] = _pauli_map[pauli]
+            single_pauli_list[n_qubits - bit - 1] = _pauli_map[SinglePauli(pauli)]
 
     return reduce(lambda o1, o2: sparse.kron(o1, o2, format), single_pauli_list)
 
