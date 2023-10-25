@@ -108,7 +108,13 @@ def _convert_operator_to_sparse(
 ) -> sparse.spmatrix:
     """Convert :class:`~Operator` into scipy sparse matrix."""
     if operator == zero():
-        return _sparse_matrix_map[format](np.zeros((1, 1), dtype=np.complex128))
+        return (
+            _sparse_matrix_map[format](np.zeros((1, 1), dtype=np.complex128))
+            if n_qubits is None
+            else _sparse_matrix_map[format](
+                np.zeros((2**n_qubits, 2**n_qubits), dtype=np.complex128)
+            )
+        )
 
     if n_qubits is None:
         n_qubits = max(

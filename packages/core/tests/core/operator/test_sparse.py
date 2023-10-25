@@ -121,7 +121,14 @@ def test_get_sparse_matrix() -> None:
     assert np.allclose(get_sparse_matrix(operator).toarray(), expected_matrix)
 
     operator = zero()
-    assert np.allclose(get_sparse_matrix(operator, 3).toarray(), np.zeros((1, 1)))
+    converted = get_sparse_matrix(operator).toarray()
+    assert np.allclose(converted, np.zeros((1, 1)))
+    assert converted.shape == (1, 1)
+
+    operator = zero()
+    converted = get_sparse_matrix(operator, 3).toarray()
+    assert np.allclose(converted, np.zeros((8, 8)))
+    assert converted.shape == (8, 8)
 
     operator = Operator({PAULI_IDENTITY: 8})
     assert np.allclose(get_sparse_matrix(operator, 3).toarray(), 8 * np.eye(8))
