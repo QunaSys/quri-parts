@@ -1,6 +1,8 @@
 from collections.abc import Sequence
+from math import pi
 
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
+from quri_parts.circuit import gate as gf
 from quri_parts.circuit.gate import QuantumGate
 from quri_parts.circuit.gate_names import (
     CLIFFORD_GATE_NAMES,
@@ -39,6 +41,7 @@ from .transpiler import (
     CircuitTranspilerProtocol,
     SequentialTranspiler,
     CircuitTranspiler,
+    GateKindDecomposer,
 )
 from .multi_pauli_decomposer import (
     PauliDecomposerTranspiler,
@@ -116,6 +119,48 @@ class CliffordConversionTranspiler(CircuitTranspilerProtocol):
         return QuantumCircuit(circuit.qubit_count, gates=ret)
 
 
+class RZ2RXRYTranspiler(GateKindDecomposer):
+    def target_gate_names(self) -> Sequence[str]:
+        return [RZ]
+
+    def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
+        qubit = gate.target_indices[0]
+        theta = gate.params[0]
+        return [
+            gf.RX(qubit, pi / 2.0),
+            gf.RY(qubit, -theta),
+            gf.RX(qubit, -pi / 2.0),
+        ]
+
+
+class RY2RXRZTranspiler(GateKindDecomposer):
+    def target_gate_names(self) -> Sequence[str]:
+        return [RY]
+
+    def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
+        qubit = gate.target_indices[0]
+        theta = gate.params[0]
+        return [
+            gf.RX(qubit, pi / 2.0),
+            gf.RZ(qubit, theta),
+            gf.RX(qubit, -pi / 2.0),
+        ]
+
+
+class RX2RYRZTranspiler(GateKindDecomposer):
+    def target_gate_names(self) -> Sequence[str]:
+        return [RZ]
+
+    def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
+        qubit = gate.target_indices[0]
+        theta = gate.params[0]
+        return [
+            gf.RZ(qubit, pi / 2.0),
+            gf.RY(qubit, theta),
+            gf.RZ(qubit, -pi / 2.0),
+        ]
+
+
 class RotationConversionTranspiler(CircuitTranspilerProtocol):
     def __init__(
         self,
@@ -129,32 +174,27 @@ class RotationConversionTranspiler(CircuitTranspilerProtocol):
     def __call__(
         self, circuit: NonParametricQuantumCircuit
     ) -> NonParametricQuantumCircuit:
-        if {RX, RY, RZ} & self._gateset == {RX, RY, RZ}:
-            ...
-        elif {RX, RY} & self._gateset == {RX, RY}:
-            # Rz -> Rx(pi/2) Ry(-theta) Rx(-pi/2)
-            ...
-        elif {RY, RZ} & self._gateset == {RY, RZ}:
-            # Rx -> Rz(pi/2) Ry(theta) Rz(-pi/2)
-            ...
-        elif {RX, RZ} & self._gateset == {RX, RZ}:
-            # Ry -> Rx(pi/2) Ry(-theta) Rx(-pi/2)
-            ...
-        elif RX in self._gateset:
+        if self._target_rotation == {RX, RY, RZ}:
+            return circuit
+        elif self._target_rotation == {RX, RY}:
+            return RZ2RXRYTranspiler()(circuit)
+        elif self._target_rotation == {RY, RZ}:
+            return RX2RYRZTranspiler()(circuit)
+        elif self._target_rotation == {RX, RZ}:
+            return RY2RXRZTranspiler()(circuit)
+        elif RX in self._target_rotation:
             # H(YZ) + Rx
             ...
-        elif RY in self._gateset:
+        elif RY in self._target_rotation:
             # H(XZ) + Ry
             ...
-        elif RZ in self._gateset:
+        elif RZ in self._target_rotation:
             # H(XY) + Rz
             ...
         else:
             # Rotation2Named
-            # RXRY -> RZ -> HST
+            # RxRy -> Rz -> HST
             ...
-
-        ...
 
 
 class GateSetConversionTranspiler(CircuitTranspilerProtocol):
@@ -241,30 +281,5 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
                 & SINGLE_QUBIT_GATE_NAMES,
             )
         )
-
-        # if {RX, RY, RZ} & self._gateset == {RX, RY, RZ}:
-        #     ...
-        # elif {RX, RY} & self._gateset == {RX, RY}:
-        #     # Rz -> Rx(pi/2) Ry(-theta) Rx(-pi/2)
-        #     ...
-        # elif {RY, RZ} & self._gateset == {RY, RZ}:
-        #     # Rx -> Rz(pi/2) Ry(theta) Rz(-pi/2)
-        #     ...
-        # elif {RX, RZ} & self._gateset == {RX, RZ}:
-        #     # Ry -> Rx(pi/2) Ry(-theta) Rx(-pi/2)
-        #     ...
-        # elif RX in self._gateset:
-        #     # H(YZ) + Rx
-        #     ...
-        # elif RY in self._gateset:
-        #     # H(XZ) + Ry
-        #     ...
-        # elif RZ in self._gateset:
-        #     # H(XY) + Rz
-        #     ...
-        # else:
-        #     # Rotation2Named
-        #     # RXRY -> RZ -> HST
-        #     ...
 
         return SequentialTranspiler(ts)(circuit)
