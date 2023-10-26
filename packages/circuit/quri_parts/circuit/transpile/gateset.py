@@ -1,6 +1,7 @@
 from collections.abc import Sequence
 
-from quri_parts.circuit import NonParametricQuantumCircuit
+from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
+from quri_parts.circuit.gate import QuantumGate
 from quri_parts.circuit.gate_names import (
     CLIFFORD_GATE_NAMES,
     SINGLE_QUBIT_GATE_NAMES,
@@ -15,6 +16,7 @@ from quri_parts.circuit.gate_names import (
     U2,
     U3,
     GateNameType,
+    CliffordGateNameType,
     H,
     Identity,
     Pauli,
@@ -48,9 +50,72 @@ from .unitary_matrix_decomposer import (
     TwoQubitUnitarymatrixKAKTranspiler,
 )
 from .fuse import Rotation2NamedTranspiler
+from .identity_manipulation import IdentityEliminationTranspiler
 
 
-class ArbitraryGateSetDecomposer(CircuitTranspilerProtocol):
+# TODO Create systematically
+_equiv_clifford_table = {
+    H: [[S, SqrtX, S]],
+    X: [[Y, Z], [SqrtX, SqrtX], [SqrtXdag, SqrtXdag], [H, Z, H], [H, S, S, H]],
+    Y: [
+        [Z, X],
+        # [SqrtY, SqrtY],
+        # [SqrtYdag, SqrtYdag],
+        [H, X, H],
+        [S, S, X],
+        [Z, H, Z, H],
+        [S, S, H, S, S, H],
+    ],
+    Z: [[X, Y], [S, S], [Sdag, Sdag], [X, H, X, H], [X, S, S, X]],
+    SqrtX: [[Sdag, H, Sdag], [S, Z, H, Z, S], [S, S, S, H, S, S, S]],
+    SqrtXdag: [[S, H, S], [Z, SqrtX, Z], [S, S, SqrtX, S, S]],
+    SqrtY: [[Z, H], [S, S, H], [Sdag, SqrtX, S], [Z, S, SqrtX, S], [S, S, S, SqrtX, S]],
+    SqrtYdag: [
+        [H, Z],
+        [H, S, S],
+        [S, SqrtX, Sdag],
+        [S, SqrtX, Z, S],
+        [S, SqrtX, S, S, S],
+    ],
+    S: [[Z, Sdag], [Sdag, Sdag, Sdag]],
+    Sdag: [[Z, S], [S, S, S]],
+}
+
+
+class CliffordConversionTranspiler(CircuitTranspilerProtocol):
+    def __init__(self, target_gateset: Sequence[CliffordGateNameType]):
+        self._gateset = set(target_gateset)
+
+    def __call__(
+        self, circuit: NonParametricQuantumCircuit
+    ) -> NonParametricQuantumCircuit:
+        ret = []
+
+        for gate in circuit.gates:
+            if gate.name not in CLIFFORD_GATE_NAMES & SINGLE_QUBIT_GATE_NAMES:
+                ret.append(gate)
+                continue
+
+            if gate.name not in _equiv_clifford_table:
+                ret.append(gate)
+                continue
+
+            for candidate in _equiv_clifford_table[gate.name]:
+                if set(candidate) <= self._gateset:
+                    ret.extend(
+                        [
+                            QuantumGate(name=name, target_indices=gate.target_indices)
+                            for name in candidate
+                        ]
+                    )
+                    break
+            else:
+                ret.append(gate)
+
+        return QuantumCircuit(circuit.qubit_count, gates=ret)
+
+
+class GateSetConversionTranspiler(CircuitTranspilerProtocol):
     def __init__(self, target_gateset: Sequence[GateNameType]):
         self._gateset = set(target_gateset)
 
@@ -67,8 +132,12 @@ class ArbitraryGateSetDecomposer(CircuitTranspilerProtocol):
         self, circuit: NonParametricQuantumCircuit
     ) -> NonParametricQuantumCircuit:
         ts = []
-        # TODO consider to check if the circuit contains unitary matrix gate actually.
 
+        if Identity not in self._gateset:
+            ts.append(IdentityEliminationTranspiler())
+            # ts.append(dc.Identity2RZTranspiler())
+
+        # TODO consider to check if the circuit contains unitary matrix gate actually.
         complex_gate_table = {
             Pauli: PauliDecomposerTranspiler(),
             PauliRotation: PauliRotationDecomposerTranspiler(),
@@ -100,6 +169,11 @@ class ArbitraryGateSetDecomposer(CircuitTranspilerProtocol):
             ts.append(Rotation2NamedTranspiler())
 
         # TODO Clifford table conversion
+        ts.append(
+            CliffordConversionTranspiler(
+                self._gateset & CLIFFORD_GATE_NAMES & SINGLE_QUBIT_GATE_NAMES
+            )
+        )
 
         single_qubit_clifford_table = {
             H: dc.H2RXRYTranspiler(),
