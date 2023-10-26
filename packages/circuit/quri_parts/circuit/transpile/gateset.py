@@ -56,7 +56,7 @@ from .fuse import Rotation2NamedTranspiler
 from .identity_manipulation import IdentityEliminationTranspiler
 
 
-# TODO Create systematically
+# TODO Generate systematically
 _equiv_clifford_table = {
     H: [[S, SqrtX, S]],
     X: [[Y, Z], [SqrtX, SqrtX], [SqrtXdag, SqrtXdag], [H, Z, H], [H, S, S, H]],
@@ -120,6 +120,7 @@ class CliffordConversionTranspiler(CircuitTranspilerProtocol):
 
 
 class RZ2RXRYTranspiler(GateKindDecomposer):
+    @property
     def target_gate_names(self) -> Sequence[str]:
         return [RZ]
 
@@ -134,6 +135,7 @@ class RZ2RXRYTranspiler(GateKindDecomposer):
 
 
 class RY2RXRZTranspiler(GateKindDecomposer):
+    @property
     def target_gate_names(self) -> Sequence[str]:
         return [RY]
 
@@ -148,6 +150,7 @@ class RY2RXRZTranspiler(GateKindDecomposer):
 
 
 class RX2RYRZTranspiler(GateKindDecomposer):
+    @property
     def target_gate_names(self) -> Sequence[str]:
         return [RZ]
 
@@ -158,6 +161,38 @@ class RX2RYRZTranspiler(GateKindDecomposer):
             gf.RZ(qubit, pi / 2.0),
             gf.RY(qubit, theta),
             gf.RZ(qubit, -pi / 2.0),
+        ]
+
+
+class RX2RZHTranspiler(GateKindDecomposer):
+    @property
+    def target_gate_names(self) -> Sequence[str]:
+        return [RX]
+
+    def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
+        qubit = gate.target_indices[0]
+        theta = gate.params[0]
+        return [
+            gf.H(qubit),
+            gf.RZ(qubit, theta),
+            gf.H(qubit),
+        ]
+
+
+class RY2RZHTranspiler(GateKindDecomposer):
+    @property
+    def target_gate_names(self) -> Sequence[str]:
+        return [RY]
+
+    def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
+        qubit = gate.target_indices[0]
+        theta = gate.params[0]
+        return [
+            gf.RZ(qubit, -pi / 2.0),
+            gf.H(qubit),
+            gf.RZ(qubit, theta),
+            gf.H(qubit),
+            gf.RZ(qubit, pi / 2.0),
         ]
 
 
@@ -184,17 +219,33 @@ class RotationConversionTranspiler(CircuitTranspilerProtocol):
             return RY2RXRZTranspiler()(circuit)
         elif RX in self._target_rotation:
             # H(YZ) + Rx
-            ...
+            raise NotImplementedError()
         elif RY in self._target_rotation:
             # H(XZ) + Ry
-            ...
+            raise NotImplementedError()
         elif RZ in self._target_rotation:
             # H(XY) + Rz
-            ...
+            if H in self._target_rotation:
+                return SequentialTranspiler([
+                    RX2RZHTranspiler(),
+                    RY2RZHTranspiler(),
+                ])(circuit)
+            elif SqrtX in self._target_rotation:
+                return SequentialTranspiler([
+                    dc.RX2RZSqrtXTranspiler(),
+                    dc.RY2RZSqrtXTranspiler(),
+                ])(circuit)
+            raise NotImplementedError()
         else:
             # Rotation2Named
             # RxRy -> Rz -> HST
-            ...
+            # if {H, S, T} <= self._target_clifford:
+            #     return SequentialTranspiler([
+            #         RX2RZHTranspiler(),
+            #         RY2RZHTranspiler(),
+            #         RZ2HSTTranspiler(),
+            #     ])(circuit)
+            raise NotImplementedError()
 
 
 class GateSetConversionTranspiler(CircuitTranspilerProtocol):
