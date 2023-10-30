@@ -1,24 +1,26 @@
 from collections.abc import Sequence
 from math import pi
 
+import gate_kind_decomposer as dc
+
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
 from quri_parts.circuit import gate as gf
 from quri_parts.circuit.gate import QuantumGate
 from quri_parts.circuit.gate_names import (
     CLIFFORD_GATE_NAMES,
-    SINGLE_QUBIT_GATE_NAMES,
     CNOT,
     CZ,
     RX,
     RY,
     RZ,
+    SINGLE_QUBIT_GATE_NAMES,
     SWAP,
     TOFFOLI,
     U1,
     U2,
     U3,
-    GateNameType,
     CliffordGateNameType,
+    GateNameType,
     H,
     Identity,
     Pauli,
@@ -37,24 +39,22 @@ from quri_parts.circuit.gate_names import (
     Z,
 )
 
-from .transpiler import (
-    CircuitTranspilerProtocol,
-    SequentialTranspiler,
-    CircuitTranspiler,
-    GateKindDecomposer,
-)
+from .fuse import Rotation2NamedTranspiler
+from .identity_manipulation import IdentityEliminationTranspiler
 from .multi_pauli_decomposer import (
     PauliDecomposerTranspiler,
     PauliRotationDecomposerTranspiler,
 )
-import gate_kind_decomposer as dc
+from .transpiler import (
+    CircuitTranspiler,
+    CircuitTranspilerProtocol,
+    GateKindDecomposer,
+    SequentialTranspiler,
+)
 from .unitary_matrix_decomposer import (
     SingleQubitUnitaryMatrix2RYRZTranspiler,
     TwoQubitUnitarymatrixKAKTranspiler,
 )
-from .fuse import Rotation2NamedTranspiler
-from .identity_manipulation import IdentityEliminationTranspiler
-
 
 # TODO Generate systematically
 _equiv_clifford_table = {
@@ -226,15 +226,19 @@ class RotationConversionTranspiler(CircuitTranspilerProtocol):
         elif RZ in self._target_rotation:
             # H(XY) + Rz
             if H in self._target_rotation:
-                return SequentialTranspiler([
-                    RX2RZHTranspiler(),
-                    RY2RZHTranspiler(),
-                ])(circuit)
+                return SequentialTranspiler(
+                    [
+                        RX2RZHTranspiler(),
+                        RY2RZHTranspiler(),
+                    ]
+                )(circuit)
             elif SqrtX in self._target_rotation:
-                return SequentialTranspiler([
-                    dc.RX2RZSqrtXTranspiler(),
-                    dc.RY2RZSqrtXTranspiler(),
-                ])(circuit)
+                return SequentialTranspiler(
+                    [
+                        dc.RX2RZSqrtXTranspiler(),
+                        dc.RY2RZSqrtXTranspiler(),
+                    ]
+                )(circuit)
             raise NotImplementedError()
         else:
             # Rotation2Named
