@@ -1,5 +1,6 @@
 from collections.abc import Sequence
 from math import pi
+from typing import Callable
 
 import gate_kind_decomposer as dc
 
@@ -265,16 +266,31 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
                 ts.append(trans)
         return ts
 
+    def _contains_gate(
+        self, circuit: NonParametricQuantumCircuit, cond: Callable[[QuantumGate], bool]
+    ) -> bool:
+        for gate in circuit.gates:
+            if cond(gate):
+                return True
+        return False
+
     def __call__(
         self, circuit: NonParametricQuantumCircuit
     ) -> NonParametricQuantumCircuit:
-        ts = []
+        circ = circuit
 
+        if self._contains_gate(
+            circ,
+            lambda g: g.name == UnitaryMatrix and len(g.target_indices) > 2,
+        ):
+            raise NotImplementedError(
+                "UnitaryMatrix gate with 3 or more qubits is not supported."
+            )
+        ts = []
         if Identity not in self._gateset:
             ts.append(IdentityEliminationTranspiler())
             # ts.append(dc.Identity2RZTranspiler())
 
-        # TODO consider to check if the circuit contains unitary matrix gate actually.
         complex_gate_table = {
             Pauli: PauliDecomposerTranspiler(),
             PauliRotation: PauliRotationDecomposerTranspiler(),
@@ -290,22 +306,24 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
             U3: dc.U3ToRXRZTranspiler(),
         }
         ts.extend(self._add_decomposer(complex_gate_table))
+        circ = SequentialTranspiler(ts)(circ)
 
-        if SWAP not in self._gateset:
-            ts.append(dc.SWAP2CNOTTranspiler())
-        if CZ not in self._gateset:
-            ts.append(dc.CZ2CNOTHTranspiler())
-        if CNOT not in self._gateset:
-            ts.append(dc.CNOT2CZHTranspiler())
-        if CNOT not in self._gateset and CZ not in self._gateset:
-            raise ValueError(
-                "2 qubit gates cannot be converted into the given gateset."
-            )
+        ts = []
+        if self._contains_gate(circ, lambda g: g.name in {SWAP, CZ, CNOT}):
+            if SWAP not in self._gateset:
+                ts.append(dc.SWAP2CNOTTranspiler())
+            if CZ not in self._gateset:
+                ts.append(dc.CZ2CNOTHTranspiler())
+            if CNOT not in self._gateset:
+                ts.append(dc.CNOT2CZHTranspiler())
+            if CNOT not in self._gateset and CZ not in self._gateset:
+                raise ValueError(
+                    "2 qubit gates cannot be converted into the given gateset."
+                )
 
         if self._gateset & CLIFFORD_GATE_NAMES & SINGLE_QUBIT_GATE_NAMES:
             ts.append(Rotation2NamedTranspiler())
 
-        # TODO Clifford table conversion
         ts.append(
             CliffordConversionTranspiler(
                 self._gateset & CLIFFORD_GATE_NAMES & SINGLE_QUBIT_GATE_NAMES
@@ -327,14 +345,18 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
             Tdag: dc.Tdag2RZTranspiler(),
         }
         ts.extend(self._add_decomposer(single_qubit_clifford_table))
+        circ = SequentialTranspiler(ts)(circ)
 
-        ts.extend(
-            RotationConversionTranspiler(
-                target_rotation=self._gateset & {RX, RY, RZ},
-                target_clifford=self._gateset
-                & CLIFFORD_GATE_NAMES
-                & SINGLE_QUBIT_GATE_NAMES,
+        if self._contains_gate(circ, lambda g: g.name in {RX, RY, RZ}):
+            ts = []
+            ts.extend(
+                RotationConversionTranspiler(
+                    target_rotation=self._gateset & {RX, RY, RZ},
+                    target_clifford=self._gateset
+                    & CLIFFORD_GATE_NAMES
+                    & SINGLE_QUBIT_GATE_NAMES,
+                )
             )
-        )
+            circ = SequentialTranspiler(ts)(circ)
 
-        return SequentialTranspiler(ts)(circuit)
+        return circ
