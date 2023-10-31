@@ -69,13 +69,11 @@ def _estimate(
     # apply circuit
     psi = jl.apply(circuit, psi, **kwargs)
 
-    # See https://github.com/QunaSys/quri-parts/pull/203#discussion_r1329458816
-    error = 0.0
-    if "maxdim" in kwargs or "cutoff" in kwargs:
-        error = np.nan
-
     # calculate expectation value
-    if kwargs:
+    error = 0.0
+    if any(k in kwargs for k in ["mindim", "maxdim", "cutoff"]):
+        # See https://github.com/QunaSys/quri-parts/pull/203#discussion_r1329458816
+        error = np.nan
         psi = jl.normalize(psi)
     exp: float = jl.expectation(psi, op)
 
@@ -121,8 +119,9 @@ def _sequential_estimate_single_state(
     psi: juliacall.AnyValue = jl.init_state(s, qubits)
     circuit = convert_circuit(state.circuit, s)
     psi = jl.apply(circuit, psi, **kwargs)
-    if kwargs:
+    if any(k in kwargs for k in ["mindim", "maxdim", "cutoff"]):
         psi = jl.normalize(psi)
+
     results = []
     for op in operators:
         if op == zero():
@@ -132,7 +131,7 @@ def _sequential_estimate_single_state(
 
         # See https://github.com/QunaSys/quri-parts/pull/203#discussion_r1329458816
         error = 0.0
-        if "maxdim" in kwargs or "cutoff" in kwargs:
+        if any(k in kwargs for k in ["mindim", "maxdim", "cutoff"]):
             error = np.nan
 
         results.append(_Estimate(value=jl.expectation(psi, itensor_op), error=error))
