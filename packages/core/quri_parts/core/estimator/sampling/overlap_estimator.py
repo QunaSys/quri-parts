@@ -34,21 +34,15 @@ class _OverlapEstimate:
 
     @cached_property
     def value(self) -> float:
-        if 0 in self._sampling_counts.keys():
-            val = self._sampling_counts.get(0, 0) / self._total_counts
-        else:
-            val = 0
+        val = self._sampling_counts.get(0, 0) / self._total_counts
         return val
 
     @cached_property
     def error(self) -> float:
-        if 0 in self._sampling_counts.keys():
-            p = self._sampling_counts.get(0, 0) / self._total_counts
-            # Variance of the binomial distribution can be estimated as
-            var = self._total_counts * p * (1 - p)
-            std_err = sqrt(var) / self._total_counts
-        else:
-            std_err = 0
+        p = self._sampling_counts.get(0, 0) / self._total_counts
+        # Variance of the binomial distribution can be estimated as
+        var = self._total_counts * p * (1 - p)
+        std_err = sqrt(var) / self._total_counts
         return std_err
 
 
