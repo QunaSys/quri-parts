@@ -229,11 +229,10 @@ class RotationConversionTranspiler(CircuitTranspilerProtocol):
     def __init__(
         self,
         target_rotation: Sequence[GateNameType],
-        target_clifford: Sequence[CliffordGateNameType],
+        favorable_clifford: Sequence[CliffordGateNameType] = (),
     ):
         self._target_rotation = set(target_rotation)
-        self._target_clifford = set(target_clifford)
-        self._gateset = self._target_rotation | self._target_clifford
+        self._favorable_clifford = set(favorable_clifford)
         self._decomposer = self._construct_decomposer()
         # TODO Check gate type
 
@@ -249,7 +248,7 @@ class RotationConversionTranspiler(CircuitTranspilerProtocol):
         }
 
         # TODO Support {RX}, {RY}, and {}
-        if H not in self._target_clifford and SqrtX in self._target_clifford:
+        if H not in self._favorable_clifford and SqrtX in self._favorable_clifford:
             rot_to_trans_map[frozenset({RZ})] = SequentialTranspiler(
                 [RX2RZSqrtXTranspiler(), RY2RZSqrtXTranspiler()]
             )
@@ -304,7 +303,7 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
                 FuseRotationTranspiler(),  # Optimizer
                 RotationConversionTranspiler(
                     target_rotation=tuple(self._target_rotation),
-                    target_clifford=tuple(self._target_clifford),
+                    favorable_clifford=tuple(self._target_clifford),
                 ),
                 FuseRotationTranspiler(),  # Optimizer
             ]
