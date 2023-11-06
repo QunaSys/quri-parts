@@ -1,8 +1,6 @@
 from collections.abc import Sequence
 from math import pi
 
-import gate_kind_decomposer as dc
-
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
 from quri_parts.circuit import gate as gf
 from quri_parts.circuit.gate import QuantumGate
@@ -40,10 +38,33 @@ from quri_parts.circuit.gate_names import (
 )
 
 from .fuse import FuseRotationTranspiler, Rotation2NamedTranspiler
+from .gate_kind_decomposer import (
+    CNOT2CZHTranspiler,
+    CZ2CNOTHTranspiler,
+    H2RXRYTranspiler,
+    RX2RZSqrtXTranspiler,
+    RY2RZSqrtXTranspiler,
+    S2RZTranspiler,
+    Sdag2RZTranspiler,
+    SqrtX2RXTranspiler,
+    SqrtXdag2RXTranspiler,
+    SqrtY2RYTranspiler,
+    SqrtYdag2RYTranspiler,
+    SWAP2CNOTTranspiler,
+    T2RZTranspiler,
+    Tdag2RZTranspiler,
+    TOFFOLI2HTTdagCNOTTranspiler,
+    U1ToRZTranspiler,
+    U2ToRXRZTranspiler,
+    U3ToRXRZTranspiler,
+    X2RXTranspiler,
+    Y2RYTranspiler,
+    Z2RZTranspiler,
+)
 from .identity_manipulation import IdentityEliminationTranspiler
 from .multi_pauli_decomposer import (
-    PauliDecomposerTranspiler,
-    PauliRotationDecomposerTranspiler,
+    PauliDecomposeTranspiler,
+    PauliRotationDecomposeTranspiler,
 )
 from .transpiler import (
     CircuitTranspiler,
@@ -53,7 +74,7 @@ from .transpiler import (
 )
 from .unitary_matrix_decomposer import (
     SingleQubitUnitaryMatrix2RYRZTranspiler,
-    TwoQubitUnitarymatrixKAKTranspiler,
+    TwoQubitUnitaryMatrixKAKTranspiler,
 )
 
 # TODO Generate systematically
@@ -88,7 +109,7 @@ _equiv_clifford_table = {
 class CliffordConversionTranspiler(CircuitTranspilerProtocol):
     def __init__(self, target_gateset: Sequence[CliffordGateNameType]):
         self._gateset = set(target_gateset)
-        # TODO check gate type
+        # TODO Check gate type
 
     def __call__(
         self, circuit: NonParametricQuantumCircuit
@@ -213,7 +234,7 @@ class RotationConversionTranspiler(CircuitTranspilerProtocol):
         self._target_clifford = set(target_clifford)
         self._gateset = self._target_rotation | self._target_clifford
         self._decomposer = self._construct_decomposer()
-        # TODO check gate type
+        # TODO Check gate type
 
     def _construct_decomposer(self) -> CircuitTranspiler:
         rot_to_trans_map = {
@@ -229,10 +250,10 @@ class RotationConversionTranspiler(CircuitTranspilerProtocol):
             )
         elif SqrtX in self._target_clifford:
             rot_to_trans_map[frozenset({RZ})] = SequentialTranspiler(
-                [dc.RX2RZSqrtXTranspiler(), dc.RY2RZSqrtXTranspiler()]
+                [RX2RZSqrtXTranspiler(), RY2RZSqrtXTranspiler()]
             )
 
-        # TODO support {RX}, {RY}, and {}
+        # TODO Support {RX}, {RY}, and {}
 
         return rot_to_trans_map.get(
             frozenset(self._target_rotation), IdentityTranspiler()
@@ -269,7 +290,7 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
         if self._target_clifford:
             ts.extend(
                 [
-                    Rotation2NamedTranspiler(),  # optimizer
+                    Rotation2NamedTranspiler(),  # Optimizer
                     CliffordConversionTranspiler(self._target_clifford),
                 ]
             )
@@ -279,58 +300,58 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
 
         ts.extend(self._construct_clifford_to_rotation_decomposer())
         ts.extend(
-            FuseRotationTranspiler(),  # optimizer
+            FuseRotationTranspiler(),  # Optimizer
             RotationConversionTranspiler(
                 target_rotation=self._target_rotation,
                 target_clifford=self._target_clifford,
             ),
-            FuseRotationTranspiler(),  # optimizer
+            FuseRotationTranspiler(),  # Optimizer
         )
 
         return SequentialTranspiler(ts)
 
-    def _construct_complex_gateset_decomposer(self) -> list[CircuitTranspiler]:
+    def _construct_complex_gate_decomposer(self) -> list[CircuitTranspiler]:
         return self._collect_decomposers_for_target_gateset(
             {
-                Pauli: PauliDecomposerTranspiler(),
-                PauliRotation: PauliRotationDecomposerTranspiler(),
+                Pauli: PauliDecomposeTranspiler(),
+                PauliRotation: PauliRotationDecomposeTranspiler(),
                 UnitaryMatrix: SequentialTranspiler(
                     [
                         SingleQubitUnitaryMatrix2RYRZTranspiler(),
-                        TwoQubitUnitarymatrixKAKTranspiler(),
+                        TwoQubitUnitaryMatrixKAKTranspiler(),
                     ]
                 ),
-                TOFFOLI: dc.TOFFOLI2HTTdagCNOTTranspiler(),
-                U1: dc.U1ToRZTranspiler(),
-                U2: dc.U2ToRXRZTranspiler(),
-                U3: dc.U3ToRXRZTranspiler(),
+                TOFFOLI: TOFFOLI2HTTdagCNOTTranspiler(),
+                U1: U1ToRZTranspiler(),
+                U2: U2ToRXRZTranspiler(),
+                U3: U3ToRXRZTranspiler(),
             }
         )
 
     def _construct_two_qubit_gate_decomposer(self) -> list[CircuitTranspiler]:
         return self._collect_decomposers_for_target_gateset(
             {
-                SWAP: dc.SWAP2CNOTTranspiler(),
-                CZ: dc.CZ2CNOTHTranspiler(),
-                CNOT: dc.CNOT2CZHTranspiler(),
+                SWAP: SWAP2CNOTTranspiler(),
+                CZ: CZ2CNOTHTranspiler(),
+                CNOT: CNOT2CZHTranspiler(),
             }
         )
 
     def _construct_clifford_to_rotation_decomposer(self) -> list[CircuitTranspiler]:
         return self._collect_decomposers_for_target_gateset(
             {
-                H: dc.H2RXRYTranspiler(),
-                X: dc.X2RXTranspiler(),
-                Y: dc.Y2RYTranspiler(),
-                Z: dc.Z2RZTranspiler(),
-                SqrtX: dc.SqrtX2RXTranspiler(),
-                SqrtXdag: dc.SqrtXdag2RXTranspiler(),
-                SqrtY: dc.SqrtY2RYTranspiler(),
-                SqrtYdag: dc.SqrtYdag2RYTranspiler(),
-                S: dc.S2RZTranspiler(),
-                Sdag: dc.Sdag2RZTranspiler(),
-                T: dc.T2RZTranspiler(),
-                Tdag: dc.Tdag2RZTranspiler(),
+                H: H2RXRYTranspiler(),
+                X: X2RXTranspiler(),
+                Y: Y2RYTranspiler(),
+                Z: Z2RZTranspiler(),
+                SqrtX: SqrtX2RXTranspiler(),
+                SqrtXdag: SqrtXdag2RXTranspiler(),
+                SqrtY: SqrtY2RYTranspiler(),
+                SqrtYdag: SqrtYdag2RYTranspiler(),
+                S: S2RZTranspiler(),
+                Sdag: Sdag2RZTranspiler(),
+                T: T2RZTranspiler(),
+                Tdag: Tdag2RZTranspiler(),
             }
         )
 
