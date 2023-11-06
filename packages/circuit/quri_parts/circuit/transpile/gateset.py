@@ -1,8 +1,9 @@
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from math import pi
+from typing import cast
 
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
-from quri_parts.circuit import gate as gf
+from quri_parts.circuit import gates as gf
 from quri_parts.circuit.gate import QuantumGate
 from quri_parts.circuit.gate_names import (
     CLIFFORD_GATE_NAMES,
@@ -78,7 +79,7 @@ from .unitary_matrix_decomposer import (
 )
 
 # TODO Generate systematically
-_equiv_clifford_table = {
+_equiv_clifford_table: Mapping[str, list[list[str]]] = {
     H: [[S, SqrtX, S]],
     X: [[Y, Z], [SqrtX, SqrtX], [SqrtXdag, SqrtXdag], [H, Z, H], [H, S, S, H]],
     Y: [
@@ -273,8 +274,9 @@ class RotationConversionTranspiler(CircuitTranspilerProtocol):
 class GateSetConversionTranspiler(CircuitTranspilerProtocol):
     def __init__(self, target_gateset: Sequence[GateNameType]):
         self._gateset = set(target_gateset)
-        self._target_clifford = (
-            self._gateset & CLIFFORD_GATE_NAMES & SINGLE_QUBIT_GATE_NAMES
+        self._target_clifford = cast(
+            set[CliffordGateNameType],
+            self._gateset & CLIFFORD_GATE_NAMES & SINGLE_QUBIT_GATE_NAMES,
         )
         self._target_rotation = self._gateset & {RX, RY, RZ}
         self._decomposer = self._construct_decomposer()
@@ -282,14 +284,14 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
     def _construct_decomposer(self) -> CircuitTranspiler:
         ts = []
 
-        ts.extend(self._construct_complex_gateset_decomposer())
+        ts.extend(self._construct_complex_gate_decomposer())
         ts.extend(self._construct_two_qubit_gate_decomposer())
 
         if self._target_clifford:
             ts.extend(
                 [
                     Rotation2NamedTranspiler(),  # Optimizer
-                    CliffordConversionTranspiler(self._target_clifford),
+                    CliffordConversionTranspiler(tuple(self._target_clifford)),
                 ]
             )
 
@@ -298,12 +300,14 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
 
         ts.extend(self._construct_clifford_to_rotation_decomposer())
         ts.extend(
-            FuseRotationTranspiler(),  # Optimizer
-            RotationConversionTranspiler(
-                target_rotation=self._target_rotation,
-                target_clifford=self._target_clifford,
-            ),
-            FuseRotationTranspiler(),  # Optimizer
+            [
+                FuseRotationTranspiler(),  # Optimizer
+                RotationConversionTranspiler(
+                    target_rotation=tuple(self._target_rotation),
+                    target_clifford=tuple(self._target_clifford),
+                ),
+                FuseRotationTranspiler(),  # Optimizer
+            ]
         )
 
         return SequentialTranspiler(ts)
