@@ -1,6 +1,5 @@
 from collections.abc import Sequence
 from math import pi
-from typing import Callable
 
 import gate_kind_decomposer as dc
 
@@ -40,7 +39,7 @@ from quri_parts.circuit.gate_names import (
     Z,
 )
 
-from .fuse import Rotation2NamedTranspiler
+from .fuse import Rotation2NamedTranspiler, FuseRotationTranspiler
 from .identity_manipulation import IdentityEliminationTranspiler
 from .multi_pauli_decomposer import (
     PauliDecomposerTranspiler,
@@ -197,6 +196,13 @@ class RY2RZHTranspiler(GateKindDecomposer):
         ]
 
 
+class IdentityTranspiler(CircuitTranspilerProtocol):
+    def __call__(
+        self, circuit: NonParametricQuantumCircuit
+    ) -> NonParametricQuantumCircuit:
+        return circuit
+
+
 class RotationConversionTranspiler(CircuitTranspilerProtocol):
     def __init__(
         self,
@@ -205,25 +211,27 @@ class RotationConversionTranspiler(CircuitTranspilerProtocol):
     ):
         self._target_rotation = set(target_rotation)
         self._target_clifford = set(target_clifford)
+        self._gateset = self._target_rotation | self._target_clifford
+        self._decomposer = self._construct_decomposer()
         # TODO check gate type
 
-    def __call__(
-        self, circuit: NonParametricQuantumCircuit
-    ) -> NonParametricQuantumCircuit:
+    def _construct_decomposer(self) -> CircuitTranspiler:
         if self._target_rotation == {RX, RY, RZ}:
-            return circuit
+            return IdentityTranspiler()
         elif self._target_rotation == {RX, RY}:
-            return RZ2RXRYTranspiler()(circuit)
+            return RZ2RXRYTranspiler()
         elif self._target_rotation == {RY, RZ}:
-            return RX2RYRZTranspiler()(circuit)
+            return RX2RYRZTranspiler()
         elif self._target_rotation == {RX, RZ}:
-            return RY2RXRZTranspiler()(circuit)
+            return RY2RXRZTranspiler()
         elif RX in self._target_rotation:
             # H(YZ) + Rx
-            raise NotImplementedError()
+            # raise NotImplementedError()
+            return IdentityTranspiler()
         elif RY in self._target_rotation:
             # H(XZ) + Ry
-            raise NotImplementedError()
+            # raise NotImplementedError()
+            return IdentityTranspiler()
         elif RZ in self._target_rotation:
             # H(XY) + Rz
             if H in self._target_rotation:
@@ -232,33 +240,120 @@ class RotationConversionTranspiler(CircuitTranspilerProtocol):
                         RX2RZHTranspiler(),
                         RY2RZHTranspiler(),
                     ]
-                )(circuit)
+                )
             elif SqrtX in self._target_rotation:
                 return SequentialTranspiler(
                     [
                         dc.RX2RZSqrtXTranspiler(),
                         dc.RY2RZSqrtXTranspiler(),
                     ]
-                )(circuit)
-            raise NotImplementedError()
+                )
+            # raise NotImplementedError()
+            return IdentityTranspiler()
         else:
-            # Rotation2Named
             # RxRy -> Rz -> HST
-            # if {H, S, T} <= self._target_clifford:
-            #     return SequentialTranspiler([
-            #         RX2RZHTranspiler(),
-            #         RY2RZHTranspiler(),
-            #         RZ2HSTTranspiler(),
-            #     ])(circuit)
-            raise NotImplementedError()
+            # raise NotImplementedError()
+            return IdentityTranspiler()
+
+    def _validate(self, circuit: NonParametricQuantumCircuit) -> None:
+        for gate in circuit.gates:
+            if gate.name not in self._gateset:
+                raise ValueError(f"{gate} cannot be converted into the target gateset.")
+
+    def __call__(
+        self, circuit: NonParametricQuantumCircuit
+    ) -> NonParametricQuantumCircuit:
+        tr_circuit = self._decomposer(circuit)
+        self._validate(tr_circuit)
+        return tr_circuit
 
 
 class GateSetConversionTranspiler(CircuitTranspilerProtocol):
     def __init__(self, target_gateset: Sequence[GateNameType]):
         self._gateset = set(target_gateset)
+        self._target_clifford = (
+            self._gateset & CLIFFORD_GATE_NAMES & SINGLE_QUBIT_GATE_NAMES
+        )
+        self._target_rotation = self._gateset & {RX, RY, RZ}
+        self._decomposer = self._construct_decomposer()
 
-    def _add_decomposer(
-        self, name_decomp_dict: dict[GateNameType, CircuitTranspiler]
+    def _construct_decomposer(self) -> CircuitTranspiler:
+        ts = []
+
+        ts.extend(self._construct_complex_gateset_decomposer())
+        ts.extend(self._construct_two_qubit_gate_decomposer())
+
+        if self._target_clifford:
+            ts.extend(
+                [
+                    Rotation2NamedTranspiler(),
+                    CliffordConversionTranspiler(self._target_clifford),
+                ]
+            )
+
+        if Identity not in self._gateset:
+            ts.append(IdentityEliminationTranspiler())
+
+        ts.extend(self._construct_clifford_to_rotation_decomposer())
+        ts.append(FuseRotationTranspiler())
+        ts.extend(
+            RotationConversionTranspiler(
+                target_rotation=self._target_rotation,
+                target_clifford=self._target_clifford,
+            )
+        )
+        ts.append(FuseRotationTranspiler())
+
+        return SequentialTranspiler(ts)
+
+    def _construct_complex_gateset_decomposer(self) -> list[CircuitTranspiler]:
+        return self._add_decomposer_if_not_in_target_gateset(
+            {
+                Pauli: PauliDecomposerTranspiler(),
+                PauliRotation: PauliRotationDecomposerTranspiler(),
+                UnitaryMatrix: SequentialTranspiler(
+                    [
+                        SingleQubitUnitaryMatrix2RYRZTranspiler(),
+                        TwoQubitUnitarymatrixKAKTranspiler(),
+                    ]
+                ),
+                TOFFOLI: dc.TOFFOLI2HTTdagCNOTTranspiler(),
+                U1: dc.U1ToRZTranspiler(),
+                U2: dc.U2ToRXRZTranspiler(),
+                U3: dc.U3ToRXRZTranspiler(),
+            }
+        )
+
+    def _construct_two_qubit_gate_decomposer(self) -> list[CircuitTranspiler]:
+        return self._add_decomposer_if_not_in_target_gateset(
+            {
+                SWAP: dc.SWAP2CNOTTranspiler(),
+                CZ: dc.CZ2CNOTHTranspiler(),
+                CNOT: dc.CNOT2CZHTranspiler(),
+            }
+        )
+
+    def _construct_clifford_to_rotation_decomposer(self) -> list[CircuitTranspiler]:
+        return self._add_decomposer_if_not_in_target_gateset(
+            {
+                H: dc.H2RXRYTranspiler(),
+                X: dc.X2RXTranspiler(),
+                Y: dc.Y2RYTranspiler(),
+                Z: dc.Z2RZTranspiler(),
+                SqrtX: dc.SqrtX2RXTranspiler(),
+                SqrtXdag: dc.SqrtXdag2RXTranspiler(),
+                SqrtY: dc.SqrtY2RYTranspiler(),
+                SqrtYdag: dc.SqrtYdag2RYTranspiler(),
+                S: dc.S2RZTranspiler(),
+                Sdag: dc.Sdag2RZTranspiler(),
+                T: dc.T2RZTranspiler(),
+                Tdag: dc.Tdag2RZTranspiler(),
+            }
+        )
+
+    def _add_decomposer_if_not_in_target_gateset(
+        self,
+        name_decomp_dict: dict[GateNameType, CircuitTranspiler],
     ) -> list[CircuitTranspiler]:
         ts = []
         for name, trans in name_decomp_dict.items():
@@ -266,97 +361,14 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
                 ts.append(trans)
         return ts
 
-    def _contains_gate(
-        self, circuit: NonParametricQuantumCircuit, cond: Callable[[QuantumGate], bool]
-    ) -> bool:
+    def _validate(self, circuit: NonParametricQuantumCircuit) -> None:
         for gate in circuit.gates:
-            if cond(gate):
-                return True
-        return False
+            if gate.name not in self._gateset:
+                raise ValueError(f"{gate} cannot be converted into the target gateset.")
 
     def __call__(
         self, circuit: NonParametricQuantumCircuit
     ) -> NonParametricQuantumCircuit:
-        circ = circuit
-
-        if self._contains_gate(
-            circ,
-            lambda g: g.name == UnitaryMatrix and len(g.target_indices) > 2,
-        ):
-            raise NotImplementedError(
-                "UnitaryMatrix gate with 3 or more qubits is not supported."
-            )
-        ts = []
-        if Identity not in self._gateset:
-            ts.append(IdentityEliminationTranspiler())
-            # ts.append(dc.Identity2RZTranspiler())
-
-        complex_gate_table = {
-            Pauli: PauliDecomposerTranspiler(),
-            PauliRotation: PauliRotationDecomposerTranspiler(),
-            UnitaryMatrix: SequentialTranspiler(
-                [
-                    SingleQubitUnitaryMatrix2RYRZTranspiler(),
-                    TwoQubitUnitarymatrixKAKTranspiler(),
-                ]
-            ),
-            TOFFOLI: dc.TOFFOLI2HTTdagCNOTTranspiler(),
-            U1: dc.U1ToRZTranspiler(),
-            U2: dc.U2ToRXRZTranspiler(),
-            U3: dc.U3ToRXRZTranspiler(),
-        }
-        ts.extend(self._add_decomposer(complex_gate_table))
-        circ = SequentialTranspiler(ts)(circ)
-
-        ts = []
-        if self._contains_gate(circ, lambda g: g.name in {SWAP, CZ, CNOT}):
-            if SWAP not in self._gateset:
-                ts.append(dc.SWAP2CNOTTranspiler())
-            if CZ not in self._gateset:
-                ts.append(dc.CZ2CNOTHTranspiler())
-            if CNOT not in self._gateset:
-                ts.append(dc.CNOT2CZHTranspiler())
-            if CNOT not in self._gateset and CZ not in self._gateset:
-                raise ValueError(
-                    "2 qubit gates cannot be converted into the given gateset."
-                )
-
-        if self._gateset & CLIFFORD_GATE_NAMES & SINGLE_QUBIT_GATE_NAMES:
-            ts.append(Rotation2NamedTranspiler())
-
-        ts.append(
-            CliffordConversionTranspiler(
-                self._gateset & CLIFFORD_GATE_NAMES & SINGLE_QUBIT_GATE_NAMES
-            )
-        )
-
-        single_qubit_clifford_table = {
-            H: dc.H2RXRYTranspiler(),
-            X: dc.X2RXTranspiler(),
-            Y: dc.Y2RYTranspiler(),
-            Z: dc.Z2RZTranspiler(),
-            SqrtX: dc.SqrtX2RXTranspiler(),
-            SqrtXdag: dc.SqrtXdag2RXTranspiler(),
-            SqrtY: dc.SqrtY2RYTranspiler(),
-            SqrtYdag: dc.SqrtYdag2RYTranspiler(),
-            S: dc.S2RZTranspiler(),
-            Sdag: dc.Sdag2RZTranspiler(),
-            T: dc.T2RZTranspiler(),
-            Tdag: dc.Tdag2RZTranspiler(),
-        }
-        ts.extend(self._add_decomposer(single_qubit_clifford_table))
-        circ = SequentialTranspiler(ts)(circ)
-
-        if self._contains_gate(circ, lambda g: g.name in {RX, RY, RZ}):
-            ts = []
-            ts.extend(
-                RotationConversionTranspiler(
-                    target_rotation=self._gateset & {RX, RY, RZ},
-                    target_clifford=self._gateset
-                    & CLIFFORD_GATE_NAMES
-                    & SINGLE_QUBIT_GATE_NAMES,
-                )
-            )
-            circ = SequentialTranspiler(ts)(circ)
-
-        return circ
+        tr_circuit = self._decomposer(circuit)
+        self._validate(tr_circuit)
+        return tr_circuit
