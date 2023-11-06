@@ -242,18 +242,16 @@ class RotationConversionTranspiler(CircuitTranspilerProtocol):
             frozenset({RX, RY}): RZ2RXRYTranspiler(),
             frozenset({RY, RZ}): RX2RYRZTranspiler(),
             frozenset({RX, RZ}): RY2RXRZTranspiler(),
+            frozenset({RZ}): SequentialTranspiler(
+                [RX2RZHTranspiler(), RY2RZHTranspiler()]
+            ),
         }
 
-        if H in self._target_clifford:
-            rot_to_trans_map[frozenset({RZ})] = SequentialTranspiler(
-                [RX2RZHTranspiler(), RY2RZHTranspiler()]
-            )
-        elif SqrtX in self._target_clifford:
+        # TODO Support {RX}, {RY}, and {}
+        if H not in self._target_clifford and SqrtX in self._target_clifford:
             rot_to_trans_map[frozenset({RZ})] = SequentialTranspiler(
                 [RX2RZSqrtXTranspiler(), RY2RZSqrtXTranspiler()]
             )
-
-        # TODO Support {RX}, {RY}, and {}
 
         return rot_to_trans_map.get(
             frozenset(self._target_rotation), IdentityTranspiler()
@@ -261,7 +259,7 @@ class RotationConversionTranspiler(CircuitTranspilerProtocol):
 
     def _validate(self, circuit: NonParametricQuantumCircuit) -> None:
         for gate in circuit.gates:
-            if gate.name not in self._gateset:
+            if gate.name in {RX, RY, RZ} and gate.name not in self._target_rotation:
                 raise ValueError(f"{gate} cannot be converted into the target gateset.")
 
     def __call__(
