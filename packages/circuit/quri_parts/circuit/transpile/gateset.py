@@ -39,7 +39,7 @@ from quri_parts.circuit.gate_names import (
     Z,
 )
 
-from .fuse import Rotation2NamedTranspiler, FuseRotationTranspiler
+from .fuse import FuseRotationTranspiler, Rotation2NamedTranspiler
 from .identity_manipulation import IdentityEliminationTranspiler
 from .multi_pauli_decomposer import (
     PauliDecomposerTranspiler,
@@ -216,43 +216,34 @@ class RotationConversionTranspiler(CircuitTranspilerProtocol):
         # TODO check gate type
 
     def _construct_decomposer(self) -> CircuitTranspiler:
-        if self._target_rotation == {RX, RY, RZ}:
-            return IdentityTranspiler()
-        elif self._target_rotation == {RX, RY}:
-            return RZ2RXRYTranspiler()
-        elif self._target_rotation == {RY, RZ}:
-            return RX2RYRZTranspiler()
-        elif self._target_rotation == {RX, RZ}:
-            return RY2RXRZTranspiler()
-        elif RX in self._target_rotation:
-            # H(YZ) + Rx
-            # raise NotImplementedError()
-            return IdentityTranspiler()
-        elif RY in self._target_rotation:
-            # H(XZ) + Ry
-            # raise NotImplementedError()
-            return IdentityTranspiler()
-        elif RZ in self._target_rotation:
-            # H(XY) + Rz
-            if H in self._target_rotation:
-                return SequentialTranspiler(
-                    [
-                        RX2RZHTranspiler(),
-                        RY2RZHTranspiler(),
-                    ]
-                )
-            elif SqrtX in self._target_rotation:
-                return SequentialTranspiler(
-                    [
-                        dc.RX2RZSqrtXTranspiler(),
-                        dc.RY2RZSqrtXTranspiler(),
-                    ]
-                )
-            # raise NotImplementedError()
-            return IdentityTranspiler()
+        rot_to_trans_map = {
+            frozenset({RX, RY, RZ}): IdentityTranspiler(),
+            frozenset({RX, RY}): RZ2RXRYTranspiler(),
+            frozenset({RY, RZ}): RX2RYRZTranspiler(),
+            frozenset({RX, RZ}): RY2RXRZTranspiler(),
+        }
+
+        if H in self._target_clifford:
+            rot_to_trans_map[frozenset({RZ})] = SequentialTranspiler(
+                [RX2RZHTranspiler(), RY2RZHTranspiler()]
+            )
+        elif SqrtX in self._target_clifford:
+            rot_to_trans_map[frozenset({RZ})] = SequentialTranspiler(
+                [dc.RX2RZSqrtXTranspiler(), dc.RY2RZSqrtXTranspiler()]
+            )
+
+        # TODO support {RX}, {RY}, and {}
+
+        return self._gateset_to_decomposer(rot_to_trans_map)
+
+    def _gateset_to_decomposer(
+        self, rot_to_trans_map: dict[frozenset[GateNameType], CircuitTranspiler]
+    ) -> CircuitTranspiler:
+        target_rot = frozenset(self._target_rotation)
+        if target_rot in rot_to_trans_map:
+            return rot_to_trans_map[target_rot]
         else:
-            # RxRy -> Rz -> HST
-            # raise NotImplementedError()
+            # raise ValueError()
             return IdentityTranspiler()
 
     def _validate(self, circuit: NonParametricQuantumCircuit) -> None:
@@ -307,7 +298,7 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
         return SequentialTranspiler(ts)
 
     def _construct_complex_gateset_decomposer(self) -> list[CircuitTranspiler]:
-        return self._add_decomposer_if_not_in_target_gateset(
+        return self._collect_decomposers_for_target_gateset(
             {
                 Pauli: PauliDecomposerTranspiler(),
                 PauliRotation: PauliRotationDecomposerTranspiler(),
@@ -325,7 +316,7 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
         )
 
     def _construct_two_qubit_gate_decomposer(self) -> list[CircuitTranspiler]:
-        return self._add_decomposer_if_not_in_target_gateset(
+        return self._collect_decomposers_for_target_gateset(
             {
                 SWAP: dc.SWAP2CNOTTranspiler(),
                 CZ: dc.CZ2CNOTHTranspiler(),
@@ -334,7 +325,7 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
         )
 
     def _construct_clifford_to_rotation_decomposer(self) -> list[CircuitTranspiler]:
-        return self._add_decomposer_if_not_in_target_gateset(
+        return self._collect_decomposers_for_target_gateset(
             {
                 H: dc.H2RXRYTranspiler(),
                 X: dc.X2RXTranspiler(),
@@ -351,7 +342,7 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
             }
         )
 
-    def _add_decomposer_if_not_in_target_gateset(
+    def _collect_decomposers_for_target_gateset(
         self,
         name_decomp_dict: dict[GateNameType, CircuitTranspiler],
     ) -> list[CircuitTranspiler]:
