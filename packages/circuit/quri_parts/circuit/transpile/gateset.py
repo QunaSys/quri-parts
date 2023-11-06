@@ -269,7 +269,7 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
         if self._target_clifford:
             ts.extend(
                 [
-                    Rotation2NamedTranspiler(),
+                    Rotation2NamedTranspiler(),  # optimizer
                     CliffordConversionTranspiler(self._target_clifford),
                 ]
             )
@@ -278,14 +278,14 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
             ts.append(IdentityEliminationTranspiler())
 
         ts.extend(self._construct_clifford_to_rotation_decomposer())
-        ts.append(FuseRotationTranspiler())
         ts.extend(
+            FuseRotationTranspiler(),  # optimizer
             RotationConversionTranspiler(
                 target_rotation=self._target_rotation,
                 target_clifford=self._target_clifford,
-            )
+            ),
+            FuseRotationTranspiler(),  # optimizer
         )
-        ts.append(FuseRotationTranspiler())
 
         return SequentialTranspiler(ts)
 
