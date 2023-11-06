@@ -234,17 +234,9 @@ class RotationConversionTranspiler(CircuitTranspilerProtocol):
 
         # TODO support {RX}, {RY}, and {}
 
-        return self._gateset_to_decomposer(rot_to_trans_map)
-
-    def _gateset_to_decomposer(
-        self, rot_to_trans_map: dict[frozenset[GateNameType], CircuitTranspiler]
-    ) -> CircuitTranspiler:
-        target_rot = frozenset(self._target_rotation)
-        if target_rot in rot_to_trans_map:
-            return rot_to_trans_map[target_rot]
-        else:
-            # raise ValueError()
-            return IdentityTranspiler()
+        return rot_to_trans_map.get(
+            frozenset(self._target_rotation), IdentityTranspiler()
+        )
 
     def _validate(self, circuit: NonParametricQuantumCircuit) -> None:
         for gate in circuit.gates:
