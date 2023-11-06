@@ -32,3 +32,106 @@ def _gates_close(x: QuantumGate, y: QuantumGate) -> bool:
         and x.pauli_ids == y.pauli_ids
         and np.allclose(x.unitary_matrix, y.unitary_matrix)
     )
+
+
+def _circuit_close(x: QuantumCircuit, y: QuantumCircuit) -> bool:
+    return len(x.gates) == len(y.gates) and all(
+        _gates_close(a, b) for a, b in zip(x.gates, y.gates)
+    )
+
+
+class TestCliffordConversion:
+    ...
+
+
+class TestRotationConversion:
+    def test_rx2ryrz_transpile(self) -> None:
+        theta = 2.0 * np.pi * np.random.rand()
+
+        circuit = QuantumCircuit(1)
+        circuit.add_RX_gate(0, theta)
+        transpiled = RX2RYRZTranspiler()(circuit)
+
+        expect = QuantumCircuit(1)
+        expect.extend(
+            [
+                gates.RZ(0, np.pi / 2.0),
+                gates.RY(0, theta),
+                gates.RZ(0, -np.pi / 2.0),
+            ]
+        )
+        assert _circuit_close(transpiled, expect)
+
+    def test_rx2rzh_transpile(self) -> None:
+        theta = 2.0 * np.pi * np.random.rand()
+
+        circuit = QuantumCircuit(1)
+        circuit.add_RX_gate(0, theta)
+        transpiled = RX2RZHTranspiler()(circuit)
+
+        expect = QuantumCircuit(1)
+        expect.extend(
+            [
+                gates.H(0),
+                gates.RZ(0, theta),
+                gates.H(0),
+            ]
+        )
+        assert _circuit_close(transpiled, expect)
+
+    def test_ry2rxrz_transpile(self) -> None:
+        theta = 2.0 * np.pi * np.random.rand()
+
+        circuit = QuantumCircuit(1)
+        circuit.add_RY_gate(0, theta)
+        transpiled = RY2RXRZTranspiler()(circuit)
+
+        expect = QuantumCircuit(1)
+        expect.extend(
+            [
+                gates.RX(0, np.pi / 2.0),
+                gates.RZ(0, theta),
+                gates.RX(0, -np.pi / 2.0),
+            ]
+        )
+        assert _circuit_close(transpiled, expect)
+
+    def test_ry2rzh_transpile(self) -> None:
+        theta = 2.0 * np.pi * np.random.rand()
+
+        circuit = QuantumCircuit(1)
+        circuit.add_RY_gate(0, theta)
+        transpiled = RY2RZHTranspiler()(circuit)
+
+        expect = QuantumCircuit(1)
+        expect.extend(
+            [
+                gates.RZ(0, -np.pi / 2.0),
+                gates.H(0),
+                gates.RZ(0, theta),
+                gates.H(0),
+                gates.RZ(0, np.pi / 2.0),
+            ]
+        )
+        assert _circuit_close(transpiled, expect)
+
+    def test_rz2rxry_transpile(self) -> None:
+        theta = 2.0 * np.pi * np.random.rand()
+
+        circuit = QuantumCircuit(1)
+        circuit.add_RZ_gate(0, theta)
+        transpiled = RZ2RXRYTranspiler()(circuit)
+
+        expect = QuantumCircuit(1)
+        expect.extend(
+            [
+                gates.RX(0, np.pi / 2.0),
+                gates.RY(0, -theta),
+                gates.RX(0, -np.pi / 2.0),
+            ]
+        )
+        assert _circuit_close(transpiled, expect)
+
+
+class TestGateSetConversion:
+    ...
