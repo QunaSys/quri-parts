@@ -92,15 +92,7 @@ from .unitary_matrix_decomposer import (
 _equiv_clifford_table: Mapping[str, list[list[str]]] = {
     H: [[S, SqrtX, S]],
     X: [[Y, Z], [SqrtX, SqrtX], [SqrtXdag, SqrtXdag], [H, Z, H], [H, S, S, H]],
-    Y: [
-        [Z, X],
-        # [SqrtY, SqrtY],
-        # [SqrtYdag, SqrtYdag],
-        [H, X, H],
-        [S, S, X],
-        [Z, H, Z, H],
-        [S, S, H, S, S, H],
-    ],
+    Y: [[Z, X], [H, X, H], [S, S, X], [Z, H, Z, H], [S, S, H, S, S, H]],
     Z: [[X, Y], [S, S], [Sdag, Sdag], [X, H, X, H], [X, S, S, X]],
     SqrtX: [[Sdag, H, Sdag], [S, Z, H, Z, S], [S, S, S, H, S, S, S]],
     SqrtXdag: [[S, H, S], [Z, SqrtX, Z], [S, S, SqrtX, S, S]],
@@ -129,6 +121,10 @@ class CliffordConversionTranspiler(CircuitTranspilerProtocol):
 
         for gate in circuit.gates:
             if gate.name not in CLIFFORD_GATE_NAMES & SINGLE_QUBIT_GATE_NAMES:
+                ret.append(gate)
+                continue
+
+            if gate.name in self._gateset:
                 ret.append(gate)
                 continue
 
