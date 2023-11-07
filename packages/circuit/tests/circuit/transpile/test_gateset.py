@@ -17,10 +17,6 @@ from quri_parts.circuit import (
     gate_names,
     gates,
 )
-from quri_parts.circuit.gate_names import (
-    SINGLE_QUBIT_GATE_NAMES,
-    CLIFFORD_GATE_NAMES,
-)
 from quri_parts.circuit.transpile import (
     CliffordConversionTranspiler,
     GateSetConversionTranspiler,
