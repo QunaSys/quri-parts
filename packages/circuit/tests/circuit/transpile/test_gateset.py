@@ -17,7 +17,7 @@ from quri_parts.circuit import (
     gate_names,
     gates,
 )
-from quri_parts.circuit.gate_names import CliffordGateNameType
+from quri_parts.circuit.gate_names import CliffordGateNameType, GateNameType
 from quri_parts.circuit.transpile import (
     CliffordConversionTranspiler,
     GateSetConversionTranspiler,
@@ -110,7 +110,47 @@ def _rotation_circuit(theta: float) -> NonParametricQuantumCircuit:
             gates.RX(1, theta),
             gates.RY(1, theta),
             gates.RZ(1, theta),
-            gates.T(1),
+            gates.Tdag(1),
+        ]
+    )
+    return circuit
+
+
+def _complex_circuit() -> NonParametricQuantumCircuit:
+    theta, phi, lam = 2.0 * np.pi * np.random.rand(3)
+    umat2 = np.array([[1.0, 1.0], [1.0, -1.0]], dtype=np.complex128) / np.sqrt(2.0)
+    umat4 = np.identity(4, dtype=np.complex128)
+    umat4[3, 3] = -1.0
+    circuit = QuantumCircuit(3)
+    circuit.extend(
+        [
+            gates.Identity(0),
+            gates.H(0),
+            gates.X(0),
+            gates.SqrtX(0),
+            gates.SqrtXdag(0),
+            gates.Y(0),
+            gates.SqrtY(0),
+            gates.SqrtYdag(0),
+            gates.Z(0),
+            gates.S(0),
+            gates.Sdag(0),
+            gates.T(0),
+            gates.Tdag(0),
+            gates.RX(0, theta),
+            gates.RY(0, theta),
+            gates.RZ(0, theta),
+            gates.U1(0, theta),
+            gates.U2(0, theta, phi),
+            gates.U3(0, theta, phi, lam),
+            gates.CNOT(0, 1),
+            gates.CZ(0, 1),
+            gates.SWAP(0, 1),
+            gates.TOFFOLI(0, 1, 2),
+            gates.Pauli((0, 1, 2), (1, 2, 3)),
+            gates.PauliRotation((0, 1, 2), (1, 2, 3), theta),
+            gates.SingleQubitUnitaryMatrix(0, umat2.tolist()),
+            gates.TwoQubitUnitaryMatrix(0, 1, umat4.tolist()),
         ]
     )
     return circuit
@@ -121,7 +161,7 @@ class TestCliffordConversion:
         target_gateset: list[CliffordGateNameType] = [gate_names.H, gate_names.S]
         circuit = _single_qubit_clifford_circuit()
         transpiled = CliffordConversionTranspiler(target_gateset)(circuit)
-        assert set(target_gateset) <= _gate_kinds(transpiled)
+        assert _gate_kinds(transpiled) <= set(target_gateset)
 
     def test_hsz_transpile(self) -> None:
         target_gateset: list[CliffordGateNameType] = [
@@ -131,7 +171,7 @@ class TestCliffordConversion:
         ]
         circuit = _single_qubit_clifford_circuit()
         transpiled = CliffordConversionTranspiler(target_gateset)(circuit)
-        assert set(target_gateset) <= _gate_kinds(transpiled)
+        assert _gate_kinds(transpiled) <= set(target_gateset)
 
     def test_xsxzs_transpile(self) -> None:
         target_gateset: list[CliffordGateNameType] = [
@@ -142,7 +182,7 @@ class TestCliffordConversion:
         ]
         circuit = _single_qubit_clifford_circuit()
         transpiled = CliffordConversionTranspiler(target_gateset)(circuit)
-        assert set(target_gateset) <= _gate_kinds(transpiled)
+        assert _gate_kinds(transpiled) <= set(target_gateset)
 
     def test_hs_clifford_rot_transpile(self) -> None:
         target_gateset: list[CliffordGateNameType] = [gate_names.H, gate_names.S]
@@ -315,4 +355,66 @@ class TestRotationConversion:
 
 
 class TestGateSetConversion:
-    ...
+    def test_rxryrzcx_transpile(self) -> None:
+        target_gateset: list[GateNameType] = [
+            gate_names.RX,
+            gate_names.RY,
+            gate_names.RZ,
+            gate_names.CNOT,
+        ]
+        theta = np.pi / 7.0
+        circuit = _clifford_and_rotation_circuit(theta) + _rotation_circuit(theta)
+        transpiled = GateSetConversionTranspiler(target_gateset)(circuit)
+        assert _gate_kinds(transpiled) <= set(target_gateset)
+
+    def test_rxryrzcx_complex_transpile(self) -> None:
+        target_gateset: list[GateNameType] = [
+            gate_names.RX,
+            gate_names.RY,
+            gate_names.RZ,
+            gate_names.CNOT,
+        ]
+        transpiled = GateSetConversionTranspiler(target_gateset)(_complex_circuit())
+        assert _gate_kinds(transpiled) <= set(target_gateset)
+
+    def test_xsxrzcx_transpile(self) -> None:
+        target_gateset: list[GateNameType] = [
+            gate_names.X,
+            gate_names.SqrtX,
+            gate_names.RZ,
+            gate_names.CNOT,
+        ]
+        theta = np.pi / 7.0
+        circuit = _clifford_and_rotation_circuit(theta) + _rotation_circuit(theta)
+        transpiled = GateSetConversionTranspiler(target_gateset)(circuit)
+        assert _gate_kinds(transpiled) <= set(target_gateset)
+
+    def test_xsxrzcx_complex_transpile(self) -> None:
+        target_gateset: list[GateNameType] = [
+            gate_names.X,
+            gate_names.SqrtX,
+            gate_names.RZ,
+            gate_names.CNOT,
+        ]
+        transpiled = GateSetConversionTranspiler(target_gateset)(_complex_circuit())
+        assert _gate_kinds(transpiled) <= set(target_gateset)
+
+    def test_hrzcx_transpile(self) -> None:
+        target_gateset: list[GateNameType] = [
+            gate_names.H,
+            gate_names.RZ,
+            gate_names.CNOT,
+        ]
+        theta = np.pi / 7.0
+        circuit = _clifford_and_rotation_circuit(theta) + _rotation_circuit(theta)
+        transpiled = GateSetConversionTranspiler(target_gateset)(circuit)
+        assert _gate_kinds(transpiled) <= set(target_gateset)
+
+    def test_hrzcx_complex_transpile(self) -> None:
+        target_gateset: list[GateNameType] = [
+            gate_names.H,
+            gate_names.RZ,
+            gate_names.CNOT,
+        ]
+        transpiled = GateSetConversionTranspiler(target_gateset)(_complex_circuit())
+        assert _gate_kinds(transpiled) <= set(target_gateset)
