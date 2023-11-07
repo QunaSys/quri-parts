@@ -17,6 +17,7 @@ from quri_parts.circuit import (
     gate_names,
     gates,
 )
+from quri_parts.circuit.gate_names import CliffordGateNameType
 from quri_parts.circuit.transpile import (
     CliffordConversionTranspiler,
     GateSetConversionTranspiler,
@@ -40,13 +41,15 @@ def _gates_close(x: QuantumGate, y: QuantumGate) -> bool:
     )
 
 
-def _circuit_close(x: QuantumCircuit, y: QuantumCircuit) -> bool:
+def _circuit_close(
+    x: NonParametricQuantumCircuit, y: NonParametricQuantumCircuit
+) -> bool:
     return len(x.gates) == len(y.gates) and all(
         _gates_close(a, b) for a, b in zip(x.gates, y.gates)
     )
 
 
-def _gate_kinds(circuit: QuantumCircuit) -> set[str]:
+def _gate_kinds(circuit: NonParametricQuantumCircuit) -> set[str]:
     return {gate.name for gate in circuit.gates}
 
 
@@ -115,25 +118,34 @@ def _rotation_circuit(theta: float) -> NonParametricQuantumCircuit:
 
 class TestCliffordConversion:
     def test_hs_transpile(self) -> None:
-        target_gateset = [gate_names.H, gate_names.S]
+        target_gateset: list[CliffordGateNameType] = [gate_names.H, gate_names.S]
         circuit = _single_qubit_clifford_circuit()
         transpiled = CliffordConversionTranspiler(target_gateset)(circuit)
         assert set(target_gateset) <= _gate_kinds(transpiled)
 
     def test_hsz_transpile(self) -> None:
-        target_gateset = [gate_names.H, gate_names.S, gate_names.Z]
+        target_gateset: list[CliffordGateNameType] = [
+            gate_names.H,
+            gate_names.S,
+            gate_names.Z,
+        ]
         circuit = _single_qubit_clifford_circuit()
         transpiled = CliffordConversionTranspiler(target_gateset)(circuit)
         assert set(target_gateset) <= _gate_kinds(transpiled)
 
     def test_xsxzs_transpile(self) -> None:
-        target_gateset = [gate_names.X, gate_names.SqrtX, gate_names.Z, gate_names.S]
+        target_gateset: list[CliffordGateNameType] = [
+            gate_names.X,
+            gate_names.SqrtX,
+            gate_names.Z,
+            gate_names.S,
+        ]
         circuit = _single_qubit_clifford_circuit()
         transpiled = CliffordConversionTranspiler(target_gateset)(circuit)
         assert set(target_gateset) <= _gate_kinds(transpiled)
 
     def test_hs_clifford_rot_transpile(self) -> None:
-        target_gateset = [gate_names.H, gate_names.S]
+        target_gateset: list[CliffordGateNameType] = [gate_names.H, gate_names.S]
         circuit = _clifford_and_rotation_circuit(np.pi / 7.0)
         transpiled = CliffordConversionTranspiler(target_gateset)(circuit)
         assert _gate_kinds(transpiled) == {
@@ -149,7 +161,7 @@ class TestCliffordConversion:
         }
 
     def test_hs_rot_transpile(self) -> None:
-        target_gateset = [gate_names.H, gate_names.S]
+        target_gateset: list[CliffordGateNameType] = [gate_names.H, gate_names.S]
         circuit = _rotation_circuit(np.pi / 7.0)
         transpiled = CliffordConversionTranspiler(target_gateset)(circuit)
         assert _circuit_close(transpiled, circuit)
