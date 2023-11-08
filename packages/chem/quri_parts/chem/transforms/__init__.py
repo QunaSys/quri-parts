@@ -92,6 +92,10 @@ class FermionQubitMapperFactory(Protocol):
                 containing the fixed number of Fermions. Some mappings require this
                 argument (e.g. symmetry-conserving Bravyi-Kitaev transformation) while
                 the others ignore it.
+            sz:
+                The spin along the z-axis of the state you want to transform. Some
+                mappings require this argument (e.g. symmetry-conserving Bravyi-Kitaev
+                transformation) while the others ignore it.
         """
         ...
 
@@ -112,35 +116,49 @@ class FermionQubitMapperFactory(Protocol):
                 The number of fermions considered when the qubit state is mapped.
                 Some mappings require this argument (e.g. symmetry-conserving
                 Bravyi-Kitaev transformation) while the others ignore it.
-            n_up_spins:
-                The number of spin-up electrons.
+            sz:
+                The spin along the z-axis of the state you want to transform. Some
+                mappings require this argument (e.g. symmetry-conserving Bravyi-Kitaev
+                transformation) while the others ignore it.
         """
         ...
 
 
 class FermionQubitMapping(Protocol):
+    """Mapping from Fermionic states to qubit states."""
+
     @abstractproperty
     def n_spin_orbitals(self) -> int:
+        """Number of spin orbitals this mapping object works with."""
         ...
 
     @abstractproperty
     def n_qubits(self) -> int:
+        """Number of qubits this mapping object works with."""
         ...
 
     @abstractproperty
     def state_mapper(self) -> "FermionQubitStateMapper":
+        """Returns a function that maps occupied spin orbital indices to a
+        computational basis state of qubits."""
         ...
 
     @abstractproperty
     def inv_state_mapper(self) -> "QubitFermionStateMapper":
+        """Returns a function that maps a computational basis state of qubits
+        to the set of occupied spin orbital indices."""
         ...
 
 
-def jordan_wigner_n_qubits_required(n_spin_orbtals: int) -> int:
-    return n_spin_orbtals
+def jordan_wigner_n_qubits_required(n_spin_orbitals: int) -> int:
+    """Number of qubits required to perform Jordan-Wigner mapping for a system
+    with `n_spin_orbtals` spin orbitals."""
+    return n_spin_orbitals
 
 
 def jordan_wigner_n_spin_orbitals(n_qubits: int) -> int:
+    """Returns a number of spin orbitals that the Jordan-Wigner mapping can
+    represent with a given number of qubits."""
     return n_qubits
 
 
@@ -149,24 +167,33 @@ class JordanWignerMapperFactory(FermionQubitMapperFactory, ABC):
 
     @staticmethod
     def n_qubits_required(n_spin_orbitals: int) -> int:
+        """Number of qubits required to perform Jordan-Wigner mapping for a
+        system with `n_spin_orbtals` spin orbitals."""
         return jordan_wigner_n_qubits_required(n_spin_orbitals)
 
     @staticmethod
     def n_spin_orbitals(n_qubits: int) -> int:
+        """Returns the number of spin orbitals that the Jordan-Wigner mapping
+        can represent with a given number of qubits."""
         return jordan_wigner_n_spin_orbitals(n_qubits)
 
 
 class JordanWigner(FermionQubitMapping, ABC):
     @property
     def n_qubits(self) -> int:
+        """Number of qubits to perform Jordan-Wigner mapping with."""
         return jordan_wigner_n_qubits_required(self.n_spin_orbitals)
 
 
 def bravyi_kitaev_n_qubits_required(n_spin_orbtals: int) -> int:
+    """Number of qubits required to perform Bravyi-Kitaev mapping for a system
+    with `n_spin_orbtals` spin orbitals."""
     return n_spin_orbtals
 
 
 def bravyi_kitaev_n_spin_orbitals(n_qubits: int) -> int:
+    """Returns the number of spin orbitals that the Bravyi-Kitaev mapping can
+    represent with a given number of qubits."""
     return n_qubits
 
 
@@ -175,24 +202,33 @@ class BravyiKitaevMapperFactory(FermionQubitMapperFactory, ABC):
 
     @staticmethod
     def n_qubits_required(n_spin_orbitals: int) -> int:
+        """Number of qubits required to perform Bravyi-Kitaev mapping for a
+        system with `n_spin_orbtals` spin orbitals."""
         return bravyi_kitaev_n_qubits_required(n_spin_orbitals)
 
     @staticmethod
     def n_spin_orbitals(n_qubits: int) -> int:
+        """Returns the number of spin orbitals that the Bravyi-Kitaev mapping
+        can represent with a given number of qubits."""
         return bravyi_kitaev_n_spin_orbitals(n_qubits)
 
 
 class BravyiKitaev(FermionQubitMapping, ABC):
     @property
     def n_qubits(self) -> int:
+        """Number of qubits to perform Bravyi-Kitaev mapping with."""
         return bravyi_kitaev_n_qubits_required(self.n_spin_orbitals)
 
 
 def symmetry_conserving_bravyi_kitaev_n_qubits_required(n_spin_orbtals: int) -> int:
+    """Number of qubits required to perform symmetry-conserving Bravyi-Kitaev
+    mapping for a system with `n_spin_orbtals` spin orbitals."""
     return n_spin_orbtals - 2
 
 
 def symmetry_conserving_bravyi_kitaev_n_spin_orbitals(n_qubits: int) -> int:
+    """Returns the number of spin orbitals that the symmetry-conservinh Bravyi-
+    Kitaev mapping can represent with a given number of qubits."""
     return n_qubits + 2
 
 
@@ -209,14 +245,20 @@ class SymmetryConservingBravyiKitaevMapperFactory(FermionQubitMapperFactory, ABC
 
     @staticmethod
     def n_qubits_required(n_spin_orbitals: int) -> int:
+        """Number of qubits required to perform symmetry-conserving Bravyi-
+        Kitaev mapping for a system with `n_spin_orbtals` spin orbitals."""
         return symmetry_conserving_bravyi_kitaev_n_qubits_required(n_spin_orbitals)
 
     @staticmethod
     def n_spin_orbitals(n_qubits: int) -> int:
+        """Returns the number of spin orbitals that the symmetry-conserving
+        Bravyi-Kitaev mapping can represent with a given number of qubits."""
         return symmetry_conserving_bravyi_kitaev_n_spin_orbitals(n_qubits)
 
 
 class SymmetryConservingBravyiKitaev(FermionQubitMapping, ABC):
     @property
     def n_qubits(self) -> int:
+        """Number of qubits to perform symmetry-conserving Bravyi-Kitaev
+        mapping with."""
         return symmetry_conserving_bravyi_kitaev_n_qubits_required(self.n_spin_orbitals)
