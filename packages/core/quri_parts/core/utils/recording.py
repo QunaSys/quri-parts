@@ -245,7 +245,7 @@ class RecordSet:
         self._history.pop()
 
     def get_history(self, func: RecordableFunction[P, R]) -> Iterable[RecordGroup]:
-        """Returns the :class:`RecordGroup`s corresponding to the
+        """Returns the :class:`RecordGroup`\ s corresponding to the
         :class:`RecordableFunction` as an Iterable."""
         return filter(lambda g: g.func_id == func.id, self._history)
 
