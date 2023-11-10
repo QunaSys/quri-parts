@@ -241,7 +241,8 @@ class RecordSet:
         return group
 
     def remove_last_group(self) -> None:
-        r"""Remove the last group from the sequence of :class:`RecordGroup`\ s."""
+        r"""Remove the last group from the sequence of
+        :class:`RecordGroup`\ s."""
         self._history.pop()
 
     def get_history(self, func: RecordableFunction[P, R]) -> Iterable[RecordGroup]:
