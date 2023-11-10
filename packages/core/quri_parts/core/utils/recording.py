@@ -330,11 +330,9 @@ class RecordSession:
         self._group_stack.append(group)
 
     def exit_func(self, fid: RecordableFunctionId) -> None:
-        """Removes the group added by :meth:`start_func` from
-        :class:`RecordSet` if it's empty.
+        """A hook called on exit of a recordable function.
 
-        This function is called for each :class:`RecordableFunction`
-        calls.
+        Internally it pops the record group for the specified function.
         """
         group = self._group_stack.pop()
         if not group.entries:
