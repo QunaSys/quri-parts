@@ -202,7 +202,7 @@ def _next_group_id() -> int:
 @dataclass
 class RecordGroup:
     """Represents a group of data, which contains the list of
-    :class:`RecordEntry`s with :class:`RecordableFunctionId`. This group is created for
+    :class:`RecordEntry`\ s with :class:`RecordableFunctionId`. This group is created for
     every :class:`RecordableFunction` calls.
     """
 
