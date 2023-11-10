@@ -343,7 +343,9 @@ class RecordSession:
         return self._record_set
 
     def add_logger(self, logger: Optional[logging.Logger] = None) -> None:
-        """Adds the :class:`logging.Logger`."""
+        """Connect a logger which logs data recording events received by the
+        session."""
+
         if logger is None:
             logger = logging.getLogger(_DEFAULT_LOGGER_NAME)
         self._loggers.add(logger)
