@@ -275,11 +275,11 @@ class RecordSession:
         self._levels[func.id] = level
 
     def is_enabled_for(self, level: RecordLevel, fid: RecordableFunctionId) -> bool:
-        """Checks if the function given as :class:`RecordableFunctionId` is
-        enabled for given :class:`RecordLevel`.
+        """Checks if recording of the given level is enabled for the specified
+        recordable function in this session.
 
-        I.e. returns if the registered function's level is equal to or
-        smaller than given `level`.
+        Returns true if the record level set for the function is equal
+        to or smaller than given `level`.
         """
         return fid in self._levels and level >= self._levels[fid]
 
