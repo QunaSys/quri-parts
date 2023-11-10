@@ -339,7 +339,7 @@ class RecordSession:
             self._record_set.remove_last_group()
 
     def get_records(self) -> RecordSet:
-        """Returns the :class:`RecordSet`"""
+        """Returns all the records saved in the session."""
         return self._record_set
 
     def add_logger(self, logger: Optional[logging.Logger] = None) -> None:
