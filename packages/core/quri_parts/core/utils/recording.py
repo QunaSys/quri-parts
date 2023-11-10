@@ -270,8 +270,8 @@ class RecordSession:
         self._loggers: set[logging.Logger] = set()
 
     def set_level(self, level: RecordLevel, func: RecordableFunction[P, R]) -> None:
-        """Set the correspondense of the :class:`RecordableFunction` and it's
-        :class:`RecordLevel` as a dict."""
+        """Set a record level for the specified recordable function in this
+        session."""
         self._levels[func.id] = level
 
     def is_enabled_for(self, level: RecordLevel, fid: RecordableFunctionId) -> bool:
