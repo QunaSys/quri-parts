@@ -141,8 +141,8 @@ class Recorder:
             session.exit_func(self._func_id)
 
     def record(self, level: RecordLevel, key: _RecKey, value: _RecValue) -> None:
-        """Records the given data to :class:`RecordGroup` belongs to active
-        :class:`RecordSession`s."""
+        """Records the given data to :class:`RecordGroup`\ s which belong to active
+        :class:`RecordSession`\ s."""
         for session in _active_sessions:
             if session.is_enabled_for(level, self._func_id):
                 session.handler(level, self._func_id, key, value)
