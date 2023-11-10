@@ -135,10 +135,10 @@ class Recorder:
         """Context manager to be called for each :class:`RecordableFunction`
         call."""
         for session in _active_sessions:
-            session.enter_func(self._func_id)
+            session._enter_func(self._func_id)
         yield
         for session in _active_sessions:
-            session.exit_func(self._func_id)
+            session._exit_func(self._func_id)
 
     def record(self, level: RecordLevel, key: _RecKey, value: _RecValue) -> None:
         r"""Records the given data to :class:`RecordGroup`\ s which belong to active
@@ -320,7 +320,7 @@ class RecordSession:
         yield
         _active_sessions.pop()
 
-    def enter_func(self, fid: RecordableFunctionId) -> None:
+    def _enter_func(self, fid: RecordableFunctionId) -> None:
         """A hook called on invocation of a recordable function.
 
         Internally it creates and pushes a new record group for the
@@ -329,7 +329,7 @@ class RecordSession:
         group = self._record_set.add_group(fid)
         self._group_stack.append(group)
 
-    def exit_func(self, fid: RecordableFunctionId) -> None:
+    def _exit_func(self, fid: RecordableFunctionId) -> None:
         """A hook called on exit of a recordable function.
 
         Internally it pops the record group for the specified function.
