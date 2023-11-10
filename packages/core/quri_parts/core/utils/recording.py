@@ -256,9 +256,12 @@ def _to_logging_level(level: RecordLevel) -> int:
 
 
 class RecordSession:
-    """A session used to store information about :class:`RecordableFunctionId`
-    of functions and their :class:`RecordLevel`s, and :class:`RecordGroup`s as
-    a :class:`RecordSet`."""
+    """A session manages data recording from recordable functions.
+
+    It internally stores recording data received from recordable
+    functions. It also calls associated loggers when receiving data
+    recording events.
+    """
 
     def __init__(self) -> None:
         self._levels: dict[RecordableFunctionId, RecordLevel] = {}
