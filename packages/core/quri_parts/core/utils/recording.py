@@ -321,11 +321,10 @@ class RecordSession:
         _active_sessions.pop()
 
     def enter_func(self, fid: RecordableFunctionId) -> None:
-        """Creates and adds a new group for given
-        :class:`RecordableFunctionId`.
+        """A hook called on invocation of a recordable function.
 
-        This function is called for each :class:`RecordableFunction`
-        calls.
+        Internally it creates and pushes a new record group for the
+        specified function.
         """
         group = self._record_set.add_group(fid)
         self._group_stack.append(group)
