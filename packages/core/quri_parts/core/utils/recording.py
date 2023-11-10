@@ -141,7 +141,7 @@ class Recorder:
             session.exit_func(self._func_id)
 
     def record(self, level: RecordLevel, key: _RecKey, value: _RecValue) -> None:
-        """Records the given data to :class:`RecordGroup`\ s which belong to active
+        r"""Records the given data to :class:`RecordGroup`\ s which belong to active
         :class:`RecordSession`\ s."""
         for session in _active_sessions:
             if session.is_enabled_for(level, self._func_id):
@@ -201,9 +201,9 @@ def _next_group_id() -> int:
 
 @dataclass
 class RecordGroup:
-    """Represents a group of data, which contains the list of
-    :class:`RecordEntry`\ s with :class:`RecordableFunctionId`. This group is created for
-    every :class:`RecordableFunction` calls.
+    r"""Represents a group of data, which contains the list of
+    :class:`RecordEntry`\ s with :class:`RecordableFunctionId`. This group is created
+    for every :class:`RecordableFunction` calls.
     """
 
     func_id: RecordableFunctionId
@@ -241,11 +241,11 @@ class RecordSet:
         return group
 
     def remove_last_group(self) -> None:
-        """Remove the last group from the sequence of :class:`RecordGroup`\ s."""
+        r"""Remove the last group from the sequence of :class:`RecordGroup`\ s."""
         self._history.pop()
 
     def get_history(self, func: RecordableFunction[P, R]) -> Iterable[RecordGroup]:
-        """Returns the :class:`RecordGroup`\ s corresponding to the
+        r"""Returns the :class:`RecordGroup`\ s corresponding to the
         :class:`RecordableFunction` as an Iterable."""
         return filter(lambda g: g.func_id == func.id, self._history)
 
