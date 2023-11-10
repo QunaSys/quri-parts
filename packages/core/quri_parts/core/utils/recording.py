@@ -290,7 +290,11 @@ class RecordSession:
         key: _RecKey,
         value: _RecValue,
     ) -> None:
-        """Store the given record data."""
+        """Handles a data recording event.
+
+        Internally, a :class:`RecordEntry` for the event is created and
+        loggers associated with the session are invoked.
+        """
         entry = RecordEntry(level, fid, (key, value))
         group = self._group_stack[-1]
         group.add_entry(entry)
