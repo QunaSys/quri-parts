@@ -311,7 +311,7 @@ class RecordSession:
 
     @contextmanager
     def start(self) -> Iterator[None]:
-        """Context manager to be called when the session starts."""
+        """Starts the data recording session."""
         _active_sessions.append(self)
         yield
         _active_sessions.pop()
