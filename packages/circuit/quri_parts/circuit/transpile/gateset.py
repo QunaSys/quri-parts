@@ -274,7 +274,16 @@ class RotationConversionTranspiler(CircuitTranspilerProtocol):
     """A CircuitTranspiler that converts rotation gates (RX, RY, and RZ) in a circuit to
     each other.
 
-    ...
+    Convert rotation gates in a circuit into the gate sequences containing only
+    specified kinds of rotation gates and Clifford gates.
+
+    If there are 2 permitted rotation gate kinds, the rotation gates are converted
+    into the rotation gates only; if there is 1 permitted rotation gate kind, the
+    rotation gates are converted into the rotation gates and Clifford gates.
+
+    The more favorable Clifford gates can be indicated. However, the choice of Clifford
+    gates is made on a best-effort basis. Clifford gate kinds included in the output
+    is not guaranteed.
 
     Args:
         target_rotation: A Sequence of rotation gate names to output.
@@ -290,7 +299,13 @@ class RotationConversionTranspiler(CircuitTranspilerProtocol):
         self._target_rotation = set(target_rotation)
         self._favorable_clifford = set(favorable_clifford)
         self._decomposer = self._construct_decomposer()
-        # TODO Check gate type
+
+        if self._target_rotation & {RX, RY, RZ}:
+            raise ValueError("Unsupported target rotation gate kinds are specified.")
+        if self._favorable_clifford - (CLIFFORD_GATE_NAMES & SINGLE_QUBIT_GATE_NAMES):
+            raise ValueError(
+                "Non single qubit Clifford gates are specified for favorable_clifford."
+            )
 
     def _construct_decomposer(self) -> CircuitTranspiler:
         rot_to_trans_map = {
@@ -328,6 +343,16 @@ class RotationConversionTranspiler(CircuitTranspilerProtocol):
 
 
 class GateSetConversionTranspiler(CircuitTranspilerProtocol):
+    """A CircuitTranspiler that converts the gate set of a circuit into the specified
+    gate set.
+
+    Depending on the target gate set and the input circuit, the decomposition may fail
+    and an exception may be raised.
+
+    Args:
+        target_gateset: A Sequence of allowed output gate names.
+    """
+
     def __init__(self, target_gateset: Sequence[GateNameType]):
         self._gateset = set(target_gateset)
         self._target_clifford = cast(
