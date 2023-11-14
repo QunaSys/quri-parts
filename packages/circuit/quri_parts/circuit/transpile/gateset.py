@@ -110,9 +110,26 @@ _equiv_clifford_table: Mapping[str, list[list[str]]] = {
 
 
 class CliffordConversionTranspiler(CircuitTranspilerProtocol):
+    """A CircuitTranspiler that converts Clifford gates in a circuit into the desired
+    Clifford gate sequences.
+
+    Convert the Clifford gates in the circuit into gate sequences containing only the
+    user-specified Clifford gates. Such conversions are done on a best-effort basis and
+    may leave non target Clifford gates in the output.
+
+    Clifford gates that could not be converted or non-Clifford gates will remain in
+    place.
+
+    Args:
+        target_gateset: A Sequence of Clifford gate names to output.
+    """
+
     def __init__(self, target_gateset: Sequence[CliffordGateNameType]):
         self._gateset = set(target_gateset)
-        # TODO Check gate type
+        if self._gateset - (CLIFFORD_GATE_NAMES & SINGLE_QUBIT_GATE_NAMES):
+            raise ValueError(
+                "Target gateset must contain only single qubit clifford gates."
+            )
 
     def __call__(
         self, circuit: NonParametricQuantumCircuit
@@ -148,6 +165,10 @@ class CliffordConversionTranspiler(CircuitTranspilerProtocol):
 
 
 class RZ2RXRYTranspiler(GateKindDecomposer):
+    """A CircuitTranspiler that converts RZ gates in a circuit into the gate sequences
+    containing RX and RY gates.
+    """
+
     @property
     def target_gate_names(self) -> Sequence[str]:
         return [RZ]
@@ -163,6 +184,10 @@ class RZ2RXRYTranspiler(GateKindDecomposer):
 
 
 class RY2RXRZTranspiler(GateKindDecomposer):
+    """A CircuitTranspiler that converts RY gates in a circuit into the gate sequences
+    containing RX and RZ gates.
+    """
+
     @property
     def target_gate_names(self) -> Sequence[str]:
         return [RY]
@@ -178,6 +203,10 @@ class RY2RXRZTranspiler(GateKindDecomposer):
 
 
 class RX2RYRZTranspiler(GateKindDecomposer):
+    """A CircuitTranspiler that converts RX gates in a circuit into the gate sequences
+    containing RY and RZ gates.
+    """
+
     @property
     def target_gate_names(self) -> Sequence[str]:
         return [RX]
@@ -193,6 +222,10 @@ class RX2RYRZTranspiler(GateKindDecomposer):
 
 
 class RX2RZHTranspiler(GateKindDecomposer):
+    """A CircuitTranspiler that converts RX gates in a circuit into the gate sequences
+    containing RZ and H gates.
+    """
+
     @property
     def target_gate_names(self) -> Sequence[str]:
         return [RX]
@@ -208,6 +241,10 @@ class RX2RZHTranspiler(GateKindDecomposer):
 
 
 class RY2RZHTranspiler(GateKindDecomposer):
+    """A CircuitTranspiler that converts RY gates in a circuit into the gate sequences
+    containing RZ and H gates.
+    """
+
     @property
     def target_gate_names(self) -> Sequence[str]:
         return [RY]
@@ -225,6 +262,8 @@ class RY2RZHTranspiler(GateKindDecomposer):
 
 
 class IdentityTranspiler(CircuitTranspilerProtocol):
+    """A CircuitTranspiler returns the same circuit as the input."""
+
     def __call__(
         self, circuit: NonParametricQuantumCircuit
     ) -> NonParametricQuantumCircuit:
@@ -232,6 +271,17 @@ class IdentityTranspiler(CircuitTranspilerProtocol):
 
 
 class RotationConversionTranspiler(CircuitTranspilerProtocol):
+    """A CircuitTranspiler that converts rotation gates (RX, RY, and RZ) in a circuit to
+    each other.
+
+    ...
+
+    Args:
+        target_rotation: A Sequence of rotation gate names to output.
+        favorable_clifford: A Sequence of Clifford gate names to be prioritesed as an
+            output.
+    """
+
     def __init__(
         self,
         target_rotation: Sequence[GateNameType],
