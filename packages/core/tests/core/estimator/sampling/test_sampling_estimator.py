@@ -164,6 +164,20 @@ class TestSamplingEstimate:
         assert estimate.value == 0.0
         assert estimate.error == 0.0
 
+    def test_raise_when_not_estimatable(self) -> None:
+        with pytest.raises(
+            AssertionError,
+            match="Number of qubits of the operator is too large to estimate.",
+        ):
+            obs = pauli_label("Z3")
+            sampling_estimate(
+                obs, initial_state(), 1000, sampler, measurement_factory, allocator
+            )
+            obs = Operator({pauli_label("Z3"): 3, pauli_label("X0 X1"): 3})
+            sampling_estimate(
+                obs, initial_state(), 1000, sampler, measurement_factory, allocator
+            )
+
     def test_const_op(self) -> None:
         op = Operator({PAULI_IDENTITY: 3.0})
         estimate = sampling_estimate(
@@ -213,6 +227,15 @@ class TestSamplingEstimator:
         assert_sampler_args(s)
         assert_sample(estimate)
 
+        with pytest.raises(
+            AssertionError,
+            match="Number of qubits of the operator is too large to estimate.",
+        ):
+            obs = pauli_label("Z3")
+            estimator(obs, initial_state())
+            obs = Operator({pauli_label("Z3"): 3, pauli_label("X0 X1"): 3})
+            estimator(obs, initial_state())
+
 
 class TestConcurrentSamplingEstimate:
     def test_invalid_arguments(self) -> None:
@@ -231,6 +254,21 @@ class TestConcurrentSamplingEstimate:
         with pytest.raises(ValueError):
             concurrent_sampling_estimate(
                 [operator()] * 3,
+                [initial_state()] * 2,
+                total_shots(),
+                s,
+                measurement_factory,
+                allocator,
+            )
+
+        with pytest.raises(
+            AssertionError,
+            match="Number of qubits of the operator is too large to estimate.",
+        ):
+            obs1 = pauli_label("Z3")
+            obs2 = Operator({pauli_label("Z3"): 3, pauli_label("X0 X1"): 3})
+            concurrent_sampling_estimate(
+                [obs1, obs2],
                 [initial_state()] * 2,
                 total_shots(),
                 s,
