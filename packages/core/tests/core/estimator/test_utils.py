@@ -9,6 +9,7 @@
 # limitations under the License.
 
 from quri_parts.circuit import UnboundParametricQuantumCircuit
+from quri_parts.core.estimator import Estimatable
 from quri_parts.core.estimator.utils import is_estimatable
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label, zero
 from quri_parts.core.state import (
@@ -29,7 +30,7 @@ def test_is_estimatable() -> None:
         ParametricQuantumStateVector(3, circuit=UnboundParametricQuantumCircuit(3)),
     ]
 
-    valid_pauli_labels = [
+    valid_pauli_labels: list[Estimatable] = [
         zero(),
         PAULI_IDENTITY,
         pauli_label("X0"),

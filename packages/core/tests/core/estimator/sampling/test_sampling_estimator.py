@@ -169,13 +169,25 @@ class TestSamplingEstimate:
             AssertionError,
             match="Number of qubits of the operator is too large to estimate.",
         ):
-            obs = pauli_label("Z3")
             sampling_estimate(
-                obs, initial_state(), 1000, sampler, measurement_factory, allocator
+                pauli_label("Z3"),
+                initial_state(),
+                1000,
+                sampler,
+                measurement_factory,
+                allocator,
             )
-            obs = Operator({pauli_label("Z3"): 3, pauli_label("X0 X1"): 3})
+        with pytest.raises(
+            AssertionError,
+            match="Number of qubits of the operator is too large to estimate.",
+        ):
             sampling_estimate(
-                obs, initial_state(), 1000, sampler, measurement_factory, allocator
+                Operator({pauli_label("Z3"): 3, pauli_label("X0 X1"): 3}),
+                initial_state(),
+                1000,
+                sampler,
+                measurement_factory,
+                allocator,
             )
 
     def test_const_op(self) -> None:
@@ -231,10 +243,16 @@ class TestSamplingEstimator:
             AssertionError,
             match="Number of qubits of the operator is too large to estimate.",
         ):
-            obs = pauli_label("Z3")
-            estimator(obs, initial_state())
-            obs = Operator({pauli_label("Z3"): 3, pauli_label("X0 X1"): 3})
-            estimator(obs, initial_state())
+            estimator(pauli_label("Z3"), initial_state())
+
+        with pytest.raises(
+            AssertionError,
+            match="Number of qubits of the operator is too large to estimate.",
+        ):
+            estimator(
+                Operator({pauli_label("Z3"): 3, pauli_label("X0 X1"): 3}),
+                initial_state(),
+            )
 
 
 class TestConcurrentSamplingEstimate:

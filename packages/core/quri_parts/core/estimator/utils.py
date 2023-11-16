@@ -8,29 +8,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TYPE_CHECKING, Union
-
+from quri_parts.core.estimator import Estimatable
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, PauliLabel, zero
-from quri_parts.core.state import (
-    CircuitQuantumState,
-    ParametricCircuitQuantumState,
-    ParametricQuantumStateVector,
-    QuantumStateVector,
-)
-
-if TYPE_CHECKING:
-    from quri_parts.core.estimator import Estimatable
+from quri_parts.core.state import QuantumState
 
 
-def is_estimatable(
-    observable: "Estimatable",
-    state: Union[
-        CircuitQuantumState,
-        QuantumStateVector,
-        ParametricCircuitQuantumState,
-        ParametricQuantumStateVector,
-    ],
-) -> bool:
+def is_estimatable(observable: "Estimatable", state: QuantumState) -> bool:
     if observable == PAULI_IDENTITY or observable == zero():
         return True
 
