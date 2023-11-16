@@ -98,7 +98,8 @@ def recordable(f: Callable[Concatenate["Recorder", P], R]) -> RecordableFunction
     also adds a :class:`RecordableFunctionId`, which can be accesed via
     :attr:`id` attribute.
     """
-    param = ()  # TODO
+    # Currently `param` is an empty tuple. But we may add support for it in the future.
+    param = ()
     f_id = RecordableFunctionId(f.__module__, f.__qualname__, param)
 
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
