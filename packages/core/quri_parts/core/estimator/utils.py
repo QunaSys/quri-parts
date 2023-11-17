@@ -14,9 +14,8 @@ from quri_parts.core.state import QuantumState
 
 
 def is_estimatable(observable: Estimatable, state: QuantumState) -> bool:
-    """Check if the qubit count of the observable is larger than that
-    of the state.
-    """
+    """Check if the qubit count of the observable is larger than that of the
+    state."""
     if observable == PAULI_IDENTITY or observable == zero():
         return True
 
