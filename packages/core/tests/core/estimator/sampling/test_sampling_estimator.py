@@ -239,6 +239,11 @@ class TestSamplingEstimator:
         assert_sampler_args(s)
         assert_sample(estimate)
 
+    def test_raises_when_not_estimatable(self) -> None:
+        s = mock_sampler()
+        estimator = create_sampling_estimator(
+            total_shots(), s, measurement_factory, allocator
+        )
         with pytest.raises(
             AssertionError,
             match="Number of qubits of the operator is too large to estimate.",
