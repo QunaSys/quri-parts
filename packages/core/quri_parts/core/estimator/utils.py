@@ -32,4 +32,4 @@ def is_estimatable(observable: Estimatable, state: QuantumState) -> bool:
         return True
 
     else:
-        assert False
+        assert False, "Observable should be either a PauliLabel or an Operator."
