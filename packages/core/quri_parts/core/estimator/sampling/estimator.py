@@ -8,11 +8,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Collection, Iterable, Sequence
+from collections.abc import Callable, Collection, Iterable, Sequence
 from dataclasses import dataclass
 from functools import cached_property
 from math import sqrt
 
+from quri_parts.circuit import QuantumCircuit
 from quri_parts.core.estimator import (
     ConcurrentQuantumEstimator,
     Estimatable,
@@ -24,6 +25,7 @@ from quri_parts.core.estimator.sampling.pauli import (
     general_pauli_sum_sample_variance,
 )
 from quri_parts.core.measurement import (
+    CommutablePauliSetMeasurement,
     CommutablePauliSetMeasurementFactory,
     PauliReconstructorFactory,
 )
@@ -34,6 +36,13 @@ from quri_parts.core.sampling import (
     PauliSamplingShotsAllocator,
 )
 from quri_parts.core.state import CircuitQuantumState
+
+from .estimator_helpers import (
+    distribute_shots_among_pauli_sets,
+    get_circuits_and_shot_pairs,
+    get_constant_seperated_measurement_group,
+    remove_zero_shot_group,
+)
 
 
 class _Estimate:
@@ -82,6 +91,49 @@ class _ConstEstimate:
     error: float = 0.0
 
 
+def sampling_estimate_template(
+    op: Estimatable,
+    state: CircuitQuantumState,
+    total_shots: int,
+    sampler: ConcurrentSampler,
+    circuit_shot_pair_creation_fn: Callable[
+        [
+            CircuitQuantumState,
+            Iterable[CommutablePauliSetMeasurement],
+            dict[CommutablePauliSet, int],
+        ],
+        Iterable[tuple[QuantumCircuit, int]],
+    ],
+    measurement_factory: CommutablePauliSetMeasurementFactory,
+    shots_allocator: PauliSamplingShotsAllocator,
+) -> Estimate[complex]:
+    if not isinstance(op, Operator):
+        op = Operator({op: 1.0})
+
+    if len(op) == 0:
+        return _ConstEstimate(0.0)
+
+    if len(op) == 1 and PAULI_IDENTITY in op:
+        return _ConstEstimate(op[PAULI_IDENTITY])
+
+    # If there is a standalone Identity group then eliminate, else set const 0.
+    measurements, const = get_constant_seperated_measurement_group(
+        op, measurement_factory
+    )
+    shots_map = distribute_shots_among_pauli_sets(
+        op, measurements, shots_allocator, total_shots
+    )
+    # Eliminate pauli sets which are allocated no shots
+    measurements = remove_zero_shot_group(measurements, shots_map)
+
+    circuit_and_shots = circuit_shot_pair_creation_fn(state, measurements, shots_map)
+    sampling_counts = sampler(circuit_and_shots)
+
+    pauli_sets = tuple(m.pauli_set for m in measurements)
+    pauli_recs = tuple(m.pauli_reconstructor_factory for m in measurements)
+    return _Estimate(op, const, pauli_sets, pauli_recs, tuple(sampling_counts))
+
+
 def sampling_estimate(
     op: Estimatable,
     state: CircuitQuantumState,
@@ -109,45 +161,15 @@ def sampling_estimate(
         The estimated value (can be accessed with :attr:`.value`) with standard error
             of estimation (can be accessed with :attr:`.error`).
     """
-    if not isinstance(op, Operator):
-        op = Operator({op: 1.0})
-
-    if len(op) == 0:
-        return _ConstEstimate(0.0)
-
-    if len(op) == 1 and PAULI_IDENTITY in op:
-        return _ConstEstimate(op[PAULI_IDENTITY])
-
-    # If there is a standalone Identity group then eliminate, else set const 0.
-    const: complex = 0.0
-    measurements = []
-    for m in measurement_factory(op):
-        if m.pauli_set == {PAULI_IDENTITY}:
-            const = op[PAULI_IDENTITY]
-        else:
-            measurements.append(m)
-
-    pauli_sets = tuple(m.pauli_set for m in measurements)
-    shot_allocs = shots_allocator(op, pauli_sets, total_shots)
-    shots_map = {pauli_set: n_shots for pauli_set, n_shots in shot_allocs}
-
-    # Eliminate pauli sets which are allocated no shots
-    measurement_circuit_shots = [
-        (m, state.circuit + m.measurement_circuit, shots_map[m.pauli_set])
-        for m in measurements
-        if shots_map[m.pauli_set] > 0
-    ]
-
-    circuit_and_shots = [
-        (circuit, shots) for _, circuit, shots in measurement_circuit_shots
-    ]
-    sampling_counts = sampler(circuit_and_shots)
-
-    pauli_sets = tuple(m.pauli_set for m, _, _ in measurement_circuit_shots)
-    pauli_recs = tuple(
-        m.pauli_reconstructor_factory for m, _, _ in measurement_circuit_shots
+    return sampling_estimate_template(
+        op,
+        state,
+        total_shots,
+        sampler,
+        get_circuits_and_shot_pairs,
+        measurement_factory,
+        shots_allocator,
     )
-    return _Estimate(op, const, pauli_sets, pauli_recs, tuple(sampling_counts))
 
 
 def create_sampling_estimator(
