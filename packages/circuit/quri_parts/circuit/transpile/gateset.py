@@ -344,7 +344,7 @@ class RotationConversionTranspiler(CircuitTranspilerProtocol):
 
 class GateSetConversionTranspiler(CircuitTranspilerProtocol):
     """A CircuitTranspiler that converts the gate set of a circuit into the specified
-    gate set.
+    one.
 
     Depending on the target gate set and the input circuit, the decomposition may fail
     and an exception may be raised.
