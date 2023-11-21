@@ -24,10 +24,8 @@ def is_estimatable(observable: Estimatable, state: QuantumState) -> bool:
         return min_state_qubit_required <= state.qubit_count
 
     elif isinstance(observable, Operator):
-        estimatable = True
         for op in observable:
-            estimatable &= is_estimatable(op, state)
-            if not estimatable:
+            if not is_estimatable(op, state):
                 return False
         return True
 
