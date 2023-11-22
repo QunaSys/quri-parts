@@ -60,8 +60,7 @@ def circuit_shot_pairs_preparation_fn(
     shots_map: dict[CommutablePauliSet, int],
 ) -> Iterable[tuple[NonParametricQuantumCircuit, int]]:
     """A function that concatenates the measurement circuit after the circuit
-    quantum state.
-    """
+    quantum state."""
     return [
         (
             state.circuit + m.measurement_circuit,
