@@ -9,15 +9,24 @@
 # limitations under the License.
 
 from collections.abc import Iterable
+from typing import Callable
 
-from quri_parts.circuit import QuantumCircuit
-from quri_parts.core.measurement import (
-    CommutablePauliSetMeasurement,
-    CommutablePauliSetMeasurementFactory,
-)
+from typing_extensions import TypeAlias
+
+from quri_parts.circuit import NonParametricQuantumCircuit
+from quri_parts.core.measurement import CommutablePauliSetMeasurement
 from quri_parts.core.operator import PAULI_IDENTITY, CommutablePauliSet, Operator
 from quri_parts.core.sampling import PauliSamplingShotsAllocator
 from quri_parts.core.state import CircuitQuantumState
+
+CircuitShotPairPreparationFunction: TypeAlias = Callable[
+    [
+        CircuitQuantumState,
+        Iterable[CommutablePauliSetMeasurement],
+        dict[CommutablePauliSet, int],
+    ],
+    Iterable[tuple[NonParametricQuantumCircuit, int]],
+]
 
 
 def distribute_shots_among_pauli_sets(
@@ -32,11 +41,12 @@ def distribute_shots_among_pauli_sets(
 
 
 def get_constant_seperated_measurement_group(
-    operator: Operator, measurement_factory: CommutablePauliSetMeasurementFactory
+    operator: Operator, measurement_groups: Iterable[CommutablePauliSetMeasurement]
 ) -> tuple[Iterable[CommutablePauliSetMeasurement], complex]:
+    """Seperate the identity part from the operator."""
     const = 0.0 + 0.0j
     measurement = []
-    for m in measurement_factory(operator):
+    for m in measurement_groups:
         if m.pauli_set == {PAULI_IDENTITY}:
             const += operator[PAULI_IDENTITY]
         else:
@@ -44,19 +54,19 @@ def get_constant_seperated_measurement_group(
     return measurement, const
 
 
-def remove_zero_shot_group(
-    measurement_groups: Iterable[CommutablePauliSetMeasurement],
-    shots_map: dict[CommutablePauliSet, int],
-) -> Iterable[CommutablePauliSetMeasurement]:
-    return [m for m in measurement_groups if shots_map[m.pauli_set] > 0]
-
-
-def get_circuits_and_shot_pairs(
+def circuit_shot_pairs_preparation_fn(
     state: CircuitQuantumState,
     measurement_groups: Iterable[CommutablePauliSetMeasurement],
     shots_map: dict[CommutablePauliSet, int],
-) -> Iterable[tuple[QuantumCircuit, int]]:
+) -> Iterable[tuple[NonParametricQuantumCircuit, int]]:
+    """A function that concatenates the measurement circuit after the circuit
+    quantum state.
+    """
     return [
-        (state.circuit + m.measurement_circuit, shots_map[m.pauli_set])
+        (
+            state.circuit + m.measurement_circuit,
+            n_shots,
+        )
         for m in measurement_groups
+        if (n_shots := shots_map[m.pauli_set]) > 0
     ]
