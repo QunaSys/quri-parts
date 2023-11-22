@@ -25,7 +25,7 @@ from quri_parts.core.utils.recording import (
 
 
 @recordable
-def func_to_record(recorder: Recorder, x: Any) -> int:
+def func_to_record(recorder: Recorder, x: Any) -> Any:
     recorder.info("x", x)
     recorder.info("2x", 2 * x)
     return 2 * x
