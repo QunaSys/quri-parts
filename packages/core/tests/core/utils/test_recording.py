@@ -9,9 +9,7 @@
 # limitations under the License.
 
 import logging
-from typing import Any
 
-import numpy as np
 import pytest
 
 from quri_parts.core.utils.recording import (
@@ -25,7 +23,7 @@ from quri_parts.core.utils.recording import (
 
 
 @recordable
-def func_to_record(recorder: Recorder, x: Any) -> Any:
+def func_to_record(recorder: Recorder, x: int) -> int:
     recorder.info("x", x)
     recorder.info("2x", 2 * x)
     return 2 * x
@@ -56,30 +54,6 @@ def test_recordable() -> None:
         RecordEntry(INFO, fid, ("x", 4)),
         RecordEntry(INFO, fid, ("2x", 8)),
     ]
-
-
-def test_mutable_recdata() -> None:
-    session = RecordSession()
-    session.set_level(INFO, func_to_record)
-
-    with session.start():
-        array = np.array([1, 2])
-        assert np.allclose(func_to_record(array), np.array(2 * array))
-        array[0] = 3
-        assert np.allclose(func_to_record(array), np.array(2 * array))
-
-    records = session.get_records()
-    history = list(records.get_history(func_to_record))
-    assert len(history) == 2
-    group0, group1 = history
-
-    k, v = group0.entries[0].data
-    k == "x"
-    assert np.allclose(v, np.array([1, 2]))
-
-    k, v = group1.entries[1].data
-    k == "2x"
-    assert np.allclose(v, np.array([6, 4]))
 
 
 def test_nested_sessions() -> None:

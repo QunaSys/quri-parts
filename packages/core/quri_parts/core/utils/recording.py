@@ -11,7 +11,6 @@
 """This module provides features of recording and logging intermediate data
 from inside functions."""
 
-import copy
 import logging
 import threading
 from collections.abc import Callable, Hashable, Iterable, Iterator
@@ -98,9 +97,6 @@ def recordable(f: Callable[Concatenate["Recorder", P], R]) -> RecordableFunction
     does not need to pass a :class:`Recorder` instance. This decorator
     also adds a :class:`RecordableFunctionId`, which can be accesed via
     :attr:`id` attribute.
-
-    Note that since data is deepcopied before storing, recording large
-    mutable data may introduces a performance penalty.
     """
     # Currently `param` is an empty tuple. But we may add support for it in the future.
     param = ()
@@ -301,7 +297,7 @@ class RecordSession:
         Internally, a :class:`RecordEntry` for the event is created and
         loggers associated with the session are invoked.
         """
-        entry = RecordEntry(level, fid, (key, copy.deepcopy(value)))
+        entry = RecordEntry(level, fid, (key, value))
         group = self._group_stack[-1]
         group.add_entry(entry)
         self._log(entry, group)
