@@ -97,6 +97,11 @@ def recordable(f: Callable[Concatenate["Recorder", P], R]) -> RecordableFunction
     does not need to pass a :class:`Recorder` instance. This decorator
     also adds a :class:`RecordableFunctionId`, which can be accesed via
     :attr:`id` attribute.
+
+    Note that when you store mutable data such as list, `RecordEntry`
+    does not store the snapshot of the data. This means that the data
+    you get is the latest one when you access it. If you want to get
+    the snapshot of the data, you need to copy it by yourself.
     """
     # Currently `param` is an empty tuple. But we may add support for it in the future.
     param = ()
