@@ -2,7 +2,7 @@ from collections.abc import Mapping
 from typing import Union, cast
 
 import networkx as nx
-from qiskit.providers import BackendV1, BackendV2
+from qiskit.providers import BackendV1, BackendV2, BackendV2Converter
 
 
 def device_connectivity_graph(device: Union[BackendV1, BackendV2]) -> nx.Graph:
@@ -39,24 +39,13 @@ def coupling_map_with_2_qubit_gate_errors(
 ) -> Mapping[tuple[int, int], float]:
     """Extract qubit couplings and their 2 qubit gate error rates from Qiskit
     BackendV1 or BackendV2 instance."""
-    if isinstance(device, BackendV2):
-        edges = device.coupling_map.get_edges()
-        return {
-            qs: prop.error
-            for qs, prop in device.target[gate_name].items()
-            if qs in edges
-        }
-    elif isinstance(device, BackendV1):
-        cmap = device.configuration().coupling_map
-        props = device.properties().to_dict()
-        gates = [gate for gate in props["gates"] if gate["gate"] == gate_name]
-        return {
-            cast(tuple[int, int], tuple(gate["qubits"])): gate["parameters"][0]["value"]
-            for gate in gates
-            if gate["qubits"] in cmap
-        }
-    else:
-        raise ValueError("Unsupported device.")
+    if isinstance(device, BackendV1):
+        device = BackendV2Converter(device)
+
+    edges = device.coupling_map.get_edges()
+    return {
+        qs: prop.error for qs, prop in device.target[gate_name].items() if qs in edges
+    }
 
 
 def qubit_indices_with_readout_errors(
@@ -64,12 +53,7 @@ def qubit_indices_with_readout_errors(
 ) -> Mapping[int, float]:
     """Extract readout errors for each qubit from Qiskit BackendV1 or BackendV2
     instance."""
-    if isinstance(device, BackendV2):
-        return {qs[0]: prop.error for qs, prop in device.target["measure"].items()}
-    elif isinstance(device, BackendV1):
-        props = device.properties()
-        return {
-            q: props.readout_error(q) for q in range(device.configuration().n_qubits)
-        }
-    else:
-        raise ValueError("Unsupported device.")
+    if isinstance(device, BackendV1):
+        device = BackendV2Converter(device)
+
+    return {qs[0]: prop.error for qs, prop in device.target["measure"].items()}
