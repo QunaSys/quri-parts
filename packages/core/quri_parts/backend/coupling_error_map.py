@@ -17,6 +17,8 @@ CouplingMapWithErrors: TypeAlias = Mapping[tuple[int, int], float]
 def effectively_coupled_subgraph(
     two_qubit_errors: CouplingMapWithErrors, two_qubit_error_threshold: float
 ) -> Sequence[nx.Graph]:
+    """Returns a list of subgraphs consisting only of coupled qubits with two
+    qubit gate errors smaller than the specified threshold."""
     adjlist = [
         f"{a} {b}"
         for (a, b), e in two_qubit_errors.items()
@@ -137,6 +139,8 @@ def circuit_fidelity_by_two_qubit_gate_and_readout_errors(
     default_two_qubit_error: float = 0.0,
     default_readout_error: float = 0.0,
 ) -> float:
+    """Calculate the overall circuit fidelity, taking into account the given 2 qubit
+    gate errors and readout errors."""
     fidelity = 1.0
     qubits = set()
 
@@ -164,8 +168,8 @@ def reliable_coupling_single_stroke_path(
     exact: bool = True,
 ) -> Sequence[int]:
     """Find the path with the specified number of qubits that has maximum
-    fidelity across the entire path considering 2 qubit gate errors. If no such
-    path is found, an empty list is returned.
+    fidelity across the entire path considering 2 qubit gate errors and readout errors.
+    If no such path is found, an empty list is returned.
 
     Args:
         two_qubit_errors: Mapping representing the coupling of qubits and their
@@ -204,8 +208,8 @@ def reliable_coupling_single_stroke_path_qubit_mapping(
     exact: bool = True,
 ) -> BackendQubitMapping:
     """BackendQubitMapping generator, that maps qubit indices so that the
-    fidelity considering 2 qubit gate errors is maximized across the entire
-    coupling path.
+    fidelity considering 2 qubit gate errors and readout errors is maximized
+    across the entire coupling path.
 
     When a single path containing all the qubits in the circuit can be found
     from the graph with the coupled qubits in the circuit as edges, the qubit

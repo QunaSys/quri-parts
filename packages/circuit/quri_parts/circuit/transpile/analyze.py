@@ -79,13 +79,11 @@ def qubit_couplings(
     return list(coupling)
 
 
-def coupled_qubit_graphs(
-    circuit: NonParametricQuantumCircuit, include_singles: bool = False
-) -> Sequence[nx.Graph]:
+def coupled_qubit_graphs(circuit: NonParametricQuantumCircuit) -> Sequence[nx.Graph]:
     """Returns a Sequence of each connected graphs with the coupled qubits as
     edges."""
     adjlist = []
-    for qs in qubit_couplings(circuit, include_singles):
+    for qs in qubit_couplings(circuit):
         for pair in combinations(qs, 2):
             adjlist.append(" ".join(map(str, pair)))
     graph = nx.parse_adjlist(adjlist)
@@ -94,13 +92,10 @@ def coupled_qubit_graphs(
 
 def coupled_qubit_indices(
     circuit: NonParametricQuantumCircuit,
-    include_singles: bool = False,
 ) -> Sequence[Sequence[int]]:
     """Returns a Sequence of qubit indices of each connected graphs with the
     coupled qubits as edges."""
-    return [
-        list(map(int, g.nodes)) for g in coupled_qubit_graphs(circuit, include_singles)
-    ]
+    return [list(map(int, g.nodes)) for g in coupled_qubit_graphs(circuit)]
 
 
 def extract_qubit_coupling_path(
