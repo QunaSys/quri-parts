@@ -19,6 +19,9 @@ from quri_parts.core.operator import PAULI_IDENTITY, CommutablePauliSet, Operato
 from quri_parts.core.sampling import PauliSamplingShotsAllocator
 from quri_parts.core.state import CircuitQuantumState
 
+#: A function that returns the sequence of (circuit, shot) pairs for the
+#: given state to be measured according to the grouping result and the
+#: shots assigned to each group.
 CircuitShotPairPreparationFunction: TypeAlias = Callable[
     [
         CircuitQuantumState,
@@ -31,11 +34,21 @@ CircuitShotPairPreparationFunction: TypeAlias = Callable[
 
 def distribute_shots_among_pauli_sets(
     operator: Operator,
-    measurements: Iterable[CommutablePauliSetMeasurement],
+    measurement_groups: Iterable[CommutablePauliSetMeasurement],
     shots_allocator: PauliSamplingShotsAllocator,
     total_shots: int,
 ) -> dict[CommutablePauliSet, int]:
-    pauli_sets = {m.pauli_set for m in measurements}
+    """Distribute shots to each commuting pauli sets.
+
+    Args:
+        operator: The operator to be measured.
+        measurement_groups: Sequence of :class:`~CommutablePauliSetMeasurement` that
+            cooresponds to the grouping result of the operator.
+        shot_allocator: A function that allocates the total shots to Pauli groups to
+            be measured.
+        total_shots: Total number of shots available for sampling measurements.
+    """
+    pauli_sets = {m.pauli_set for m in measurement_groups}
     shot_allocs = shots_allocator(operator, pauli_sets, total_shots)
     return {pauli_set: n_shots for pauli_set, n_shots in shot_allocs}
 
@@ -43,7 +56,14 @@ def distribute_shots_among_pauli_sets(
 def get_constant_seperated_measurement_group(
     operator: Operator, measurement_groups: Iterable[CommutablePauliSetMeasurement]
 ) -> tuple[Iterable[CommutablePauliSetMeasurement], complex]:
-    """Seperate the identity part from the operator."""
+    """Seperate the group containing only the identity operator from the
+    measurement group.
+
+    Args:
+        operator: The operator to be estimated.
+        measurement_groups: Sequence of :class:`~CommutablePauliSetMeasurement` that
+            cooresponds to the grouping result of the operator.
+    """
     const = 0.0 + 0.0j
     measurement = []
     for m in measurement_groups:
@@ -60,7 +80,15 @@ def circuit_shot_pairs_preparation_fn(
     shots_map: dict[CommutablePauliSet, int],
 ) -> Iterable[tuple[NonParametricQuantumCircuit, int]]:
     """A function that concatenates the measurement circuit after the circuit
-    quantum state."""
+    quantum state.
+
+    Args:
+        state: The state on which the expetation value is estimated.
+        measurement_groups: Sequence of :class:`~CommutablePauliSetMeasurement` that
+            cooresponds to the grouping result of the operator.
+        shots_map: A dictionary whose key is the commuting pauli set and the value is
+            the shot count assigned to the commuting pauli set.
+    """
     return [
         (
             state.circuit + m.measurement_circuit,
