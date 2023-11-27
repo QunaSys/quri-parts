@@ -458,6 +458,7 @@ def create_concurrent_estimator_from_estimator(
 
         if num_states == 1:
             states = [next(iter(states))] * num_ops
+
         if num_ops == 1:
             operators = [next(iter(operators))] * num_states
 
