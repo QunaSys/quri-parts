@@ -432,6 +432,40 @@ def create_estimator_from_concurrent_estimator(
     return estimator
 
 
+def create_concurrent_estimator_from_estimator(
+    estimator: QuantumEstimator[_StateT],
+) -> ConcurrentQuantumEstimator[_StateT]:
+    """Creates a concurrent estimator from an estimator."""
+
+    def concurrent_estimator(
+        operators: Sequence[Estimatable],
+        states: Sequence[_StateT],
+    ) -> Sequence[Estimate[complex]]:
+        num_ops = len(operators)
+        num_states = len(states)
+
+        if num_ops == 0:
+            raise ValueError("No operator specified.")
+
+        if num_states == 0:
+            raise ValueError("No state specified.")
+
+        if num_ops > 1 and num_states > 1 and num_ops != num_states:
+            raise ValueError(
+                f"Number of operators ({num_ops}) does not match"
+                f"number of states ({num_states})."
+            )
+
+        if num_states == 1:
+            states = [next(iter(states))] * num_ops
+        if num_ops == 1:
+            operators = [next(iter(operators))] * num_states
+
+        return [estimator(op, state) for op, state in zip(operators, states)]
+
+    return concurrent_estimator
+
+
 @dataclass
 class GeneralQuantumEstimators(Generic[_StateT, _ParametricStateT]):
     """A dataclass that holds all:
@@ -470,6 +504,47 @@ def create_general_esimtators_from_concurrent_estimator(
     """Creates a :class:`~GeneralQuantumEstimators` from a concurrent
     estimator."""
     estimator = create_estimator_from_concurrent_estimator(concurrent_estimator)
+    parametric_estimator = cast(
+        Callable[
+            [ConcurrentQuantumEstimator[_StateT]],
+            ParametricQuantumEstimator[_ParametricStateT],
+        ],
+        create_parametric_estimator_from_concurrent_estimator,
+    )(concurrent_estimator)
+    concurrent_parametric_estimator = cast(
+        Callable[
+            [ConcurrentQuantumEstimator[_StateT]],
+            ConcurrentParametricQuantumEstimator[_ParametricStateT],
+        ],
+        create_concurrent_parametric_estimator_from_concurrent_estimator,
+    )(concurrent_estimator)
+    return GeneralQuantumEstimators(
+        estimator,
+        concurrent_estimator,
+        parametric_estimator,
+        concurrent_parametric_estimator,
+    )
+
+
+@overload
+def create_general_esimtators_from_estimator(
+    estimator: QuantumEstimator[CircuitQuantumState],
+) -> GeneralQuantumEstimators[CircuitQuantumState, ParametricCircuitQuantumState]:
+    ...
+
+
+@overload
+def create_general_esimtators_from_estimator(
+    estimator: QuantumEstimator[QuantumStateVector],
+) -> GeneralQuantumEstimators[QuantumStateVector, ParametricQuantumStateVector]:
+    ...
+
+
+def create_general_esimtators_from_estimator(
+    estimator: QuantumEstimator[_StateT],
+) -> GeneralQuantumEstimators[_StateT, _ParametricStateT]:
+    """Creates a :class:`~GeneralQuantumEstimators` from an estimator."""
+    concurrent_estimator = create_concurrent_estimator_from_estimator(estimator)
     parametric_estimator = cast(
         Callable[
             [ConcurrentQuantumEstimator[_StateT]],
