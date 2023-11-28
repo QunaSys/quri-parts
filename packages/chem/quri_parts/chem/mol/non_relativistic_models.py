@@ -331,7 +331,7 @@ def spatial_mo_eint_set_to_spin_mo_eint_set(
 
 
 def get_active_space_spatial_integrals_from_mo_eint(
-    active_space_mo: ActiveSpaceMolecularOrbitals,
+    active_space_mo: ActiveSpaceMolecularOrbitalsBase,
     electron_mo_ints: SpatialMOeIntSet,
 ) -> SpatialMOeIntSet:
     """Compute the active space effective core energy and all the spin space
@@ -376,7 +376,7 @@ def get_active_space_spatial_integrals_from_mo_eint(
 
 
 def get_active_space_spin_integrals_from_mo_eint(
-    active_space_mo: ActiveSpaceMolecularOrbitals,
+    active_space_mo: ActiveSpaceMolecularOrbitalsBase,
     electron_mo_ints: SpatialMOeIntSet,
 ) -> SpinMOeIntSet:
     """Compute the active space spin electron integrals from mo electron
@@ -390,7 +390,7 @@ def get_active_space_spin_integrals_from_mo_eint(
 
 
 def get_active_space_spatial_integrals_from_ao_eint(
-    active_space_mo: ActiveSpaceMolecularOrbitals,
+    active_space_mo: ActiveSpaceMolecularOrbitalsBase,
     electron_ao_ints: AOeIntArraySet,
 ) -> SpatialMOeIntSet:
     """Compute the active space spatial electron integrals from ao electron
@@ -411,7 +411,7 @@ def get_active_space_spatial_integrals_from_ao_eint(
 
 
 def get_active_space_spin_integrals_from_ao_eint(
-    active_space_mo: ActiveSpaceMolecularOrbitals,
+    active_space_mo: ActiveSpaceMolecularOrbitalsBase,
     electron_ao_ints: AOeIntArraySet,
 ) -> SpinMOeIntSet:
     """Compute the active space spin electron integrals from ao electron
