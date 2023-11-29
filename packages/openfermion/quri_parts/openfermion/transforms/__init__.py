@@ -124,6 +124,10 @@ class OpenFermionQubitMapping(FermionQubitMapping, ABC):
                 "Number of n_fermions cannot be greater than n_spin_orbitals."
                 f"Input {n_spin_orbitals=}, {n_fermions=}."
             )
+        if sz is not None:
+            assert float(
+                2 * sz
+            ).is_integer(), "sz should be either an integer or a half integer."
 
         self._n_spin_orbitals = n_spin_orbitals
         self._n_fermions = n_fermions
