@@ -183,7 +183,7 @@ PauliLabel.from_str("X0 Y1 Z2")
     """
 
     def __new__(cls, arg: Iterable[tuple[int, int]] = ()) -> "PauliLabel":
-        instance = cast(PauliLabel, frozenset(arg))
+        instance = super().__new__(cls, arg)  # type: ignore
         if instance in _pauli_cache:
             return _pauli_cache[instance]
         else:
