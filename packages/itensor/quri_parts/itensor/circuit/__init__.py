@@ -126,7 +126,7 @@ def convert_circuit(
                 else:
                     raise ValueError("Invalid number of parameters.")
             else:
-                raise ValueError(f"Unknown single qubit gate name: {gate.name}")
+                raise ValueError(f"{gate.name} gate is not supported.")
         elif is_two_qubit_gate_name(gate.name):
             if gate.name == "SWAP":
                 gate_list = jl.add_two_qubit_gate(
@@ -151,6 +151,6 @@ def convert_circuit(
                 gate.target_indices[0] + 1,
             )
         else:
-            raise ValueError(f"Unknown gate name: {gate.name}")
+            raise ValueError(f"{gate.name} gate is not supported.")
     circuit = jl.ops(gate_list, qubit_sites)
     return circuit
