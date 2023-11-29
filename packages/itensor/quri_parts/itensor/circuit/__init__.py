@@ -9,6 +9,7 @@
 # limitations under the License.
 
 from collections.abc import Mapping
+from typing import Callable, Optional
 
 import juliacall
 from juliacall import Main as jl
@@ -22,6 +23,12 @@ from quri_parts.circuit.gate_names import (
     is_single_qubit_gate_name,
     is_three_qubit_gate_name,
     is_two_qubit_gate_name,
+)
+from quri_parts.circuit.transpile import (
+    CircuitTranspiler,
+    PauliDecomposeTranspiler,
+    PauliRotationDecomposeTranspiler,
+    SequentialTranspiler,
 )
 
 _single_qubit_gate_itensor: Mapping[SingleQubitGateNameType, str] = {
@@ -59,9 +66,16 @@ _three_qubit_gate_itensor: Mapping[ThreeQubitGateNameType, str] = {
     gate_names.TOFFOLI: "Toffoli",
 }
 
+#: CircuitTranspiler to convert a circit configuration suitable for ITensor.
+ITensorSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
+    [PauliDecomposeTranspiler(), PauliRotationDecomposeTranspiler()]
+)
+
 
 def convert_circuit(
-    circuit: NonParametricQuantumCircuit, qubit_sites: juliacall.VectorValue
+    circuit: NonParametricQuantumCircuit,
+    qubit_sites: juliacall.VectorValue,
+    transpiler: Optional[CircuitTranspiler] = ITensorSetTranspiler(),
 ) -> juliacall.VectorValue:
     """Convert an :class:`~NonParametricQuantumCircuit` to an ITensor ops.
 
@@ -69,6 +83,9 @@ def convert_circuit(
     `the Itensor doc <https://itensor.github.io/ITensors.jl/
     stable/IncludedSiteTypes.html#%22Qubit%22-SiteType>`_
     """
+    if transpiler is not None:
+        circuit = transpiler(circuit)
+
     gate_list: juliacall.VectorValue = jl.gate_list()
     for gate in circuit.gates:
         if not is_gate_name(gate.name):
