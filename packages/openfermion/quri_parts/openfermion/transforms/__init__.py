@@ -202,10 +202,6 @@ class OpenFermionQubitMapping(FermionQubitMapping, ABC):
     def inv_state_mapper(self) -> QubitFermionStateMapper:
         """Returns a function that maps a computational basis state of qubits
         to the set of occupied spin orbital indices."""
-        if self.n_spin_orbitals is None or self.n_qubits is None:
-            raise ValueError(
-                "To perform inverse state mapping, n_spin_orbital cannot be None"
-            )
 
         n_qubits = self.n_qubits
         n_spin_orbitals = self.n_spin_orbitals
@@ -524,8 +520,6 @@ class OpenFermionSymmetryConservingBravyiKitaev(
         Both the arguments (``n_spin_orbitals`` and ``n_fermions``) are required.
         """
 
-        if self.n_spin_orbitals is None:
-            raise ValueError("n_spin_orbitals is required.")
         if self.n_fermions is None:
             raise ValueError("n_fermions is required.")
         if self.sz not in [0.0, 0.5]:
