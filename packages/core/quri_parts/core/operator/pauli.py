@@ -41,7 +41,7 @@ _pauli_products_map: dict[tuple[int, int], Optional[tuple[int, complex]]] = {
     (SinglePauli.Z, SinglePauli.Z): None,
 }
 
-_pauli_cache = WeakValueDictionary()
+_pauli_cache: WeakValueDictionary["PauliLabel", "PauliLabel"] = WeakValueDictionary()
 
 
 def pauli_name(p: int) -> str:
@@ -183,7 +183,7 @@ PauliLabel.from_str("X0 Y1 Z2")
     """
 
     def __new__(cls, arg: Iterable[tuple[int, int]] = ()) -> "PauliLabel":
-        instance = super().__new__(cls, arg)
+        instance = cast(PauliLabel, frozenset(arg))
         if instance in _pauli_cache:
             return _pauli_cache[instance]
         else:
