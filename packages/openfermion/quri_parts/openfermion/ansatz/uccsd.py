@@ -167,7 +167,7 @@ def _construct_circuit(
             circuit.add_parameter(f"theta_s_{i}") for i in range(len(s_excs))
         ]
     d_exc_params = [circuit.add_parameter(f"theta_d_{i}") for i in range(len(d_excs))]
-    op_mapper = fermion_qubit_mapping.operator_mapper
+    op_mapper = fermion_qubit_mapping.of_operator_mapper
     for _ in range(trotter_number):
         add_exp_excitation_gates_trotter_decomposition(
             circuit, d_excs, d_exc_params, op_mapper, 1 / trotter_number
@@ -194,7 +194,7 @@ def _construct_singlet_excitation_circuit(
 
     circuit = LinearMappedUnboundParametricQuantumCircuit(n_qubits)
 
-    op_mapper = fermion_qubit_mapping.operator_mapper
+    op_mapper = fermion_qubit_mapping.of_operator_mapper
 
     (
         s_params,

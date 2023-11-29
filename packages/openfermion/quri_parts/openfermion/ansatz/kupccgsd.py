@@ -76,7 +76,7 @@ class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
         assert mapping.n_spin_orbitals == n_spin_orbitals, "n_spin_orbital specified "
         "in the mapping is not consistent with that specified to the first arguement."
 
-        op_mapper = mapping.operator_mapper
+        op_mapper = mapping.of_operator_mapper
         n_qubits = mapping.n_qubits
 
         circuit = LinearMappedUnboundParametricQuantumCircuit(n_qubits)

@@ -62,7 +62,7 @@ class TestOperatorMapper:
 
         op_mapper = symmetry_conserving_bravyi_kitaev(
             n_spin_orbitals, n_fermions, 0.0
-        ).operator_mapper
+        ).of_operator_mapper
         total_transformed = op_mapper(op_total)
         of_total_transformed = op_mapper(of_op_total)
         assert total_transformed == expected

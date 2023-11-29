@@ -47,7 +47,7 @@ def operator_from_of_fermionic_op(
     n_spin_orbitals = 2 * active_space.n_active_orb
     n_electrons = active_space.n_active_ele
     mapping = fermion_qubit_mapping(n_spin_orbitals, n_electrons, sz)
-    operator_mapper = mapping.operator_mapper
+    operator_mapper = mapping.of_operator_mapper
     return operator_mapper(fermionic_hamiltonian), mapping
 
 

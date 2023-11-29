@@ -130,7 +130,7 @@ class OpenFermionQubitMapping(FermionQubitMapping, ABC):
         self._sz = sz
 
         self._inv_trans_mat, self._signs = _inv_state_transformation_matrix(
-            self.operator_mapper,
+            self.of_operator_mapper,
             self.n_spin_orbitals,
         )
         self._trans_mat = inverse(self._inv_trans_mat)
@@ -148,7 +148,7 @@ class OpenFermionQubitMapping(FermionQubitMapping, ABC):
         return self._sz
 
     @abstractproperty
-    def operator_mapper(self) -> OpenFermionQubitOperatorMapper:
+    def of_operator_mapper(self) -> OpenFermionQubitOperatorMapper:
         """Returns a function that maps an OpenFermion
         :class:`~openfermion.ops.FermionOperator`,
         :class:`~openfermion.ops.InteractionOperator` or
@@ -161,10 +161,6 @@ class OpenFermionQubitMapping(FermionQubitMapping, ABC):
     def state_mapper(self) -> FermionQubitStateMapper:
         """Returns a function that maps occupied spin orbital indices to a
         computational basis state of qubits."""
-        if self.n_spin_orbitals is None or self.n_qubits is None:
-            raise ValueError(
-                "To perform inverse state mapping, n_spin_orbital cannot be None"
-            )
         n_qubits = self.n_qubits
         n_spin_orbitals = self.n_spin_orbitals
 
@@ -211,10 +207,6 @@ class OpenFermionQubitMapping(FermionQubitMapping, ABC):
                 "To perform inverse state mapping, n_spin_orbital cannot be None"
             )
 
-        inv_trans_mat, signs = _inv_state_transformation_matrix(
-            self.operator_mapper,
-            self.n_spin_orbitals,
-        )
         n_qubits = self.n_qubits
         n_spin_orbitals = self.n_spin_orbitals
 
@@ -225,11 +217,11 @@ class OpenFermionQubitMapping(FermionQubitMapping, ABC):
                 bit_array, n_spin_orbitals, self.n_fermions, self.sz
             )
             qubit_vector = BinaryArray(bit_array)
-            occupancy_vector = inv_trans_mat @ qubit_vector
+            occupancy_vector = self._inv_trans_mat @ qubit_vector
             occupancy_set = [
                 i
                 for i, o in enumerate(occupancy_vector)
-                if (o == 1 and signs[i] == 1) or (o == 0 and signs[i] == -1)
+                if (o == 1 and self._signs[i] == 1) or (o == 0 and self._signs[i] == -1)
             ]
             return occupancy_set
 
@@ -287,7 +279,7 @@ class OpenFermionQubitMapperFactory(FermionQubitMapperFactory):
                 mappings require this argument (e.g. symmetry-conserving Bravyi-Kitaev
                 transformation) while the others ignore it.
         """
-        return self(n_spin_orbitals, n_fermions, sz).operator_mapper
+        return self(n_spin_orbitals, n_fermions, sz).of_operator_mapper
 
     def get_state_mapper(
         self,
@@ -353,7 +345,7 @@ class OpenFermionJordanWigner(JordanWigner, OpenFermionQubitMapping):
     _mapping_method = JordanWignerMapperFactory
 
     @property
-    def operator_mapper(self) -> OpenFermionQubitOperatorMapper:
+    def of_operator_mapper(self) -> OpenFermionQubitOperatorMapper:
         """Returns a function that maps a
         :class:`~openfermion.ops.FermionOperator`,
         :class:`~openfermion.ops.InteractionOperator` or
@@ -429,7 +421,7 @@ class OpenFermionBravyiKitaev(BravyiKitaev, OpenFermionQubitMapping):
     _mapping_method = BravyiKitaevMapperFactory
 
     @property
-    def operator_mapper(self) -> OpenFermionQubitOperatorMapper:
+    def of_operator_mapper(self) -> OpenFermionQubitOperatorMapper:
         """Returns a function that maps a
         :class:`~openfermion.ops.FermionOperator`,
         :class:`~openfermion.ops.InteractionOperator` or
@@ -521,7 +513,7 @@ class OpenFermionSymmetryConservingBravyiKitaev(
     _mapping_method = SymmetryConservingBravyiKitaevMapperFactory
 
     @property
-    def operator_mapper(self) -> OpenFermionQubitOperatorMapper:
+    def of_operator_mapper(self) -> OpenFermionQubitOperatorMapper:
         """Returns a function that maps a
         :class:`~openfermion.ops.FermionOperator`,
         :class:`~openfermion.ops.InteractionOperator` or
