@@ -29,6 +29,25 @@ class QuantumGate(NamedTuple):
     pauli_ids: Sequence[int] = ()
     unitary_matrix: Sequence[Sequence[complex]] = ()
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, QuantumGate):
+            return False
+        if self.name != other.name:
+            return False
+        if set(self.control_indices) != set(other.control_indices):
+            return False
+        if self.params != other.params:
+            return False
+        if set(zip(self.target_indices, self.pauli_ids)) != set(
+            zip(other.target_indices, other.pauli_ids)
+        ):
+            return False
+        if self.name == "Measurement":
+            return set(zip(self.target_indices, self.classical_indices)) == set(
+                zip(other.target_indices, other.classical_indices)
+            )
+        return self.unitary_matrix == other.unitary_matrix
+
 
 class ParametricQuantumGate(NamedTuple):
     """Parametric quantum gate.
@@ -42,3 +61,14 @@ class ParametricQuantumGate(NamedTuple):
     target_indices: Sequence[int]
     control_indices: Sequence[int] = ()
     pauli_ids: Sequence[int] = ()
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, ParametricQuantumGate):
+            return False
+        if self.name != other.name:
+            return False
+        if set(self.control_indices) != set(other.control_indices):
+            return False
+        return set(zip(self.target_indices, self.pauli_ids)) == set(
+            zip(other.target_indices, other.pauli_ids)
+        )
