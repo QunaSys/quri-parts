@@ -239,59 +239,59 @@ def test_gate_addition() -> None:
 def test_gate_equal() -> None:
     # Quantum Gate
     assert X(0) == X(0)
-    assert X(0) != X(1)
-    assert X(0) != H(1)
+    assert not X(0) == X(1)
+    assert not X(0) == H(1)
     assert H(1) == H(1)
     assert RX(0, 0.1) == RX(0, 0.1)
-    assert RX(0, 0.1) != RX(0, 0.2)
+    assert not RX(0, 0.1) == RX(0, 0.2)
     assert U2(1, 0.1, 0.2) == U2(1, 0.1, 0.2)
-    assert U2(1, 0.1, 0.2) != U2(1, 0.2, 0.2)
-    assert U2(1, 0.1, 0.2) != U2(1, 0.1, 0.1)
+    assert not U2(1, 0.1, 0.2) == U2(1, 0.2, 0.2)
+    assert not U2(1, 0.1, 0.2) == U2(1, 0.1, 0.1)
     assert U3(2, 0.1, 0.2, 0.3) == U3(2, 0.1, 0.2, 0.3)
-    assert U3(2, 0.1, 0.2, 0.3) != U3(2, 0.2, 0.2, 0.3)
-    assert U3(2, 0.1, 0.2, 0.3) != U3(2, 0.1, 0.1, 0.3)
-    assert U3(2, 0.1, 0.2, 0.3) != U3(2, 0.1, 0.2, 0.2)
+    assert not U3(2, 0.1, 0.2, 0.3) == U3(2, 0.2, 0.2, 0.3)
+    assert not U3(2, 0.1, 0.2, 0.3) == U3(2, 0.1, 0.1, 0.3)
+    assert not U3(2, 0.1, 0.2, 0.3) == U3(2, 0.1, 0.2, 0.2)
     assert CNOT(0, 1) == CNOT(0, 1)
-    assert CNOT(0, 1) != CNOT(1, 0)
+    assert not CNOT(0, 1) == CNOT(1, 0)
     assert TOFFOLI(0, 1, 2) == TOFFOLI(0, 1, 2)
     assert TOFFOLI(0, 1, 2) == TOFFOLI(1, 0, 2)
-    assert TOFFOLI(0, 1, 2) != TOFFOLI(0, 2, 1)
+    assert not TOFFOLI(0, 1, 2) == TOFFOLI(0, 2, 1)
     assert UnitaryMatrix(
         (0, 1), ((1, 0, 0, 0), (0, 0, 0, 1), (0, 0, 1, 0), (0, 1, 0, 0))
     ) == UnitaryMatrix((0, 1), ((1, 0, 0, 0), (0, 0, 0, 1), (0, 0, 1, 0), (0, 1, 0, 0)))
-    assert UnitaryMatrix(
+    assert not UnitaryMatrix(
         (0, 1), ((1, 0, 0, 0), (0, 0, 0, 1), (0, 0, 1, 0), (0, 1, 0, 0))
-    ) != UnitaryMatrix((1, 0), ((1, 0, 0, 0), (0, 0, 0, 1), (0, 0, 1, 0), (0, 1, 0, 0)))
-    assert UnitaryMatrix(
+    ) == UnitaryMatrix((1, 0), ((1, 0, 0, 0), (0, 0, 0, 1), (0, 0, 1, 0), (0, 1, 0, 0)))
+    assert not UnitaryMatrix(
         (0, 1), ((1, 0, 0, 0), (0, 0, 0, 1), (0, 0, 1, 0), (0, 1, 0, 0))
-    ) != UnitaryMatrix((0, 1), ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)))
+    ) == UnitaryMatrix((0, 1), ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)))
     assert Pauli((0, 1), (1, 3)) == Pauli((0, 1), (1, 3))
-    assert Pauli((0, 1), (1, 3)) != Pauli((1, 0), (1, 3))
+    assert not Pauli((0, 1), (1, 3)) == Pauli((1, 0), (1, 3))
     assert Pauli((0, 1), (1, 3)) == Pauli((1, 0), (3, 1))
     assert PauliRotation((1, 2, 3), (3, 2, 1), 0.1) == PauliRotation(
         (1, 2, 3), (3, 2, 1), 0.1
     )
-    assert PauliRotation((1, 2, 3), (3, 2, 1), 0.2) != PauliRotation(
+    assert not PauliRotation((1, 2, 3), (3, 2, 1), 0.2) == PauliRotation(
         (1, 2, 3), (3, 2, 1), 0.1
     )
     assert PauliRotation((2, 1, 3), (2, 3, 1), 0.1) == PauliRotation(
         (1, 2, 3), (3, 2, 1), 0.1
     )
-    assert PauliRotation((2, 1, 3), (3, 2, 1), 0.1) != PauliRotation(
+    assert not PauliRotation((2, 1, 3), (3, 2, 1), 0.1) == PauliRotation(
         (1, 2, 3), (3, 2, 1), 0.1
     )
     assert Measurement([0, 1], [1, 0]) == Measurement([0, 1], [1, 0])
-    assert Measurement([0, 1], [1, 0]) != Measurement([0, 1], [0, 1])
+    assert not Measurement([0, 1], [1, 0]) == Measurement([0, 1], [0, 1])
     assert Measurement([0, 1], [1, 0]) == Measurement([1, 0], [0, 1])
 
     # ParametricQuantumGate
     assert ParametricRX(0) == ParametricRX(0)
-    assert ParametricRX(0) != ParametricRX(1)
-    assert ParametricRX(0) != ParametricRY(0)
+    assert not ParametricRX(0) == ParametricRX(1)
+    assert not ParametricRX(0) == ParametricRY(0)
     assert ParametricPauliRotation((0, 1, 2), (2, 1, 3)) == ParametricPauliRotation(
         (0, 1, 2), (2, 1, 3)
     )
-    assert ParametricPauliRotation((0, 1, 2), (2, 1, 3)) != ParametricPauliRotation(
+    assert not ParametricPauliRotation((0, 1, 2), (2, 1, 3)) == ParametricPauliRotation(
         (0, 1, 2), (1, 2, 3)
     )
     assert ParametricPauliRotation((0, 1, 2), (2, 1, 3)) == ParametricPauliRotation(

@@ -11,6 +11,8 @@
 from collections.abc import Sequence
 from typing import NamedTuple, TypeVar
 
+from .gate_names import UnitaryMatrix
+
 _QuantumGateT = TypeVar("_QuantumGateT", "QuantumGate", "ParametricQuantumGate")
 
 
@@ -64,6 +66,12 @@ def is_gate_equal(
         return False
     if set(gate1.control_indices) != set(gate1.control_indices):
         return False
+    if gate1.name == UnitaryMatrix:
+        if gate1.target_indices != gate2.target_indices:
+            return False
+    else:
+        if set(gate1.target_indices) != set(gate2.target_indices):
+            return False
     if set(zip(gate1.target_indices, gate1.pauli_ids)) != set(
         zip(gate2.target_indices, gate2.pauli_ids)
     ):
