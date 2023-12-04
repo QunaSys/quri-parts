@@ -9,7 +9,9 @@
 # limitations under the License.
 
 from collections.abc import Sequence
-from typing import NamedTuple
+from typing import NamedTuple, TypeVar
+
+_QuantumGateT = TypeVar("_QuantumGateT", "QuantumGate", "ParametricQuantumGate")
 
 
 class QuantumGate(NamedTuple):
@@ -32,21 +34,7 @@ class QuantumGate(NamedTuple):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, QuantumGate):
             return False
-        if self.name != other.name:
-            return False
-        if set(self.control_indices) != set(other.control_indices):
-            return False
-        if self.params != other.params:
-            return False
-        if set(zip(self.target_indices, self.pauli_ids)) != set(
-            zip(other.target_indices, other.pauli_ids)
-        ):
-            return False
-        if self.name == "Measurement":
-            return set(zip(self.target_indices, self.classical_indices)) == set(
-                zip(other.target_indices, other.classical_indices)
-            )
-        return self.unitary_matrix == other.unitary_matrix
+        return is_gate_equal(self, other)
 
 
 class ParametricQuantumGate(NamedTuple):
@@ -65,10 +53,27 @@ class ParametricQuantumGate(NamedTuple):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, ParametricQuantumGate):
             return False
-        if self.name != other.name:
+        return is_gate_equal(self, other)
+
+
+def is_gate_equal(
+    gate1: _QuantumGateT,
+    gate2: _QuantumGateT,
+) -> bool:
+    if gate1.name != gate2.name:
+        return False
+    if set(gate1.control_indices) != set(gate1.control_indices):
+        return False
+    if set(zip(gate1.target_indices, gate1.pauli_ids)) != set(
+        zip(gate2.target_indices, gate2.pauli_ids)
+    ):
+        return False
+    if isinstance(gate1, QuantumGate):
+        if gate1.params != gate2.params:
             return False
-        if set(self.control_indices) != set(other.control_indices):
-            return False
-        return set(zip(self.target_indices, self.pauli_ids)) == set(
-            zip(other.target_indices, other.pauli_ids)
-        )
+        if gate1.name == "Measurement":
+            return set(zip(gate1.target_indices, gate1.classical_indices)) == set(
+                zip(gate2.target_indices, gate2.classical_indices)
+            )
+        return gate1.unitary_matrix == gate2.unitary_matrix
+    return True
