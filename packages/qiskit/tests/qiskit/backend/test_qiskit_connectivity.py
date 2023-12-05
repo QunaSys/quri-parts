@@ -14,6 +14,7 @@ import networkx as nx
 import pytest
 from qiskit.providers import BackendV1, BackendV2, fake_provider
 
+from quri_parts.circuit import gate_names
 from quri_parts.qiskit.backend import (
     coupling_map_with_2_qubit_gate_errors,
     device_connectivity_graph,
@@ -142,10 +143,16 @@ class TestQiskitConnectivityGraphV2:
 
 
 def test_coupling_map_with_cnot_errors() -> None:
-    device = fake_provider.FakeBelemV2()
-    cnot_errors = coupling_map_with_2_qubit_gate_errors(device, gate_name="cx")
-    expected = [(0, 1), (1, 2), (1, 3), (3, 4)]
-    for c in expected:
-        assert c in cnot_errors
-    for e in cnot_errors.values():
-        assert 1.0 >= e and e >= 0.0
+    devices = [
+        (fake_provider.FakeBelemV2(), [(0, 1), (1, 2), (1, 3), (3, 4)]),
+        (fake_provider.FakeAthens(), [(0, 1), (1, 2), (2, 3), (3, 4)]),
+    ]
+
+    for device, cmap in devices:
+        cnot_errors = coupling_map_with_2_qubit_gate_errors(
+            device, gate_name=gate_names.CNOT
+        )
+        for c in cmap:
+            assert c in cnot_errors
+        for e in cnot_errors.values():
+            assert 1.0 >= e and e >= 0.0
