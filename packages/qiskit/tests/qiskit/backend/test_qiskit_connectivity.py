@@ -18,6 +18,7 @@ from quri_parts.circuit import gate_names
 from quri_parts.qiskit.backend import (
     coupling_map_with_2_qubit_gate_errors,
     device_connectivity_graph,
+    qubit_indices_with_readout_errors,
 )
 
 
@@ -152,7 +153,19 @@ def test_coupling_map_with_cnot_errors() -> None:
         cnot_errors = coupling_map_with_2_qubit_gate_errors(
             device, gate_name=gate_names.CNOT
         )
-        for c in cmap:
-            assert c in cnot_errors
+        assert set(cmap + [(b, a) for a, b in cmap]) == cnot_errors.keys()
         for e in cnot_errors.values():
+            assert 1.0 >= e and e >= 0.0
+
+
+def test_qubit_indices_with_readout_errors() -> None:
+    devices = [
+        (fake_provider.FakeBelemV2(), list(range(5))),
+        (fake_provider.FakeAthens(), list(range(5))),
+    ]
+
+    for device, qubits in devices:
+        readout_errors = qubit_indices_with_readout_errors(device)
+        assert set(qubits) == readout_errors.keys()
+        for e in readout_errors.values():
             assert 1.0 >= e and e >= 0.0

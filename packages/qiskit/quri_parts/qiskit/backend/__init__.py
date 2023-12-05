@@ -11,6 +11,7 @@
 from .connectivity import (
     coupling_map_with_2_qubit_gate_errors,
     device_connectivity_graph,
+    qubit_indices_with_readout_errors,
 )
 from .primitive import (
     QiskitRuntimeSamplingBackend,
@@ -49,5 +50,6 @@ __all__ = [
     "distribute_backend_shots",
     "get_job_mapper_and_circuit_transpiler",
     "get_backend_min_max_shot",
+    "qubit_indices_with_readout_errors",
     "Tracker",
 ]
