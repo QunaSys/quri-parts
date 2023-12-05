@@ -49,7 +49,5 @@ __all__ = [
     "distribute_backend_shots",
     "get_job_mapper_and_circuit_transpiler",
     "get_backend_min_max_shot",
-    "distribute_backend_shots",
-    "convert_qiskit_sampling_count_to_qp_sampling_count",
     "Tracker",
 ]

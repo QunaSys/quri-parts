@@ -1,8 +1,11 @@
 from collections.abc import Mapping
-from typing import Union, cast
+from typing import Union
 
 import networkx as nx
 from qiskit.providers import BackendV1, BackendV2, BackendV2Converter
+
+from quri_parts.circuit import gate_names
+from quri_parts.circuit.gate_names import GateNameType
 
 
 def device_connectivity_graph(device: Union[BackendV1, BackendV2]) -> nx.Graph:
@@ -34,8 +37,14 @@ def device_connectivity_graph(device: Union[BackendV1, BackendV2]) -> nx.Graph:
     return nx.parse_adjlist(lines)
 
 
+_qp_qiskit_gate_name_map: Mapping[GateNameType, str] = {
+    gate_names.CNOT: "cx",
+    gate_names.CZ: "cz",
+}
+
+
 def coupling_map_with_2_qubit_gate_errors(
-    device: Union[BackendV1, BackendV2], gate_name: str = "cx"
+    device: Union[BackendV1, BackendV2], gate_name: GateNameType = gate_names.CNOT
 ) -> Mapping[tuple[int, int], float]:
     """Extract qubit couplings and their 2 qubit gate error rates from Qiskit
     BackendV1 or BackendV2 instance."""
@@ -43,9 +52,8 @@ def coupling_map_with_2_qubit_gate_errors(
         device = BackendV2Converter(device)
 
     edges = device.coupling_map.get_edges()
-    return {
-        qs: prop.error for qs, prop in device.target[gate_name].items() if qs in edges
-    }
+    gate = _qp_qiskit_gate_name_map[gate_name]
+    return {qs: prop.error for qs, prop in device.target[gate].items() if qs in edges}
 
 
 def qubit_indices_with_readout_errors(
