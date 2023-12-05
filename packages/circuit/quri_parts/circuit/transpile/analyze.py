@@ -76,7 +76,7 @@ def qubit_couplings(
         qubits = tuple(gate.control_indices) + tuple(gate.target_indices)
         if include_singles or len(qubits) >= 2:
             coupling.add(qubits)
-    return list(coupling)
+    return sorted(list(coupling))
 
 
 def coupled_qubit_graphs(circuit: NonParametricQuantumCircuit) -> Sequence[nx.Graph]:

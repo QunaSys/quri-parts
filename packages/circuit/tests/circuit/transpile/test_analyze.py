@@ -8,6 +8,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 from quri_parts.circuit import QuantumCircuit, gate_names, gates
 from quri_parts.circuit.transpile import (
     coupled_qubit_indices,
@@ -81,8 +83,24 @@ def test_gate_count() -> None:
 
 def test_qubit_couplings() -> None:
     assert qubit_couplings(_circuit_3()) == [(0, 1), (1, 2)]
+    assert qubit_couplings(_circuit_3(), include_singles=True) == [
+        (0,),
+        (0, 1),
+        (1,),
+        (1, 2),
+        (2,),
+    ]
     assert qubit_couplings(_circuit_5()) == [(0, 1, 2), (2, 4), (3, 4)]
+    assert qubit_couplings(_circuit_5(), include_singles=True) == [
+        (0,),
+        (0, 1, 2),
+        (2, 4),
+        (3,),
+        (3, 4),
+        (4,),
+    ]
     assert qubit_couplings(QuantumCircuit(1)) == []
+    assert qubit_couplings(QuantumCircuit(1), include_singles=True) == []
 
 
 def test_coupled_qubit_indices() -> None:
@@ -96,3 +114,6 @@ def test_coupled_qubit_indices() -> None:
 def test_extract_qubit_path() -> None:
     paths = extract_qubit_coupling_path(_circuit_3())
     assert list(sorted(paths)[0]) == [0, 1, 2]
+
+    with pytest.raises(ValueError):
+        paths = extract_qubit_coupling_path(_circuit_5())
