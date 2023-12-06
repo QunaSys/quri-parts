@@ -18,6 +18,7 @@ from quri_parts.circuit import (
     U2,
     U3,
     H,
+    Identity,
     PauliRotation,
     QuantumCircuit,
     S,
@@ -60,7 +61,7 @@ class TestCliffordApproximationTranspile:
                 SqrtX(3),
                 Z(3),
                 SqrtX(3),
-                Sdag(3),
+                Identity(3),
                 CZ(2, 3),  # CZ
                 SqrtX(1),  # PauliRotation
                 H(2),
