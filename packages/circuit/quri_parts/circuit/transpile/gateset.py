@@ -110,8 +110,8 @@ _equiv_clifford_table: Mapping[str, list[list[str]]] = {
 
 
 class CliffordConversionTranspiler(CircuitTranspilerProtocol):
-    """A CircuitTranspiler that converts Clifford gates in a circuit into the desired
-    Clifford gate sequences.
+    """A CircuitTranspiler that converts Clifford gates in a circuit into the
+    desired Clifford gate sequences.
 
     Convert the Clifford gates in the circuit into gate sequences containing only the
     user-specified Clifford gates. Such conversions are done on a best-effort basis and
@@ -165,9 +165,8 @@ class CliffordConversionTranspiler(CircuitTranspilerProtocol):
 
 
 class RZ2RXRYTranspiler(GateKindDecomposer):
-    """A CircuitTranspiler that converts RZ gates in a circuit into the gate sequences
-    containing RX and RY gates.
-    """
+    """A CircuitTranspiler that converts RZ gates in a circuit into the gate
+    sequences containing RX and RY gates."""
 
     @property
     def target_gate_names(self) -> Sequence[str]:
@@ -184,9 +183,8 @@ class RZ2RXRYTranspiler(GateKindDecomposer):
 
 
 class RY2RXRZTranspiler(GateKindDecomposer):
-    """A CircuitTranspiler that converts RY gates in a circuit into the gate sequences
-    containing RX and RZ gates.
-    """
+    """A CircuitTranspiler that converts RY gates in a circuit into the gate
+    sequences containing RX and RZ gates."""
 
     @property
     def target_gate_names(self) -> Sequence[str]:
@@ -203,9 +201,8 @@ class RY2RXRZTranspiler(GateKindDecomposer):
 
 
 class RX2RYRZTranspiler(GateKindDecomposer):
-    """A CircuitTranspiler that converts RX gates in a circuit into the gate sequences
-    containing RY and RZ gates.
-    """
+    """A CircuitTranspiler that converts RX gates in a circuit into the gate
+    sequences containing RY and RZ gates."""
 
     @property
     def target_gate_names(self) -> Sequence[str]:
@@ -222,9 +219,8 @@ class RX2RYRZTranspiler(GateKindDecomposer):
 
 
 class RX2RZHTranspiler(GateKindDecomposer):
-    """A CircuitTranspiler that converts RX gates in a circuit into the gate sequences
-    containing RZ and H gates.
-    """
+    """A CircuitTranspiler that converts RX gates in a circuit into the gate
+    sequences containing RZ and H gates."""
 
     @property
     def target_gate_names(self) -> Sequence[str]:
@@ -241,9 +237,8 @@ class RX2RZHTranspiler(GateKindDecomposer):
 
 
 class RY2RZHTranspiler(GateKindDecomposer):
-    """A CircuitTranspiler that converts RY gates in a circuit into the gate sequences
-    containing RZ and H gates.
-    """
+    """A CircuitTranspiler that converts RY gates in a circuit into the gate
+    sequences containing RZ and H gates."""
 
     @property
     def target_gate_names(self) -> Sequence[str]:
@@ -271,8 +266,8 @@ class IdentityTranspiler(CircuitTranspilerProtocol):
 
 
 class RotationConversionTranspiler(CircuitTranspilerProtocol):
-    """A CircuitTranspiler that converts rotation gates (RX, RY, and RZ) in a circuit to
-    each other.
+    """A CircuitTranspiler that converts rotation gates (RX, RY, and RZ) in a
+    circuit to each other.
 
     Convert rotation gates in a circuit into the gate sequences containing only
     specified kinds of rotation gates and Clifford gates.
@@ -300,7 +295,7 @@ class RotationConversionTranspiler(CircuitTranspilerProtocol):
         self._favorable_clifford = set(favorable_clifford)
         self._decomposer = self._construct_decomposer()
 
-        if self._target_rotation & {RX, RY, RZ}:
+        if self._target_rotation - {RX, RY, RZ}:
             raise ValueError("Unsupported target rotation gate kinds are specified.")
         if self._favorable_clifford - (CLIFFORD_GATE_NAMES & SINGLE_QUBIT_GATE_NAMES):
             raise ValueError(
@@ -343,8 +338,8 @@ class RotationConversionTranspiler(CircuitTranspilerProtocol):
 
 
 class GateSetConversionTranspiler(CircuitTranspilerProtocol):
-    """A CircuitTranspiler that converts the gate set of a circuit into the specified
-    one.
+    """A CircuitTranspiler that converts the gate set of a circuit into the
+    specified one.
 
     Depending on the target gate set and the input circuit, the decomposition may fail
     and an exception may be raised.
