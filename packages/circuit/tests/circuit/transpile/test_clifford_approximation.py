@@ -22,7 +22,6 @@ from quri_parts.circuit import (
     PauliRotation,
     QuantumCircuit,
     S,
-    Sdag,
     SqrtX,
     SqrtXdag,
     SqrtY,
