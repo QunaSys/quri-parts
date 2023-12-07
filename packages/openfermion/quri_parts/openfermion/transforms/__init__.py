@@ -111,8 +111,6 @@ class OpenFermionQubitMapping(FermionQubitMapping, ABC):
             transformation) while the others ignore it.
     """
 
-    _mapping_method: type[FermionQubitMapperFactory]
-
     def __init__(
         self,
         n_spin_orbitals: int,
@@ -342,8 +340,6 @@ class OpenFermionJordanWigner(JordanWigner, OpenFermionQubitMapping):
             This is not used in the transformation thus being ignored.
     """
 
-    _mapping_method = JordanWignerMapperFactory
-
     @property
     def of_operator_mapper(self) -> OpenFermionQubitOperatorMapper:
         """Returns a function that maps a
@@ -417,8 +413,6 @@ class OpenFermionBravyiKitaev(BravyiKitaev, OpenFermionQubitMapping):
         sz:
             This is not used in the transformation thus being ignored.
     """
-
-    _mapping_method = BravyiKitaevMapperFactory
 
     @property
     def of_operator_mapper(self) -> OpenFermionQubitOperatorMapper:
@@ -509,8 +503,6 @@ class OpenFermionSymmetryConservingBravyiKitaev(
             Spin along the z-axis of the state. Currently, only sz = 0
             and 0.5 are supported.
     """
-
-    _mapping_method = SymmetryConservingBravyiKitaevMapperFactory
 
     @property
     def of_operator_mapper(self) -> OpenFermionQubitOperatorMapper:
