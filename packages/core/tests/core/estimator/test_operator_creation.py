@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from dataclasses import dataclass
-from typing import Any, Sequence
+from typing import Sequence
 
 from quri_parts.circuit import (
     ImmutableBoundParametricQuantumCircuit,
@@ -17,7 +17,6 @@ from quri_parts.circuit import (
 )
 from quri_parts.core.estimator import (
     Estimatable,
-    _StateT,
     create_concurrent_estimator_from_estimator,
     create_concurrent_parametric_estimator_from_concurrent_estimator,
     create_estimator_from_concurrent_estimator,
@@ -27,6 +26,7 @@ from quri_parts.core.estimator import (
 )
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
 from quri_parts.core.state import (
+    CircuitQuantumState,
     ComputationalBasisState,
     GeneralCircuitQuantumState,
     ParametricCircuitQuantumState,
@@ -39,7 +39,7 @@ class _Estimate:
     error: float = 0.0
 
 
-def fake_estimator(op: Estimatable, state: _StateT) -> _Estimate:
+def fake_estimator(op: Estimatable, state: CircuitQuantumState) -> _Estimate:
     op_contribution = len(op) if isinstance(op, Operator) else 1
 
     if isinstance(state, ComputationalBasisState):
@@ -54,7 +54,7 @@ def fake_estimator(op: Estimatable, state: _StateT) -> _Estimate:
 
 
 def fake_concurrent_estimator(
-    operators: Sequence[Estimatable], states: Sequence[_StateT]
+    operators: Sequence[Estimatable], states: Sequence[CircuitQuantumState]
 ) -> Sequence[_Estimate]:
     num_ops = len(operators)
     num_states = len(states)
@@ -90,7 +90,7 @@ def test_create_concurrent_estimator_from_estimator() -> None:
     ]
 
 
-def create_estimator_from_concurrent_estimator() -> None:
+def test_create_estimator_from_concurrent_estimator() -> None:
     estimator = create_estimator_from_concurrent_estimator(fake_concurrent_estimator)
     op = PAULI_IDENTITY
     state = ComputationalBasisState(1, bits=1)
