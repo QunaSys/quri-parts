@@ -45,7 +45,6 @@ class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
 
     Args:
         n_spin_orbitals: Number of spin orbitals.
-        n_fermions: Number of fermions.
         k: Number of repetitions.
         fermion_qubit_mapping: Mapping from :class:`FermionOperator` to
           :class:`Operator`

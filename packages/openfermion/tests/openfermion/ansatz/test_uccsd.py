@@ -412,8 +412,6 @@ class TestSingletUCCSD:
     @staticmethod
     def check_is_singlet(
         uccsd_ansatz: TrotterUCCSD,
-        n_spin_orbs: int,
-        n_fermions: int,
         parameters: Sequence[float],
         operator_mapping: OpenFermionQubitMapping,
     ) -> bool:
@@ -481,8 +479,6 @@ class TestSingletUCCSD:
 
         assert self.check_is_singlet(
             ansatz,
-            n_spin_orbitals,
-            n_electrons,
             param_vals,
             operator_mapping=jordan_wigner(n_spin_orbitals, n_electrons),
         )
@@ -512,8 +508,6 @@ class TestSingletUCCSD:
 
         assert self.check_is_singlet(
             ansatz,
-            n_spin_orbitals,
-            n_electrons,
             param_vals,
             operator_mapping=bravyi_kitaev(n_spin_orbitals, n_electrons),
         )

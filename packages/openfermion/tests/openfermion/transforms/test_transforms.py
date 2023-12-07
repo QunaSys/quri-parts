@@ -182,9 +182,6 @@ class TestStateMapper:
         )
         assert inv_mapped == [0, 2]
 
-        state_mapper = bravyi_kitaev(n_spin_orbitals).state_mapper
-        inv_state_mapper = bravyi_kitaev(n_spin_orbitals).inv_state_mapper
-
         n_spin_orbitals = 8
         n_fermions = 4
         state_mapper = bravyi_kitaev(n_spin_orbitals, n_fermions).state_mapper

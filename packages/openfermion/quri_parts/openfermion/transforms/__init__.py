@@ -388,7 +388,7 @@ Example:
 
     >>> jw_mapping = jordan_wigner(8)
 
-    >>> operator_mapper = jw_mapping.operator_mapper
+    >>> operator_mapper = jw_mapping.of_operator_mapper
     >>> operator_mapper(FermionOperator("1^ 1"))
     (0.5+0j)*I + (-0.5+0j)*Z1
 
@@ -464,7 +464,7 @@ Example:
 
     >>> bk_mapping = bravyi_kitaev(8)
 
-    >>> operator_mapper = bk_mapping.operator_mapper
+    >>> operator_mapper = bk_mapping.of_operator_mapper
     >>> print(operator_mapper(FermionOperator("1^ 1")))
     (0.5+0j)*I + (-0.5+0j)*Z0 Z1
 
@@ -600,7 +600,7 @@ Example:
 
     >>> scbk_mapping = scbk(8, 4, 0)
 
-    >>> operator_mapper = scbk_mapping.operator_mapper
+    >>> operator_mapper = scbk_mapping.of_operator_mapper
     >>> print(operator_mapper(FermionOperator("1^ 1")))
     0.5*I + -0.5*Z3
 
