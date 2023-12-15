@@ -17,6 +17,8 @@ from quri_parts.backend.qubit_mapping import BackendQubitMapping, QubitMappedSam
 from quri_parts.circuit.transpile import CircuitTranspiler, SequentialTranspiler
 from quri_parts.qiskit.circuit import QiskitSetTranspiler
 
+DEFAULT_MAX_SHOT = int(1e6)
+
 
 def distribute_backend_shots(
     n_shots: int,
@@ -64,11 +66,11 @@ def get_backend_min_max_shot(backend: Backend) -> tuple[int, Optional[int]]:
         raise BackendError("Backend not supported.")
 
     if isinstance(backend, BackendV1):
-        max_shots = backend.configuration().max_shots
+        max_shots = getattr(backend.configuration(), "max_shots", DEFAULT_MAX_SHOT)
         if max_shots > 0:
             return 1, max_shots
 
-    return 1, backend.max_shots
+    return 1, getattr(backend, "max_shots", DEFAULT_MAX_SHOT)
 
 
 def get_job_mapper_and_circuit_transpiler(
