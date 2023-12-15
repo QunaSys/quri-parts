@@ -11,13 +11,14 @@
 from typing import Callable, Mapping, MutableMapping, Optional, Sequence
 
 from qiskit.providers.backend import Backend, BackendV1, BackendV2
+from qiskit_aer import AerSimulator
 
 from quri_parts.backend import BackendError, SamplingCounts, SamplingJob
 from quri_parts.backend.qubit_mapping import BackendQubitMapping, QubitMappedSamplingJob
 from quri_parts.circuit.transpile import CircuitTranspiler, SequentialTranspiler
 from quri_parts.qiskit.circuit import QiskitSetTranspiler
 
-DEFAULT_MAX_SHOT = int(1e6)
+DEFAULT_MAX_SHOT = AerSimulator().configuration().max_shots
 
 
 def distribute_backend_shots(
@@ -64,6 +65,9 @@ def get_backend_min_max_shot(backend: Backend) -> tuple[int, Optional[int]]:
     allowed in a single sampling job."""
     if not isinstance(backend, (BackendV1, BackendV2)):
         raise BackendError("Backend not supported.")
+
+    if isinstance(backend, AerSimulator):
+        return 1, backend.configuration().max_shots
 
     if isinstance(backend, BackendV1):
         max_shots = getattr(backend.configuration(), "max_shots", DEFAULT_MAX_SHOT)
