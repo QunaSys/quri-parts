@@ -84,7 +84,7 @@ class MolecularOrbitals(Protocol):
         ...
 
 
-class ActiveSpaceMolecularOrbitalsBase(ABC, MolecularOrbitals):
+class ActiveSpaceMolecularOrbitalsBase(MolecularOrbitals, ABC):
     @abstractproperty
     def n_active_ele(self) -> int:
         ...
