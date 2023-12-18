@@ -10,7 +10,7 @@
 
 from abc import abstractmethod
 from collections.abc import Iterable, Sequence
-from typing import Callable, NamedTuple, Protocol, Union
+from typing import Callable, NamedTuple, Protocol, Union, runtime_checkable
 
 from typing_extensions import TypeAlias
 
@@ -32,6 +32,7 @@ PauliReconstructor: TypeAlias = Callable[[int], int]
 PauliReconstructorFactory: TypeAlias = Callable[[PauliLabel], PauliReconstructor]
 
 
+@runtime_checkable
 class CommutablePauliSetMeasurement(Protocol):
     """Represents a measurement scheme for a set of commutable Pauli
     operators."""
