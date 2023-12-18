@@ -19,6 +19,7 @@ from quri_parts.circuit import H, NonParametricQuantumCircuit, QuantumCircuit
 from quri_parts.core.estimator import Estimate
 from quri_parts.core.estimator.sampling import (
     concurrent_sampling_estimate,
+    create_fixed_operator_sampling_esimator,
     create_sampling_concurrent_estimator,
     create_sampling_estimator,
     sampling_estimate,
@@ -181,6 +182,16 @@ class TestSamplingEstimate:
         assert_sampler_args(s)
         assert_sample(estimate)
 
+    def test_cached_sampling_estimate(self) -> None:
+        op = operator()
+        s = mock_sampler()
+        measurement_group = measurement_factory(op)
+        estimate = sampling_estimate(
+            op, initial_state(), total_shots(), s, measurement_group, allocator
+        )
+        assert_sampler_args(s)
+        assert_sample(estimate)
+
     def test_sampling_estimate_zero_shots(self) -> None:
         def sampler(
             shot_circuit_pairs: Iterable[tuple[NonParametricQuantumCircuit, int]]
@@ -309,3 +320,14 @@ class TestSamplingConcurrentEstimator:
         assert len(estimate_list) == 2
         assert_sample(estimate_list[0])
         assert estimate_list[1].value == (1 - 1 + 2 - 4) / 8
+
+
+def test_create_fixed_operator_sampling_esimator() -> None:
+    op = operator()
+    s = mock_sampler()
+    estimator = create_fixed_operator_sampling_esimator(
+        op, total_shots(), s, measurement_factory, allocator
+    )
+    estimate = estimator(initial_state())
+    assert_sampler_args(s)
+    assert_sample(estimate)

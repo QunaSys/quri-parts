@@ -17,6 +17,7 @@ from quri_parts.core.sampling import MeasurementCounts
 
 from .estimator import (
     concurrent_sampling_estimate,
+    create_fixed_operator_sampling_esimator,
     create_sampling_concurrent_estimator,
     create_sampling_estimator,
     sampling_estimate,
@@ -63,6 +64,7 @@ __all__ = [
     "trivial_pauli_covariance_estimator",
     "sampling_estimate",
     "create_sampling_estimator",
+    "create_fixed_operator_sampling_esimator",
     "concurrent_sampling_estimate",
     "create_sampling_concurrent_estimator",
     "sampling_overlap_estimate",
