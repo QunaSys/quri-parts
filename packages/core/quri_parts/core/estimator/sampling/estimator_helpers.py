@@ -43,7 +43,7 @@ def distribute_shots_among_pauli_sets(
     Args:
         operator: The operator to be measured.
         measurement_groups: Sequence of :class:`~CommutablePauliSetMeasurement` that
-            cooresponds to the grouping result of the operator.
+            corresponds to the grouping result of the operator.
         shot_allocator: A function that allocates the total shots to Pauli groups to
             be measured.
         total_shots: Total number of shots available for sampling measurements.
@@ -62,7 +62,7 @@ def get_constant_seperated_measurement_group(
     Args:
         operator: The operator to be estimated.
         measurement_groups: Sequence of :class:`~CommutablePauliSetMeasurement` that
-            cooresponds to the grouping result of the operator.
+            corresponds to the grouping result of the operator.
     """
     const = 0.0 + 0.0j
     measurement = []
@@ -83,9 +83,9 @@ def circuit_shot_pairs_preparation_fn(
     quantum state.
 
     Args:
-        state: The state on which the expetation value is estimated.
+        state: The state on which the expectation value is estimated.
         measurement_groups: Sequence of :class:`~CommutablePauliSetMeasurement` that
-            cooresponds to the grouping result of the operator.
+            corresponds to the grouping result of the operator.
         shots_map: A dictionary whose key is the commuting pauli set and the value is
             the shot count assigned to the commuting pauli set.
     """

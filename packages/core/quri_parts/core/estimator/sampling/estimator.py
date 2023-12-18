@@ -104,7 +104,7 @@ def get_estimate_from_sampling_result(
     return _Estimate(op, const, pauli_sets, pauli_recs, tuple(sampling_counts))
 
 
-def create_sampling_esimtation_function(
+def create_sampling_estimation_function(
     sampler: ConcurrentSampler,
     shots_allocator: PauliSamplingShotsAllocator,
     circuit_shot_pair_prep_fn: CircuitShotPairPreparationFunction,
@@ -195,7 +195,7 @@ def sampling_estimate(
         return _ConstEstimate(op[PAULI_IDENTITY])
 
     measurement_groups = measurement_factory(op)
-    _sampling_estimation_fn = create_sampling_esimtation_function(
+    _sampling_estimation_fn = create_sampling_estimation_function(
         sampler, shots_allocator, circuit_shot_pairs_preparation_fn
     )
     return _sampling_estimation_fn(op, state, measurement_groups, total_shots)
@@ -342,7 +342,7 @@ def create_fixed_operator_sampling_esimator(
         op = Operator({op: 1.0})
 
     measurement_groups = measurement_factory(op)
-    _sampling_estimation_fn = create_sampling_esimtation_function(
+    _sampling_estimation_fn = create_sampling_estimation_function(
         sampler, shots_allocator, circuit_shot_pairs_preparation_fn
     )
 
