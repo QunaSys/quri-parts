@@ -64,7 +64,7 @@ def get_backend_min_max_shot(backend: Backend) -> tuple[int, Optional[int]]:
     """Get the selected qiskit backend's minimum and maximum shot number
     allowed in a single sampling job."""
 
-    def _set_max_shot_to_default():
+    def _set_max_shot_to_default() -> int:
         warnings.warn(
             "No max_shots setting is found. "
             f"The max shot is set to default value {DEFAULT_MAX_SHOT}"
