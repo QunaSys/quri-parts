@@ -69,7 +69,7 @@ class TketTranspiler(CircuitTranspilerProtocol):
             is used for the output and the basis_gates option is ignored.
         basis_gates: Specify the gate set after decomposition as a list of gate name
             strings.
-        optimization_level: Specifies the optimization level of the circuit from 0 to 2.
+        optimization_level: Specifies the optimization level of the circuit from 0 to 3.
 
     Refs:
         https://cqcl.github.io/pytket/manual/manual_compiler.html
@@ -79,10 +79,10 @@ class TketTranspiler(CircuitTranspilerProtocol):
         self,
         backend: Optional[Backend] = None,
         basis_gates: Optional[Sequence[GateNameType]] = None,
-        optimization_level: int = 2,
+        optimization_level: int = 3,
     ):
-        if not (0 <= optimization_level <= 2):
-            raise ValueError("optimization_level must be 0, 1, or 2.")
+        if not (0 <= optimization_level <= 3):
+            raise ValueError("optimization_level must be 0 to 3.")
 
         self._basis_gates: Optional[set[str]] = None
         if basis_gates is not None:
@@ -105,7 +105,7 @@ class TketTranspiler(CircuitTranspilerProtocol):
         pass_list = []
         if self._optimization_level == 1:
             pass_list.append(passes.SynthesiseTket())  # type: ignore
-        elif self._optimization_level == 2:
+        elif self._optimization_level >= 2:
             pass_list.append(passes.FullPeepholeOptimise())  # type: ignore
 
         if self._basis_gates is not None:
