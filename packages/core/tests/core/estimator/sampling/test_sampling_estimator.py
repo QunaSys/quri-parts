@@ -322,12 +322,28 @@ class TestSamplingConcurrentEstimator:
         assert estimate_list[1].value == (1 - 1 + 2 - 4) / 8
 
 
-def test_create_fixed_operator_sampling_esimator() -> None:
-    op = operator()
-    s = mock_sampler()
-    estimator = create_fixed_operator_sampling_esimator(
-        op, total_shots(), s, measurement_factory, allocator
-    )
-    estimate = estimator(initial_state())
-    assert_sampler_args(s)
-    assert_sample(estimate)
+class TestFixedOperarorSamplingEstimator:
+    def test_create_fixed_operator_sampling_esimator(self) -> None:
+        op = operator()
+        s = mock_sampler()
+        estimator = create_fixed_operator_sampling_esimator(
+            op, total_shots(), s, measurement_factory, allocator
+        )
+        estimate = estimator(op, initial_state())
+        assert_sampler_args(s)
+        assert_sample(estimate)
+
+    def test_create_fixed_operator_sampling_esimator_error(self) -> None:
+        op = operator()
+        s = mock_sampler()
+        estimator = create_fixed_operator_sampling_esimator(
+            op, total_shots(), s, measurement_factory, allocator
+        )
+        with pytest.raises(
+            AssertionError,
+            match=(
+                "The input operator is not consistent with the "
+                "fixed operator used to create the estimator."
+            ),
+        ):
+            estimator(PAULI_IDENTITY, initial_state())

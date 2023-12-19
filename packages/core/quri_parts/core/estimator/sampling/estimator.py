@@ -281,12 +281,12 @@ def create_sampling_concurrent_estimator(
 
 
 def create_fixed_operator_sampling_esimator(
-    op: Estimatable,
+    fixed_op: Estimatable,
     total_shots: int,
     sampler: ConcurrentSampler,
     measurement_factory: CommutablePauliSetMeasurementFactory,
     shots_allocator: PauliSamplingShotsAllocator,
-) -> Callable[[CircuitQuantumState], Estimate[complex]]:
+) -> QuantumEstimator[CircuitQuantumState]:
     """Returns an estimator that performs sampling estimation for the specified
     operator.
 
@@ -299,12 +299,18 @@ def create_fixed_operator_sampling_esimator(
         shots_allocator: A function that allocates the total shots to Pauli groups to
             be measured.
     """
-    if not isinstance(op, Operator):
-        op = Operator({op: 1.0})
+    if not isinstance(fixed_op, Operator):
+        fixed_op = Operator({fixed_op: 1.0})
 
-    measurement_groups = measurement_factory(op)
+    measurement_groups = measurement_factory(fixed_op)
 
-    def estimator(state: CircuitQuantumState) -> Estimate[complex]:
+    def estimator(op: Estimatable, state: CircuitQuantumState) -> Estimate[complex]:
+        if not isinstance(fixed_op, Operator):
+            op = Operator({op: 1.0})
+        assert op == fixed_op, (
+            "The input operator is not consistent with the "
+            "fixed operator used to create the estimator."
+        )
         return sampling_estimate(
             op, state, total_shots, sampler, measurement_groups, shots_allocator
         )
