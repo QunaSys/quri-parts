@@ -12,7 +12,7 @@ from collections.abc import Collection, Iterable, Sequence
 from dataclasses import dataclass
 from functools import cached_property
 from math import sqrt
-from typing import Callable, Union
+from typing import Union
 
 from quri_parts.core.estimator import (
     ConcurrentQuantumEstimator,
@@ -145,8 +145,6 @@ def sampling_estimate(
 
     # Support caching
     if isinstance(measurement, Iterable):
-        for m in measurement:
-            assert isinstance(m, CommutablePauliSetMeasurement)
         measurement_groups = measurement
     else:
         measurement_groups = measurement(op)
