@@ -19,6 +19,7 @@ from quri_parts.core.estimator import (
     Estimatable,
     Estimate,
     QuantumEstimator,
+    parse_concurrent_estimator_arguments,
 )
 from quri_parts.core.estimator.sampling.pauli import (
     general_pauli_sum_expectation_estimator,
@@ -193,8 +194,12 @@ def concurrent_sampling_estimate(
     states: Collection[CircuitQuantumState],
     total_shots: int,
     sampler: ConcurrentSampler,
-    measurement_factory: CommutablePauliSetMeasurementFactory,
+    measurements: Union[
+        CommutablePauliSetMeasurementFactory,
+        Iterable[Iterable[CommutablePauliSetMeasurement]],
+    ],
     shots_allocator: PauliSamplingShotsAllocator,
+    circuit_shot_pair_prep_fn: CircuitShotPairPreparationFunction = default_prep,
 ) -> Iterable[Estimate[complex]]:
     """Estimate expectation value of given operators with given states by
     sampling measurement.
@@ -215,28 +220,31 @@ def concurrent_sampling_estimate(
         The estimated values (can be accessed with :attr:`.value`) with standard errors
             of estimation (can be accessed with :attr:`.error`).
     """
-    num_ops = len(operators)
-    num_states = len(states)
+    operators, states = parse_concurrent_estimator_arguments(operators, states)
 
-    if num_ops == 0:
-        raise ValueError("No operator specified.")
+    if isinstance(measurements, Iterable):
+        return [
+            sampling_estimate(
+                op,
+                state,
+                total_shots,
+                sampler,
+                m,
+                shots_allocator,
+                circuit_shot_pair_prep_fn,
+            )
+            for op, state, m in zip(operators, states, measurements)
+        ]
 
-    if num_states == 0:
-        raise ValueError("No state specified.")
-
-    if num_ops > 1 and num_states > 1 and num_ops != num_states:
-        raise ValueError(
-            f"Number of operators ({num_ops}) does not match"
-            f"number of states ({num_states})."
-        )
-
-    if num_states == 1:
-        states = [next(iter(states))] * num_ops
-    if num_ops == 1:
-        operators = [next(iter(operators))] * num_states
     return [
         sampling_estimate(
-            op, state, total_shots, sampler, measurement_factory, shots_allocator
+            op,
+            state,
+            total_shots,
+            sampler,
+            measurements,
+            shots_allocator,
+            circuit_shot_pair_prep_fn,
         )
         for op, state in zip(operators, states)
     ]
@@ -314,3 +322,41 @@ def create_fixed_operator_sampling_esimator(
         )
 
     return estimator
+
+
+def create_fixed_operator_sampling_concurrent_esimator(
+    fixed_ops: Sequence[Estimatable],
+    total_shots: int,
+    sampler: ConcurrentSampler,
+    measurement_factory: CommutablePauliSetMeasurementFactory,
+    shots_allocator: PauliSamplingShotsAllocator,
+) -> ConcurrentQuantumEstimator[CircuitQuantumState]:
+    """Returns an estimator that performs sampling estimation for the specified
+    operator.
+
+    Args:
+        op: The operator to be grouped.
+        total_shots: Total number of shots available for sampling measurements.
+        sampler: A Sampler that actually performs the sampling measurements.
+        measurement_factory: A function that performs Pauli grouping and returns
+            a measurement scheme for Pauli operators constituting the original operator.
+        shots_allocator: A function that allocates the total shots to Pauli groups to
+            be measured.
+    """
+
+    estimators = [
+        create_fixed_operator_sampling_esimator(
+            fixed_op, total_shots, sampler, measurement_factory, shots_allocator
+        )
+        for fixed_op in fixed_ops
+    ]
+
+    def concurrent_estimator(
+        ops: Sequence[Estimatable], states: Sequence[CircuitQuantumState]
+    ) -> Sequence[Estimate[complex]]:
+        return [
+            estimator(op, state)
+            for estimator, op, state in zip(estimators, ops, states)
+        ]
+
+    return concurrent_estimator
