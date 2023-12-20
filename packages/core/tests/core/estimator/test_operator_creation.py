@@ -8,8 +8,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import unittest
 from dataclasses import dataclass
 from typing import Sequence
+
+import numpy as np
 
 from quri_parts.circuit import (
     ImmutableBoundParametricQuantumCircuit,
@@ -33,6 +36,8 @@ from quri_parts.core.state import (
     ComputationalBasisState,
     GeneralCircuitQuantumState,
     ParametricCircuitQuantumState,
+    ParametricQuantumStateVector,
+    QuantumStateVector,
 )
 
 
@@ -71,162 +76,402 @@ def fake_concurrent_estimator(
     return [fake_estimator(op, state) for (op, state) in zip(operators, states)]
 
 
-def test_create_concurrent_estimator_from_estimator() -> None:
-    concurrent_estimator = create_concurrent_estimator_from_estimator(fake_estimator)
-    op = PAULI_IDENTITY
-    state_1 = ComputationalBasisState(1)
-    state_2 = ComputationalBasisState(1, bits=1)
-    assert concurrent_estimator([op], [state_1]) == [_Estimate(value=0 + 0j)]
-    assert concurrent_estimator([op], [state_1, state_2]) == [
-        _Estimate(0 + 0j),
-        _Estimate(1 + 0j),
-    ]
-    assert concurrent_estimator([op, op], [state_1]) == [
-        _Estimate(0 + 0j),
-        _Estimate(0 + 0j),
-    ]
-
-    op_1 = Operator({pauli_label("X0"): 1, pauli_label("Y0"): 1})
-    assert concurrent_estimator([op, op_1], [state_1, state_2]) == [
-        _Estimate(value=0 + 0j),
-        _Estimate(value=2 + 0j),
-    ]
+def fake_vector_estimator(op: Estimatable, state: QuantumStateVector) -> _Estimate:
+    op_contribution = len(op) if isinstance(op, Operator) else 1
+    estimate = op_contribution * state.vector.sum()
+    if isinstance(state.circuit, ImmutableBoundParametricQuantumCircuit):
+        estimate *= sum(state.circuit.parameter_map.values())
+    return _Estimate(estimate)
 
 
-def test_create_estimator_from_concurrent_estimator() -> None:
-    estimator = create_estimator_from_concurrent_estimator(fake_concurrent_estimator)
-    op = PAULI_IDENTITY
-    state = ComputationalBasisState(1, bits=1)
-    assert estimator(op, state) == _Estimate(value=1 + 0j)
+def fake_concurrent_vector_estimator(
+    operators: Sequence[Estimatable], states: Sequence[QuantumStateVector]
+) -> Sequence[_Estimate]:
+    num_ops = len(operators)
+    num_states = len(states)
+
+    if num_states == 1:
+        states = [next(iter(states))] * num_ops
+
+    if num_ops == 1:
+        operators = [next(iter(operators))] * num_states
+
+    return [fake_vector_estimator(op, state) for (op, state) in zip(operators, states)]
 
 
-def test_create_general_esimtators_from_estimator() -> None:
-    general_estimators: GeneralQuantumEstimators[
-        CircuitQuantumState, ParametricCircuitQuantumState
-    ] = create_general_estimators_from_estimator(fake_estimator)
+class TestCreateConcurrentEstimatorFromEstimator:
+    def test_with_circuit_quantum_state(self) -> None:
+        concurrent_estimator = create_concurrent_estimator_from_estimator(
+            fake_estimator
+        )
+        op = PAULI_IDENTITY
+        state_1 = ComputationalBasisState(1)
+        state_2 = ComputationalBasisState(1, bits=1)
+        assert concurrent_estimator([op], [state_1]) == [_Estimate(value=0 + 0j)]
+        assert concurrent_estimator([op], [state_1, state_2]) == [
+            _Estimate(0 + 0j),
+            _Estimate(1 + 0j),
+        ]
+        assert concurrent_estimator([op, op], [state_1]) == [
+            _Estimate(0 + 0j),
+            _Estimate(0 + 0j),
+        ]
 
-    op_0 = PAULI_IDENTITY
-    op_1 = Operator({pauli_label("X0"): 1, pauli_label("Y0"): 1})
-    state_0 = ComputationalBasisState(1)
-    state_1 = ComputationalBasisState(1, bits=1)
+        op_1 = Operator({pauli_label("X0"): 1, pauli_label("Y0"): 1})
+        assert concurrent_estimator([op, op_1], [state_1, state_2]) == [
+            _Estimate(value=0 + 0j),
+            _Estimate(value=2 + 0j),
+        ]
 
-    estimator = general_estimators.estimator
-    assert estimator(op_0, state_0) == _Estimate(value=0 + 0j)
-    assert estimator(op_0, state_1) == _Estimate(value=1 + 0j)
+    def test_with_vector(self) -> None:
+        concurrent_estimator = create_concurrent_estimator_from_estimator(
+            fake_vector_estimator
+        )
 
-    concurrent_estimator = general_estimators.concurrent_estimator
-    assert concurrent_estimator([op_0], [state_0]) == [_Estimate(value=0 + 0j)]
-    assert concurrent_estimator([op_0], [state_0, state_1]) == [
-        _Estimate(value=0 + 0j),
-        _Estimate(value=1 + 0j),
-    ]
-    assert concurrent_estimator([op_0, op_1], [state_1]) == [
-        _Estimate(value=1 + 0j),
-        _Estimate(value=2 + 0j),
-    ]
-    assert concurrent_estimator([op_0, op_1], [state_0, state_1]) == [
-        _Estimate(value=0 + 0j),
-        _Estimate(value=2 + 0j),
-    ]
+        state_0 = QuantumStateVector(1, vector=[1 / np.sqrt(2), 1 / np.sqrt(2)])
+        state_1 = QuantumStateVector(1, vector=[1 / np.sqrt(2), 1j / np.sqrt(2)])
 
-    param_circuit = UnboundParametricQuantumCircuit(1)
-    param_circuit.add_ParametricRX_gate(0)
-    param_circuit.add_ParametricRY_gate(0)
-    param_circuit.add_ParametricRZ_gate(0)
-    param_state = ParametricCircuitQuantumState(1, param_circuit)
+        op_0 = PAULI_IDENTITY
+        op_1 = Operator({pauli_label("X0"): 1, pauli_label("Y0"): 1})
 
-    parametric_estimator = general_estimators.parametric_estimator
-    assert parametric_estimator(op_0, param_state, [0, 1, 2]) == _Estimate(value=3 + 0j)
-    assert parametric_estimator(op_0, param_state, [3, 4, 5]) == _Estimate(
-        value=12 + 0j
-    )
+        estimates = list(concurrent_estimator([op_0], [state_0]))
+        assert len(estimates) == 1
+        assert np.isclose(estimates[0].value, np.sqrt(2))
 
-    concurrent_param_estimator = general_estimators.concurrent_parametric_estimator
-    assert concurrent_param_estimator(op_0, param_state, [[0, 1, 2], [3, 4, 5]]) == [
-        _Estimate(value=3 + 0j),
-        _Estimate(value=12 + 0j),
-    ]
+        estimates = list(concurrent_estimator([op_0], [state_0, state_1]))
+        assert len(estimates) == 2
+        assert np.isclose(estimates[0].value, np.sqrt(2))
+        assert np.isclose(estimates[1].value, (1 + 1j) / np.sqrt(2))
 
+        estimates = list(concurrent_estimator([op_0, op_1], [state_0]))
+        assert len(estimates) == 2
+        assert np.isclose(estimates[0].value, np.sqrt(2))
+        assert np.isclose(estimates[1].value, 2 * np.sqrt(2))
 
-def test_create_general_esimtators_from_concurrent_estimator() -> None:
-    general_estimators: GeneralQuantumEstimators[
-        CircuitQuantumState, ParametricCircuitQuantumState
-    ] = create_general_estimators_from_concurrent_estimator(fake_concurrent_estimator)
-
-    op_0 = PAULI_IDENTITY
-    op_1 = Operator({pauli_label("X0"): 1, pauli_label("Y0"): 1})
-    state_0 = ComputationalBasisState(1)
-    state_1 = ComputationalBasisState(1, bits=1)
-
-    estimator = general_estimators.estimator
-    assert estimator(op_0, state_0) == _Estimate(value=0 + 0j)
-    assert estimator(op_0, state_1) == _Estimate(value=1 + 0j)
-
-    concurrent_estimator = general_estimators.concurrent_estimator
-    assert concurrent_estimator([op_0], [state_0]) == [_Estimate(value=0 + 0j)]
-    assert concurrent_estimator([op_0], [state_0, state_1]) == [
-        _Estimate(value=0 + 0j),
-        _Estimate(value=1 + 0j),
-    ]
-    assert concurrent_estimator([op_0, op_1], [state_1]) == [
-        _Estimate(value=1 + 0j),
-        _Estimate(value=2 + 0j),
-    ]
-    assert concurrent_estimator([op_0, op_1], [state_0, state_1]) == [
-        _Estimate(value=0 + 0j),
-        _Estimate(value=2 + 0j),
-    ]
-
-    param_circuit = UnboundParametricQuantumCircuit(1)
-    param_circuit.add_ParametricRX_gate(0)
-    param_circuit.add_ParametricRY_gate(0)
-    param_circuit.add_ParametricRZ_gate(0)
-    param_state = ParametricCircuitQuantumState(1, param_circuit)
-
-    parametric_estimator = general_estimators.parametric_estimator
-    assert parametric_estimator(op_0, param_state, [0, 1, 2]) == _Estimate(value=3 + 0j)
-    assert parametric_estimator(op_0, param_state, [3, 4, 5]) == _Estimate(
-        value=12 + 0j
-    )
-
-    concurrent_param_estimator = general_estimators.concurrent_parametric_estimator
-    assert concurrent_param_estimator(op_0, param_state, [[0, 1, 2], [3, 4, 5]]) == [
-        _Estimate(value=3 + 0j),
-        _Estimate(value=12 + 0j),
-    ]
+        estimates = list(concurrent_estimator([op_0, op_1], [state_0, state_1]))
+        assert len(estimates) == 2
+        assert np.isclose(estimates[0].value, np.sqrt(2))
+        assert np.isclose(estimates[1].value, 2 * (1 + 1j) / np.sqrt(2))
 
 
-def test_create_parametric_estimator_from_concurrent_estimator() -> None:
-    parametric_estimator: ParametricQuantumEstimator[
-        ParametricCircuitQuantumState
-    ] = create_parametric_estimator_from_concurrent_estimator(fake_concurrent_estimator)
+class TestCreateEstimatorFromConcurrentEstimator:
+    def test_with_circuit_quantum_state(self) -> None:
+        estimator = create_estimator_from_concurrent_estimator(
+            fake_concurrent_estimator
+        )
+        op = PAULI_IDENTITY
+        state = ComputationalBasisState(1, bits=1)
+        assert estimator(op, state) == _Estimate(value=1 + 0j)
 
-    param_circuit = UnboundParametricQuantumCircuit(1)
-    param_circuit.add_ParametricRX_gate(0)
-    param_circuit.add_ParametricRY_gate(0)
-    param_circuit.add_ParametricRZ_gate(0)
-    param_state = ParametricCircuitQuantumState(1, param_circuit)
-
-    op = PAULI_IDENTITY
-    assert parametric_estimator(op, param_state, [0, 1, 2]) == _Estimate(value=3 + 0j)
-    assert parametric_estimator(op, param_state, [3, 4, 5]) == _Estimate(value=12 + 0j)
+    def test_with_vector(self) -> None:
+        estimator = create_estimator_from_concurrent_estimator(
+            fake_concurrent_vector_estimator
+        )
+        op = PAULI_IDENTITY
+        state = QuantumStateVector(1, vector=[1 / np.sqrt(2), 1 / np.sqrt(2)])
+        assert np.isclose(estimator(op, state).value, np.sqrt(2))
 
 
-def test_create_concurrent_parametric_estimator_from_concurrent_estimator() -> None:
-    concurrent_param_estimator: ConcurrentParametricQuantumEstimator[
-        ParametricCircuitQuantumState
-    ] = create_concurrent_parametric_estimator_from_concurrent_estimator(
-        fake_concurrent_estimator
-    )
+class TestCreateGeneralEsimtatorsFromEstimator(unittest.TestCase):
+    def setUp(self) -> None:
+        self.op_0 = PAULI_IDENTITY
+        self.op_1 = Operator({pauli_label("X0"): 1, pauli_label("Y0"): 1})
 
-    param_circuit = UnboundParametricQuantumCircuit(1)
-    param_circuit.add_ParametricRX_gate(0)
-    param_circuit.add_ParametricRY_gate(0)
-    param_circuit.add_ParametricRZ_gate(0)
-    param_state = ParametricCircuitQuantumState(1, param_circuit)
+        self.param_circuit = UnboundParametricQuantumCircuit(1)
+        self.param_circuit.add_ParametricRX_gate(0)
+        self.param_circuit.add_ParametricRY_gate(0)
+        self.param_circuit.add_ParametricRZ_gate(0)
 
-    op = PAULI_IDENTITY
-    assert concurrent_param_estimator(op, param_state, [[0, 1, 2], [3, 4, 5]]) == [
-        _Estimate(value=3 + 0j),
-        _Estimate(value=12 + 0j),
-    ]
+    def test_with_circuit_quantum_state(self) -> None:
+        general_estimators: GeneralQuantumEstimators[
+            CircuitQuantumState, ParametricCircuitQuantumState
+        ] = create_general_estimators_from_estimator(fake_estimator)
+
+        state_0 = ComputationalBasisState(1)
+        state_1 = ComputationalBasisState(1, bits=1)
+
+        estimator = general_estimators.estimator
+        assert estimator(self.op_0, state_0) == _Estimate(value=0 + 0j)
+        assert estimator(self.op_0, state_1) == _Estimate(value=1 + 0j)
+
+        concurrent_estimator = general_estimators.concurrent_estimator
+        assert concurrent_estimator([self.op_0], [state_0]) == [_Estimate(value=0 + 0j)]
+        assert concurrent_estimator([self.op_0], [state_0, state_1]) == [
+            _Estimate(value=0 + 0j),
+            _Estimate(value=1 + 0j),
+        ]
+        assert concurrent_estimator([self.op_0, self.op_1], [state_1]) == [
+            _Estimate(value=1 + 0j),
+            _Estimate(value=2 + 0j),
+        ]
+        assert concurrent_estimator([self.op_0, self.op_1], [state_0, state_1]) == [
+            _Estimate(value=0 + 0j),
+            _Estimate(value=2 + 0j),
+        ]
+
+        param_state = ParametricCircuitQuantumState(1, self.param_circuit)
+
+        parametric_estimator = general_estimators.parametric_estimator
+        assert parametric_estimator(self.op_0, param_state, [0, 1, 2]) == _Estimate(
+            value=3 + 0j
+        )
+        assert parametric_estimator(self.op_0, param_state, [3, 4, 5]) == _Estimate(
+            value=12 + 0j
+        )
+
+        concurrent_param_estimator = general_estimators.concurrent_parametric_estimator
+        assert concurrent_param_estimator(
+            self.op_0, param_state, [[0, 1, 2], [3, 4, 5]]
+        ) == [
+            _Estimate(value=3 + 0j),
+            _Estimate(value=12 + 0j),
+        ]
+
+    def test_with_vector(self) -> None:
+        general_estimators: GeneralQuantumEstimators[
+            QuantumStateVector, ParametricQuantumStateVector
+        ] = create_general_estimators_from_estimator(fake_vector_estimator)
+
+        state_0 = QuantumStateVector(1, vector=[1 / np.sqrt(2), 1 / np.sqrt(2)])
+        state_1 = QuantumStateVector(1, vector=[1 / np.sqrt(2), 1j / np.sqrt(2)])
+
+        estimator = general_estimators.estimator
+        assert np.isclose(estimator(self.op_0, state_0).value, np.sqrt(2))
+        assert np.isclose(estimator(self.op_0, state_1).value, (1 + 1j) / np.sqrt(2))
+
+        concurrent_estimator = general_estimators.concurrent_estimator
+        estimates = list(concurrent_estimator([self.op_0], [state_0]))
+        assert len(estimates) == 1
+        assert np.isclose(estimates[0].value, np.sqrt(2))
+
+        estimates = list(concurrent_estimator([self.op_0], [state_0, state_1]))
+        assert len(estimates) == 2
+        assert np.isclose(estimates[0].value, np.sqrt(2))
+        assert np.isclose(estimates[1].value, (1 + 1j) / np.sqrt(2))
+
+        estimates = list(concurrent_estimator([self.op_0, self.op_1], [state_0]))
+        assert len(estimates) == 2
+        assert np.isclose(estimates[0].value, np.sqrt(2))
+        assert np.isclose(estimates[1].value, 2 * np.sqrt(2))
+
+        estimates = list(
+            concurrent_estimator([self.op_0, self.op_1], [state_0, state_1])
+        )
+        assert len(estimates) == 2
+        assert np.isclose(estimates[0].value, np.sqrt(2))
+        assert np.isclose(estimates[1].value, 2 * (1 + 1j) / np.sqrt(2))
+
+        param_state = ParametricQuantumStateVector(
+            1, vector=[1 / np.sqrt(2), 1 / np.sqrt(2)], circuit=self.param_circuit
+        )
+
+        parametric_estimator = general_estimators.parametric_estimator
+        estimate = parametric_estimator(self.op_0, param_state, [0, 1, 2])
+        assert np.isclose(estimate.value, 3 * np.sqrt(2))
+        estimate = parametric_estimator(self.op_0, param_state, [3, 4, 5])
+        assert np.isclose(estimate.value, 12 * np.sqrt(2))
+
+        concurrent_param_estimator = general_estimators.concurrent_parametric_estimator
+        estimates = list(
+            concurrent_param_estimator(self.op_0, param_state, [[0, 1, 2], [3, 4, 5]])
+        )
+        assert np.isclose(estimates[0].value, 3 * np.sqrt(2))
+        assert np.isclose(estimates[1].value, 12 * np.sqrt(2))
+
+
+class TestCreateGeneralEsimtatorsFromConcurrentEstimator(unittest.TestCase):
+    def setUp(self) -> None:
+        self.op_0 = PAULI_IDENTITY
+        self.op_1 = Operator({pauli_label("X0"): 1, pauli_label("Y0"): 1})
+
+        self.param_circuit = UnboundParametricQuantumCircuit(1)
+        self.param_circuit.add_ParametricRX_gate(0)
+        self.param_circuit.add_ParametricRY_gate(0)
+        self.param_circuit.add_ParametricRZ_gate(0)
+
+    def test_with_circuit_quantum_state(self) -> None:
+        general_estimators: GeneralQuantumEstimators[
+            CircuitQuantumState, ParametricCircuitQuantumState
+        ] = create_general_estimators_from_concurrent_estimator(
+            fake_concurrent_estimator
+        )
+
+        state_0 = ComputationalBasisState(1)
+        state_1 = ComputationalBasisState(1, bits=1)
+
+        estimator = general_estimators.estimator
+        assert estimator(self.op_0, state_0) == _Estimate(value=0 + 0j)
+        assert estimator(self.op_0, state_1) == _Estimate(value=1 + 0j)
+
+        concurrent_estimator = general_estimators.concurrent_estimator
+        assert concurrent_estimator([self.op_0], [state_0]) == [_Estimate(value=0 + 0j)]
+        assert concurrent_estimator([self.op_0], [state_0, state_1]) == [
+            _Estimate(value=0 + 0j),
+            _Estimate(value=1 + 0j),
+        ]
+        assert concurrent_estimator([self.op_0, self.op_1], [state_1]) == [
+            _Estimate(value=1 + 0j),
+            _Estimate(value=2 + 0j),
+        ]
+        assert concurrent_estimator([self.op_0, self.op_1], [state_0, state_1]) == [
+            _Estimate(value=0 + 0j),
+            _Estimate(value=2 + 0j),
+        ]
+
+        param_state = ParametricCircuitQuantumState(1, self.param_circuit)
+
+        parametric_estimator = general_estimators.parametric_estimator
+        assert parametric_estimator(self.op_0, param_state, [0, 1, 2]) == _Estimate(
+            value=3 + 0j
+        )
+        assert parametric_estimator(self.op_0, param_state, [3, 4, 5]) == _Estimate(
+            value=12 + 0j
+        )
+
+        concurrent_param_estimator = general_estimators.concurrent_parametric_estimator
+        assert concurrent_param_estimator(
+            self.op_0, param_state, [[0, 1, 2], [3, 4, 5]]
+        ) == [
+            _Estimate(value=3 + 0j),
+            _Estimate(value=12 + 0j),
+        ]
+
+    def test_with_vector(self) -> None:
+        general_estimators: GeneralQuantumEstimators[
+            QuantumStateVector, ParametricQuantumStateVector
+        ] = create_general_estimators_from_concurrent_estimator(
+            fake_concurrent_vector_estimator
+        )
+
+        state_0 = QuantumStateVector(1, vector=[1 / np.sqrt(2), 1 / np.sqrt(2)])
+        state_1 = QuantumStateVector(1, vector=[1 / np.sqrt(2), 1j / np.sqrt(2)])
+
+        estimator = general_estimators.estimator
+        assert np.isclose(estimator(self.op_0, state_0).value, np.sqrt(2))
+        assert np.isclose(estimator(self.op_0, state_1).value, (1 + 1j) / np.sqrt(2))
+
+        concurrent_estimator = general_estimators.concurrent_estimator
+        estimates = list(concurrent_estimator([self.op_0], [state_0]))
+        assert len(estimates) == 1
+        assert np.isclose(estimates[0].value, np.sqrt(2))
+
+        estimates = list(concurrent_estimator([self.op_0], [state_0, state_1]))
+        assert len(estimates) == 2
+        assert np.isclose(estimates[0].value, np.sqrt(2))
+        assert np.isclose(estimates[1].value, (1 + 1j) / np.sqrt(2))
+
+        estimates = list(concurrent_estimator([self.op_0, self.op_1], [state_0]))
+        assert len(estimates) == 2
+        assert np.isclose(estimates[0].value, np.sqrt(2))
+        assert np.isclose(estimates[1].value, 2 * np.sqrt(2))
+
+        estimates = list(
+            concurrent_estimator([self.op_0, self.op_1], [state_0, state_1])
+        )
+        assert len(estimates) == 2
+        assert np.isclose(estimates[0].value, np.sqrt(2))
+        assert np.isclose(estimates[1].value, 2 * (1 + 1j) / np.sqrt(2))
+
+        param_state = ParametricQuantumStateVector(
+            1, vector=[1 / np.sqrt(2), 1 / np.sqrt(2)], circuit=self.param_circuit
+        )
+
+        parametric_estimator = general_estimators.parametric_estimator
+        estimate = parametric_estimator(self.op_0, param_state, [0, 1, 2])
+        assert np.isclose(estimate.value, 3 * np.sqrt(2))
+        estimate = parametric_estimator(self.op_0, param_state, [3, 4, 5])
+        assert np.isclose(estimate.value, 12 * np.sqrt(2))
+
+        concurrent_param_estimator = general_estimators.concurrent_parametric_estimator
+        estimates = list(
+            concurrent_param_estimator(self.op_0, param_state, [[0, 1, 2], [3, 4, 5]])
+        )
+        assert np.isclose(estimates[0].value, 3 * np.sqrt(2))
+        assert np.isclose(estimates[1].value, 12 * np.sqrt(2))
+
+
+class CreateParamtericEstimatorFromConcurrentEstimator(unittest.TestCase):
+    def setUp(self) -> None:
+        self.param_circuit = UnboundParametricQuantumCircuit(1)
+        self.param_circuit.add_ParametricRX_gate(0)
+        self.param_circuit.add_ParametricRY_gate(0)
+        self.param_circuit.add_ParametricRZ_gate(0)
+
+        self.op = PAULI_IDENTITY
+
+    def test_with_circuit_state(self) -> None:
+        parametric_estimator: ParametricQuantumEstimator[
+            ParametricCircuitQuantumState
+        ] = create_parametric_estimator_from_concurrent_estimator(
+            fake_concurrent_estimator
+        )
+
+        param_state = ParametricCircuitQuantumState(1, self.param_circuit)
+
+        assert parametric_estimator(self.op, param_state, [0, 1, 2]) == _Estimate(
+            value=3 + 0j
+        )
+        assert parametric_estimator(self.op, param_state, [3, 4, 5]) == _Estimate(
+            value=12 + 0j
+        )
+
+    def test_with_vector(self) -> None:
+        parametric_estimator: ParametricQuantumEstimator[
+            ParametricQuantumStateVector
+        ] = create_parametric_estimator_from_concurrent_estimator(
+            fake_concurrent_vector_estimator
+        )
+
+        param_state = ParametricQuantumStateVector(
+            1, vector=[1 / np.sqrt(2), 1 / np.sqrt(2)], circuit=self.param_circuit
+        )
+
+        estimate = parametric_estimator(self.op, param_state, [0, 1, 2])
+        assert np.isclose(estimate.value, 3 * np.sqrt(2))
+
+        estimate = parametric_estimator(self.op, param_state, [3, 4, 5])
+        assert np.isclose(estimate.value, 12 * np.sqrt(2))
+
+
+class CreateConcurrentParamtericEstimatorFromConcurrentEstimator(unittest.TestCase):
+    def setUp(self) -> None:
+        self.param_circuit = UnboundParametricQuantumCircuit(1)
+        self.param_circuit.add_ParametricRX_gate(0)
+        self.param_circuit.add_ParametricRY_gate(0)
+        self.param_circuit.add_ParametricRZ_gate(0)
+
+        self.op = PAULI_IDENTITY
+
+    def test_with_circuit_state(self) -> None:
+        concurrent_param_estimator: ConcurrentParametricQuantumEstimator[
+            ParametricCircuitQuantumState
+        ] = create_concurrent_parametric_estimator_from_concurrent_estimator(
+            fake_concurrent_estimator
+        )
+
+        param_state = ParametricCircuitQuantumState(1, self.param_circuit)
+
+        assert concurrent_param_estimator(
+            self.op, param_state, [[0, 1, 2], [3, 4, 5]]
+        ) == [
+            _Estimate(value=3 + 0j),
+            _Estimate(value=12 + 0j),
+        ]
+
+    def test_with_vector(self) -> None:
+        concurrent_param_estimator: ConcurrentParametricQuantumEstimator[
+            ParametricQuantumStateVector
+        ] = create_concurrent_parametric_estimator_from_concurrent_estimator(
+            fake_concurrent_vector_estimator
+        )
+
+        param_state = ParametricQuantumStateVector(
+            1, vector=[1 / np.sqrt(2), 1 / np.sqrt(2)], circuit=self.param_circuit
+        )
+
+        estimates = concurrent_param_estimator(
+            self.op, param_state, [[0, 1, 2], [3, 4, 5]]
+        )
+        estimate_list = list(estimates)
+        assert np.isclose(estimate_list[0].value, 3 * np.sqrt(2))
+        assert np.isclose(estimate_list[1].value, 12 * np.sqrt(2))
