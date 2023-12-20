@@ -16,7 +16,10 @@ from quri_parts.circuit import (
     UnboundParametricQuantumCircuit,
 )
 from quri_parts.core.estimator import (
+    ConcurrentParametricQuantumEstimator,
     Estimatable,
+    GeneralQuantumEstimators,
+    ParametricQuantumEstimator,
     create_concurrent_estimator_from_estimator,
     create_concurrent_parametric_estimator_from_concurrent_estimator,
     create_estimator_from_concurrent_estimator,
@@ -98,7 +101,9 @@ def test_create_estimator_from_concurrent_estimator() -> None:
 
 
 def test_create_general_esimtators_from_estimator() -> None:
-    general_estimators = create_general_estimators_from_estimator(fake_estimator)
+    general_estimators: GeneralQuantumEstimators[
+        CircuitQuantumState, ParametricCircuitQuantumState
+    ] = create_general_estimators_from_estimator(fake_estimator)
 
     op_0 = PAULI_IDENTITY
     op_1 = Operator({pauli_label("X0"): 1, pauli_label("Y0"): 1})
@@ -144,9 +149,9 @@ def test_create_general_esimtators_from_estimator() -> None:
 
 
 def test_create_general_esimtators_from_concurrent_estimator() -> None:
-    general_estimators = create_general_estimators_from_concurrent_estimator(
-        fake_concurrent_estimator
-    )
+    general_estimators: GeneralQuantumEstimators[
+        CircuitQuantumState, ParametricCircuitQuantumState
+    ] = create_general_estimators_from_concurrent_estimator(fake_concurrent_estimator)
 
     op_0 = PAULI_IDENTITY
     op_1 = Operator({pauli_label("X0"): 1, pauli_label("Y0"): 1})
@@ -192,9 +197,9 @@ def test_create_general_esimtators_from_concurrent_estimator() -> None:
 
 
 def test_create_parametric_estimator_from_concurrent_estimator() -> None:
-    parametric_estimator = create_parametric_estimator_from_concurrent_estimator(
-        fake_concurrent_estimator
-    )
+    parametric_estimator: ParametricQuantumEstimator[
+        ParametricCircuitQuantumState
+    ] = create_parametric_estimator_from_concurrent_estimator(fake_concurrent_estimator)
 
     param_circuit = UnboundParametricQuantumCircuit(1)
     param_circuit.add_ParametricRX_gate(0)
@@ -208,10 +213,10 @@ def test_create_parametric_estimator_from_concurrent_estimator() -> None:
 
 
 def test_create_concurrent_parametric_estimator_from_concurrent_estimator() -> None:
-    concurrent_param_estimator = (
-        create_concurrent_parametric_estimator_from_concurrent_estimator(
-            fake_concurrent_estimator
-        )
+    concurrent_param_estimator: ConcurrentParametricQuantumEstimator[
+        ParametricCircuitQuantumState
+    ] = create_concurrent_parametric_estimator_from_concurrent_estimator(
+        fake_concurrent_estimator
     )
 
     param_circuit = UnboundParametricQuantumCircuit(1)
