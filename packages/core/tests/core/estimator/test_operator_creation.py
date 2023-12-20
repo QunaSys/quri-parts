@@ -20,8 +20,8 @@ from quri_parts.core.estimator import (
     create_concurrent_estimator_from_estimator,
     create_concurrent_parametric_estimator_from_concurrent_estimator,
     create_estimator_from_concurrent_estimator,
-    create_general_esimtators_from_concurrent_estimator,
-    create_general_esimtators_from_estimator,
+    create_general_estimators_from_concurrent_estimator,
+    create_general_estimators_from_estimator,
     create_parametric_estimator_from_concurrent_estimator,
 )
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
@@ -98,7 +98,7 @@ def test_create_estimator_from_concurrent_estimator() -> None:
 
 
 def test_create_general_esimtators_from_estimator() -> None:
-    general_estimators = create_general_esimtators_from_estimator(fake_estimator)
+    general_estimators = create_general_estimators_from_estimator(fake_estimator)
 
     op_0 = PAULI_IDENTITY
     op_1 = Operator({pauli_label("X0"): 1, pauli_label("Y0"): 1})
@@ -144,7 +144,7 @@ def test_create_general_esimtators_from_estimator() -> None:
 
 
 def test_create_general_esimtators_from_concurrent_estimator() -> None:
-    general_estimators = create_general_esimtators_from_concurrent_estimator(
+    general_estimators = create_general_estimators_from_concurrent_estimator(
         fake_concurrent_estimator
     )
 

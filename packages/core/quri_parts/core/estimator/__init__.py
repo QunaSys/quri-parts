@@ -486,20 +486,20 @@ class GeneralQuantumEstimators(Generic[_StateT, _ParametricStateT]):
 
 
 @overload
-def create_general_esimtators_from_concurrent_estimator(
+def create_general_estimators_from_concurrent_estimator(
     concurrent_estimator: ConcurrentQuantumEstimator[CircuitQuantumState],
 ) -> GeneralQuantumEstimators[CircuitQuantumState, ParametricCircuitQuantumState]:
     ...
 
 
 @overload
-def create_general_esimtators_from_concurrent_estimator(
+def create_general_estimators_from_concurrent_estimator(
     concurrent_estimator: ConcurrentQuantumEstimator[QuantumStateVector],
 ) -> GeneralQuantumEstimators[QuantumStateVector, ParametricQuantumStateVector]:
     ...
 
 
-def create_general_esimtators_from_concurrent_estimator(
+def create_general_estimators_from_concurrent_estimator(
     concurrent_estimator: ConcurrentQuantumEstimator[_StateT],
 ) -> GeneralQuantumEstimators[_StateT, _ParametricStateT]:
     """Creates a :class:`~GeneralQuantumEstimators` from a concurrent
@@ -528,20 +528,20 @@ def create_general_esimtators_from_concurrent_estimator(
 
 
 @overload
-def create_general_esimtators_from_estimator(
+def create_general_estimators_from_estimator(
     estimator: QuantumEstimator[CircuitQuantumState],
 ) -> GeneralQuantumEstimators[CircuitQuantumState, ParametricCircuitQuantumState]:
     ...
 
 
 @overload
-def create_general_esimtators_from_estimator(
+def create_general_estimators_from_estimator(
     estimator: QuantumEstimator[QuantumStateVector],
 ) -> GeneralQuantumEstimators[QuantumStateVector, ParametricQuantumStateVector]:
     ...
 
 
-def create_general_esimtators_from_estimator(
+def create_general_estimators_from_estimator(
     estimator: QuantumEstimator[_StateT],
 ) -> GeneralQuantumEstimators[_StateT, _ParametricStateT]:
     """Creates a :class:`~GeneralQuantumEstimators` from an estimator."""
