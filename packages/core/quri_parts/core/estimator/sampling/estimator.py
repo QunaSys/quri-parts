@@ -223,6 +223,10 @@ def concurrent_sampling_estimate(
     operators, states = parse_concurrent_estimator_arguments(operators, states)
 
     if isinstance(measurements, Iterable):
+        measurements = list(measurements)
+        if len(operators) != len(measurements):
+            assert len(measurements) == 1
+            measurements = [next(iter(measurements))] * len(operators)
         return [
             sampling_estimate(
                 op,
@@ -343,20 +347,38 @@ def create_fixed_operator_sampling_concurrent_esimator(
         shots_allocator: A function that allocates the total shots to Pauli groups to
             be measured.
     """
-
-    estimators = [
-        create_fixed_operator_sampling_esimator(
-            fixed_op, total_shots, sampler, measurement_factory, shots_allocator
-        )
+    measurements = [
+        measurement_factory(fixed_op)
+        if isinstance(fixed_op, Operator)
+        else measurement_factory(Operator({fixed_op: 1}))
         for fixed_op in fixed_ops
     ]
 
     def concurrent_estimator(
         ops: Sequence[Estimatable], states: Sequence[CircuitQuantumState]
-    ) -> Sequence[Estimate[complex]]:
-        return [
-            estimator(op, state)
-            for estimator, op, state in zip(estimators, ops, states)
-        ]
+    ) -> Iterable[Estimate[complex]]:
+        if len(fixed_ops) < len(ops):
+            assert len(fixed_ops) == 1
+            _measurements = measurements * len(ops)
+            for op in ops:
+                assert op == fixed_ops[0]
+        elif len(fixed_ops) > len(ops):
+            _measurements = measurements
+            assert len(ops) == 1
+            for op in fixed_ops:
+                assert op == ops[0]
+        else:
+            _measurements = measurements
+            for op, fixed_op in zip(ops, fixed_ops):
+                assert op == fixed_op
+
+        return concurrent_sampling_estimate(
+            ops,
+            states,
+            total_shots,
+            sampler,
+            _measurements,
+            shots_allocator,
+        )
 
     return concurrent_estimator
