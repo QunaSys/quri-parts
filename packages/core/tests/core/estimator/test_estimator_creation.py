@@ -21,7 +21,6 @@ from quri_parts.circuit import (
 from quri_parts.core.estimator import (
     ConcurrentParametricQuantumEstimator,
     Estimatable,
-    GeneralQuantumEstimators,
     ParametricQuantumEstimator,
     create_concurrent_estimator_from_estimator,
     create_concurrent_parametric_estimator_from_concurrent_estimator,
@@ -183,9 +182,7 @@ class TestCreateGeneralEsimtatorsFromEstimator(unittest.TestCase):
         self.param_circuit.add_ParametricRZ_gate(0)
 
     def test_with_circuit_quantum_state(self) -> None:
-        general_estimators: GeneralQuantumEstimators[
-            CircuitQuantumState, ParametricCircuitQuantumState
-        ] = create_general_estimators_from_estimator(fake_estimator)
+        general_estimators = create_general_estimators_from_estimator(fake_estimator)
 
         state_0 = ComputationalBasisState(1)
         state_1 = ComputationalBasisState(1, bits=1)
@@ -228,9 +225,9 @@ class TestCreateGeneralEsimtatorsFromEstimator(unittest.TestCase):
         ]
 
     def test_with_vector(self) -> None:
-        general_estimators: GeneralQuantumEstimators[
-            QuantumStateVector, ParametricQuantumStateVector
-        ] = create_general_estimators_from_estimator(fake_vector_estimator)
+        general_estimators = create_general_estimators_from_estimator(
+            fake_vector_estimator
+        )
 
         state_0 = QuantumStateVector(1, vector=[1 / np.sqrt(2), 1 / np.sqrt(2)])
         state_1 = QuantumStateVector(1, vector=[1 / np.sqrt(2), 1j / np.sqrt(2)])
@@ -290,9 +287,7 @@ class TestCreateGeneralEsimtatorsFromConcurrentEstimator(unittest.TestCase):
         self.param_circuit.add_ParametricRZ_gate(0)
 
     def test_with_circuit_quantum_state(self) -> None:
-        general_estimators: GeneralQuantumEstimators[
-            CircuitQuantumState, ParametricCircuitQuantumState
-        ] = create_general_estimators_from_concurrent_estimator(
+        general_estimators = create_general_estimators_from_concurrent_estimator(
             fake_concurrent_estimator
         )
 
@@ -337,9 +332,7 @@ class TestCreateGeneralEsimtatorsFromConcurrentEstimator(unittest.TestCase):
         ]
 
     def test_with_vector(self) -> None:
-        general_estimators: GeneralQuantumEstimators[
-            QuantumStateVector, ParametricQuantumStateVector
-        ] = create_general_estimators_from_concurrent_estimator(
+        general_estimators = create_general_estimators_from_concurrent_estimator(
             fake_concurrent_vector_estimator
         )
 
@@ -390,7 +383,7 @@ class TestCreateGeneralEsimtatorsFromConcurrentEstimator(unittest.TestCase):
         assert np.isclose(estimates[1].value, 12 * np.sqrt(2))
 
 
-class CreateParamtericEstimatorFromConcurrentEstimator(unittest.TestCase):
+class TestCreateParamtericEstimatorFromConcurrentEstimator(unittest.TestCase):
     def setUp(self) -> None:
         self.param_circuit = UnboundParametricQuantumCircuit(1)
         self.param_circuit.add_ParametricRX_gate(0)
@@ -433,7 +426,7 @@ class CreateParamtericEstimatorFromConcurrentEstimator(unittest.TestCase):
         assert np.isclose(estimate.value, 12 * np.sqrt(2))
 
 
-class CreateConcurrentParamtericEstimatorFromConcurrentEstimator(unittest.TestCase):
+class TestCreateConcurrentParamtericEstimatorFromConcurrentEstimator(unittest.TestCase):
     def setUp(self) -> None:
         self.param_circuit = UnboundParametricQuantumCircuit(1)
         self.param_circuit.add_ParametricRX_gate(0)
