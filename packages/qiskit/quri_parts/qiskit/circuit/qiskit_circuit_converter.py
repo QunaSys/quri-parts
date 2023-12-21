@@ -9,6 +9,7 @@
 # limitations under the License.
 
 from collections.abc import Mapping
+from typing import Union
 
 from qiskit.circuit import QuantumCircuit as QiskitQuantumCircuit
 
@@ -24,6 +25,7 @@ from quri_parts.circuit.gate_names import (
     ThreeQubitGateNameType,
     TwoQubitGateNameType,
 )
+from quri_parts.qiskit.circuit.gate_names import ECR, QiskitTwoQubitGateNameType
 
 _single_qubit_gate_qiskit_quri_parts: Mapping[str, SingleQubitGateNameType] = {
     "id": gate_names.Identity,
@@ -45,9 +47,12 @@ _single_qubit_rotation_gate_qiskit_quri_parts: Mapping[str, SingleQubitGateNameT
     "rz": gate_names.RZ,
 }
 
-_two_qubit_gate_qiskit_quri_parts: Mapping[str, TwoQubitGateNameType] = {
+_two_qubit_gate_qiskit_quri_parts: Mapping[
+    str, Union[TwoQubitGateNameType, QiskitTwoQubitGateNameType]
+] = {
     "cx": gate_names.CNOT,
     "cz": gate_names.CZ,
+    "ecr": ECR,
     "swap": gate_names.SWAP,
 }
 

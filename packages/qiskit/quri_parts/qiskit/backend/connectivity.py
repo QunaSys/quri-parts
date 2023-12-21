@@ -6,6 +6,7 @@ from qiskit.providers import BackendV1, BackendV2, BackendV2Converter
 
 from quri_parts.circuit import gate_names
 from quri_parts.circuit.gate_names import GateNameType
+from quri_parts.qiskit.circuit.gate_names import ECR, QiskitGateNameType
 
 
 def device_connectivity_graph(device: Union[BackendV1, BackendV2]) -> nx.Graph:
@@ -37,9 +38,10 @@ def device_connectivity_graph(device: Union[BackendV1, BackendV2]) -> nx.Graph:
     return nx.parse_adjlist(lines)
 
 
-_qp_qiskit_gate_name_map: Mapping[GateNameType, str] = {
+_qp_qiskit_gate_name_map: Mapping[Union[GateNameType, QiskitGateNameType], str] = {
     gate_names.CNOT: "cx",
     gate_names.CZ: "cz",
+    ECR: "ecr",
 }
 
 
