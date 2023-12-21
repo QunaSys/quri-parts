@@ -126,11 +126,17 @@ def sampling_estimate(
         state: A quantum state on which the operator expectation is evaluated.
         total_shots: Total number of shots available for sampling measurements.
         sampler: A Sampler that actually performs the sampling measurements.
-        measurement_factory: A function that performs Pauli grouping and returns
-            a measurement scheme for Pauli operators constituting the original operator.
+        measurement: This can be either one of:
+            - A function that performs Pauli grouping and returns a measurement
+                scheme for Pauli operators constituting the original operator.
+            - An iterable collection of :class:`~CommutablePauliSetMeasurement`
+                that corresponds to the grouping result of the input op.
         shots_allocator: A function that allocates the total shots to Pauli groups to
             be measured.
-
+        circuit_shot_pair_prep_fn: A :class:`~CircuitShotPairPreparationFunction` that
+            prepares the set of circuits to perform measurement with. It is default to
+            a function that concatenates the measurement circuits after tghe state
+            preparation circuit.
     Returns:
         The estimated value (can be accessed with :attr:`.value`) with standard error
             of estimation (can be accessed with :attr:`.error`).
@@ -211,8 +217,12 @@ def concurrent_sampling_estimate(
         states: Quantum states on which the operator expectation is evaluated.
         total_shots: Total number of shots available for sampling measurements.
         sampler: A Sampler that actually performs the sampling measurements.
-        measurement_factory: A function that performs Pauli grouping and returns
-            a measurement scheme for Pauli operators constituting the original operator.
+        measurements: This can be either one of:
+            - A function that performs Pauli grouping and returns a measurement
+                scheme for Pauli operators constituting the original operator.
+            - An iterable collection of Iterable[CommutablePauliSetMeasurement]
+                where each element cooresponds to the grouping result of an input
+                operator in ops.
         shots_allocator: A function that allocates the total shots to Pauli groups to
             be measured.
 
@@ -301,7 +311,7 @@ def create_fixed_operator_sampling_esimator(
     operator.
 
     Args:
-        op: The operator to be grouped.
+        fixed_op: The operator to be grouped and cached.
         total_shots: Total number of shots available for sampling measurements.
         sampler: A Sampler that actually performs the sampling measurements.
         measurement_factory: A function that performs Pauli grouping and returns
@@ -339,7 +349,7 @@ def create_fixed_operator_sampling_concurrent_esimator(
     operator.
 
     Args:
-        op: The operator to be grouped.
+        fixed_ops: The operators to be grouped and cached.
         total_shots: Total number of shots available for sampling measurements.
         sampler: A Sampler that actually performs the sampling measurements.
         measurement_factory: A function that performs Pauli grouping and returns
