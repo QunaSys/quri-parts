@@ -463,6 +463,22 @@ def _create_concurrent_estimator_from_estimator(
 
 @dataclass
 class GeneralQuantumEstimator(Generic[QuantumStateT, ParametricQuantumStateT]):
+    r"""A callable object that allows generic input for expectation value
+    estimation. Allowed inputs for using it as a callable function:
+
+    - Act as :class:`QuantumEstimator`:
+        - Estimatable, QuantumStateT -> Estimate
+    - Act as :class:`ConcurrentQuantumEstimator`:
+        - Estimatable, [QuantumStateT, ...] -> [Estimate, ...]
+        - [Estimatable], [QuantumStateT, ...] -> [Estimate, ...]
+        - [Estimatable, ...], QuantumStateT -> [Estimate, ...]
+        - [Estimatable, ...], [QuantumStateT] -> [Estimate, ...]
+        - [Estimatable, ...], [QuantumStateT, ...] -> [Estimate, ...]
+    - Act as :class:`ParametricQuantumEstimator`:
+        - Estimatable, ParametricQuantumStateT, [float, ...] -> Estimate
+    - Act as :class:`ConcurrentParametricQuantumEstimator`:
+        - Estimatable, ParametricQuantumStateT, [[float, ...], ...] -> [Estimate, ...]
+    """
 
     estimator: QuantumEstimator[QuantumStateT]
     concurrent_estimator: ConcurrentQuantumEstimator[QuantumStateT]
@@ -563,6 +579,7 @@ def create_general_estimator_from_estimator(
 def create_general_estimator_from_estimator(
     estimator: QuantumEstimator[QuantumStateT],
 ) -> GeneralQuantumEstimator[QuantumStateT, ParametricQuantumStateT]:
+    """Creates a :class:`GeneralEstimator` from a :class:`QuantumEstimator`."""
     concurrent_estimator = _create_concurrent_estimator_from_estimator(estimator)
     parametric_estimator: ParametricQuantumEstimator[
         ParametricQuantumStateT
@@ -600,6 +617,8 @@ def create_general_estimator_from_concurrent_estimator(
 def create_general_estimator_from_concurrent_estimator(
     concurrent_estimator: ConcurrentQuantumEstimator[QuantumStateT],
 ) -> GeneralQuantumEstimator[QuantumStateT, ParametricQuantumStateT]:
+    """Creates a :class:`GeneralEstimator` from a
+    :class:`ConcurrentQuantumEstimator`."""
     estimator = _create_estimator_from_concurrent_estimator(concurrent_estimator)
     parametric_estimator: ParametricQuantumEstimator[
         ParametricQuantumStateT
