@@ -25,8 +25,8 @@ from quri_parts.core.estimator import (
     create_concurrent_estimator_from_estimator,
     create_concurrent_parametric_estimator_from_concurrent_estimator,
     create_estimator_from_concurrent_estimator,
-    create_general_estimators_from_concurrent_estimator,
-    create_general_estimators_from_estimator,
+    create_estimators_group_from_concurrent_estimator,
+    create_estimators_group_from_estimator,
     create_parametric_estimator_from_concurrent_estimator,
 )
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
@@ -182,7 +182,7 @@ class TestCreateGeneralEsimtatorsFromEstimator(unittest.TestCase):
         self.param_circuit.add_ParametricRZ_gate(0)
 
     def test_with_circuit_quantum_state(self) -> None:
-        general_estimators = create_general_estimators_from_estimator(fake_estimator)
+        general_estimators = create_estimators_group_from_estimator(fake_estimator)
 
         state_0 = ComputationalBasisState(1)
         state_1 = ComputationalBasisState(1, bits=1)
@@ -225,7 +225,7 @@ class TestCreateGeneralEsimtatorsFromEstimator(unittest.TestCase):
         ]
 
     def test_with_vector(self) -> None:
-        general_estimators = create_general_estimators_from_estimator(
+        general_estimators = create_estimators_group_from_estimator(
             fake_vector_estimator
         )
 
@@ -287,7 +287,7 @@ class TestCreateGeneralEsimtatorsFromConcurrentEstimator(unittest.TestCase):
         self.param_circuit.add_ParametricRZ_gate(0)
 
     def test_with_circuit_quantum_state(self) -> None:
-        general_estimators = create_general_estimators_from_concurrent_estimator(
+        general_estimators = create_estimators_group_from_concurrent_estimator(
             fake_concurrent_estimator
         )
 
@@ -332,7 +332,7 @@ class TestCreateGeneralEsimtatorsFromConcurrentEstimator(unittest.TestCase):
         ]
 
     def test_with_vector(self) -> None:
-        general_estimators = create_general_estimators_from_concurrent_estimator(
+        general_estimators = create_estimators_group_from_concurrent_estimator(
             fake_concurrent_vector_estimator
         )
 
