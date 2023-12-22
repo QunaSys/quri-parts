@@ -17,11 +17,10 @@ from quri_parts.qiskit.circuit import gate_names
 class ECRFactory:
     name: Literal["ECR"] = gate_names.ECR
 
-    def __call__(self, target_index: int, control_index: int) -> QuantumGate:
+    def __call__(self, target_index1: int, target_index2: int) -> QuantumGate:
         return QuantumGate(
             name=self.name,
-            target_indices=(target_index,),
-            control_indices=(control_index,),
+            target_indices=(target_index1, target_index2),
         )
 
 
