@@ -16,6 +16,12 @@ from numpy import cfloat, zeros
 from numpy.typing import NDArray
 
 from quri_parts.circuit import NonParametricQuantumCircuit
+from quri_parts.core.sampling import (
+    MeasurementCounts,
+    StateSampler,
+    ideal_sample_from_state_vector,
+    sample_from_state_vector,
+)
 from quri_parts.core.state import CircuitQuantumState, QuantumStateVector
 from quri_parts.qulacs.circuit import convert_circuit
 from quri_parts.qulacs.circuit.compiled_circuit import _QulacsCircuit
@@ -96,3 +102,27 @@ def get_marginal_probability(
     qulacs_state.load(cast_to_list(state_vector))
     measured = [measured_values.get(i, 2) for i in range(int(n_qubits))]
     return qulacs_state.get_marginal_probability(measured)
+
+
+def create_qulacs_state_vector_sampler() -> StateSampler:
+    """Creates a state sampler based on Qulacs circuit execution."""
+
+    def state_sampler(
+        state: Union[CircuitQuantumState, QuantumStateVector], n_shots: int
+    ) -> MeasurementCounts:
+        state_vector = evaluate_state_to_vector(state).vector
+        return sample_from_state_vector(state_vector, n_shots)
+
+    return state_sampler
+
+
+def create_qulacs_ideal_state_vector_sampler() -> StateSampler:
+    """Creates an ideal state sampler based on Qulacs circuit execution."""
+
+    def ideal_state_sampler(
+        state: Union[CircuitQuantumState, QuantumStateVector], n_shots: int
+    ) -> MeasurementCounts:
+        state_vector = evaluate_state_to_vector(state).vector
+        return ideal_sample_from_state_vector(state_vector, n_shots)
+
+    return ideal_state_sampler
