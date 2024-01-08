@@ -50,8 +50,11 @@ def sample_from_state_vector(
     """Perform sampling from a state vector."""
     n_qubits: float = np.log2(state_vector.shape[0])
     assert n_qubits.is_integer(), "Length of the state vector must be a power of 2."
+    if not np.isclose(np.linalg.norm(state_vector), 1):
+        raise ValueError("probabilities do not sum to 1")
     prob = np.abs(state_vector) ** 2
-    return Counter(np.random.choice(range(len(state_vector)), size=n_shots, p=prob))
+    sample_cnt = np.random.default_rng().multinomial(n_shots, prob)
+    return Counter({i: cnt for i, cnt in enumerate(sample_cnt) if cnt > 0})
 
 
 def ideal_sample_from_state_vector(
