@@ -8,13 +8,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections import Counter
 from typing import Callable, Collection, Iterable, Mapping, NamedTuple, Sequence, Union
 
+import numpy as np
+import numpy.typing as npt
 from typing_extensions import TypeAlias
 
 from quri_parts.backend import SamplingBackend
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.core.operator import CommutablePauliSet, Operator
+from quri_parts.core.state import CircuitQuantumState, QuantumStateVector
 
 #: MeasurementCounts represents count statistics of repeated measurements of a quantum
 #: circuit. Keys are observed bit patterns encoded in integers and values are counts
@@ -31,6 +35,36 @@ Sampler: TypeAlias = Callable[[NonParametricQuantumCircuit, int], MeasurementCou
 ConcurrentSampler: TypeAlias = Callable[
     [Iterable[tuple[NonParametricQuantumCircuit, int]]], Iterable[MeasurementCounts]
 ]
+
+#: StateSampler representes a function that samples a specific (non-parametric) state by
+#: specified times and returns the count statistics. In the case of an ideal
+#: StateSampler, the return value corresponds to probabilities multiplied by shot count.
+StateSampler: TypeAlias = Callable[
+    [Union[CircuitQuantumState, QuantumStateVector], int], MeasurementCounts
+]
+
+
+def sample_from_state_vector(
+    state_vector: npt.NDArray[np.complex128], n_shots: int
+) -> MeasurementCounts:
+    """Perform sampling from a state vector."""
+    n_qubits: float = np.log2(state_vector.shape[0])
+    assert n_qubits.is_integer(), "Length of the state vector must be a power of 2."
+    prob = np.abs(state_vector) ** 2
+    return Counter(np.random.choice(range(len(state_vector)), size=n_shots, p=prob))
+
+
+def ideal_sample_from_state_vector(
+    state_vector: npt.NDArray[np.complex128], n_shots: int
+) -> MeasurementCounts:
+    """Perform ideal sampling from a state vector."""
+    n_qubits: float = np.log2(state_vector.shape[0])
+    assert n_qubits.is_integer(), "Length of the state vector must be a power of 2."
+    if not np.isclose(np.linalg.norm(state_vector), 1):
+        raise ValueError("probabilities do not sum to 1")
+
+    prob = np.abs(state_vector) ** 2
+    return {i: p * n_shots for i, p in enumerate(prob)}
 
 
 def create_sampler_from_sampling_backend(backend: SamplingBackend) -> Sampler:
