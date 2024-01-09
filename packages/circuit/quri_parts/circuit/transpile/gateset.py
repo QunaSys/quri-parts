@@ -88,7 +88,7 @@ from .unitary_matrix_decomposer import (
     TwoQubitUnitaryMatrixKAKTranspiler,
 )
 
-# TODO Generate systematically
+# Automatic table generation is preferred in the future.
 _equiv_clifford_table: Mapping[str, list[list[str]]] = {
     H: [[S, SqrtX, S]],
     X: [[Y, Z], [SqrtX, SqrtX], [SqrtXdag, SqrtXdag], [H, Z, H], [H, S, S, H]],
@@ -311,14 +311,14 @@ class RotationConversionTranspiler(CircuitTranspilerProtocol):
             frozenset({RZ}): SequentialTranspiler(
                 [RX2RZHTranspiler(), RY2RZHTranspiler()]
             ),
-            # TODO Support {RX}, {RY}, and {}
+            # Support {RX}, {RY}, and {} in the future.
         }
 
         if H not in self._favorable_clifford and SqrtX in self._favorable_clifford:
             rot_to_trans_map[frozenset({RZ})] = SequentialTranspiler(
                 [RX2RZSqrtXTranspiler(), RY2RZSqrtXTranspiler()]
             )
-            # TODO Support {RX}, {RY}, and {}
+            # Support {RX}, {RY}, and {} in the future.
 
         return rot_to_trans_map.get(
             frozenset(self._target_rotation), IdentityTranspiler()
