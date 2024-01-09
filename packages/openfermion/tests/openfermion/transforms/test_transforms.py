@@ -14,6 +14,7 @@ from openfermion import (
     symmetry_conserving_bravyi_kitaev as of_symmetry_conserving_bravyi_kitaev,
 )
 
+from quri_parts.core.operator import Operator, pauli_label, PAULI_IDENTITY
 from quri_parts.core.state import ComputationalBasisState
 from quri_parts.openfermion.operator import (
     FermionOperator,
@@ -67,6 +68,74 @@ class TestOperatorMapper:
         of_total_transformed = op_mapper(of_op_total)
         assert total_transformed == expected
         assert of_total_transformed == expected
+
+        # Test with non-trivial sz.
+        ## n_spin_up = 2, n_fermions = 2
+        n_spin_orbitals = 4
+        n_fermions = 2
+        sz = 1
+
+        expected = Operator({PAULI_IDENTITY: 1})
+        expected.add_term(pauli_label("X0"), 0.25)  # (0.25+0j) [X0]
+        expected.add_term(pauli_label("X0"), (+1) * -0.25)  # (-0.25+0j) [X0 Z1]
+        expected.add_term(pauli_label("Y0"), 0.25j)  # 0.25j [Y0]
+        expected.add_term(pauli_label("Y0"), (+1) * -0.25j)  # -0.25j [Y0 Z1]
+        expected.add_term(pauli_label("X1"), (+1) * -0.25)  # (-0.25+0j) [Z1 X2 Z3]
+        expected.add_term(pauli_label("Y1"), (+1) * -0.25j)  # -0.25j [Z1 Y2 Z3]
+        expected.add_term(pauli_label("X1"), 0.25)  # (0.25+0j) [X2]
+        expected.add_term(pauli_label("Y1"), 0.25j)  # 0.25j [Y2]
+
+        op_mapper = symmetry_conserving_bravyi_kitaev(
+            n_spin_orbitals, n_fermions, sz
+        ).of_operator_mapper
+        assert op_mapper(op_total) == expected
+
+        ## n_spin_up = 1, n_fermions = 3
+        n_spin_orbitals = 4
+        n_fermions = 3
+        sz = -0.5
+
+        expected = Operator({PAULI_IDENTITY: 1})
+        expected.add_term(pauli_label("X0"), 0.25)  # (0.25+0j) [X0]
+        expected.add_term(pauli_label("X0"), (-1) * -0.25)  # (-0.25+0j) [X0 Z1]
+        expected.add_term(pauli_label("Y0"), 0.25j)  # 0.25j [Y0]
+        expected.add_term(pauli_label("Y0"), (-1) * -0.25j)  # -0.25j [Y0 Z1]
+        expected.add_term(pauli_label("X1"), (+1) * -0.25)  # (-0.25+0j) [Z1 X2 Z3]
+        expected.add_term(pauli_label("Y1"), (+1) * -0.25j)  # -0.25j [Z1 Y2 Z3]
+        expected.add_term(pauli_label("X1"), 0.25)  # (0.25+0j) [X2]
+        expected.add_term(pauli_label("Y1"), 0.25j)  # 0.25j [Y2]
+
+        op_mapper = symmetry_conserving_bravyi_kitaev(
+            n_spin_orbitals, n_fermions, sz
+        ).of_operator_mapper
+        assert op_mapper(op_total) == expected
+
+        ## n_spin_up = 2, n_fermions = 3
+        n_spin_orbitals = 4
+        n_fermions = 3
+        sz = 0.5
+
+        expected = Operator({PAULI_IDENTITY: 1})
+        expected.add_term(pauli_label("X0"), 0.25)  # (0.25+0j) [X0]
+        expected.add_term(pauli_label("X0"), (+1) * -0.25)  # (-0.25+0j) [X0 Z1]
+        expected.add_term(pauli_label("Y0"), 0.25j)  # 0.25j [Y0]
+        expected.add_term(pauli_label("Y0"), (+1) * -0.25j)  # -0.25j [Y0 Z1]
+        expected.add_term(pauli_label("X1"), (-1) * -0.25)  # (-0.25+0j) [Z1 X2 Z3]
+        expected.add_term(pauli_label("Y1"), (-1) * -0.25j)  # -0.25j [Z1 Y2 Z3]
+        expected.add_term(pauli_label("X1"), 0.25)  # (0.25+0j) [X2]
+        expected.add_term(pauli_label("Y1"), 0.25j)  # 0.25j [Y2]
+
+        op_mapper = symmetry_conserving_bravyi_kitaev(
+            n_spin_orbitals, n_fermions, sz
+        ).of_operator_mapper
+        assert op_mapper(op_total) == expected
+
+        expected = operator_from_openfermion_op(
+            of_symmetry_conserving_bravyi_kitaev(
+                of_op_symmetry_conserve, n_spin_orbitals, n_fermions
+            )
+        )
+        assert op_mapper(op_total) == expected
 
 
 class TestStateMapper:

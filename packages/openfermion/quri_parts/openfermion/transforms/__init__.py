@@ -373,7 +373,7 @@ r"""An object that performs Jordan-Wigner mapping in various ways.
 Example:
     You may create mappers out of `jordan_wigner`
 
-    >>> operator_mapper = jordan_wigner.get_of_operator_mapper()
+    >>> operator_mapper = jordan_wigner.get_of_operator_mapper(8)
     >>> operator_mapper(FermionOperator("1^ 1"))
     (0.5+0j)*I + (-0.5+0j)*Z1
 
@@ -449,7 +449,7 @@ r"""An object that performs Bravyi-Kitaev mapping in various ways.
 Example:
     You may create mappers out of `bravyi_kitaev`
 
-    >>> operator_mapper = bravyi_kitaev.get_of_operator_mapper()
+    >>> operator_mapper = bravyi_kitaev.get_of_operator_mapper(8)
     >>> print(operator_mapper(FermionOperator("1^ 1")))
     (0.5+0j)*I + (-0.5+0j)*Z0 Z1
 
