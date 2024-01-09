@@ -311,14 +311,14 @@ class RotationConversionTranspiler(CircuitTranspilerProtocol):
             frozenset({RZ}): SequentialTranspiler(
                 [RX2RZHTranspiler(), RY2RZHTranspiler()]
             ),
-            # Support {RX}, {RY}, and {} in the future.
+            # Support {RX}, {RY}, and {} here in the future.
         }
 
         if H not in self._favorable_clifford and SqrtX in self._favorable_clifford:
             rot_to_trans_map[frozenset({RZ})] = SequentialTranspiler(
                 [RX2RZSqrtXTranspiler(), RY2RZSqrtXTranspiler()]
             )
-            # Support {RX}, {RY}, and {} in the future.
+            # Support {RX}, {RY}, and {} here in the future.
 
         return rot_to_trans_map.get(
             frozenset(self._target_rotation), IdentityTranspiler()
