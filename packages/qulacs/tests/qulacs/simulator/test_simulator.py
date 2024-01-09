@@ -238,8 +238,10 @@ def test_create_qulacs_ideal_state_vector_sampler() -> None:
     vector_cnt = ideal_sampler(vector_state, n_shots)
     for i in range(2**n_qubits):
         assert isclose(expected_cnt[i], vector_cnt[i])
+    assert isclose(sum(vector_cnt.values()), 1000)
 
     circuit_state = GeneralCircuitQuantumState(n_qubits, circuit=quantum_circuit)
     circuit_cnt = ideal_sampler(circuit_state, n_shots)
     for i in range(2**n_qubits):
         assert isclose(expected_cnt[i], circuit_cnt[i])
+    assert isclose(sum(circuit_cnt.values()), 1000)

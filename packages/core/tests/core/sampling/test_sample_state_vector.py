@@ -60,6 +60,7 @@ class TestIdealSampleFromStateVector:
 
         for i in range(2**n_qubits):
             assert np.isclose(sampled_cnt[i], expected_cnt[i])
+        assert np.isclose(sum(expected_cnt.values()), 1000)
 
     def test_invalid_input(self) -> None:
         with pytest.raises(
