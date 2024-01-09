@@ -8,20 +8,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from quri_parts.braket.circuit import BraketSetTranspiler
-from quri_parts.circuit.transpile import (
-    IdentityInsertionTranspiler,
-    PauliDecomposeTranspiler,
-    PauliRotationDecomposeTranspiler,
-    SequentialTranspiler,
-)
+from typing import Collection
 
 
-def test_bracket_transpiler() -> None:
-    transpiler = BraketSetTranspiler()
-    assert isinstance(transpiler, SequentialTranspiler)
-    assert [type(x) for x in transpiler._transpilers] == [
-        PauliDecomposeTranspiler,
-        PauliRotationDecomposeTranspiler,
-        IdentityInsertionTranspiler,
-    ]
+def occupation_state_sz(occ_indices: Collection[int]) -> float:
+    n_up = 0
+    n_down = 0
+    for i in occ_indices:
+        if i % 2:
+            n_down += 1
+        else:
+            n_up += 1
+    return (n_up - n_down) / 2

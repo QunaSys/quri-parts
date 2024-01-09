@@ -1,8 +1,19 @@
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#      http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import math
 from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import get_context
-from typing import Union
+from typing import Any, Union
 
+import numpy as np
 import pytest
 
 from quri_parts.circuit import (
@@ -25,6 +36,12 @@ class TestITensorEstimator:
         estimator = create_itensor_mps_estimator()
         estimate = estimator(pauli, state)
         assert estimate.value == -1
+        assert estimate.error == 0.0
+
+        estimator_with_kwargs = create_itensor_mps_estimator(maxdim=2, cutoff=0.01)
+        estimate_with_kwargs = estimator_with_kwargs(pauli, state)
+        assert estimate_with_kwargs.value == -1
+        assert np.isnan(estimate_with_kwargs.error)
 
     def test_estimate_operator(self) -> None:
         operator = Operator(
@@ -37,6 +54,13 @@ class TestITensorEstimator:
         estimator = create_itensor_mps_estimator()
         estimate = estimator(operator, state)
         assert estimate.value == -0.25 + 0.5j
+        assert estimate.error == 0.0
+        # Note that the results of numerical calculations differ
+        # depending on the presence or absence of keyword arguments.
+        estimator_with_kwargs = create_itensor_mps_estimator(maxdim=2, cutoff=0.01)
+        estimate_with_kwargs = estimator_with_kwargs(operator, state)
+        assert estimate_with_kwargs.value == -0.25 + 0.5j
+        assert np.isnan(estimate_with_kwargs.error)
 
 
 class TestITensorConcurrentEstimator:
@@ -52,7 +76,14 @@ class TestITensorConcurrentEstimator:
             estimator([pauli] * 3, [state] * 2)
 
     @pytest.mark.skip(reason="This test is too slow.")
-    def test_concurrent_estimate(self) -> None:
+    @pytest.mark.parametrize(
+        "jl_apply_kwargs",
+        [
+            {},
+            {"maxdim": 2, "cutoff": 0.01},
+        ],
+    )
+    def test_concurrent_estimate(self, jl_apply_kwargs: Any) -> None:
         operators: list[Union[PauliLabel, Operator]] = [
             pauli_label("Z0 Z2 Z5"),
             Operator(
@@ -70,10 +101,15 @@ class TestITensorConcurrentEstimator:
         with ProcessPoolExecutor(
             max_workers=2, mp_context=get_context("spawn")
         ) as executor:
-            estimator = create_itensor_mps_concurrent_estimator(executor, concurrency=2)
+            estimator = create_itensor_mps_concurrent_estimator(
+                executor, concurrency=2, **jl_apply_kwargs
+            )
             result = list(estimator(operators, states))
         assert result[0].value == -1
         assert result[1].value == -0.25 + 0.5j
+        if "maxdim" in jl_apply_kwargs or "cutoff" in jl_apply_kwargs:
+            assert result[0].error == np.nan
+            assert result[1].error == np.nan
 
     @pytest.mark.skip(reason="This test is too slow.")
     def test_concurrent_estimate_single_state(self) -> None:
@@ -96,6 +132,8 @@ class TestITensorConcurrentEstimator:
             result = list(estimator(operators, states))
         assert result[0].value == -1
         assert result[1].value == -0.25 + 0.5j
+        assert result[0].error == 0.0
+        assert result[1].error == 0.0
 
     @pytest.mark.skip(reason="This test is too slow.")
     def test_concurrent_estimate_single_operator(self) -> None:
@@ -118,6 +156,8 @@ class TestITensorConcurrentEstimator:
             result = list(estimator(operators, states))
         assert result[0].value == -0.25 + 0.5j
         assert result[1].value == 0.25 + 0.5j
+        assert result[0].error == 0.0
+        assert result[1].error == 0.0
 
 
 def parametric_circuit() -> UnboundParametricQuantumCircuitProtocol:
@@ -156,6 +196,7 @@ class TestITensorParametricEstimator:
         ):
             estimate = estimator(pauli, state, params)
             assert estimate.value == pytest.approx(expected_list[i])
+            assert estimate.error == 0.0
 
     def test_estimate_operator(self) -> None:
         operator = Operator(
@@ -182,3 +223,46 @@ class TestITensorParametricEstimator:
         ):
             estimate = estimator(operator, state, params)
             assert estimate.value == pytest.approx(expected_list[i])
+            assert estimate.error == 0.0
+
+    def test_estimate_operator_with_jl_apply_kwargs(self) -> None:
+        operator = Operator(
+            {
+                pauli_label("Y0 X2 Y5"): 0.25,
+                pauli_label("Z1 X2 Z4"): 0.5j,
+            }
+        )
+
+        circuit = UnboundParametricQuantumCircuit(8)
+        for _ in range(2):
+            for i in range(4):
+                circuit.add_X_gate(i)
+            for i in range(8):
+                circuit.add_ParametricRY_gate(i)
+                circuit.add_ParametricRZ_gate(i)
+            for i in [1, 3, 5]:
+                circuit.add_CZ_gate(i, i + 1)
+            for i in [0, 2, 4, 6]:
+                circuit.add_CZ_gate(i, i + 1)
+            for i in range(8):
+                circuit.add_ParametricRY_gate(i)
+                circuit.add_ParametricRZ_gate(i)
+
+        state = ParametricCircuitQuantumState(8, circuit)
+        params = [i / 64 for i in range(64)]
+        estimator = create_itensor_mps_parametric_estimator()
+        estimate = estimator(operator, state, params)
+        assert estimate.value == pytest.approx(
+            0.024541701187281842 + 0.02441865385682042j
+        )
+        assert estimate.error == 0
+        # Note that the results of numerical calculations differ
+        # depending on the presence or absence of keyword arguments.
+        estimator_with_kwargs = create_itensor_mps_parametric_estimator(
+            maxdim=2, cutoff=0.01
+        )
+        estimate_with_kwargs = estimator_with_kwargs(operator, state, params)
+        assert estimate_with_kwargs.value == pytest.approx(
+            0.02485533900849108 + 0.029037213118795355j
+        )
+        assert np.isnan(estimate_with_kwargs.error)

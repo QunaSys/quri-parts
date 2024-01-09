@@ -8,20 +8,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from quri_parts.braket.circuit import BraketSetTranspiler
-from quri_parts.circuit.transpile import (
-    IdentityInsertionTranspiler,
-    PauliDecomposeTranspiler,
-    PauliRotationDecomposeTranspiler,
-    SequentialTranspiler,
-)
+from quri_parts.chem.utils.spin import occupation_state_sz
 
 
-def test_bracket_transpiler() -> None:
-    transpiler = BraketSetTranspiler()
-    assert isinstance(transpiler, SequentialTranspiler)
-    assert [type(x) for x in transpiler._transpilers] == [
-        PauliDecomposeTranspiler,
-        PauliRotationDecomposeTranspiler,
-        IdentityInsertionTranspiler,
-    ]
+def test_occupation_state_sz() -> None:
+    assert occupation_state_sz([0]) == 0.5
+    assert occupation_state_sz([0, 1]) == 0
+    assert occupation_state_sz([0, 2]) == 1.0
+    assert occupation_state_sz([3, 6]) == 0.0
+    assert occupation_state_sz([2, 1]) == 0.0
+    assert occupation_state_sz([1, 3]) == -1.0
