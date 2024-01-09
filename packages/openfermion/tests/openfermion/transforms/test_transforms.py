@@ -14,7 +14,7 @@ from openfermion import (
     symmetry_conserving_bravyi_kitaev as of_symmetry_conserving_bravyi_kitaev,
 )
 
-from quri_parts.core.operator import Operator, pauli_label, PAULI_IDENTITY
+from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
 from quri_parts.core.state import ComputationalBasisState
 from quri_parts.openfermion.operator import (
     FermionOperator,
@@ -69,11 +69,10 @@ class TestOperatorMapper:
         assert total_transformed == expected
         assert of_total_transformed == expected
 
-        # Test with non-trivial sz.
-        ## n_spin_up = 2, n_fermions = 2
+        # n_spin_up = 2, n_fermions = 2
         n_spin_orbitals = 4
         n_fermions = 2
-        sz = 1
+        sz = 1.0
 
         expected = Operator({PAULI_IDENTITY: 1})
         expected.add_term(pauli_label("X0"), 0.25)  # (0.25+0j) [X0]
@@ -90,7 +89,7 @@ class TestOperatorMapper:
         ).of_operator_mapper
         assert op_mapper(op_total) == expected
 
-        ## n_spin_up = 1, n_fermions = 3
+        # n_spin_up = 1, n_fermions = 3
         n_spin_orbitals = 4
         n_fermions = 3
         sz = -0.5
@@ -110,7 +109,7 @@ class TestOperatorMapper:
         ).of_operator_mapper
         assert op_mapper(op_total) == expected
 
-        ## n_spin_up = 2, n_fermions = 3
+        # n_spin_up = 2, n_fermions = 3
         n_spin_orbitals = 4
         n_fermions = 3
         sz = 0.5
