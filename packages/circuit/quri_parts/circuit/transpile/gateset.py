@@ -88,24 +88,58 @@ from .unitary_matrix_decomposer import (
     TwoQubitUnitaryMatrixKAKTranspiler,
 )
 
-# Automatic table generation is preferred in the future.
+# Clifford conversion table of patterns with fewer gate species, ordered by gate length.
+# Conversions to two gates are covered, otherwise only major patterns are retained.
 _equiv_clifford_table: Mapping[str, list[list[str]]] = {
-    H: [[S, SqrtX, S]],
-    X: [[Y, Z], [SqrtX, SqrtX], [SqrtXdag, SqrtXdag], [H, Z, H], [H, S, S, H]],
-    Y: [[Z, X], [S, S, X], [Z, H, Z, H], [S, S, H, S, S, H]],
-    Z: [[X, Y], [S, S], [Sdag, Sdag], [X, S, S, X]],
-    SqrtX: [[Sdag, H, Sdag], [S, Z, H, Z, S], [S, S, S, H, S, S, S]],
-    SqrtXdag: [[S, H, S], [Z, SqrtX, Z], [S, S, SqrtX, S, S]],
-    SqrtY: [[Z, H], [S, S, H], [Sdag, SqrtX, S], [Z, S, SqrtX, S], [S, S, S, SqrtX, S]],
+    H: [[X, SqrtYdag], [Z, SqrtY], [SqrtY, X], [SqrtYdag, Z], [S, SqrtX, S]],
+    X: [
+        [H, SqrtY],
+        [Y, Z],
+        [SqrtX, SqrtX],
+        [SqrtXdag, SqrtXdag],
+        [SqrtYdag, H],
+        [H, Z, H],
+        [H, S, S, H],
+    ],
+    Y: [
+        [Z, X],
+        [SqrtY, SqrtY],
+        [SqrtYdag, SqrtYdag],
+        [S, S, X],
+        [Z, H, Z, H],
+        [S, S, H, S, S, H],
+    ],
+    Z: [
+        [H, SqrtYdag],
+        [X, Y],
+        [SqrtY, H],
+        [S, S],
+        [Sdag, Sdag],
+        [H, X, H],
+        [X, S, S, X],
+    ],
+    SqrtX: [[X, SqrtXdag], [Sdag, H, Sdag], [S, Z, H, Z, S], [S, S, S, H, S, S, S]],
+    SqrtXdag: [[X, SqrtX], [S, H, S], [Z, SqrtX, Z], [S, S, SqrtX, S, S]],
+    SqrtY: [
+        [H, X],
+        [Y, SqrtYdag],
+        [Z, H],
+        [S, S, H],
+        [Sdag, SqrtX, S],
+        [Z, S, SqrtX, S],
+        [S, S, S, SqrtX, S],
+    ],
     SqrtYdag: [
         [H, Z],
+        [X, H],
+        [Y, SqrtY],
         [H, S, S],
         [S, SqrtX, Sdag],
         [S, SqrtX, Z, S],
         [S, SqrtX, S, S, S],
     ],
-    S: [[Z, Sdag], [Sdag, Sdag, Sdag]],
-    Sdag: [[Z, S], [S, S, S]],
+    S: [[Z, Sdag], [H, SqrtX, H], [Sdag, Sdag, Sdag]],
+    Sdag: [[Z, S], [SqrtX, H, SqrtX], [S, S, S]],
 }
 
 
