@@ -93,8 +93,8 @@ from .unitary_matrix_decomposer import (
 _equiv_clifford_table: Mapping[str, list[list[str]]] = {
     H: [[X, SqrtYdag], [Z, SqrtY], [SqrtY, X], [SqrtYdag, Z], [S, SqrtX, S]],
     X: [
-        [H, SqrtY],
         [Y, Z],
+        [H, SqrtY],
         [SqrtX, SqrtX],
         [SqrtXdag, SqrtXdag],
         [SqrtYdag, H],
@@ -110,10 +110,10 @@ _equiv_clifford_table: Mapping[str, list[list[str]]] = {
         [S, S, H, S, S, H],
     ],
     Z: [
-        [H, SqrtYdag],
         [X, Y],
-        [SqrtY, H],
         [S, S],
+        [H, SqrtYdag],
+        [SqrtY, H],
         [Sdag, Sdag],
         [H, X, H],
         [X, S, S, X],
@@ -122,8 +122,8 @@ _equiv_clifford_table: Mapping[str, list[list[str]]] = {
     SqrtXdag: [[X, SqrtX], [S, H, S], [Z, SqrtX, Z], [S, S, SqrtX, S, S]],
     SqrtY: [
         [H, X],
-        [Y, SqrtYdag],
         [Z, H],
+        [Y, SqrtYdag],
         [S, S, H],
         [Sdag, SqrtX, S],
         [Z, S, SqrtX, S],
