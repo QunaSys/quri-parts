@@ -91,7 +91,7 @@ from .unitary_matrix_decomposer import (
 # Automatic table generation is preferred in the future.
 _equiv_clifford_table: Mapping[str, list[list[str]]] = {
     H: [[S, SqrtX, S]],
-    X: [[Y, Z], [SqrtX, SqrtX], [SqrtXdag, SqrtXdag]],
+    X: [[Y, Z], [SqrtX, SqrtX], [SqrtXdag, SqrtXdag], [H, Z, H], [H, S, S, H]],
     Y: [[Z, X], [S, S, X], [Z, H, Z, H], [S, S, H, S, S, H]],
     Z: [[X, Y], [S, S], [Sdag, Sdag], [X, S, S, X]],
     SqrtX: [[Sdag, H, Sdag], [S, Z, H, Z, S], [S, S, S, H, S, S, S]],
