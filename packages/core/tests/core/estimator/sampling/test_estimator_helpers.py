@@ -14,7 +14,7 @@ from quri_parts.core.estimator.sampling.estimator_helpers import (
     distribute_shots_among_pauli_sets,
 )
 from quri_parts.core.measurement import bitwise_commuting_pauli_measurement
-from quri_parts.core.operator import Operator, pauli_label
+from quri_parts.core.operator import CommutablePauliSet, Operator, pauli_label
 from quri_parts.core.sampling.shots_allocator import (
     create_equipartition_shots_allocator,
 )
@@ -44,12 +44,12 @@ def test_circuit_shot_pairs_preparation_fn() -> None:
 
     operator = Operator({pauli_label("X0 X1"): 1, pauli_label("Y0 X1"): 1})
     groups = bitwise_commuting_pauli_measurement(operator)
-    distribution = {
+    distribution: dict[CommutablePauliSet, int] = {
         frozenset({pauli_label("X0 X1")}): 500,
         frozenset({pauli_label("Y0 X1")}): 500,
     }
 
     pairs = circuit_shot_pairs_preparation_fn(state, groups, distribution)
-    assert len(pairs) == 2
+    assert len(list(pairs)) == 2
     for p, g in zip(pairs, groups):
         assert p == (circuit.combine(g.measurement_circuit), 500)
