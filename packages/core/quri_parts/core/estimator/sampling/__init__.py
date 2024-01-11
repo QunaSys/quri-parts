@@ -19,6 +19,7 @@ from .estimator import (
     concurrent_sampling_estimate,
     create_sampling_concurrent_estimator,
     create_sampling_estimator,
+    get_estimate_from_sampling_result,
     sampling_estimate,
 )
 from .overlap_estimator import (
@@ -59,6 +60,7 @@ __all__ = [
     "general_pauli_sum_expectation_estimator",
     "general_pauli_covariance_estimator",
     "general_pauli_sum_sample_variance",
+    "get_estimate_from_sampling_result",
     "trivial_pauli_expectation_estimator",
     "trivial_pauli_covariance_estimator",
     "sampling_estimate",

@@ -21,6 +21,7 @@ from quri_parts.core.estimator.sampling import (
     concurrent_sampling_estimate,
     create_sampling_concurrent_estimator,
     create_sampling_estimator,
+    get_estimate_from_sampling_result,
     sampling_estimate,
 )
 from quri_parts.core.measurement import (
@@ -155,6 +156,17 @@ def assert_sample(estimate: Estimate[complex]) -> None:
     ) / 8
     expected_err = sqrt(expected_var / 8)
     assert estimate.error == expected_err
+
+
+def test_get_estimate_from_sampling_result() -> None:
+    op = operator()
+    measurement_groups = measurement_factory(op)
+    sampling_counts = [counts() for _ in measurement_groups]
+
+    estimate = get_estimate_from_sampling_result(
+        op, measurement_groups, 0, sampling_counts
+    )
+    assert_sample(estimate)
 
 
 class TestSamplingEstimate:

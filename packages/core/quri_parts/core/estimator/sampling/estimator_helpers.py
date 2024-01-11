@@ -15,7 +15,7 @@ from typing_extensions import TypeAlias
 
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.core.measurement import CommutablePauliSetMeasurement
-from quri_parts.core.operator import PAULI_IDENTITY, CommutablePauliSet, Operator
+from quri_parts.core.operator import CommutablePauliSet, Operator
 from quri_parts.core.sampling import PauliSamplingShotsAllocator
 from quri_parts.core.state import CircuitQuantumState
 
@@ -51,27 +51,6 @@ def distribute_shots_among_pauli_sets(
     pauli_sets = {m.pauli_set for m in measurement_groups}
     shot_allocs = shots_allocator(operator, pauli_sets, total_shots)
     return {pauli_set: n_shots for pauli_set, n_shots in shot_allocs}
-
-
-def get_constant_seperated_measurement_group(
-    operator: Operator, measurement_groups: Iterable[CommutablePauliSetMeasurement]
-) -> tuple[Iterable[CommutablePauliSetMeasurement], complex]:
-    """Seperate the group containing only the identity operator from the
-    measurement group.
-
-    Args:
-        operator: The operator to be estimated.
-        measurement_groups: Sequence of :class:`~CommutablePauliSetMeasurement` that
-            corresponds to the grouping result of the operator.
-    """
-    const = 0.0 + 0.0j
-    measurement = []
-    for m in measurement_groups:
-        if m.pauli_set == {PAULI_IDENTITY}:
-            const += operator[PAULI_IDENTITY]
-        else:
-            measurement.append(m)
-    return measurement, const
 
 
 def circuit_shot_pairs_preparation_fn(

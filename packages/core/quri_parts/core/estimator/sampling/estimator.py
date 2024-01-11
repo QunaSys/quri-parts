@@ -38,10 +38,7 @@ from quri_parts.core.state import CircuitQuantumState
 
 from .estimator_helpers import CircuitShotPairPreparationFunction
 from .estimator_helpers import circuit_shot_pairs_preparation_fn as default_prep
-from .estimator_helpers import (
-    distribute_shots_among_pauli_sets,
-    get_constant_seperated_measurement_group,
-)
+from .estimator_helpers import distribute_shots_among_pauli_sets
 
 
 class _Estimate:
@@ -143,10 +140,10 @@ def sampling_estimate(
     if len(op) == 1 and PAULI_IDENTITY in op:
         return _ConstEstimate(op[PAULI_IDENTITY])
 
-    measurement_groups = measurement_factory(op)
-    measurements, const = get_constant_seperated_measurement_group(
-        op, measurement_groups
-    )
+    const = op.constant
+    measurements = measurement_factory(op)
+    measurements = [m for m in measurements if m.pauli_set != {PAULI_IDENTITY}]
+
     shots_map = distribute_shots_among_pauli_sets(
         op, measurements, shots_allocator, total_shots
     )
