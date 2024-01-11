@@ -17,8 +17,6 @@ from quri_parts.core.sampling import MeasurementCounts
 
 from .estimator import (
     concurrent_sampling_estimate,
-    create_fixed_operator_sampling_concurrent_esimator,
-    create_fixed_operator_sampling_esimator,
     create_sampling_concurrent_estimator,
     create_sampling_estimator,
     sampling_estimate,

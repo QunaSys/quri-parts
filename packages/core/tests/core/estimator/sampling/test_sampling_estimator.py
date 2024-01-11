@@ -19,13 +19,12 @@ from quri_parts.circuit import H, NonParametricQuantumCircuit, QuantumCircuit
 from quri_parts.core.estimator import Estimate
 from quri_parts.core.estimator.sampling import (
     concurrent_sampling_estimate,
-    create_fixed_operator_sampling_concurrent_esimator,
-    create_fixed_operator_sampling_esimator,
     create_sampling_concurrent_estimator,
     create_sampling_estimator,
     sampling_estimate,
 )
 from quri_parts.core.measurement import (
+    CachedMeasuremetFactory,
     CommutablePauliSetMeasurement,
     CommutablePauliSetMeasurementTuple,
     bitwise_commuting_pauli_measurement,
@@ -186,9 +185,9 @@ class TestSamplingEstimate:
     def test_cached_sampling_estimate(self) -> None:
         op = operator()
         s = mock_sampler()
-        measurement_group = measurement_factory(op)
+        cached_measurement_factory = CachedMeasuremetFactory(measurement_factory)
         estimate = sampling_estimate(
-            op, initial_state(), total_shots(), s, measurement_group, allocator
+            op, initial_state(), total_shots(), s, cached_measurement_factory, allocator
         )
         assert_sampler_args(s)
         assert_sample(estimate)
@@ -272,17 +271,16 @@ class TestConcurrentSamplingEstimate:
 
         op1 = operator()
         op2 = pauli_label("Z0")
+        cached_measurement_factory = CachedMeasuremetFactory(
+            bitwise_commuting_pauli_measurement
+        )
 
-        measurements = [
-            bitwise_commuting_pauli_measurement(op1),
-            bitwise_commuting_pauli_measurement([op2]),
-        ]
         estimates = concurrent_sampling_estimate(
             [op1, op2],
             [initial_state(), ComputationalBasisState(3, bits=0b001)],
             total_shots(),
             s,
-            measurements,
+            cached_measurement_factory,
             allocator,
         )
 
@@ -313,17 +311,16 @@ class TestConcurrentSamplingEstimate:
         op1 = operator()
         op2 = pauli_label("Z0")
 
-        measurements = [
-            bitwise_commuting_pauli_measurement(op1),
-            bitwise_commuting_pauli_measurement([op2]),
-        ]
+        cached_measurement_factory = CachedMeasuremetFactory(
+            bitwise_commuting_pauli_measurement
+        )
 
         estimates = concurrent_sampling_estimate(
             [op1, op2],
             [initial_state()],
             total_shots(),
             s,
-            measurements,
+            cached_measurement_factory,
             allocator,
         )
 
@@ -352,14 +349,16 @@ class TestConcurrentSamplingEstimate:
     def test_cached_concurrent_estimate_single_operator(self) -> None:
         s = mock_sampler()
         op = operator()
-        measurements = [bitwise_commuting_pauli_measurement(op)]
+        cached_measurement_factory = CachedMeasuremetFactory(
+            bitwise_commuting_pauli_measurement
+        )
 
         estimates = concurrent_sampling_estimate(
             [op],
             [initial_state(), ComputationalBasisState(3, bits=0b001)],
             total_shots(),
             s,
-            measurements,
+            cached_measurement_factory,
             allocator,
         )
 
@@ -386,66 +385,5 @@ class TestSamplingConcurrentEstimator:
 
         estimate_list = list(estimates)
         assert len(estimate_list) == 2
-        assert_sample(estimate_list[0])
-        assert estimate_list[1].value == (1 - 1 + 2 - 4) / 8
-
-
-class TestFixedOperarorSamplingEstimator:
-    def test_create_fixed_operator_sampling_esimator(self) -> None:
-        op = operator()
-        s = mock_sampler()
-        estimator = create_fixed_operator_sampling_esimator(
-            op, total_shots(), s, measurement_factory, allocator
-        )
-        estimate = estimator(op, initial_state())
-        assert_sampler_args(s)
-        assert_sample(estimate)
-
-    def test_create_fixed_operator_sampling_esimator_error(self) -> None:
-        op = operator()
-        s = mock_sampler()
-        estimator = create_fixed_operator_sampling_esimator(
-            op, total_shots(), s, measurement_factory, allocator
-        )
-        with pytest.raises(
-            AssertionError,
-            match=(
-                "The input operator is not consistent with the "
-                "fixed operator used to create the estimator."
-            ),
-        ):
-            estimator(PAULI_IDENTITY, initial_state())
-
-    def test_create_fixed_operator_sampling_concurrent_esimator(self) -> None:
-        op = operator()
-        s = mock_sampler()
-        concurrent_estimator = create_fixed_operator_sampling_concurrent_esimator(
-            [op], total_shots(), s, measurement_factory, allocator
-        )
-
-        estimates = concurrent_estimator(
-            [op], [initial_state(), ComputationalBasisState(3, bits=0b001)]
-        )
-
-        estimate_list = list(estimates)
-        assert_sample(estimate_list[0])
-        assert_sample(estimate_list[1])
-
-    def test_create_fixed_operator_sampling_concurrent_esimator_different_op(
-        self,
-    ) -> None:
-        op1 = operator()
-        op2 = pauli_label("Z0")
-
-        s = mock_sampler()
-        concurrent_estimator = create_fixed_operator_sampling_concurrent_esimator(
-            [op1, op2], total_shots(), s, bitwise_commuting_pauli_measurement, allocator
-        )
-
-        estimates = concurrent_estimator(
-            [op1, op2], [initial_state(), ComputationalBasisState(3, bits=0b001)]
-        )
-
-        estimate_list = list(estimates)
         assert_sample(estimate_list[0])
         assert estimate_list[1].value == (1 - 1 + 2 - 4) / 8

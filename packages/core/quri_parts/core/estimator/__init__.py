@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from abc import abstractproperty
-from collections.abc import Collection, Iterable, Sequence
+from collections.abc import Iterable, Sequence
 from typing import Callable, Optional, Protocol, TypeVar, Union, cast, overload
 
 from typing_extensions import TypeAlias
@@ -329,29 +329,3 @@ def create_parametric_overlap_weighted_sum_estimator(
         return estimator(bound_kets, bound_bras, weights)
 
     return parametric_estimator
-
-
-def parse_concurrent_estimator_arguments(
-    operators: Collection[Estimatable], states: Collection[_StateT]
-) -> tuple[Collection[Estimatable], Collection[_StateT]]:
-    num_ops = len(operators)
-    num_states = len(states)
-
-    if num_ops == 0:
-        raise ValueError("No operator specified.")
-
-    if num_states == 0:
-        raise ValueError("No state specified.")
-
-    if num_ops > 1 and num_states > 1 and num_ops != num_states:
-        raise ValueError(
-            f"Number of operators ({num_ops}) does not match"
-            f"number of states ({num_states})."
-        )
-
-    if num_states == 1:
-        states = [next(iter(states))] * num_ops
-    if num_ops == 1:
-        operators = [next(iter(operators))] * num_states
-
-    return operators, states
