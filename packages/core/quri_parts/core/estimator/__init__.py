@@ -11,7 +11,16 @@
 from abc import abstractproperty
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
-from typing import Callable, Generic, Optional, Protocol, TypeVar, Union, cast, overload
+from typing import (
+    Callable,
+    Generic,
+    Optional,
+    Protocol,
+    TypeVar,
+    Union,
+    cast,
+    overload,
+)
 
 from typing_extensions import TypeAlias
 
@@ -461,8 +470,29 @@ def create_concurrent_estimator_from_estimator(
     return concurrent_estimator
 
 
+#: Represents allowed states for performing general estimation.
+#: Some estimator supports :class:`~CircuitQuantumState` only, or
+#: :class:`~QuantumStateVector` only, or mixed.
+GeneralStateT = TypeVar(
+    "GeneralStateT",
+    Union[CircuitQuantumState, QuantumStateVector],
+    CircuitQuantumState,
+    QuantumStateVector,
+)
+
+#: Represents allowed states for performing general parametric estimation.
+#: Some estimator supports :class:`~ParametricCircuitQuantumState` only, or
+#: :class:`~ParametricQuantumStateVector` only, or mixed.
+GeneralParametricStateT = TypeVar(
+    "GeneralParametricStateT",
+    Union[ParametricCircuitQuantumState, ParametricQuantumStateVector],
+    ParametricCircuitQuantumState,
+    ParametricQuantumStateVector,
+)
+
+
 @dataclass
-class GeneralQuantumEstimator(Generic[QuantumStateT, ParametricQuantumStateT]):
+class GeneralQuantumEstimator(Generic[GeneralStateT, GeneralParametricStateT]):
     r"""A callable dataclass that holds :class:`QuantumEstimator`,
     :class:`ConcurrentQuantumEstimator`, :class:`ParametricQuantumEstimator`,
     or :class:`ConcurrentParametricEstimator`. When it is used as a callable function,
@@ -490,35 +520,27 @@ class GeneralQuantumEstimator(Generic[QuantumStateT, ParametricQuantumStateT]):
     retrieve the desired estimator as a property directly.
     """
 
-    estimator: QuantumEstimator[QuantumStateT]
-    concurrent_estimator: ConcurrentQuantumEstimator[QuantumStateT]
-    parametric_estimator: ParametricQuantumEstimator[ParametricQuantumStateT]
+    estimator: QuantumEstimator[GeneralStateT]
+    concurrent_estimator: ConcurrentQuantumEstimator[GeneralStateT]
+    parametric_estimator: ParametricQuantumEstimator[GeneralParametricStateT]
     concurrent_parametric_estimator: ConcurrentParametricQuantumEstimator[
-        ParametricQuantumStateT
+        GeneralParametricStateT
     ]
 
     @overload
-    def __call__(self, op: Estimatable, state: QuantumStateT) -> Estimate[complex]:
+    def __call__(
+        self,
+        op: Estimatable,
+        state: GeneralStateT,
+    ) -> Estimate[complex]:
         """A :class:`QuantumEstimator`"""
         ...
 
     @overload
     def __call__(
-        self, op: Sequence[Estimatable], state: Sequence[QuantumStateT]
-    ) -> Iterable[Estimate[complex]]:
-        """A :class:`ConcurrentQuantumEstimator`"""
-        ...
-
-    @overload
-    def __call__(
-        self, op: Estimatable, state: Sequence[QuantumStateT]
-    ) -> Iterable[Estimate[complex]]:
-        """A :class:`ConcurrentQuantumEstimator`"""
-        ...
-
-    @overload
-    def __call__(
-        self, op: Sequence[Estimatable], state: QuantumStateT
+        self,
+        op: Sequence[Estimatable],
+        state: Sequence[GeneralStateT],
     ) -> Iterable[Estimate[complex]]:
         """A :class:`ConcurrentQuantumEstimator`"""
         ...
@@ -527,7 +549,25 @@ class GeneralQuantumEstimator(Generic[QuantumStateT, ParametricQuantumStateT]):
     def __call__(
         self,
         op: Estimatable,
-        state: ParametricQuantumStateT,
+        state: Sequence[GeneralStateT],
+    ) -> Iterable[Estimate[complex]]:
+        """A :class:`ConcurrentQuantumEstimator`"""
+        ...
+
+    @overload
+    def __call__(
+        self,
+        op: Sequence[Estimatable],
+        state: GeneralStateT,
+    ) -> Iterable[Estimate[complex]]:
+        """A :class:`ConcurrentQuantumEstimator`"""
+        ...
+
+    @overload
+    def __call__(
+        self,
+        op: Estimatable,
+        state: GeneralParametricStateT,
         param: Sequence[float],
     ) -> Estimate[complex]:
         """A :class:`ParametricQuantumEstimator`"""
@@ -537,7 +577,7 @@ class GeneralQuantumEstimator(Generic[QuantumStateT, ParametricQuantumStateT]):
     def __call__(
         self,
         op: Estimatable,
-        state: ParametricQuantumStateT,
+        state: GeneralParametricStateT,
         param: Sequence[Sequence[float]],
     ) -> Iterable[Estimate[complex]]:
         """A :class:`ConcurrentParametricQuantumEstimator`"""
@@ -546,25 +586,25 @@ class GeneralQuantumEstimator(Generic[QuantumStateT, ParametricQuantumStateT]):
     def __call__(
         self,
         op: Union[Estimatable, Sequence[Estimatable]],
-        state: Union[QuantumStateT, Sequence[QuantumStateT], ParametricQuantumStateT],
+        state: Union[GeneralStateT, Sequence[GeneralStateT], GeneralParametricStateT],
         param: Optional[Union[Sequence[float], Sequence[Sequence[float]]]] = None,
     ) -> Union[Estimate[complex], Iterable[Estimate[complex]]]:
         if param is None:
             if isinstance(op, Operator) or isinstance(op, PauliLabel):
                 if isinstance(state, Sequence):
                     return self.concurrent_estimator([op], state)
-                state = cast(QuantumStateT, state)
+                state = cast(GeneralStateT, state)
                 return self.estimator(op, state)
 
             if isinstance(state, Sequence):
                 return self.concurrent_estimator(op, state)
-            state = cast(QuantumStateT, state)
+            state = cast(GeneralStateT, state)
             return self.concurrent_estimator(op, [state])
 
         assert not isinstance(state, Sequence)
         assert isinstance(op, Operator) or isinstance(op, PauliLabel)
 
-        state = cast(ParametricQuantumStateT, state)
+        state = cast(GeneralParametricStateT, state)
         if isinstance(param[0], Sequence):
             param = cast(Sequence[Sequence[float]], param)
             return self.concurrent_parametric_estimator(op, state, param)

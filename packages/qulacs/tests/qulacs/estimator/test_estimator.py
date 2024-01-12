@@ -9,6 +9,7 @@
 # limitations under the License.
 
 import math
+import unittest
 from concurrent.futures import ThreadPoolExecutor
 from typing import Union
 
@@ -37,6 +38,7 @@ from quri_parts.qulacs.estimator import (
     create_qulacs_density_matrix_concurrent_parametric_estimator,
     create_qulacs_density_matrix_estimator,
     create_qulacs_density_matrix_parametric_estimator,
+    create_qulacs_general_vector_estimator,
     create_qulacs_vector_concurrent_estimator,
     create_qulacs_vector_concurrent_parametric_estimator,
     create_qulacs_vector_estimator,
@@ -546,6 +548,93 @@ class TestVectorConcurrentParametricEstimator:
             0.25 * (-0.5) + 0.5j * (-1 / math.sqrt(2))
         )
         assert result[4].value == pytest.approx(0 + 0.5j * (-0.5))
+
+
+class TestGeneralVectorEstimator(unittest.TestCase):
+    def setUp(self) -> None:
+        self.pauli = pauli_label("Z0 Z2 Z5")
+        self.operator = Operator(
+            {
+                pauli_label("Z0 Z2 Z5"): 0.25,
+                pauli_label("Z1 Z2 Z4"): 0.5j,
+            }
+        )
+
+    def test_without_executor(self) -> None:
+        general_estimator = create_qulacs_general_vector_estimator()
+
+        state_1 = ComputationalBasisState(6, bits=0b110000)
+        state_2 = ComputationalBasisState(6, bits=0b110010)
+        state_3 = create_vector_state(6, 0b110000)
+
+        # test estimator
+        assert general_estimator(self.pauli, state_1) == _Estimate(value=-1, error=0)
+        assert general_estimator(self.operator, state_2) == _Estimate(
+            value=-0.25 + 0.5j, error=0
+        )
+        assert general_estimator(self.pauli, state_3) == _Estimate(value=-1, error=0)
+
+        # test concurrent estimator
+        assert general_estimator(self.pauli, [state_1, state_2, state_3]) == [
+            _Estimate(value=-1, error=0),
+            _Estimate(value=-1, error=0),
+            _Estimate(value=-1, error=0),
+        ]
+
+        assert general_estimator([self.operator], [state_1, state_2, state_3]) == [
+            _Estimate(value=-0.25 - 0.5j, error=0),
+            _Estimate(value=-0.25 + 0.5j, error=0),
+            _Estimate(value=-0.25 - 0.5j, error=0),
+        ]
+
+        assert general_estimator([self.pauli, self.operator], state_1) == [
+            _Estimate(value=-1, error=0),
+            _Estimate(value=-0.25 - 0.5j, error=0),
+        ]
+
+        assert general_estimator([self.pauli, self.operator], [state_2]) == [
+            _Estimate(value=-1, error=0),
+            _Estimate(value=-0.25 + 0.5j, error=0),
+        ]
+
+        assert general_estimator([self.pauli, self.operator], [state_1, state_2]) == [
+            _Estimate(value=-1, error=0),
+            _Estimate(value=-0.25 + 0.5j, error=0),
+        ]
+
+        param_circuit = parametric_circuit()
+        p_circuit_state = ParametricCircuitQuantumState(
+            param_circuit.qubit_count, param_circuit
+        )
+        p_vector_state = ParametricQuantumStateVector(
+            param_circuit.qubit_count,
+            param_circuit,
+            vector=create_vector(param_circuit.qubit_count, bits=1),
+        )
+        params = [
+            np.random.random(param_circuit.parameter_count).tolist() for _ in range(4)
+        ]
+
+        p_estimator = create_qulacs_vector_parametric_estimator()
+        cp_estimator = create_qulacs_vector_concurrent_parametric_estimator()
+
+        # test parametric estimator
+        assert general_estimator(self.pauli, p_circuit_state, params[0]) == p_estimator(
+            self.pauli, p_circuit_state, params[0]
+        )
+        assert general_estimator(self.pauli, p_vector_state, params[0]) == p_estimator(
+            self.pauli, p_vector_state, params[0]
+        )
+
+        # test concurrent parametric estimator
+        cp_estimator(self.pauli, p_circuit_state, params)
+        general_estimator(self.pauli, p_circuit_state, params)
+        assert general_estimator(self.pauli, p_circuit_state, params) == cp_estimator(
+            self.pauli, p_circuit_state, params
+        )
+        assert general_estimator(self.pauli, p_vector_state, params) == cp_estimator(
+            self.pauli, p_vector_state, params
+        )
 
 
 class TestDensityMatrixEstimatorWithNoiseModel:
