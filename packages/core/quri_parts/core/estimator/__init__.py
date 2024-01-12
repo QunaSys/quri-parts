@@ -11,16 +11,7 @@
 from abc import abstractproperty
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
-from typing import (
-    Callable,
-    Generic,
-    Optional,
-    Protocol,
-    TypeVar,
-    Union,
-    cast,
-    overload,
-)
+from typing import Callable, Generic, Optional, Protocol, TypeVar, Union, cast, overload
 
 from typing_extensions import TypeAlias
 
