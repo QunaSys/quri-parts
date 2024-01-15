@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from quri_parts.core.measurement import (
-    CachedMeasuremetFactory,
+    CachedMeasurementFactory,
     bitwise_commuting_pauli_measurement,
 )
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
@@ -44,7 +44,7 @@ def test_cached_measurement_factory() -> None:
     ]
     expected_group_3 = bitwise_commuting_pauli_measurement(paulis)
 
-    cached_measurement_factory = CachedMeasuremetFactory(
+    cached_measurement_factory = CachedMeasurementFactory(
         bitwise_commuting_pauli_measurement
     )
     assert len(cached_measurement_factory.cached_groups) == 0

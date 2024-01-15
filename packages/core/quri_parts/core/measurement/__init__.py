@@ -44,7 +44,7 @@ PauliReconstructorFactory = PauliReconstructorFactory
 CommutablePauliSetMeasurementFactory = CommutablePauliSetMeasurementFactory
 
 
-class CachedMeasuremetFactory:
+class CachedMeasurementFactory:
     """A class decorator that converts a
     :class:`CommutablePauliSetMeasurementFactory` to a new
     :class:`CommutablePauliSetMeasurementFactory` runs the same grouping

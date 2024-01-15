@@ -25,7 +25,7 @@ from quri_parts.core.estimator.sampling import (
     sampling_estimate,
 )
 from quri_parts.core.measurement import (
-    CachedMeasuremetFactory,
+    CachedMeasurementFactory,
     CommutablePauliSetMeasurement,
     CommutablePauliSetMeasurementTuple,
     bitwise_commuting_pauli_measurement,
@@ -197,7 +197,7 @@ class TestSamplingEstimate:
     def test_cached_sampling_estimate(self) -> None:
         op = operator()
         s = mock_sampler()
-        cached_measurement_factory = CachedMeasuremetFactory(measurement_factory)
+        cached_measurement_factory = CachedMeasurementFactory(measurement_factory)
         estimate = sampling_estimate(
             op, initial_state(), total_shots(), s, cached_measurement_factory, allocator
         )
@@ -283,7 +283,7 @@ class TestConcurrentSamplingEstimate:
 
         op1 = operator()
         op2 = pauli_label("Z0")
-        cached_measurement_factory = CachedMeasuremetFactory(
+        cached_measurement_factory = CachedMeasurementFactory(
             bitwise_commuting_pauli_measurement
         )
 
@@ -323,7 +323,7 @@ class TestConcurrentSamplingEstimate:
         op1 = operator()
         op2 = pauli_label("Z0")
 
-        cached_measurement_factory = CachedMeasuremetFactory(
+        cached_measurement_factory = CachedMeasurementFactory(
             bitwise_commuting_pauli_measurement
         )
 
@@ -361,7 +361,7 @@ class TestConcurrentSamplingEstimate:
     def test_cached_concurrent_estimate_single_operator(self) -> None:
         s = mock_sampler()
         op = operator()
-        cached_measurement_factory = CachedMeasuremetFactory(
+        cached_measurement_factory = CachedMeasurementFactory(
             bitwise_commuting_pauli_measurement
         )
 

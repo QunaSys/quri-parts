@@ -125,7 +125,7 @@ def sampling_estimate(
             be measured.
         circuit_shot_pair_prep_fn: A :class:`~CircuitShotPairPreparationFunction` that
             prepares the set of circuits to perform measurement with. It is default to
-            a function that concatenates the measurement circuits after tghe state
+            a function that concatenates the measurement circuits after the state
             preparation circuit.
     Returns:
         The estimated value (can be accessed with :attr:`.value`) with standard error

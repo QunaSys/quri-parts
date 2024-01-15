@@ -58,8 +58,9 @@ def circuit_shot_pairs_preparation_fn(
     measurement_groups: Iterable[CommutablePauliSetMeasurement],
     shots_map: dict[CommutablePauliSet, int],
 ) -> Iterable[tuple[NonParametricQuantumCircuit, int]]:
-    """A function that concatenates the measurement circuit after the circuit
-    quantum state.
+    """Sets up the (circuit, shot) pairs for performing sampling estimation.
+    The circuit is given by the measurement circuit concatenated after the
+    circuit held inside the state.
 
     Args:
         state: The state on which the expectation value is estimated.
