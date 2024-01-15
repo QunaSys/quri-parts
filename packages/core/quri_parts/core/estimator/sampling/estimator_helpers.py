@@ -19,9 +19,12 @@ from quri_parts.core.operator import CommutablePauliSet, Operator
 from quri_parts.core.sampling import PauliSamplingShotsAllocator
 from quri_parts.core.state import CircuitQuantumState
 
-#: A function that returns the sequence of (circuit, shot) pairs for the
-#: given state to be measured according to the grouping result and the
-#: shots assigned to each group.
+#: A function that returns the sequence of (circuit, shot) pairs for performing
+#: sampling estimation on the given state. The default operation is that 
+#: it concatenates the measurement circuits determined by the grouping scheme 
+#: to the circuit that prepares the state. This is done with the 
+#: `circuit_shot_pairs_preparation_fn` below. Users may customize this function if 
+#: additional circuit operations needs to be done other than simple concatenation.
 CircuitShotPairPreparationFunction: TypeAlias = Callable[
     [
         CircuitQuantumState,
