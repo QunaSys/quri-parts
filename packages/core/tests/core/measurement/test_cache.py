@@ -65,8 +65,8 @@ def test_cached_measurement_factory() -> None:
     assert group_2_second_run == expected_group_2
     assert len(cached_measurement_factory.cached_groups) == 2
 
-    group_2 = cached_measurement_factory(operator_2)
-    assert group_2 == expected_group_2
+    group_2_third_run = cached_measurement_factory(operator_2)
+    assert group_2_third_run == expected_group_2
     assert len(cached_measurement_factory.cached_groups) == 2
 
     group_3 = cached_measurement_factory(paulis)
