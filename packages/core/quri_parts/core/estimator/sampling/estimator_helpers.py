@@ -56,7 +56,7 @@ def distribute_shots_among_pauli_sets(
     return {pauli_set: n_shots for pauli_set, n_shots in shot_allocs}
 
 
-def circuit_shot_pairs_preparation_fn(
+def get_sampling_circuits_and_shots(
     state: CircuitQuantumState,
     measurement_groups: Iterable[CommutablePauliSetMeasurement],
     shots_map: dict[CommutablePauliSet, int],

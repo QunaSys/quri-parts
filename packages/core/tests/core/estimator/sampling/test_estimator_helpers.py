@@ -10,8 +10,8 @@
 
 from quri_parts.circuit import QuantumCircuit
 from quri_parts.core.estimator.sampling.estimator_helpers import (
-    circuit_shot_pairs_preparation_fn,
     distribute_shots_among_pauli_sets,
+    get_sampling_circuits_and_shots,
 )
 from quri_parts.core.measurement import bitwise_commuting_pauli_measurement
 from quri_parts.core.operator import CommutablePauliSet, Operator, pauli_label
@@ -36,7 +36,7 @@ def test_distribute_shots_among_pauli_sets() -> None:
     assert distribution == expected_distribution
 
 
-def test_circuit_shot_pairs_preparation_fn() -> None:
+def test_get_sampling_circuits_and_shots() -> None:
     circuit = QuantumCircuit(2)
     circuit.add_H_gate(0)
     circuit.add_CNOT_gate(0, 1)
@@ -49,7 +49,7 @@ def test_circuit_shot_pairs_preparation_fn() -> None:
         frozenset({pauli_label("Y0 X1")}): 500,
     }
 
-    pairs = circuit_shot_pairs_preparation_fn(state, groups, distribution)
+    pairs = get_sampling_circuits_and_shots(state, groups, distribution)
     assert len(list(pairs)) == 2
     for p, g in zip(pairs, groups):
         assert p == (circuit.combine(g.measurement_circuit), 500)

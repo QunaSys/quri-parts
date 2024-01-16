@@ -36,9 +36,11 @@ from quri_parts.core.sampling import (
 )
 from quri_parts.core.state import CircuitQuantumState
 
-from .estimator_helpers import CircuitShotPairPreparationFunction
-from .estimator_helpers import circuit_shot_pairs_preparation_fn as default_prep
-from .estimator_helpers import distribute_shots_among_pauli_sets
+from .estimator_helpers import (
+    CircuitShotPairPreparationFunction,
+    distribute_shots_among_pauli_sets,
+    get_sampling_circuits_and_shots,
+)
 
 
 class _Estimate:
@@ -107,7 +109,7 @@ def sampling_estimate(
     sampler: ConcurrentSampler,
     measurement_factory: CommutablePauliSetMeasurementFactory,
     shots_allocator: PauliSamplingShotsAllocator,
-    circuit_shot_pair_prep_fn: CircuitShotPairPreparationFunction = default_prep,
+    circuit_shot_pair_prep_fn: CircuitShotPairPreparationFunction = get_sampling_circuits_and_shots,  # noqa: E501
 ) -> Estimate[complex]:
     """Estimate expectation value of a given operator with a given state by
     sampling measurement.
@@ -187,7 +189,7 @@ def concurrent_sampling_estimate(
     sampler: ConcurrentSampler,
     measurement_factory: CommutablePauliSetMeasurementFactory,
     shots_allocator: PauliSamplingShotsAllocator,
-    circuit_shot_pair_prep_fn: CircuitShotPairPreparationFunction = default_prep,
+    circuit_shot_pair_prep_fn: CircuitShotPairPreparationFunction = get_sampling_circuits_and_shots,  # noqa: E501
 ) -> Iterable[Estimate[complex]]:
     """Estimate expectation value of given operators with given states by
     sampling measurement.
@@ -203,7 +205,10 @@ def concurrent_sampling_estimate(
             a measurement scheme for Pauli operators constituting the original operator.
         shots_allocator: A function that allocates the total shots to Pauli groups to
             be measured.
-
+        circuit_shot_pair_prep_fn: A :class:`~CircuitShotPairPreparationFunction` that
+            prepares the set of circuits to perform measurement with. It is default to
+            a function that concatenates the measurement circuits after the state
+            preparation circuit.
     Returns:
         The estimated values (can be accessed with :attr:`.value`) with standard errors
             of estimation (can be accessed with :attr:`.error`).
