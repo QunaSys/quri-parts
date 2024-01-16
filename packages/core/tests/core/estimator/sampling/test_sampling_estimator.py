@@ -15,13 +15,14 @@ from unittest.mock import Mock
 
 import pytest
 
-from quri_parts.circuit import H, NonParametricQuantumCircuit, QuantumCircuit
+from quri_parts.circuit import H, NonParametricQuantumCircuit, QuantumCircuit, X
 from quri_parts.core.estimator import Estimate
 from quri_parts.core.estimator.sampling import (
     concurrent_sampling_estimate,
     create_sampling_concurrent_estimator,
     create_sampling_estimator,
     get_estimate_from_sampling_result,
+    get_sampling_circuits_and_shots,
     sampling_estimate,
 )
 from quri_parts.core.measurement import (
@@ -43,7 +44,7 @@ from quri_parts.core.sampling import MeasurementCounts, PauliSamplingSetting
 from quri_parts.core.sampling.shots_allocator import (
     create_equipartition_shots_allocator,
 )
-from quri_parts.core.state import ComputationalBasisState
+from quri_parts.core.state import CircuitQuantumState, ComputationalBasisState
 
 n_qubits = 3
 
@@ -213,6 +214,39 @@ class TestSamplingEstimate:
             assert_sample(estimate)
             mock_measurement_factory.assert_called_once()
             assert len(cached_measurement_factory.cached_groups) == 1
+
+    def test_sample_with_customized_circuit_shot_prep_function(self) -> None:
+        def prep(
+            state: CircuitQuantumState,
+            measurement_groups: Iterable[CommutablePauliSetMeasurement],
+            shots_map: dict[CommutablePauliSet, int],
+        ) -> Iterable[tuple[NonParametricQuantumCircuit, int]]:
+            default_pairs = get_sampling_circuits_and_shots(
+                state, measurement_groups, shots_map
+            )
+            new_pairs = []
+            for circuit, shot in default_pairs:
+                new_circuit = circuit.combine([X(0)])
+                new_pairs.append((new_circuit, shot))
+            return new_pairs
+
+        op = operator()
+        s = mock_sampler()
+        sampling_estimate(
+            op,
+            initial_state(),
+            total_shots(),
+            s,
+            bitwise_commuting_pauli_measurement,
+            allocator,
+            prep,
+        )
+        args: list[Any] = list(*s.call_args.args)
+        expected_circuits = [c.combine([X(0)]) for c in sampled_circuits()]
+
+        for circuit, shots in args:
+            assert shots == total_shots() // 4
+            assert circuit in expected_circuits
 
     def test_sampling_estimate_zero_shots(self) -> None:
         def sampler(
