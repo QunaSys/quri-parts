@@ -8,6 +8,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from unittest.mock import Mock
+
 from quri_parts.core.measurement import (
     CachedMeasurementFactory,
     bitwise_commuting_pauli_measurement,
@@ -44,35 +46,42 @@ def test_cached_measurement_factory() -> None:
     ]
     expected_group_3 = bitwise_commuting_pauli_measurement(paulis)
 
-    cached_measurement_factory = CachedMeasurementFactory(
-        bitwise_commuting_pauli_measurement
-    )
+    measurement_factory = Mock(side_effect=bitwise_commuting_pauli_measurement)
+    cached_measurement_factory = CachedMeasurementFactory(measurement_factory)
     assert len(cached_measurement_factory.cached_groups) == 0
+    assert measurement_factory.call_count == 0
 
     group_1 = cached_measurement_factory(operator_1)
     assert group_1 == expected_group_1
     assert len(cached_measurement_factory.cached_groups) == 1
+    assert measurement_factory.call_count == 1
 
     group_1_second_run = cached_measurement_factory(operator_1)
     assert group_1_second_run == expected_group_1
     assert len(cached_measurement_factory.cached_groups) == 1
+    assert measurement_factory.call_count == 1
 
     group_2 = cached_measurement_factory(operator_2)
     assert group_2 == expected_group_2
     assert len(cached_measurement_factory.cached_groups) == 2
+    assert measurement_factory.call_count == 2
 
     group_2_second_run = cached_measurement_factory(operator_2)
     assert group_2_second_run == expected_group_2
     assert len(cached_measurement_factory.cached_groups) == 2
+    assert measurement_factory.call_count == 2
 
     group_2_third_run = cached_measurement_factory(operator_2)
     assert group_2_third_run == expected_group_2
     assert len(cached_measurement_factory.cached_groups) == 2
+    assert measurement_factory.call_count == 2
 
     group_3 = cached_measurement_factory(paulis)
     assert group_3 == expected_group_3
     assert len(cached_measurement_factory.cached_groups) == 2
+    assert measurement_factory.call_count == 2
 
     group_3_second_run = cached_measurement_factory(paulis)
     assert group_3_second_run == expected_group_3
     assert len(cached_measurement_factory.cached_groups) == 2
+    assert measurement_factory.call_count == 2

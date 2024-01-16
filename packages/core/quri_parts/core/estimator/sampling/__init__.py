@@ -22,6 +22,11 @@ from .estimator import (
     get_estimate_from_sampling_result,
     sampling_estimate,
 )
+from .estimator_helpers import (
+    CircuitShotPairPreparationFunction,
+    distribute_shots_among_pauli_sets,
+    get_sampling_circuits_and_shots,
+)
 from .overlap_estimator import (
     create_sampling_overlap_estimator,
     create_sampling_overlap_weighted_sum_estimator,
@@ -73,4 +78,7 @@ __all__ = [
     "create_sampling_overlap_estimator",
     "sampling_overlap_weighted_sum_estimate",
     "create_sampling_overlap_weighted_sum_estimator",
+    "CircuitShotPairPreparationFunction",
+    "get_sampling_circuits_and_shots",
+    "distribute_shots_among_pauli_sets",
 ]

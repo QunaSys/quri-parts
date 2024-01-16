@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from quri_parts.circuit import QuantumCircuit
-from quri_parts.core.estimator.sampling.estimator_helpers import (
+from quri_parts.core.estimator.sampling import (
     distribute_shots_among_pauli_sets,
     get_sampling_circuits_and_shots,
 )

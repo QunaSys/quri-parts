@@ -197,12 +197,22 @@ class TestSamplingEstimate:
     def test_cached_sampling_estimate(self) -> None:
         op = operator()
         s = mock_sampler()
-        cached_measurement_factory = CachedMeasurementFactory(measurement_factory)
-        estimate = sampling_estimate(
-            op, initial_state(), total_shots(), s, cached_measurement_factory, allocator
-        )
-        assert_sampler_args(s)
-        assert_sample(estimate)
+        mock_measurement_factory = Mock(side_effect=bitwise_commuting_pauli_measurement)
+        cached_measurement_factory = CachedMeasurementFactory(mock_measurement_factory)
+
+        # repeat estimation twice to test if the function uses cahced result
+        for _ in range(2):
+            estimate = sampling_estimate(
+                op,
+                initial_state(),
+                total_shots(),
+                s,
+                cached_measurement_factory,
+                allocator,
+            )
+            assert_sample(estimate)
+            mock_measurement_factory.assert_called_once()
+            assert len(cached_measurement_factory.cached_groups) == 1
 
     def test_sampling_estimate_zero_shots(self) -> None:
         def sampler(
@@ -322,24 +332,27 @@ class TestConcurrentSamplingEstimate:
         s = mock_sampler()
         op1 = operator()
         op2 = pauli_label("Z0")
+        mock_measurement_factory = Mock(side_effect=bitwise_commuting_pauli_measurement)
 
-        cached_measurement_factory = CachedMeasurementFactory(
-            bitwise_commuting_pauli_measurement
-        )
+        cached_measurement_factory = CachedMeasurementFactory(mock_measurement_factory)
 
-        estimates = concurrent_sampling_estimate(
-            [op1, op2],
-            [initial_state()],
-            total_shots(),
-            s,
-            cached_measurement_factory,
-            allocator,
-        )
+        # repeat estimation twice to test if the function uses cahced result
+        for _ in range(2):
+            estimates = concurrent_sampling_estimate(
+                [op1, op2],
+                [initial_state()],
+                total_shots(),
+                s,
+                cached_measurement_factory,
+                allocator,
+            )
 
-        estimate_list = list(estimates)
-        assert len(estimate_list) == 2
-        assert_sample(estimate_list[0])
-        assert estimate_list[1].value == (1 - 1 + 2 - 4) / 8
+            estimate_list = list(estimates)
+            assert len(estimate_list) == 2
+            assert_sample(estimate_list[0])
+            assert estimate_list[1].value == (1 - 1 + 2 - 4) / 8
+            assert len(cached_measurement_factory.cached_groups) == 2
+            assert mock_measurement_factory.call_count == 2
 
     def test_concurrent_estimate_single_operator(self) -> None:
         s = mock_sampler()
@@ -361,23 +374,26 @@ class TestConcurrentSamplingEstimate:
     def test_cached_concurrent_estimate_single_operator(self) -> None:
         s = mock_sampler()
         op = operator()
-        cached_measurement_factory = CachedMeasurementFactory(
-            bitwise_commuting_pauli_measurement
-        )
+        mock_measurement_factory = Mock(side_effect=bitwise_commuting_pauli_measurement)
+        cached_measurement_factory = CachedMeasurementFactory(mock_measurement_factory)
 
-        estimates = concurrent_sampling_estimate(
-            [op],
-            [initial_state(), ComputationalBasisState(3, bits=0b001)],
-            total_shots(),
-            s,
-            cached_measurement_factory,
-            allocator,
-        )
+        # repeat estimation twice to test if the function uses cahced result
+        for _ in range(2):
+            estimates = concurrent_sampling_estimate(
+                [op],
+                [initial_state(), ComputationalBasisState(3, bits=0b001)],
+                total_shots(),
+                s,
+                cached_measurement_factory,
+                allocator,
+            )
 
-        estimate_list = list(estimates)
-        assert len(estimate_list) == 2
-        assert_sample(estimate_list[0])
-        assert_sample(estimate_list[1])
+            estimate_list = list(estimates)
+            assert len(estimate_list) == 2
+            assert_sample(estimate_list[0])
+            assert_sample(estimate_list[1])
+            assert len(cached_measurement_factory.cached_groups) == 1
+            mock_measurement_factory.assert_called_once()
 
 
 class TestSamplingConcurrentEstimator:
