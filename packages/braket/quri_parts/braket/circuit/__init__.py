@@ -37,6 +37,8 @@ from quri_parts.circuit.transpile import (
     SequentialTranspiler,
 )
 
+from .braket_circuit_converter import circuit_from_braket, gate_from_braket
+
 BraketCircuitConverter: TypeAlias = Callable[
     [NonParametricQuantumCircuit, Optional[CircuitTranspiler]], Circuit
 ]
@@ -187,4 +189,6 @@ __all__ = [
     "BraketSetTranspiler",
     "convert_gate",
     "convert_circuit",
+    "gate_from_braket",
+    "circuit_from_braket",
 ]
