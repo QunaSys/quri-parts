@@ -10,6 +10,7 @@
 
 from typing import Callable, Mapping, Type
 
+import numpy as np
 import pytest
 from braket.circuits import Circuit, Gate, Instruction
 from scipy.stats import unitary_group
@@ -83,6 +84,30 @@ def test_unitary_gate_conversion() -> None:
     braket_gate = Gate.Unitary(matrix)
     converted = gate_from_braket(Instruction(braket_gate, [7, 4, 0]))
     assert converted == expected
+
+
+def test_U_gate_conversion() -> None:
+    expected = gates.U1(7, 0.1)
+
+    braket_gate = Gate.PhaseShift(0.1)
+    converted = gate_from_braket(Instruction(braket_gate, [7]))
+    assert expected == converted
+
+    braket_gate = Gate.U(0.0, 0.0, 0.1)
+    converted = gate_from_braket(Instruction(braket_gate, [7]))
+    assert expected == converted
+
+    expected = gates.U2(7, 0.1, 0.2)
+
+    braket_gate = Gate.U(np.pi / 2, 0.1, 0.2)
+    converted = gate_from_braket(Instruction(braket_gate, [7]))
+    assert expected == converted
+
+    expected = gates.U3(7, 0.1, 0.2, 0.3)
+
+    braket_gate = Gate.U(0.1, 0.2, 0.3)
+    converted = gate_from_braket(Instruction(braket_gate, [7]))
+    assert expected == converted
 
 
 def test_gates_not_supported() -> None:

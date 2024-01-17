@@ -10,6 +10,7 @@
 
 from typing import Callable, Mapping
 
+import numpy as np
 from braket.circuits import Circuit as BraketCircuit
 from braket.circuits import Instruction as BraketInstruction
 
@@ -80,6 +81,23 @@ def gate_from_braket(braket_gate: BraketInstruction) -> QuantumGate:
 
     if gate_name == "Unitary":
         return gates.UnitaryMatrix(qubits[::-1], braket_gate.operator.to_matrix())
+
+    if gate_name == "PhaseShift":
+        assert len(qubits) == 1, f"{gate_name} is supposed to have 1 target index."
+        return gates.U1(qubits[0], braket_gate.operator.angle)
+
+    if gate_name == "U":
+        assert len(qubits) == 1, f"{gate_name} is supposed to have 1 target index."
+        theta, phi, lam = (
+            braket_gate.operator.angle_1,
+            braket_gate.operator.angle_2,
+            braket_gate.operator.angle_3,
+        )
+        if theta == 0.0 and phi == 0.0:
+            return gates.U1(qubits[0], lam)
+        if theta == np.pi / 2:
+            return gates.U2(qubits[0], phi, lam)
+        return gates.U3(qubits[0], theta, phi, lam)
 
     assert False, f"{gate_name} is not supported."
 
