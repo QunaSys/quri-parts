@@ -10,6 +10,10 @@
 
 from .add_exp_excitation_gates_trotter_decomposition import (
     add_exp_excitation_gates_trotter_decomposition,
+    create_anti_hermitian_sd_excitation_operator,
 )
 
-__all__ = ["add_exp_excitation_gates_trotter_decomposition"]
+__all__ = [
+    "add_exp_excitation_gates_trotter_decomposition",
+    "create_anti_hermitian_sd_excitation_operator",
+]

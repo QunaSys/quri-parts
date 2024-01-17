@@ -8,7 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import warnings
 from collections.abc import Mapping, MutableMapping
+from copy import deepcopy
 from types import TracebackType
 from typing import Any, Dict, Optional, Sequence, Type, Union
 
@@ -24,6 +26,7 @@ from qiskit_ibm_runtime import (
     Session,
 )
 
+import quri_parts.qiskit.backend.tracker as tracker
 from quri_parts.backend import (
     BackendError,
     CompositeSamplingJob,
@@ -46,6 +49,8 @@ from .utils import (
     get_backend_min_max_shot,
     get_job_mapper_and_circuit_transpiler,
 )
+
+RUNTIME_BACKEND_MAX_EXE_TIME = 300.0
 
 
 class QiskitRuntimeSamplingResult(SamplingResult):
@@ -119,7 +124,18 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         save_data_while_sampling: If True, the circuit, n_shots and the
             sampling counts will be saved. Please use the `.jobs` or `.jobs_json`
             to access the saved data.
-    """
+        total_time_limit: The total time limit the jobs submitted by this backend
+            can use.
+
+            - A :class:`~Tracker` is created when the time limit is set. The tracker can be accessed by the .tracker attribute.
+
+            - If the job execution time exceeds the time limit, new call to the :meth:`~sample` will be rejected and all current running jobs will be cancelled.
+        single_job_max_execution_time:
+            Maximum execution time limit of a submitted (circuit, n_shot) pair. The value should be greater or equal to 300 seconds.
+        strict_time_limit:
+            The Runtime backend can only abort jobs that has been executed longer than 300 seconds or above.
+            If this option is set to True, the sampling backend will reject jobs whose time limit setting is less than 300 seconds.
+    """  # noqa:
 
     def __init__(
         self,
@@ -132,6 +148,9 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         sampler_options: Union[None, Options, Dict[str, Any]] = None,
         run_kwargs: Mapping[str, Any] = {},
         save_data_while_sampling: bool = False,
+        total_time_limit: Optional[int] = None,
+        single_job_max_execution_time: Optional[int] = None,
+        strict_time_limit: bool = False,
     ):
         self._backend = backend
         self._service = service
@@ -167,6 +186,16 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         else:
             raise ValueError("Invalid type for sampler_options")
 
+        # Tracker related
+        self.tracker: Optional[tracker.Tracker] = None
+        self._time_limit = 0.0
+        self._single_job_max_execution_time = single_job_max_execution_time
+        self._strict = strict_time_limit
+
+        if total_time_limit is not None:
+            self.tracker = tracker.Tracker()
+            self._time_limit = total_time_limit
+
     def close(self) -> None:
         """Close the IBM session.
 
@@ -196,6 +225,88 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             self._session.__exit__(exc_type, exc_val, exc_tb)
             self._session = None
 
+    def _run_tracker(self) -> None:
+        assert self.tracker is not None
+        if self.tracker.total_run_time >= self._time_limit:
+            for job in self.tracker.running_jobs:
+                job._qiskit_job.cancel()
+            raise RuntimeError(
+                "The submission of this job is aborted due to run time limit of "
+                f"{self._time_limit} seconds is exceeded. Other unfinished jobs "
+                "are also aborted."
+            )
+
+    def _check_execution_time_limitability(
+        self, batch_exe_time: Optional[float], batch_time_left: Optional[float]
+    ) -> None:
+        if (
+            batch_time_left is not None
+            and batch_time_left < RUNTIME_BACKEND_MAX_EXE_TIME
+        ):
+            if self._strict:
+                raise BackendError(
+                    f"Max execution time limit of {batch_time_left} "
+                    "seconds cannot be followed strictly."
+                )
+            else:
+                warnings.warn(
+                    f"The time limit of {batch_time_left} seconds "
+                    "is likely going to be exceeded."
+                )
+
+        if batch_exe_time is not None and batch_exe_time < RUNTIME_BACKEND_MAX_EXE_TIME:
+            if self._strict:
+                raise BackendError(
+                    f"Max execution time limit of {batch_exe_time} "
+                    "seconds cannot be followed strictly."
+                )
+            else:
+                warnings.warn(
+                    f"The time limit of {batch_exe_time} seconds "
+                    "is likely going to be exceeded."
+                )
+
+    def _get_sampler_option_with_time_limit(
+        self, batch_exe_time: Optional[int], batch_time_left: Optional[int]
+    ) -> Options:
+        options = (
+            deepcopy(self._qiskit_sampler_options)
+            if self._qiskit_sampler_options is not None
+            else Options()
+        )
+
+        if batch_exe_time is not None and batch_time_left is not None:
+            options.max_execution_time = max(
+                RUNTIME_BACKEND_MAX_EXE_TIME, min(batch_time_left, batch_exe_time)
+            )
+
+        elif batch_exe_time is not None:
+            options.max_execution_time = max(
+                RUNTIME_BACKEND_MAX_EXE_TIME, batch_exe_time
+            )
+
+        elif batch_time_left is not None:
+            options.max_execution_time = max(
+                RUNTIME_BACKEND_MAX_EXE_TIME, batch_time_left
+            )
+
+        return options
+
+    def _get_batch_execution_time_and_time_left(
+        self, shot_dist: Sequence[int]
+    ) -> tuple[Optional[int], Optional[int]]:
+        n_batch = len(shot_dist)
+        batch_execution_time, batch_time_left = None, None
+
+        if self._single_job_max_execution_time is not None:
+            batch_execution_time = int(self._single_job_max_execution_time // n_batch)
+
+        if self.tracker is not None:
+            time_left = self._time_limit - self.tracker.total_run_time
+            batch_time_left = int(time_left // n_batch)
+
+        return batch_execution_time, batch_time_left
+
     def _execute_shots(
         self,
         runtime_sampler: Sampler,
@@ -205,10 +316,17 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
     ) -> None:
         circuit_qasm_str = qiskit_circuit.qasm()
         for s in shot_dist:
+            if self.tracker is not None:
+                self._run_tracker()
+
             qiskit_runtime_job = runtime_sampler.run(
                 qiskit_circuit, shots=s, **self._run_kwargs
             )
             qiskit_runtime_sampling_job = QiskitRuntimeSamplingJob(qiskit_runtime_job)
+
+            if self.tracker is not None:
+                self.tracker.add_job_for_tracking(qiskit_runtime_sampling_job)
+
             # Saving mode
             if self._save_data_while_sampling:
                 self._saved_data.append(
@@ -220,10 +338,24 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         if not n_shots >= 1:
             raise ValueError("n_shots should be a positive integer.")
 
+        # Distribute shot count and execution time
         shot_dist = distribute_backend_shots(
             n_shots, self._min_shots, self._max_shots, self._enable_shots_roundup
         )
+        (
+            single_batch_execution_time,
+            single_batch_time_left,
+        ) = self._get_batch_execution_time_and_time_left(shot_dist)
 
+        self._check_execution_time_limitability(
+            single_batch_execution_time, single_batch_time_left
+        )
+
+        qiskit_sampler_options = self._get_sampler_option_with_time_limit(
+            single_batch_execution_time, single_batch_time_left
+        )
+
+        # Convert and transpile circuits
         qiskit_circuit = self._circuit_converter(circuit, self._circuit_transpiler)
         qiskit_circuit.measure_all()
         transpiled_circuit = qiskit.transpile(qiskit_circuit, self._backend)
@@ -234,7 +366,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
                 # Create a session if there is no session
                 with Session(service=self._service, backend=self._backend) as session:
                     runtime_sampler = Sampler(
-                        session=session, options=self._qiskit_sampler_options
+                        session=session, options=qiskit_sampler_options
                     )
                     self._execute_shots(
                         runtime_sampler, transpiled_circuit, shot_dist, jobs
@@ -243,7 +375,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             else:
                 # Do not end the session if it has been already created
                 runtime_sampler = Sampler(
-                    session=self._session, options=self._qiskit_sampler_options
+                    session=self._session, options=qiskit_sampler_options
                 )
                 self._execute_shots(
                     runtime_sampler, transpiled_circuit, shot_dist, jobs
@@ -256,7 +388,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
                 except Exception:
                     # Ignore cancel errors
                     pass
-            raise BackendError("Qiskit Device run failed.") from e
+            raise BackendError(f"Qiskit Device run failed. Failed reason:\n{e}") from e
 
         qubit_mapped_jobs = [self._job_mapper(job) for job in jobs]
         return (

@@ -8,6 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import warnings
 from typing import Callable, Mapping, MutableMapping, Optional, Sequence
 
 from qiskit.providers.backend import Backend, BackendV1, BackendV2
@@ -15,7 +16,9 @@ from qiskit.providers.backend import Backend, BackendV1, BackendV2
 from quri_parts.backend import BackendError, SamplingCounts, SamplingJob
 from quri_parts.backend.qubit_mapping import BackendQubitMapping, QubitMappedSamplingJob
 from quri_parts.circuit.transpile import CircuitTranspiler, SequentialTranspiler
-from quri_parts.qiskit.circuit import QiskitTranspiler
+from quri_parts.qiskit.circuit import QiskitSetTranspiler
+
+DEFAULT_MAX_SHOT = int(1e6)
 
 
 def distribute_backend_shots(
@@ -60,15 +63,32 @@ def distribute_backend_shots(
 def get_backend_min_max_shot(backend: Backend) -> tuple[int, Optional[int]]:
     """Get the selected qiskit backend's minimum and maximum shot number
     allowed in a single sampling job."""
+
+    def _set_max_shot_to_default() -> int:
+        warnings.warn(
+            "No max_shots setting is found. "
+            f"The max shot is set to default value {DEFAULT_MAX_SHOT}"
+        )
+        return DEFAULT_MAX_SHOT
+
     if not isinstance(backend, (BackendV1, BackendV2)):
         raise BackendError("Backend not supported.")
 
     if isinstance(backend, BackendV1):
-        max_shots = backend.configuration().max_shots
+        max_shots = getattr(
+            backend.configuration(), "max_shots", _set_max_shot_to_default()
+        )
         if max_shots > 0:
             return 1, max_shots
 
-    return 1, backend.max_shots
+    if hasattr(backend, "max_shots"):
+        return 1, backend.max_shots
+    elif hasattr(backend, "configuration"):
+        return 1, getattr(
+            backend.configuration(), "max_shots", _set_max_shot_to_default()
+        )
+    else:
+        return 1, _set_max_shot_to_default()
 
 
 def get_job_mapper_and_circuit_transpiler(
@@ -90,10 +110,10 @@ def get_job_mapper_and_circuit_transpiler(
             2 → 5, 3 → 0, then the ``qubit_mapping`` should be
             ``{0: 4, 1: 2, 2: 5, 3: 0}``.
         circuit_transpiler: A transpiler applied to the circuit before running it.
-            :class:`~QiskitTranspiler` is used when not specified.
+            :class:`~QiskitSetTranspiler` is used when not specified.
     """
     if circuit_transpiler is None:
-        circuit_transpiler = QiskitTranspiler()
+        circuit_transpiler = QiskitSetTranspiler()
 
     if qubit_mapping:
         mapper = BackendQubitMapping(qubit_mapping)
