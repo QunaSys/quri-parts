@@ -67,6 +67,8 @@ _single_qubit_gate_braket: Mapping[SingleQubitGateNameType, Type[Gate]] = {
     gate_names.Sdag: Gate.Si,
     gate_names.T: Gate.T,
     gate_names.Tdag: Gate.Ti,
+    gate_names.SqrtX: Gate.V,
+    gate_names.SqrtXdag: Gate.Vi,
 }
 
 _single_qubit_rotation_gate_braket: Mapping[SingleQubitGateNameType, Type[Gate]] = {
@@ -114,8 +116,6 @@ _U_gate_matrix: Mapping[
 _special_named_gate_matrix: Mapping[
     SingleQubitGateNameType, Sequence[Sequence[complex]]
 ] = {
-    gate_names.SqrtX: [[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]],
-    gate_names.SqrtXdag: [[0.5 - 0.5j, 0.5 + 0.5j], [0.5 + 0.5j, 0.5 - 0.5j]],
     gate_names.SqrtY: [[0.5 + 0.5j, -0.5 - 0.5j], [0.5 + 0.5j, 0.5 + 0.5j]],
     gate_names.SqrtYdag: [[0.5 - 0.5j, 0.5 - 0.5j], [-0.5 + 0.5j, 0.5 - 0.5j]],
 }

@@ -43,12 +43,8 @@ single_qubit_gate_mapping: Mapping[Callable[[int], QuantumGate], Gate] = {
     gates.H: Gate.H(),
     gates.S: Gate.S(),
     gates.Sdag: Gate.Si(),
-    gates.SqrtX: Gate.Unitary(
-        np.array([[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]])
-    ),
-    gates.SqrtXdag: Gate.Unitary(
-        np.array([[0.5 - 0.5j, 0.5 + 0.5j], [0.5 + 0.5j, 0.5 - 0.5j]])
-    ),
+    gates.SqrtX: Gate.V(),
+    gates.SqrtXdag: Gate.Vi(),
     gates.SqrtY: Gate.Unitary(
         np.array([[0.5 + 0.5j, -0.5 - 0.5j], [0.5 + 0.5j, 0.5 + 0.5j]])
     ),

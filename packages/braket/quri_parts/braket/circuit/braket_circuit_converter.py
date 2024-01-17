@@ -25,6 +25,8 @@ _single_qubit_gate_braket_quri_parts: Mapping[str, Callable[[int], QuantumGate]]
     "Si": gates.Sdag,
     "T": gates.T,
     "Ti": gates.Tdag,
+    "V": gates.SqrtX,
+    "Vi": gates.SqrtXdag,
 }
 
 _single_qubit_rotation_gate_braket_quri_parts: Mapping[

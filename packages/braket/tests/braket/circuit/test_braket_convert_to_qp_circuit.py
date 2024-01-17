@@ -27,6 +27,8 @@ single_qubit_gate_mapping: Mapping[Callable[[int], QuantumGate], Gate] = {
     gates.Sdag: Gate.Si(),
     gates.T: Gate.T(),
     gates.Tdag: Gate.Ti(),
+    gates.SqrtX: Gate.V(),
+    gates.SqrtXdag: Gate.Vi(),
 }
 
 
