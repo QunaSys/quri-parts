@@ -47,6 +47,7 @@ def gate_from_braket(braket_gate: BraketInstruction) -> QuantumGate:
     :class:`~QuantumGate`."""
     gate_name = braket_gate.operator.name
     qubits = list(map(int, braket_gate.target.item_list))
+
     if gate_name in _single_qubit_gate_braket_quri_parts:
         assert len(qubits) == 1, f"{gate_name} is supposed to have 1 target index."
         return _single_qubit_gate_braket_quri_parts[gate_name](qubits[0])
@@ -78,7 +79,7 @@ def gate_from_braket(braket_gate: BraketInstruction) -> QuantumGate:
     if gate_name == "Unitary":
         return gates.UnitaryMatrix(qubits[::-1], braket_gate.operator.to_matrix())
 
-    assert False
+    assert False, f"{gate_name} is not supported."
 
 
 def circuit_from_braket(braket_circuit: BraketCircuit) -> QuantumCircuit:
