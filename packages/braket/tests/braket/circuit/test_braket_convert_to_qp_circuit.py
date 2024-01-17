@@ -136,6 +136,10 @@ def test_circuit_conversion() -> None:
         .ry(1, 0.876)
         .rz(2, -0.997)
         .ccnot(4, 2, 6)
+        .phaseshift(3, 0.1)
+        .u(0, 0.0, 0.0, 0.3)
+        .u(2, np.pi / 2, 0.2, 0.3)
+        .u(6, 0.1, 0.2, 0.3)
     )
 
     qp_circuit = QuantumCircuit(8)
@@ -154,5 +158,9 @@ def test_circuit_conversion() -> None:
     qp_circuit.add_RY_gate(1, 0.876)
     qp_circuit.add_RZ_gate(2, -0.997)
     qp_circuit.add_TOFFOLI_gate(4, 2, 6)
+    qp_circuit.add_U1_gate(3, 0.1)
+    qp_circuit.add_U1_gate(0, 0.3)
+    qp_circuit.add_U2_gate(2, 0.2, 0.3)
+    qp_circuit.add_U3_gate(6, 0.1, 0.2, 0.3)
 
     assert qp_circuit == circuit_from_braket(braket_circuit)
