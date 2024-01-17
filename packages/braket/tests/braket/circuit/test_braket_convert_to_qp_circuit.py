@@ -8,9 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from typing import Callable, Mapping, Type
 
+import pytest
 from braket.circuits import Circuit, Gate, Instruction
 from scipy.stats import unitary_group
 
@@ -83,14 +83,49 @@ def test_unitary_gate_conversion() -> None:
     assert converted == expected
 
 
-def test_circuit_conversion() -> None:
-    braket_circuit = Circuit()
-    braket_circuit.x(1).h(2).cnot(0, 1).rx(0, 0.125)
+def test_gates_not_supported() -> None:
+    braket_gate = Gate.CSwap()
+    instruction = Instruction(braket_gate, [0, 1, 2])
 
-    qp_circuit = QuantumCircuit(3)
-    qp_circuit.add_X_gate(1)
-    qp_circuit.add_H_gate(2)
+    with pytest.raises(AssertionError, match="CSwap is not supported."):
+        gate_from_braket(instruction)
+
+
+def test_circuit_conversion() -> None:
+    braket_circuit = (
+        Circuit()
+        .x(0)
+        .y(1)
+        .z(2)
+        .h(3)
+        .s(4)
+        .si(5)
+        .t(6)
+        .ti(7)
+        .cnot(0, 1)
+        .cz(2, 6)
+        .swap(0, 3)
+        .rx(0, 0.125)
+        .ry(1, 0.876)
+        .rz(2, -0.997)
+        .ccnot(4, 2, 6)
+    )
+
+    qp_circuit = QuantumCircuit(8)
+    qp_circuit.add_X_gate(0)
+    qp_circuit.add_Y_gate(1)
+    qp_circuit.add_Z_gate(2)
+    qp_circuit.add_H_gate(3)
+    qp_circuit.add_S_gate(4)
+    qp_circuit.add_Sdag_gate(5)
+    qp_circuit.add_T_gate(6)
+    qp_circuit.add_Tdag_gate(7)
     qp_circuit.add_CNOT_gate(0, 1)
+    qp_circuit.add_CZ_gate(2, 6)
+    qp_circuit.add_SWAP_gate(0, 3)
     qp_circuit.add_RX_gate(0, 0.125)
+    qp_circuit.add_RY_gate(1, 0.876)
+    qp_circuit.add_RZ_gate(2, -0.997)
+    qp_circuit.add_TOFFOLI_gate(4, 2, 6)
 
     assert qp_circuit == circuit_from_braket(braket_circuit)
