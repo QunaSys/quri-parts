@@ -18,6 +18,7 @@ from quri_parts.core.operator import (
     pauli_name,
     pauli_product,
 )
+from quri_parts.core.operator.pauli import _pauli_cache
 
 
 def test_pauli_name() -> None:
@@ -166,6 +167,20 @@ class TestPauliLabel:
         assert set(zip(index_list, pauli_id_list)) == set(
             ((2, SinglePauli.Y), (6, SinglePauli.Z), (4, SinglePauli.X))
         )
+
+    def test_pauli_cache(self) -> None:
+        # Checks if the cache works correctly.
+        pl_1 = pauli_label("X0 X1 Y2 Y3 Z4 Z5")
+        pl_2 = pauli_label("X0 X1 Y2 Y3 Z4 Z5")
+        assert id(pl_1) == id(pl_2)
+
+        pl_3 = pauli_label("X0 X1 Y2 Y3 Z4 Z6")
+        assert id(pl_1) != id(pl_3)
+
+        # Checks if the cache is cleared correctly.
+        cache_len = len(_pauli_cache)
+        pl_3 = "QURI Parts"  # type: ignore
+        assert len(_pauli_cache) == cache_len - 1
 
 
 class TestPauliProduct:
