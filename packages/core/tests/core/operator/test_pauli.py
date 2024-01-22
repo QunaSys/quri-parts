@@ -8,6 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from unittest.mock import patch
+from weakref import WeakValueDictionary
+
 import pytest
 
 from quri_parts.core.operator import (
@@ -18,7 +21,6 @@ from quri_parts.core.operator import (
     pauli_name,
     pauli_product,
 )
-from quri_parts.core.operator.pauli import _pauli_cache
 
 
 def test_pauli_name() -> None:
@@ -168,10 +170,9 @@ class TestPauliLabel:
             ((2, SinglePauli.Y), (6, SinglePauli.Z), (4, SinglePauli.X))
         )
 
-def test_pauli_cache(self) -> None:
-        with patch(
-            "quri_parts.core.operator.pauli._pauli_cache",
-            WeakValueDictionary()
+    def test_pauli_cache(self) -> None:
+        with patch(  # type: ignore
+            "quri_parts.core.operator.pauli._pauli_cache", WeakValueDictionary()
         ) as pauli_cache:
             # Checks if the cache works correctly.
             pl_1 = pauli_label("X0 X1 Y2 Y3 Z4 Z5")
@@ -195,6 +196,7 @@ def test_pauli_cache(self) -> None:
 
             pl_3 = "QURI Parts"  # type: ignore
             assert len(pauli_cache) == cache_len - 1
+
 
 class TestPauliProduct:
     def test_pauli_product(self) -> None:
