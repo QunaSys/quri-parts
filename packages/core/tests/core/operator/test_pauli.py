@@ -168,20 +168,33 @@ class TestPauliLabel:
             ((2, SinglePauli.Y), (6, SinglePauli.Z), (4, SinglePauli.X))
         )
 
-    def test_pauli_cache(self) -> None:
-        # Checks if the cache works correctly.
-        pl_1 = pauli_label("X0 X1 Y2 Y3 Z4 Z5")
-        pl_2 = pauli_label("X0 X1 Y2 Y3 Z4 Z5")
-        assert id(pl_1) == id(pl_2)
+def test_pauli_cache(self) -> None:
+        with patch(
+            "quri_parts.core.operator.pauli._pauli_cache",
+            WeakValueDictionary()
+        ) as pauli_cache:
+            # Checks if the cache works correctly.
+            pl_1 = pauli_label("X0 X1 Y2 Y3 Z4 Z5")
+            pl_2 = pauli_label("X0 X1 Y2 Y3 Z4 Z5")
+            assert id(pl_1) == id(pl_2)
 
-        pl_3 = pauli_label("X0 X1 Y2 Y3 Z4 Z6")
-        assert id(pl_1) != id(pl_3)
+            cache_len = len(pauli_cache)
+            pl_2 = pauli_label("X0 X1 Y2 Y3 Z4 Z7")
+            assert id(pl_1) != id(pl_2)
+            assert len(pauli_cache) == cache_len
 
-        # Checks if the cache is cleared correctly.
-        cache_len = len(_pauli_cache)
-        pl_3 = "QURI Parts"  # type: ignore
-        assert len(_pauli_cache) == cache_len - 1
+            pl_3 = pauli_label("X0 X1 Y2 Y3 Z4 Z6")
+            assert id(pl_1) != id(pl_3)
 
+            # Checks if the cache is cleared correctly.
+            cache_len = len(pauli_cache)
+            pl_3 = pauli_label("X0 X1 Y2 Y3 Z4 Z8")
+            assert str(pl_3) == "X0 X1 Y2 Y3 Z4 Z8"
+            assert id(pl_1) != id(pl_3)
+            assert len(pauli_cache) == cache_len
+
+            pl_3 = "QURI Parts"  # type: ignore
+            assert len(pauli_cache) == cache_len - 1
 
 class TestPauliProduct:
     def test_pauli_product(self) -> None:
