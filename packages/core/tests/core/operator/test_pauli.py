@@ -182,7 +182,7 @@ class TestPauliLabel:
             cache_len = len(pauli_cache)
             pl_2 = pauli_label("X0 X1 Y2 Y3 Z4 Z7")
             assert id(pl_1) != id(pl_2)
-            assert len(pauli_cache) == cache_len
+            assert len(pauli_cache) == cache_len + 1
 
             pl_3 = pauli_label("X0 X1 Y2 Y3 Z4 Z6")
             assert id(pl_1) != id(pl_3)
