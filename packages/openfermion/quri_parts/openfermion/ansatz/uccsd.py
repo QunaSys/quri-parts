@@ -49,9 +49,9 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
         trotter_number: Number for first-order Trotter product formula.
         use_singles: If ``True``, single-excitation gates are applied.
         delta_sz: The spin difference of the molecule before and after the transition.
-        singlet_excitation: If ``True``, the ansatz will be spin symmetric.
-            Parameters for the spin symmetric ansatz are named according to the spatial
-            transition amplitude.
+        reduce_circuit_parameters: If ``True``, the certain circuit parameters are
+            identified. Parameters for the spin symmetric ansatz are named according
+            to the spatial transition amplitude.
 
             - For single excitations, parameter named s_i_a denotes the excitation
                 from occupied spatial orbital i to virtual spatial orbital a.
@@ -61,7 +61,7 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
                 (a, ↑), (b, ↓).
 
     Note:
-        Singlets excitation ansatz:
+        Parameter reduced ansatz:
 
         1. Certain excitation operators will share the same circuit parameters.
             - For single excitation:
