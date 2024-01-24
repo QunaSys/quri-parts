@@ -102,7 +102,7 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
         trotter_number: int = 1,
         use_singles: bool = True,
         delta_sz: int = 0,
-        singlet_excitation: bool = False,
+        reduce_circuit_parameters: bool = False,
     ):
         mapping = (
             fermion_qubit_mapping(n_spin_orbitals, n_fermions)
@@ -119,13 +119,16 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
         ), "n_spin_orbitals and n_fermions must not be None for ansatz construction."
         n_vir_sorbs = n_spin_orbitals - n_fermions
 
-        if n_fermions % 2:
-            raise ValueError("Number of electrons must be even for SingletUCCSD.")
+        if n_fermions % 2 and reduce_circuit_parameters:
+            raise ValueError(
+                "Reduce circuit parameter is not supported when "
+                "number of electron is odd."
+            )
 
         if n_vir_sorbs <= 0:
             raise ValueError("Number of virtual orbitals must be a non-zero integer.")
 
-        if delta_sz != 0 and singlet_excitation:
+        if delta_sz != 0 and reduce_circuit_parameters:
             raise ValueError("Singlet excitation is only allowed when ΔSz = 0")
 
         circuit = (
@@ -134,7 +137,7 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
                 trotter_number,
                 use_singles,
             )
-            if singlet_excitation
+            if reduce_circuit_parameters
             else _construct_circuit(
                 mapping,
                 trotter_number,

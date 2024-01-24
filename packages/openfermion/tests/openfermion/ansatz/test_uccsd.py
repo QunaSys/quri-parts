@@ -398,8 +398,14 @@ class TestUCCSD:
         assert bound_ansatz == expected_bound_ansatz
 
     def test_singlet_uccsd_invalid_input(self) -> None:
-        with pytest.raises(ValueError):
-            TrotterUCCSD(4, 3)
+        with pytest.raises(
+            ValueError,
+            match=(
+                "Reduce circuit parameter is not supported when "
+                "number of electron is odd."
+            ),
+        ):
+            TrotterUCCSD(4, 3, reduce_circuit_parameters=True)
         with pytest.raises(ValueError):
             TrotterUCCSD(4, 4)
         with pytest.raises(AssertionError):
@@ -463,7 +469,7 @@ class TestSingletUCCSD:
             n_electrons,
             fermion_qubit_mapping=fermion_qubit_mapping,
             trotter_number=trotter_number,
-            singlet_excitation=True,
+            reduce_circuit_parameters=True,
         )
         expected_ansatz = _construct_singlet_excitation_circuit(
             fermion_qubit_mapping,
@@ -492,7 +498,7 @@ class TestSingletUCCSD:
             n_electrons,
             fermion_qubit_mapping=bravyi_kitaev(n_spin_orbitals, n_electrons),
             trotter_number=trotter_number,
-            singlet_excitation=True,
+            reduce_circuit_parameters=True,
         )
         expected_ansatz = _construct_singlet_excitation_circuit(
             bravyi_kitaev(n_spin_orbitals, n_electrons),
