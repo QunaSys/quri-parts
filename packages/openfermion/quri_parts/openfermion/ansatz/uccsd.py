@@ -9,6 +9,8 @@
 # limitations under the License.
 
 
+from typing import Optional
+
 from quri_parts.chem.utils.excitations import (
     DoubleExcitation,
     SingleExcitation,
@@ -31,6 +33,7 @@ from ..utils import add_exp_excitation_gates_trotter_decomposition
 from ..utils.add_exp_excitation_gates_trotter_decomposition import (
     create_anti_hermitian_sd_excitation_operator,
 )
+from openfermion import FermionOperator
 
 
 class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
@@ -49,9 +52,12 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
         trotter_number: Number for first-order Trotter product formula.
         use_singles: If ``True``, single-excitation gates are applied.
         delta_sz: The spin difference of the molecule before and after the transition.
-        reduce_circuit_parameters: If ``True``, the certain circuit parameters are
-            identified. Parameters for the spin symmetric ansatz are named according
-            to the spatial transition amplitude.
+            The excitation operator involved in the ansatz will be fixed by this
+            parameter.
+        singlet_excitation: To be deprecated later and superseded by the
+            `full_rotation_symmetry` argument. If ``True``, certain circuit parameters
+            are identified. Parameters for the spin symmetric ansatz are named
+            according to the spatial transition amplitude.
 
             - For single excitations, parameter named s_i_a denotes the excitation
                 from occupied spatial orbital i to virtual spatial orbital a.
@@ -59,9 +65,14 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
             - For double excitations, parameter named d_i_j_a_b denotes the excitation
                 from occupied spin orbital (i, ↑), (j, ↓) to virtual spin orbitals
                 (a, ↑), (b, ↓).
+        full_rotation_symmetry: Argument to replace `singlet_excitation` in later
+            release. When using the default: None, the constructed circuit will be
+            decided by the argument `singlet_excitation`. If assigned to a boolean
+            value, it will override the the setting by `singlet_excitation`.
 
     Note:
-        Parameter reduced ansatz:
+
+        When full_rotation_symmetry = True (equivalent to singlet_excitation = True):
 
         1. Certain excitation operators will share the same circuit parameters.
             - For single excitation:
@@ -102,7 +113,9 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
         trotter_number: int = 1,
         use_singles: bool = True,
         delta_sz: int = 0,
-        reduce_circuit_parameters: bool = False,
+        singlet_excitation: bool = False,
+        *,
+        full_rotation_symmetry: Optional[bool] = None,
     ):
         mapping = (
             fermion_qubit_mapping(n_spin_orbitals, n_fermions)
@@ -119,7 +132,17 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
         ), "n_spin_orbitals and n_fermions must not be None for ansatz construction."
         n_vir_sorbs = n_spin_orbitals - n_fermions
 
-        if n_fermions % 2 and reduce_circuit_parameters:
+        self._n_spin_orbitals = n_spin_orbitals
+        self._n_fermions = n_fermions
+        self._delta_sz = delta_sz
+
+        full_rotation_symmetry = (
+            full_rotation_symmetry
+            if full_rotation_symmetry is not None
+            else singlet_excitation
+        )
+
+        if n_fermions % 2 and full_rotation_symmetry:
             raise ValueError(
                 "Reduce circuit parameter is not supported when "
                 "number of electron is odd."
@@ -128,7 +151,7 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
         if n_vir_sorbs <= 0:
             raise ValueError("Number of virtual orbitals must be a non-zero integer.")
 
-        if delta_sz != 0 and reduce_circuit_parameters:
+        if delta_sz != 0 and full_rotation_symmetry:
             raise ValueError("Singlet excitation is only allowed when ΔSz = 0")
 
         circuit = (
@@ -137,7 +160,7 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
                 trotter_number,
                 use_singles,
             )
-            if reduce_circuit_parameters
+            if full_rotation_symmetry
             else _construct_circuit(
                 mapping,
                 trotter_number,
@@ -147,6 +170,21 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
         )
 
         super().__init__(circuit)
+
+    @property
+    def excitation_operators(
+        self,
+    ) -> tuple[tuple[FermionOperator, ...], tuple[FermionOperator, ...]]:
+        """The excitation operator present in the ansatz circuit.
+        """
+        single, double = excitations(
+            self._n_spin_orbitals, self._n_fermions, self._delta_sz
+        )
+        single_fop = map(lambda p: FermionOperator(f"{p[1]}^ {p[0]}"), single)
+        double_fop = map(
+            lambda p: FermionOperator(f"{p[3]}^ {p[2]}^ {p[1]} {p[0]}"), double
+        )
+        return tuple(single_fop), tuple(double_fop)
 
 
 def _construct_circuit(

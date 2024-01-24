@@ -405,7 +405,7 @@ class TestUCCSD:
                 "number of electron is odd."
             ),
         ):
-            TrotterUCCSD(4, 3, reduce_circuit_parameters=True)
+            TrotterUCCSD(4, 3, singlet_excitation=True)
         with pytest.raises(ValueError):
             TrotterUCCSD(4, 4)
         with pytest.raises(AssertionError):
@@ -469,7 +469,7 @@ class TestSingletUCCSD:
             n_electrons,
             fermion_qubit_mapping=fermion_qubit_mapping,
             trotter_number=trotter_number,
-            reduce_circuit_parameters=True,
+            singlet_excitation=True,
         )
         expected_ansatz = _construct_singlet_excitation_circuit(
             fermion_qubit_mapping,
@@ -498,7 +498,7 @@ class TestSingletUCCSD:
             n_electrons,
             fermion_qubit_mapping=bravyi_kitaev(n_spin_orbitals, n_electrons),
             trotter_number=trotter_number,
-            reduce_circuit_parameters=True,
+            singlet_excitation=True,
         )
         expected_ansatz = _construct_singlet_excitation_circuit(
             bravyi_kitaev(n_spin_orbitals, n_electrons),
@@ -517,3 +517,66 @@ class TestSingletUCCSD:
             param_vals,
             operator_mapping=bravyi_kitaev(n_spin_orbitals, n_electrons),
         )
+
+    
+    def test_new_argument_overrides_old(self) -> None:
+        
+        n_spin_orbitals = 4
+        n_electrons = 2
+
+        expected_ansatz_full_spin_symmetry = TrotterUCCSD(
+            n_spin_orbitals,
+            n_electrons,
+            singlet_excitation=True,
+        )
+
+        expected_ansatz_not_reduced = TrotterUCCSD(
+            n_spin_orbitals,
+            n_electrons,
+        )
+
+        ansatz = TrotterUCCSD(
+            n_spin_orbitals,
+            n_electrons,
+            full_rotation_symmetry=True
+        )
+        assert ansatz.gates == expected_ansatz_full_spin_symmetry.gates
+
+        ansatz = TrotterUCCSD(
+            n_spin_orbitals,
+            n_electrons,
+            singlet_excitation=True,
+            full_rotation_symmetry=True
+        )
+        assert ansatz.gates == expected_ansatz_full_spin_symmetry.gates
+
+        ansatz = TrotterUCCSD(
+            n_spin_orbitals,
+            n_electrons,
+            singlet_excitation=False,
+            full_rotation_symmetry=True
+        )
+        assert ansatz.gates == expected_ansatz_full_spin_symmetry.gates
+
+        ansatz = TrotterUCCSD(
+            n_spin_orbitals,
+            n_electrons,
+            full_rotation_symmetry=False
+        )
+        assert ansatz.gates == expected_ansatz_not_reduced.gates
+
+        ansatz = TrotterUCCSD(
+            n_spin_orbitals,
+            n_electrons,
+            singlet_excitation=True,
+            full_rotation_symmetry=False
+        )
+        assert ansatz.gates == expected_ansatz_not_reduced.gates
+
+        ansatz = TrotterUCCSD(
+            n_spin_orbitals,
+            n_electrons,
+            singlet_excitation=False,
+            full_rotation_symmetry=False
+        )
+        assert ansatz.gates == expected_ansatz_not_reduced.gates
