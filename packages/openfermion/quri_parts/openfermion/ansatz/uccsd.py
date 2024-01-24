@@ -11,6 +11,8 @@
 
 from typing import Optional
 
+from openfermion import FermionOperator
+
 from quri_parts.chem.utils.excitations import (
     DoubleExcitation,
     SingleExcitation,
@@ -33,7 +35,6 @@ from ..utils import add_exp_excitation_gates_trotter_decomposition
 from ..utils.add_exp_excitation_gates_trotter_decomposition import (
     create_anti_hermitian_sd_excitation_operator,
 )
-from openfermion import FermionOperator
 
 
 class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
@@ -42,7 +43,9 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
     operator decomposed by first-order Trotter product formula. Note that the ansatz
     only supports singlet state and the occupied orbitals are the lowest
     :attr:`n_fermions` spin orbitals. The decomposition using Trotter product formula
-    is executed for each qubit operators obtained by mapping excitation operators.
+    is executed for each qubit operators obtained by mapping excitation operators. The
+    excitation operator involved in the UCCSD ansatz will be determined by
+    (n_spin_orbitals, n_fermions, delta_sz).
 
     Args:
         n_spin_orbitals: Number of spin orbitals.
@@ -52,12 +55,20 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
         trotter_number: Number for first-order Trotter product formula.
         use_singles: If ``True``, single-excitation gates are applied.
         delta_sz: The spin difference of the molecule before and after the transition.
-            The excitation operator involved in the ansatz will be fixed by this
-            parameter.
-        singlet_excitation: To be deprecated later and superseded by the
-            `full_rotation_symmetry` argument. If ``True``, certain circuit parameters
-            are identified. Parameters for the spin symmetric ansatz are named
-            according to the spatial transition amplitude.
+            If delta_sz = 0, the excitation operator T present in the ansatz respects
+            the symmetry condition :math:`[T, Sz] = 0`.
+        singlet_excitation:
+            To be deprecated later and superseded by the `full_rotation_symmetry`
+            argument.
+
+            If ``True``, certain circuit parameters that corresponds to the excitation
+            amplitude will be identified according to the symmetry condition:
+            :math:`[S_x, T] = [S_y, T] = [S_z, T] = 0`. Please check out the note below
+            for information about how circuit parameters are identified by the
+            symmetry condition.
+
+            Parameters for the spin symmetric ansatz are named according to the spatial
+            transition amplitude.
 
             - For single excitations, parameter named s_i_a denotes the excitation
                 from occupied spatial orbital i to virtual spatial orbital a.
@@ -65,6 +76,7 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
             - For double excitations, parameter named d_i_j_a_b denotes the excitation
                 from occupied spin orbital (i, ↑), (j, ↓) to virtual spin orbitals
                 (a, ↑), (b, ↓).
+
         full_rotation_symmetry: Argument to replace `singlet_excitation` in later
             release. When using the default: None, the constructed circuit will be
             decided by the argument `singlet_excitation`. If assigned to a boolean
@@ -79,6 +91,7 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
                 :math:`c_{a↑}^† c_{i↑}` and :math:`c_{a↓}^† c_{i↓}` share the same
                 transition amplitude :math:`t_i^a`,
                 thus sharing the same circuit parameter s_i_a.
+
             - For mixed spin double excitation:
                 - :math:`c_{a↑}^† c_{b↓}^† c_{j↓} c_{i↑}` and
                   :math:`c_{a↓}^† c_{b↑}^† c_{j↑} c_{i↓}` share the same excitaion
@@ -175,8 +188,7 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
     def excitation_operators(
         self,
     ) -> tuple[tuple[FermionOperator, ...], tuple[FermionOperator, ...]]:
-        """The excitation operator present in the ansatz circuit.
-        """
+        """The excitation operator present in the ansatz circuit."""
         single, double = excitations(
             self._n_spin_orbitals, self._n_fermions, self._delta_sz
         )

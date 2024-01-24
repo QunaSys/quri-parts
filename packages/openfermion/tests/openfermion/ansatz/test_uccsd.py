@@ -518,9 +518,7 @@ class TestSingletUCCSD:
             operator_mapping=bravyi_kitaev(n_spin_orbitals, n_electrons),
         )
 
-    
     def test_new_argument_overrides_old(self) -> None:
-        
         n_spin_orbitals = 4
         n_electrons = 2
 
@@ -535,18 +533,14 @@ class TestSingletUCCSD:
             n_electrons,
         )
 
-        ansatz = TrotterUCCSD(
-            n_spin_orbitals,
-            n_electrons,
-            full_rotation_symmetry=True
-        )
+        ansatz = TrotterUCCSD(n_spin_orbitals, n_electrons, full_rotation_symmetry=True)
         assert ansatz.gates == expected_ansatz_full_spin_symmetry.gates
 
         ansatz = TrotterUCCSD(
             n_spin_orbitals,
             n_electrons,
             singlet_excitation=True,
-            full_rotation_symmetry=True
+            full_rotation_symmetry=True,
         )
         assert ansatz.gates == expected_ansatz_full_spin_symmetry.gates
 
@@ -554,14 +548,12 @@ class TestSingletUCCSD:
             n_spin_orbitals,
             n_electrons,
             singlet_excitation=False,
-            full_rotation_symmetry=True
+            full_rotation_symmetry=True,
         )
         assert ansatz.gates == expected_ansatz_full_spin_symmetry.gates
 
         ansatz = TrotterUCCSD(
-            n_spin_orbitals,
-            n_electrons,
-            full_rotation_symmetry=False
+            n_spin_orbitals, n_electrons, full_rotation_symmetry=False
         )
         assert ansatz.gates == expected_ansatz_not_reduced.gates
 
@@ -569,7 +561,7 @@ class TestSingletUCCSD:
             n_spin_orbitals,
             n_electrons,
             singlet_excitation=True,
-            full_rotation_symmetry=False
+            full_rotation_symmetry=False,
         )
         assert ansatz.gates == expected_ansatz_not_reduced.gates
 
@@ -577,6 +569,6 @@ class TestSingletUCCSD:
             n_spin_orbitals,
             n_electrons,
             singlet_excitation=False,
-            full_rotation_symmetry=False
+            full_rotation_symmetry=False,
         )
         assert ansatz.gates == expected_ansatz_not_reduced.gates
