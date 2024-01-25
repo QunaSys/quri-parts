@@ -132,10 +132,6 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
         ), "n_spin_orbitals and n_fermions must not be None for ansatz construction."
         n_vir_sorbs = n_spin_orbitals - n_fermions
 
-        self._n_spin_orbitals = n_spin_orbitals
-        self._n_fermions = n_fermions
-        self._delta_sz = delta_sz
-
         if n_fermions % 2 and singlet_excitation:
             raise ValueError(
                 "Singlet excitation is not supported when "
