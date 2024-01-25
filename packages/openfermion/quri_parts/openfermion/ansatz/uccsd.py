@@ -11,8 +11,6 @@
 
 from typing import Optional
 
-from openfermion import FermionOperator
-
 from quri_parts.chem.utils.excitations import (
     DoubleExcitation,
     SingleExcitation,
@@ -99,7 +97,7 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
                   circuit parameter d_i_j_a_b.
 
                 - All the circuit parameters for double excitation are fixed by
-                the mixed spin double excitation mode.
+                    the mixed spin double excitation mode.
 
             - For same spin double excitation:
                 :math:`c_{a↑}^† c_{b↑}^† c_{j↑} c_{i↑}` and
@@ -183,20 +181,6 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
         )
 
         super().__init__(circuit)
-
-    @property
-    def excitation_operators(
-        self,
-    ) -> tuple[tuple[FermionOperator, ...], tuple[FermionOperator, ...]]:
-        """The excitation operator present in the ansatz circuit."""
-        single, double = excitations(
-            self._n_spin_orbitals, self._n_fermions, self._delta_sz
-        )
-        single_fop = map(lambda p: FermionOperator(f"{p[1]}^ {p[0]}"), single)
-        double_fop = map(
-            lambda p: FermionOperator(f"{p[3]}^ {p[2]}^ {p[1]} {p[0]}"), double
-        )
-        return tuple(single_fop), tuple(double_fop)
 
 
 def _construct_circuit(
