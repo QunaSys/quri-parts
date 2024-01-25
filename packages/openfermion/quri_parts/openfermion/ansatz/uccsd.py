@@ -134,8 +134,7 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
 
         if n_fermions % 2 and singlet_excitation:
             raise ValueError(
-                "Singlet excitation is not supported when "
-                "number of electron is odd."
+                "Singlet excitation is not supported when " "number of electron is odd."
             )
 
         if n_vir_sorbs <= 0:

@@ -401,8 +401,7 @@ class TestUCCSD:
         with pytest.raises(
             ValueError,
             match=(
-                "Singlet excitation is not supported when "
-                "number of electron is odd."
+                "Singlet excitation is not supported when " "number of electron is odd."
             ),
         ):
             TrotterUCCSD(4, 3, singlet_excitation=True)
