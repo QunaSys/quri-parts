@@ -401,7 +401,7 @@ class TestUCCSD:
         with pytest.raises(
             ValueError,
             match=(
-                "Reduce circuit parameter is not supported when "
+                "Singlet excitation is not supported when "
                 "number of electron is odd."
             ),
         ):
