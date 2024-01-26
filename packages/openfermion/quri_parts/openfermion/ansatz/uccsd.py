@@ -36,12 +36,12 @@ from ..utils.add_exp_excitation_gates_trotter_decomposition import (
 class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
     r"""Unitary coupled-cluster singles and doubles (UCCSD) ansatz. The ansatz
     consists of the exponentials of single excitation and double excitation
-    operator decomposed by first-order Trotter product formula. Note that the ansatz
-    only supports singlet state and the occupied orbitals are the lowest
-    :attr:`n_fermions` spin orbitals. The decomposition using Trotter product formula
-    is executed for each qubit operators obtained by mapping excitation operators. The
-    excitation operator involved in the UCCSD ansatz will be determined by
-    (n_spin_orbitals, n_fermions, delta_sz).
+    operator decomposed by first-order Trotter product formula. Note that the
+    occupied orbitals are the lowest :attr:`n_fermions` spin orbitals. The
+    decomposition using Trotter product formula is executed for each qubit
+    operators obtained by mapping excitation operators. The excitation operator
+    involved in the UCCSD ansatz will be determined by (n_spin_orbitals,
+    n_fermions, delta_sz).
 
     Args:
         n_spin_orbitals: Number of spin orbitals.
