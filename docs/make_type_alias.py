@@ -32,7 +32,7 @@ def insert_future_annotation(file_name: str) -> None:
     """insert "from __future__ import annotations" """
     print(file_name)
     lines = []
-    import_text = "from __future__ import annotations\n"
+    import_text = "from __future__ import annotations"
     license_text_last_line = "# limitations under the License."
 
     with open(file_name, "r") as f:
@@ -66,7 +66,7 @@ def insert_future_annotation(file_name: str) -> None:
     else:
         return
 
-    lines.insert(insert_line, import_text)
+    lines.insert(insert_line, import_text+"\n")
     new_line_text = "".join(lines)
 
     with open(file_name, "w") as f:
@@ -74,14 +74,8 @@ def insert_future_annotation(file_name: str) -> None:
 
 
 if __name__ == "__main__":
-    iterate_files(DIR, iterate_line_to_find_type_alias)
+    iterate_files(DIR, iterate_line_to_find_type_alias)    
+    with open("qp_type_aliases.json", "w") as f:
+        json.dump(type_alias_recorder, fp=f)
+
     iterate_files(DIR, insert_future_annotation)
-    # # print(type_alias_recorder)
-    # with open("qp_type_aliases.json", "w") as f:
-    #     json.dump(type_alias_recorder, fp=f)
-
-    # with open("../packages/qiskit/quri_parts/qiskit/backend/sampling.py", "r") as f:
-    #     print(any([l.strip() == "from __future__ import annotations" for l in f]))
-    #     # f.write()
-
-    # insert_future_annotation("fff.py")
