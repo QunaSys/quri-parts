@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 from typing import Callable
@@ -30,14 +31,33 @@ def iterate_line_to_find_type_alias(file_name: str) -> None:
 
 def insert_future_annotation(file_name: str) -> None:
     """Insert "from __future__ import annotations"."""
-    lines = []
-    import_text = "from __future__ import annotations   # isort: skip\n"
+    lines: list[str] = []
+    import_text = "from __future__ import annotations   # isort: skip"
 
     with open(file_name, "r") as f:
         for line in f:
             lines.append(line)
 
-    lines.insert(0, import_text)
+    if import_text in [line.strip() for line in lines]:
+        return
+
+    lines.insert(0, import_text + "\n")
+
+    new_line_text = "".join(lines)
+    with open(file_name, "w") as f:
+        f.write(new_line_text)
+
+
+def remove_future_annotation(file_name: str) -> None:
+    """Remove "from __future__ import annotations"."""
+    lines = []
+    import_text = "from __future__ import annotations   # isort: skip\n"
+
+    with open(file_name, "r") as f:
+        for line in f:
+            if import_text in line:
+                continue
+            lines.append(line)
 
     new_line_text = "".join(lines)
     with open(file_name, "w") as f:
@@ -45,8 +65,23 @@ def insert_future_annotation(file_name: str) -> None:
 
 
 if __name__ == "__main__":
-    iterate_files(DIR, iterate_line_to_find_type_alias)
-    with open("qp_type_aliases.json", "w") as f:
-        json.dump(TYPE_ALIAS_RECORDER, fp=f)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--mode")
+    args = parser.parse_args()
+    mode = args.mode
 
-    iterate_files(DIR, insert_future_annotation)
+    make_mode = "m"
+    remove_mode = "r"
+
+    if mode == make_mode:
+        iterate_files(DIR, iterate_line_to_find_type_alias)
+        with open("qp_type_aliases.json", "w") as f:
+            json.dump(TYPE_ALIAS_RECORDER, fp=f)
+
+        iterate_files(DIR, insert_future_annotation)
+
+    elif mode == remove_mode:
+        iterate_files(DIR, remove_future_annotation)
+
+    else:
+        pass
