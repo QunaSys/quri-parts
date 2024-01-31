@@ -8,7 +8,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections import Counter
 from typing import (
     Callable,
     Collection,
@@ -65,9 +64,10 @@ def sample_from_state_vector(
     assert n_qubits.is_integer(), "Length of the state vector must be a power of 2."
     if not np.isclose(np.linalg.norm(state_vector), 1):
         raise ValueError("probabilities do not sum to 1")
-    prob = np.abs(state_vector) ** 2
-    sample_cnt = np.random.default_rng().multinomial(n_shots, prob)
-    return Counter({i: cnt for i, cnt in enumerate(sample_cnt) if cnt > 0})
+    probs = np.abs(state_vector) ** 2
+    rng = np.random.default_rng()
+    counts = rng.multinomial(n_shots, probs)
+    return dict(((i, count) for i, count in enumerate(counts) if count > 0))
 
 
 def ideal_sample_from_state_vector(
@@ -79,8 +79,8 @@ def ideal_sample_from_state_vector(
     if not np.isclose(np.linalg.norm(state_vector), 1):
         raise ValueError("probabilities do not sum to 1")
 
-    prob = np.abs(state_vector) ** 2
-    return {i: p * n_shots for i, p in enumerate(prob)}
+    probs = np.abs(state_vector) ** 2
+    return {i: prob * n_shots for i, prob in enumerate(probs)}
 
 
 def create_sampler_from_sampling_backend(backend: SamplingBackend) -> Sampler:
