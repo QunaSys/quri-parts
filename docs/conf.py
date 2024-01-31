@@ -13,10 +13,9 @@
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
-
+import json
 
 # -- Project information -----------------------------------------------------
-from __future__ import annotations
 
 project = "QURI Parts"
 copyright = "2022, QunaSys"
@@ -61,11 +60,10 @@ html_static_path = ["_static"]
 
 
 # -- Extension configuration -------------------------------------------------
-import json
 
 autodoc_member_order = "bysource"
 with open("qp_type_aliases.json") as f:
     autodoc_type_aliases = json.load(f)
-    # {'DoubleExcitation': 'DoubleExcitation'}
+
 autodoc_typehints = "description"
 add_module_names = False
