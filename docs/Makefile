@@ -19,7 +19,9 @@ sphinx-apidoc:
 
 .PHONY: html
 html: sphinx-apidoc
+	python make_type_alias.py --mode m
 	@$(SPHINXBUILD) -b html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	python make_type_alias.py --mode r
 
 .PHONY: livehtml
 livehtml: sphinx-apidoc
