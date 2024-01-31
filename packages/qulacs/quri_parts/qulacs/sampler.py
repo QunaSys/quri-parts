@@ -18,7 +18,13 @@ from numpy.random import default_rng
 
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.circuit.noise import NoiseModel
-from quri_parts.core.sampling import ConcurrentSampler, MeasurementCounts, Sampler
+from quri_parts.core.sampling import (
+    ConcurrentSampler,
+    MeasurementCounts,
+    Sampler,
+    ideal_sample_from_state_vector,
+    sample_from_state_vector,
+)
 from quri_parts.core.utils.concurrent import execute_concurrently
 from quri_parts.qulacs.circuit.compiled_circuit import _QulacsCircuit
 
@@ -39,10 +45,7 @@ def _sample(circuit: NonParametricQuantumCircuit, shots: int) -> MeasurementCoun
 
     if shots > 2 ** max(qs_state.get_qubit_count(), 10):
         # Use multinomial distribution for faster sampling
-        probs = np.abs(qs_state.get_vector()) ** 2
-        rng = default_rng()
-        counts = rng.multinomial(shots, probs)
-        return dict(((i, count) for i, count in enumerate(counts) if count > 0))
+        return sample_from_state_vector(qs_state.get_vector(), shots)
     else:
         return Counter(qs_state.sampling(shots))
 
@@ -56,10 +59,7 @@ def _ideal_sample(
         qs_circuit = convert_circuit(circuit)
     qs_state = qulacs.QuantumState(circuit.qubit_count)
     qs_circuit.update_quantum_state(qs_state)
-
-    probs = np.abs(qs_state.get_vector()) ** 2
-
-    return {i: prob * shots for i, prob in enumerate(probs)}
+    return ideal_sample_from_state_vector(qs_state.get_vector(), shots)
 
 
 def create_qulacs_vector_ideal_sampler() -> Sampler:
