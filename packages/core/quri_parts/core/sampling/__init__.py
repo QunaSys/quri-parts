@@ -9,7 +9,16 @@
 # limitations under the License.
 
 from collections import Counter
-from typing import Callable, Collection, Iterable, Mapping, NamedTuple, Sequence, Union
+from typing import (
+    Callable,
+    Collection,
+    Iterable,
+    Mapping,
+    NamedTuple,
+    Sequence,
+    TypeVar,
+    Union,
+)
 
 import numpy as np
 import numpy.typing as npt
@@ -19,6 +28,12 @@ from quri_parts.backend import SamplingBackend
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.core.operator import CommutablePauliSet, Operator
 from quri_parts.core.state import CircuitQuantumState, QuantumStateVector
+
+#: A type variable represents *any* non-parametric quantum state classes.
+#: This is different from :class:`quri_parts.core.state.QuantumStateT`;
+#: ``QuantumStateT`` represents *either one of* the classes, while ``_StateT`` also
+#: covers *a union of* multiple state classes.
+_StateT = TypeVar("_StateT", bound=Union[CircuitQuantumState, QuantumStateVector])
 
 #: MeasurementCounts represents count statistics of repeated measurements of a quantum
 #: circuit. Keys are observed bit patterns encoded in integers and values are counts
@@ -39,9 +54,7 @@ ConcurrentSampler: TypeAlias = Callable[
 #: StateSampler representes a function that samples a specific (non-parametric) state by
 #: specified times and returns the count statistics. In the case of an ideal
 #: StateSampler, the return value corresponds to probabilities multiplied by shot count.
-StateSampler: TypeAlias = Callable[
-    [Union[CircuitQuantumState, QuantumStateVector], int], MeasurementCounts
-]
+StateSampler: TypeAlias = Callable[[_StateT, int], MeasurementCounts]
 
 
 def sample_from_state_vector(
