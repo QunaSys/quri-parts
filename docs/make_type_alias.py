@@ -7,6 +7,7 @@ from typing_extensions import TypeAlias
 
 DIR = r"../packages/"
 TYPE_ALIAS_RECORDER = {}
+ALIAS_JSON = "qp_type_aliases.json"
 
 Action: TypeAlias = Callable[[str], None]
 
@@ -75,13 +76,14 @@ if __name__ == "__main__":
 
     if mode == make_mode:
         iterate_files(DIR, iterate_line_to_find_type_alias)
-        with open("qp_type_aliases.json", "w") as f:
+        with open(ALIAS_JSON, "w") as f:
             json.dump(TYPE_ALIAS_RECORDER, fp=f)
 
         iterate_files(DIR, insert_future_annotation)
 
     elif mode == remove_mode:
         iterate_files(DIR, remove_future_annotation)
+        os.remove(ALIAS_JSON)
 
     else:
         pass
