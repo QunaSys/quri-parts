@@ -8,6 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections import Counter
 from typing import (
     Callable,
     Collection,
@@ -67,7 +68,7 @@ def sample_from_state_vector(
     probs = np.abs(state_vector) ** 2
     rng = np.random.default_rng()
     counts = rng.multinomial(n_shots, probs)
-    return dict(((i, count) for i, count in enumerate(counts) if count > 0))
+    return Counter(dict(((i, count) for i, count in enumerate(counts) if count > 0)))
 
 
 def ideal_sample_from_state_vector(
