@@ -31,7 +31,7 @@ def iterate_line_to_find_type_alias(file_name: str) -> None:
 def insert_future_annotation(file_name: str) -> None:
     """Insert "from __future__ import annotations"."""
     lines = []
-    import_text = "from __future__ import annotations\n"
+    import_text = "from __future__ import annotations   # isort: skip\n"
 
     with open(file_name, "r") as f:
         for line in f:
