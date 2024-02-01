@@ -24,10 +24,20 @@ def iterate_files(dir: str, action: Action) -> None:
 
 def iterate_line_to_find_type_alias(file_name: str) -> None:
     with open(file_name, "r") as f:
+        module_name = get_module_name(file_name)
         for line in f:
             if "TypeAlias" in line and "import" not in line:
                 alias = line.split(":")[0]
-                TYPE_ALIAS_RECORDER[alias] = alias
+                TYPE_ALIAS_RECORDER[alias] = module_name + "." + alias
+
+
+def get_module_name(file_name: str) -> str:
+    split_name = file_name.split("/")
+    if split_name[-1] == "__init__.py":
+        split_name = split_name[:-1]
+    else:
+        split_name[-1] = split_name[-1].split(".")[0]
+    return ".".join(split_name[3:])
 
 
 def insert_future_annotation(file_name: str) -> None:
