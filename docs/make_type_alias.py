@@ -37,7 +37,7 @@ def get_module_name(file_name: str) -> str:
         split_name = split_name[:-1]
     else:
         split_name[-1] = split_name[-1].split(".")[0]
-    return ".".join(split_name[3:])
+    return ".".join(split_name[4:])
 
 
 def insert_future_annotation(file_name: str) -> None:
