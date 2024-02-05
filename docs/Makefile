@@ -25,7 +25,9 @@ html: sphinx-apidoc
 
 .PHONY: livehtml
 livehtml: sphinx-apidoc
+	python make_type_alias.py --mode m
 	sphinx-autobuild -b html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	python make_type_alias.py --mode r
 
 .PHONY: help Makefile
 
