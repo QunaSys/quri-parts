@@ -461,29 +461,8 @@ def create_concurrent_estimator_from_estimator(
     return concurrent_estimator
 
 
-#: Represents allowed states for performing general estimation.
-#: Some estimator supports :class:`~CircuitQuantumState` only, or
-#: :class:`~QuantumStateVector` only, or mixed.
-GeneralStateT = TypeVar(
-    "GeneralStateT",
-    Union[CircuitQuantumState, QuantumStateVector],
-    CircuitQuantumState,
-    QuantumStateVector,
-)
-
-#: Represents allowed states for performing general parametric estimation.
-#: Some estimator supports :class:`~ParametricCircuitQuantumState` only, or
-#: :class:`~ParametricQuantumStateVector` only, or mixed.
-GeneralParametricStateT = TypeVar(
-    "GeneralParametricStateT",
-    Union[ParametricCircuitQuantumState, ParametricQuantumStateVector],
-    ParametricCircuitQuantumState,
-    ParametricQuantumStateVector,
-)
-
-
 @dataclass
-class GeneralQuantumEstimator(Generic[GeneralStateT, GeneralParametricStateT]):
+class GeneralQuantumEstimator(Generic[_StateT, _ParametricStateT]):
     r"""A callable dataclass that holds :class:`QuantumEstimator`,
     :class:`ConcurrentQuantumEstimator`, :class:`ParametricQuantumEstimator`,
     or :class:`ConcurrentParametricEstimator`. When it is used as a callable function,
@@ -491,17 +470,17 @@ class GeneralQuantumEstimator(Generic[GeneralStateT, GeneralParametricStateT]):
     using it as a callable function are:
 
     - Act as :class:`QuantumEstimator`:
-        - Estimatable, GeneralStateT -> Estimate
+        - Estimatable, _StateT -> Estimate
     - Act as :class:`ConcurrentQuantumEstimator`:
-        - Estimatable, [GeneralStateT, ...] -> [Estimate, ...]
-        - [Estimatable], [GeneralStateT, ...] -> [Estimate, ...]
-        - [Estimatable, ...], GeneralStateT -> [Estimate, ...]
-        - [Estimatable, ...], [GeneralStateT] -> [Estimate, ...]
-        - [Estimatable, ...], [GeneralStateT, ...] -> [Estimate, ...]
+        - Estimatable, [_StateT, ...] -> [Estimate, ...]
+        - [Estimatable], [_StateT, ...] -> [Estimate, ...]
+        - [Estimatable, ...], _StateT -> [Estimate, ...]
+        - [Estimatable, ...], [_StateT] -> [Estimate, ...]
+        - [Estimatable, ...], [_StateT, ...] -> [Estimate, ...]
     - Act as :class:`ParametricQuantumEstimator`:
-        - Estimatable, GeneralParametricStateT, [float, ...] -> Estimate
+        - Estimatable, _ParametricStateT, [float, ...] -> Estimate
     - Act as :class:`ConcurrentParametricQuantumEstimator`:
-        - Estimatable, GeneralParametricStateT, [[float, ...], ...] -> [Estimate, ...]
+        - Estimatable, _ParametricStateT, [[float, ...], ...] -> [Estimate, ...]
 
     When a :class:`GeneralEstimator` is called directly with one of the combinations
     above, it needs to parse the input arguments to figure out which of
@@ -511,18 +490,18 @@ class GeneralQuantumEstimator(Generic[GeneralStateT, GeneralParametricStateT]):
     retrieve the desired estimator as a property directly.
     """
 
-    estimator: QuantumEstimator[GeneralStateT]
-    concurrent_estimator: ConcurrentQuantumEstimator[GeneralStateT]
-    parametric_estimator: ParametricQuantumEstimator[GeneralParametricStateT]
+    estimator: QuantumEstimator[_StateT]
+    concurrent_estimator: ConcurrentQuantumEstimator[_StateT]
+    parametric_estimator: ParametricQuantumEstimator[_ParametricStateT]
     concurrent_parametric_estimator: ConcurrentParametricQuantumEstimator[
-        GeneralParametricStateT
+        _ParametricStateT
     ]
 
     @overload
-    def __call__(
+    def __call__(  # type: ignore[overload-overlap]
         self,
         op: Estimatable,
-        state: GeneralStateT,
+        state: _StateT,
     ) -> Estimate[complex]:
         """A :class:`QuantumEstimator`"""
         ...
@@ -531,7 +510,7 @@ class GeneralQuantumEstimator(Generic[GeneralStateT, GeneralParametricStateT]):
     def __call__(
         self,
         op: Sequence[Estimatable],
-        state: Sequence[GeneralStateT],
+        state: Sequence[_StateT],
     ) -> Iterable[Estimate[complex]]:
         """A :class:`ConcurrentQuantumEstimator`"""
         ...
@@ -540,7 +519,7 @@ class GeneralQuantumEstimator(Generic[GeneralStateT, GeneralParametricStateT]):
     def __call__(
         self,
         op: Estimatable,
-        state: Sequence[GeneralStateT],
+        state: Sequence[_StateT],
     ) -> Iterable[Estimate[complex]]:
         """A :class:`ConcurrentQuantumEstimator`"""
         ...
@@ -549,7 +528,7 @@ class GeneralQuantumEstimator(Generic[GeneralStateT, GeneralParametricStateT]):
     def __call__(
         self,
         op: Sequence[Estimatable],
-        state: GeneralStateT,
+        state: _StateT,
     ) -> Iterable[Estimate[complex]]:
         """A :class:`ConcurrentQuantumEstimator`"""
         ...
@@ -558,7 +537,7 @@ class GeneralQuantumEstimator(Generic[GeneralStateT, GeneralParametricStateT]):
     def __call__(
         self,
         op: Estimatable,
-        state: GeneralParametricStateT,
+        state: _ParametricStateT,
         param: Iterable[float],
     ) -> Estimate[complex]:
         """A :class:`ParametricQuantumEstimator`"""
@@ -568,7 +547,7 @@ class GeneralQuantumEstimator(Generic[GeneralStateT, GeneralParametricStateT]):
     def __call__(
         self,
         op: Estimatable,
-        state: GeneralParametricStateT,
+        state: _ParametricStateT,
         param: Iterable[Iterable[float]],
     ) -> Iterable[Estimate[complex]]:
         """A :class:`ConcurrentParametricQuantumEstimator`"""
@@ -577,25 +556,25 @@ class GeneralQuantumEstimator(Generic[GeneralStateT, GeneralParametricStateT]):
     def __call__(
         self,
         op: Union[Estimatable, Sequence[Estimatable]],
-        state: Union[GeneralStateT, Sequence[GeneralStateT], GeneralParametricStateT],
+        state: Union[_StateT, Sequence[_StateT], _ParametricStateT],
         param: Optional[Union[Iterable[float], Iterable[Iterable[float]]]] = None,
     ) -> Union[Estimate[complex], Iterable[Estimate[complex]]]:
         if param is None:
             if isinstance(op, Operator) or isinstance(op, PauliLabel):
                 if isinstance(state, Sequence):
                     return self.concurrent_estimator([op], state)
-                state = cast(GeneralStateT, state)
+                state = cast(_StateT, state)
                 return self.estimator(op, state)
 
             if isinstance(state, Sequence):
                 return self.concurrent_estimator(op, state)
-            state = cast(GeneralStateT, state)
+            state = cast(_StateT, state)
             return self.concurrent_estimator(op, [state])
 
         assert not isinstance(state, Sequence)
         assert isinstance(op, Operator) or isinstance(op, PauliLabel)
 
-        state = cast(GeneralParametricStateT, state)
+        state = cast(_ParametricStateT, state)
         if isinstance(next(iter(param)), Iterable):
             param = cast(Sequence[Sequence[float]], param)
             return self.concurrent_parametric_estimator(op, state, param)
