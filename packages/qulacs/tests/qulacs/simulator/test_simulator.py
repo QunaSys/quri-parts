@@ -13,6 +13,7 @@ from collections import Counter
 
 import pytest
 from numpy import allclose, array, isclose, pi
+from scipy.stats import unitary_group
 
 from quri_parts.circuit import QuantumCircuit, X
 from quri_parts.core.state import (
@@ -204,6 +205,7 @@ def test_create_qulacs_state_vector_sampler() -> None:
 
     n_qubits = 2
     for i, j in itertools.product(range(2), repeat=2):
+        # vector with only circuit
         vector_state = QuantumStateVector(
             n_qubits,
             circuit=QuantumCircuit(n_qubits, gates=[X(1)] * i + [X(0)] * j),
@@ -211,6 +213,16 @@ def test_create_qulacs_state_vector_sampler() -> None:
         vector_sampling_cnt = state_vector_sampler(vector_state, n_shots)
         assert vector_sampling_cnt == Counter({2 * i + j: n_shots})
 
+        # vector-valued state with circuit applied
+        vector_valued_state = QuantumStateVector(
+            n_qubits,
+            vector=array([0, 1, 0, 0]),
+            circuit=QuantumCircuit(n_qubits, gates=[X(1)] * i + [X(0)] * j),
+        )
+        vector_valued_sampling_cnt = state_vector_sampler(vector_valued_state, n_shots)
+        assert vector_valued_sampling_cnt == Counter({(2 * i + j) ^ (0b01): n_shots})
+
+        # circuit state
         circuit_state = GeneralCircuitQuantumState(
             n_qubits,
             circuit=QuantumCircuit(n_qubits, gates=[X(1)] * i + [X(0)] * j),
@@ -234,14 +246,33 @@ def test_create_qulacs_ideal_state_vector_sampler() -> None:
 
     expected_cnt = {0: 41.90342, 1: 458.09677, 2: 41.90342, 3: 458.09677}
 
+    # vector state with only circuit
     vector_state = QuantumStateVector(n_qubits, circuit=quantum_circuit)
     vector_cnt = ideal_sampler(vector_state, n_shots)
     for i in range(2**n_qubits):
         assert isclose(expected_cnt[i], vector_cnt[i])
     assert isclose(sum(vector_cnt.values()), 1000)
 
+    # circuit state
     circuit_state = GeneralCircuitQuantumState(n_qubits, circuit=quantum_circuit)
     circuit_cnt = ideal_sampler(circuit_state, n_shots)
     for i in range(2**n_qubits):
         assert isclose(expected_cnt[i], circuit_cnt[i])
     assert isclose(sum(circuit_cnt.values()), 1000)
+
+    # test with vector-valued state
+    vec = unitary_group.rvs(2**n_qubits)[:, 0]
+    circuit = QuantumCircuit(n_qubits, gates=[X(0)])
+    vector_state = QuantumStateVector(n_qubits, vec, circuit)
+
+    vector_cnt = ideal_sampler(vector_state, n_shots)
+
+    expected_cnt = {
+        0: (abs(vec[1]) ** 2) * n_shots,
+        1: (abs(vec[0]) ** 2) * n_shots,
+        2: (abs(vec[3]) ** 2) * n_shots,
+        3: (abs(vec[2]) ** 2) * n_shots,
+    }
+    for i in range(2**n_qubits):
+        assert isclose(expected_cnt[i], vector_cnt[i])
+    assert isclose(sum(vector_cnt.values()), 1000)
