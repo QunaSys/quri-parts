@@ -27,12 +27,10 @@ from quri_parts.core.state import CircuitQuantumState, QuantumStateVector
 from quri_parts.qulacs.circuit import convert_circuit
 from quri_parts.qulacs.circuit.compiled_circuit import _QulacsCircuit
 
-from . import cast_to_list
+from . import QulacsStateT, cast_to_list
 
 
-def _evaluate_qp_state_to_qulacs_state(
-    state: Union[CircuitQuantumState, QuantumStateVector]
-) -> ql.QuantumState:
+def _evaluate_qp_state_to_qulacs_state(state: QulacsStateT) -> ql.QuantumState:
     n_qubits = state.qubit_count
 
     if isinstance(state, QuantumStateVector):
@@ -68,9 +66,7 @@ def _get_updated_qulacs_state_from_vector(
     return qulacs_state
 
 
-def evaluate_state_to_vector(
-    state: Union[CircuitQuantumState, QuantumStateVector]
-) -> QuantumStateVector:
+def evaluate_state_to_vector(state: QulacsStateT) -> QuantumStateVector:
     """Convert GeneralCircuitQuantumState or QuantumStateVector to
     QuantumStateVector that only contains the state vector."""
     out_state_vector = _evaluate_qp_state_to_qulacs_state(state)
@@ -122,14 +118,10 @@ def get_marginal_probability(
     return qulacs_state.get_marginal_probability(measured)
 
 
-def create_qulacs_state_vector_sampler() -> (
-    StateSampler[Union[CircuitQuantumState, QuantumStateVector]]
-):
+def create_qulacs_state_vector_sampler() -> StateSampler[QulacsStateT]:
     """Creates a state sampler based on Qulacs circuit execution."""
 
-    def state_sampler(
-        state: Union[CircuitQuantumState, QuantumStateVector], n_shots: int
-    ) -> MeasurementCounts:
+    def state_sampler(state: QulacsStateT, n_shots: int) -> MeasurementCounts:
         if n_shots > 2 ** max(state.qubit_count, 10):
             # Use multinomial distribution for faster sampling
             state_vector = evaluate_state_to_vector(state).vector
@@ -141,9 +133,7 @@ def create_qulacs_state_vector_sampler() -> (
     return state_sampler
 
 
-def create_qulacs_ideal_state_vector_sampler() -> (
-    StateSampler[Union[CircuitQuantumState, QuantumStateVector]]
-):
+def create_qulacs_ideal_state_vector_sampler() -> StateSampler[QulacsStateT]:
     """Creates an ideal state sampler based on Qulacs circuit execution."""
 
     def ideal_state_sampler(
