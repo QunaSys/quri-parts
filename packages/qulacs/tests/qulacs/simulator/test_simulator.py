@@ -23,8 +23,8 @@ from quri_parts.core.state import (
 )
 from quri_parts.qulacs.circuit import compile_circuit
 from quri_parts.qulacs.simulator import (
-    create_qulacs_ideal_state_vector_sampler,
-    create_qulacs_state_vector_sampler,
+    create_qulacs_ideal_vector_state_sampler,
+    create_qulacs_vector_state_sampler,
     evaluate_state_to_vector,
     get_marginal_probability,
     run_circuit,
@@ -199,8 +199,8 @@ def test_get_marginal_probability() -> None:
         get_marginal_probability(array([1.0, 0.0, 0.0, 0.0]), {0: 0, 2: 1}),
 
 
-def test_create_qulacs_state_vector_sampler() -> None:
-    state_vector_sampler = create_qulacs_state_vector_sampler()
+def test_create_qulacs_vector_state_sampler() -> None:
+    state_vector_sampler = create_qulacs_vector_state_sampler()
     n_shots = 1000
 
     n_qubits = 2
@@ -231,11 +231,11 @@ def test_create_qulacs_state_vector_sampler() -> None:
         assert circuit_sampling_cnt == Counter({2 * i + j: n_shots})
 
 
-def test_create_qulacs_ideal_state_vector_sampler() -> None:
+def test_create_qulacs_ideal_vector_state_sampler() -> None:
     n_qubits = 2
     n_shots = 1000
 
-    ideal_sampler = create_qulacs_ideal_state_vector_sampler()
+    ideal_sampler = create_qulacs_ideal_vector_state_sampler()
 
     quantum_circuit = QuantumCircuit(n_qubits)
     quantum_circuit.add_CNOT_gate(0, 1)

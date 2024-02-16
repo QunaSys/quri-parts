@@ -24,15 +24,15 @@ from quri_parts.core.utils.concurrent import execute_concurrently
 
 from .circuit.noise import convert_circuit_with_noise_model
 from .simulator import (
-    create_qulacs_ideal_state_vector_sampler,
-    create_qulacs_state_vector_sampler,
+    create_qulacs_ideal_vector_state_sampler,
+    create_qulacs_vector_state_sampler,
 )
 
 if TYPE_CHECKING:
     from concurrent.futures import Executor
 
-_state_vector_sampler = create_qulacs_state_vector_sampler()
-_ideal_vector_sampler = create_qulacs_ideal_state_vector_sampler()
+_state_vector_sampler = create_qulacs_vector_state_sampler()
+_ideal_vector_sampler = create_qulacs_ideal_vector_state_sampler()
 
 
 def _sample(circuit: NonParametricQuantumCircuit, shots: int) -> MeasurementCounts:
