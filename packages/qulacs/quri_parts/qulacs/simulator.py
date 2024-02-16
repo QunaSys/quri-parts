@@ -118,7 +118,7 @@ def get_marginal_probability(
     return qulacs_state.get_marginal_probability(measured)
 
 
-def create_qulacs_state_vector_sampler() -> StateSampler[QulacsStateT]:
+def create_qulacs_vector_state_sampler() -> StateSampler[QulacsStateT]:
     """Creates a state sampler based on Qulacs circuit execution."""
 
     def state_sampler(state: QulacsStateT, n_shots: int) -> MeasurementCounts:
@@ -133,7 +133,7 @@ def create_qulacs_state_vector_sampler() -> StateSampler[QulacsStateT]:
     return state_sampler
 
 
-def create_qulacs_ideal_state_vector_sampler() -> StateSampler[QulacsStateT]:
+def create_qulacs_ideal_vector_state_sampler() -> StateSampler[QulacsStateT]:
     """Creates an ideal state sampler based on Qulacs circuit execution."""
 
     def ideal_state_sampler(
