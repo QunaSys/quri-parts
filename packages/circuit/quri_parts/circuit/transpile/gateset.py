@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from math import pi
 from typing import cast
 
@@ -158,7 +158,7 @@ class CliffordConversionTranspiler(CircuitTranspilerProtocol):
         target_gateset: A Sequence of Clifford gate names to output.
     """
 
-    def __init__(self, target_gateset: Sequence[CliffordGateNameType]):
+    def __init__(self, target_gateset: Iterable[CliffordGateNameType]):
         self._gateset = set(target_gateset)
         if self._gateset - (CLIFFORD_GATE_NAMES & SINGLE_QUBIT_GATE_NAMES):
             raise ValueError(
@@ -322,8 +322,8 @@ class RotationConversionTranspiler(CircuitTranspilerProtocol):
 
     def __init__(
         self,
-        target_rotation: Sequence[GateNameType],
-        favorable_clifford: Sequence[CliffordGateNameType] = (),
+        target_rotation: Iterable[GateNameType],
+        favorable_clifford: Iterable[CliffordGateNameType] = (),
     ):
         self._target_rotation = set(target_rotation)
         self._favorable_clifford = set(favorable_clifford)
@@ -382,7 +382,7 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
         target_gateset: A Sequence of allowed output gate names.
     """
 
-    def __init__(self, target_gateset: Sequence[GateNameType]):
+    def __init__(self, target_gateset: Iterable[GateNameType]):
         self._gateset = set(target_gateset)
         self._target_clifford = cast(
             set[CliffordGateNameType],
