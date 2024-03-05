@@ -190,11 +190,12 @@ class CliffordConversionTranspiler(CircuitTranspilerProtocol):
 
             for candidate in _equiv_clifford_table[gate.name]:
                 if set(candidate) <= self._gateset:
-                    cache[gate.name] = [
+                    expand = [
                         QuantumGate(name=name, target_indices=gate.target_indices)
                         for name in candidate
                     ]
-                    ret.extend(cache[gate.name])
+                    cache[gate.name] = expand
+                    ret.extend(expand)
                     break
             else:
                 cache[gate.name] = [gate]
