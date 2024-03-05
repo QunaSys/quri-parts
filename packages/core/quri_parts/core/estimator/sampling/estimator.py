@@ -17,7 +17,9 @@ from quri_parts.core.estimator import (
     ConcurrentQuantumEstimator,
     Estimatable,
     Estimate,
+    GeneralQuantumEstimator,
     QuantumEstimator,
+    create_general_estimator_from_estimator,
 )
 from quri_parts.core.estimator.sampling.pauli import (
     general_pauli_sum_expectation_estimator,
@@ -35,7 +37,7 @@ from quri_parts.core.sampling import (
     MeasurementCounts,
     PauliSamplingShotsAllocator,
 )
-from quri_parts.core.state import CircuitQuantumState
+from quri_parts.core.state import CircuitQuantumState, ParametricCircuitQuantumState
 
 from .estimator_helpers import (
     CircuitShotPairPreparationFunction,
@@ -286,3 +288,15 @@ def create_sampling_concurrent_estimator(
         )
 
     return estimator
+
+
+def create_general_sampling_estimator(
+    total_shots: int,
+    sampler: ConcurrentSampler,
+    measurement_factory: CommutablePauliSetMeasurementFactory,
+    shots_allocator: PauliSamplingShotsAllocator,
+) -> GeneralQuantumEstimator[CircuitQuantumState, ParametricCircuitQuantumState]:
+    sampling_estimator = create_sampling_estimator(
+        total_shots, sampler, measurement_factory, shots_allocator
+    )
+    return create_general_estimator_from_estimator(sampling_estimator)
