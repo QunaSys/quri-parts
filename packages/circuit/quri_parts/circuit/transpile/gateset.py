@@ -169,7 +169,7 @@ class CliffordConversionTranspiler(CircuitTranspilerProtocol):
         self, circuit: NonParametricQuantumCircuit
     ) -> NonParametricQuantumCircuit:
         ret = []
-        cache = {}
+        cache: dict[GateNameType, list[QuantumGate]] = {}
 
         for gate in circuit.gates:
             if gate.name not in CLIFFORD_GATE_NAMES & SINGLE_QUBIT_GATE_NAMES:
