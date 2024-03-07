@@ -22,6 +22,7 @@ from quri_parts.circuit import (
     NonParametricQuantumCircuit,
     QuantumCircuit,
     UnboundParametricQuantumCircuit,
+    X,
 )
 from quri_parts.core.estimator import Estimate
 from quri_parts.core.estimator.sampling import (
@@ -52,7 +53,11 @@ from quri_parts.core.sampling import MeasurementCounts, PauliSamplingSetting
 from quri_parts.core.sampling.shots_allocator import (
     create_equipartition_shots_allocator,
 )
-from quri_parts.core.state import CircuitQuantumState, ComputationalBasisState, ParametricCircuitQuantumState
+from quri_parts.core.state import (
+    CircuitQuantumState,
+    ComputationalBasisState,
+    ParametricCircuitQuantumState,
+)
 
 n_qubits = 3
 
