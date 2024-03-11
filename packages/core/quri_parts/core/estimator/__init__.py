@@ -19,9 +19,7 @@ from quri_parts.core.operator import Operator, PauliLabel
 from quri_parts.core.state import (
     CircuitQuantumState,
     ParametricCircuitQuantumState,
-    ParametricQuantumStateT,
     ParametricQuantumStateVector,
-    QuantumStateT,
     QuantumStateVector,
 )
 
@@ -597,8 +595,8 @@ def create_general_estimator_from_estimator(
 
 
 def create_general_estimator_from_estimator(
-    estimator: QuantumEstimator[QuantumStateT],
-) -> GeneralQuantumEstimator[QuantumStateT, ParametricQuantumStateT]:
+    estimator: QuantumEstimator[_StateT],
+) -> GeneralQuantumEstimator[_StateT, _ParametricStateT]:
     """Creates a :class:`GeneralEstimator` from a :class:`QuantumEstimator`.
 
     Note:
@@ -612,11 +610,11 @@ def create_general_estimator_from_estimator(
     """
     concurrent_estimator = create_concurrent_estimator_from_estimator(estimator)
     parametric_estimator: ParametricQuantumEstimator[
-        ParametricQuantumStateT
+        _ParametricStateT
     ] = create_parametric_estimator_from_concurrent_estimator(concurrent_estimator)
 
     concurrent_parametric_estimator: ConcurrentParametricQuantumEstimator[
-        ParametricQuantumStateT
+        _ParametricStateT
     ] = create_concurrent_parametric_estimator_from_concurrent_estimator(
         concurrent_estimator
     )
@@ -645,8 +643,8 @@ def create_general_estimator_from_concurrent_estimator(
 
 
 def create_general_estimator_from_concurrent_estimator(
-    concurrent_estimator: ConcurrentQuantumEstimator[QuantumStateT],
-) -> GeneralQuantumEstimator[QuantumStateT, ParametricQuantumStateT]:
+    concurrent_estimator: ConcurrentQuantumEstimator[_StateT],
+) -> GeneralQuantumEstimator[_StateT, _ParametricStateT]:
     """Creates a :class:`GeneralEstimator` from a
     :class:`ConcurrentQuantumEstimator`.
 
@@ -658,11 +656,11 @@ def create_general_estimator_from_concurrent_estimator(
     """
     estimator = create_estimator_from_concurrent_estimator(concurrent_estimator)
     parametric_estimator: ParametricQuantumEstimator[
-        ParametricQuantumStateT
+        _ParametricStateT
     ] = create_parametric_estimator_from_concurrent_estimator(concurrent_estimator)
 
     concurrent_parametric_estimator: ConcurrentParametricQuantumEstimator[
-        ParametricQuantumStateT
+        _ParametricStateT
     ] = create_concurrent_parametric_estimator_from_concurrent_estimator(
         concurrent_estimator
     )
