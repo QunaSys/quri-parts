@@ -8,20 +8,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .circuit_converter import (
-    QiskitCircuitConverter,
-    QiskitSetTranspiler,
-    convert_circuit,
-    convert_gate,
-)
-from .gates import ECR
-from .qiskit_circuit_converter import circuit_from_qiskit
+from typing import Literal
 
-__all__ = [
-    "ECR",
-    "QiskitCircuitConverter",
-    "QiskitSetTranspiler",
-    "convert_gate",
-    "convert_circuit",
-    "circuit_from_qiskit",
-]
+from typing_extensions import TypeAlias
+
+QiskitGateNameType: TypeAlias = Literal["ECR"]
+
+QiskitTwoQubitGateNameType: TypeAlias = Literal["ECR"]
+
+ECR: Literal["ECR"] = "ECR"
