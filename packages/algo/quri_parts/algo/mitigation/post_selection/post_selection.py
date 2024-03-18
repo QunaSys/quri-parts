@@ -30,7 +30,7 @@ def post_selection(
 def create_general_post_selection_sampler(
     sampler: Sampler, filter_fn: PostSelectionFilterFunction
 ) -> Sampler:
-    """Returns `class`:Sampler: that performs post-selection after sampling.
+    """Returns :class:`Sampler` that performs post-selection after sampling.
 
     Note that the effective shots might decrease by discarding the
     measurement results which do not pass ``filter_fn``.
@@ -49,7 +49,7 @@ def create_general_post_selection_sampler(
 def create_general_post_selection_concurrent_sampler(
     concurrent_sampler: ConcurrentSampler, filter_fn: PostSelectionFilterFunction
 ) -> ConcurrentSampler:
-    """Returns `class`:ConcurrentSampler: that performs post-selection after
+    """Returns :class:`ConcurrentSampler` that performs post-selection after
     sampling.
 
     Note that the effective shots might decrease by discarding the
