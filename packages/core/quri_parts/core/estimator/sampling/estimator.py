@@ -296,7 +296,8 @@ def create_general_sampling_estimator(
     measurement_factory: CommutablePauliSetMeasurementFactory,
     shots_allocator: PauliSamplingShotsAllocator,
 ) -> GeneralQuantumEstimator[CircuitQuantumState, ParametricCircuitQuantumState]:
-    """Creates a :class:`GeneralEstimator` that performs sampling estimation.
+    """Creates a :class:`GeneralQuantumEstimator` that performs sampling
+    estimation.
 
     Args:
         total_shots: Total number of shots available for sampling measurements.
