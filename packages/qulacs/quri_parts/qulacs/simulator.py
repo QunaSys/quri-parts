@@ -9,13 +9,15 @@
 # limitations under the License.
 
 from collections import Counter
-from typing import Union
+from typing import Union, Iterable, Optional, TYPE_CHECKING
 
 import numpy as np
 import qulacs as ql
 from numpy import cfloat, zeros
 from numpy.typing import NDArray
 
+from quri_parts.core.utils.concurrent import execute_concurrently
+from quri_parts.core.sampling import ConcurrentStateSampler
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.core.sampling import (
     MeasurementCounts,
@@ -28,6 +30,9 @@ from quri_parts.qulacs.circuit import convert_circuit
 from quri_parts.qulacs.circuit.compiled_circuit import _QulacsCircuit
 
 from . import QulacsStateT, cast_to_list
+
+if TYPE_CHECKING:
+    from concurrent.futures import Executor
 
 
 def _evaluate_qp_state_to_qulacs_state(state: QulacsStateT) -> ql.QuantumState:
@@ -116,6 +121,17 @@ def get_marginal_probability(
     qulacs_state.load(cast_to_list(state_vector))
     measured = [measured_values.get(i, 2) for i in range(int(n_qubits))]
     return qulacs_state.get_marginal_probability(measured)
+
+
+def create_concurrent_vector_state_sampler(
+    executor: Optional["Executor"] = None, concurrency: int = 1
+) -> ConcurrentStateSampler[QulacsStateT]:
+    state_sampler = create_qulacs_vector_state_sampler()
+    def concurrent_state_sampler(state_shots_tuples: Iterable[tuple[QulacsStateT, int]]) -> Iterable[MeasurementCounts]:
+        return execute_concurrently(
+            state_sampler, None, state_shots_tuples, executor, concurrency
+        )
+    return concurrent_state_sampler
 
 
 def create_qulacs_vector_state_sampler() -> StateSampler[QulacsStateT]:
