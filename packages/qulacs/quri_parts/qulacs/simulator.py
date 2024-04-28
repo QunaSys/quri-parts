@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from collections import Counter
-from typing import Union, Iterable, Optional, TYPE_CHECKING
+from typing import Union, Iterable, Any, Optional, TYPE_CHECKING
 
 import numpy as np
 import qulacs as ql
@@ -123,17 +123,6 @@ def get_marginal_probability(
     return qulacs_state.get_marginal_probability(measured)
 
 
-def create_concurrent_vector_state_sampler(
-    executor: Optional["Executor"] = None, concurrency: int = 1
-) -> ConcurrentStateSampler[QulacsStateT]:
-    state_sampler = create_qulacs_vector_state_sampler()
-    def concurrent_state_sampler(state_shots_tuples: Iterable[tuple[QulacsStateT, int]]) -> Iterable[MeasurementCounts]:
-        return execute_concurrently(
-            state_sampler, None, state_shots_tuples, executor, concurrency
-        )
-    return concurrent_state_sampler
-
-
 def create_qulacs_vector_state_sampler() -> StateSampler[QulacsStateT]:
     """Creates a state sampler based on Qulacs circuit execution."""
 
@@ -147,6 +136,21 @@ def create_qulacs_vector_state_sampler() -> StateSampler[QulacsStateT]:
         return Counter(qs_state.sampling(n_shots))
 
     return state_sampler
+
+
+def _sequential_vector_state_sampler(_: Any, state_shots_tuples: Iterable[tuple[QulacsStateT, int]]) -> Iterable[MeasurementCounts]:
+    state_sampler = create_qulacs_vector_state_sampler()
+    return [state_sampler(state, shots) for state, shots in state_shots_tuples]
+
+
+def create_concurrent_vector_state_sampler(
+    executor: Optional["Executor"] = None, concurrency: int = 1
+) -> ConcurrentStateSampler[QulacsStateT]:
+    def concurrent_state_sampler(state_shots_tuples: Iterable[tuple[QulacsStateT, int]]) -> Iterable[MeasurementCounts]:
+        return execute_concurrently(
+            _sequential_vector_state_sampler, None, state_shots_tuples, executor, concurrency
+        )
+    return concurrent_state_sampler
 
 
 def create_qulacs_ideal_vector_state_sampler() -> StateSampler[QulacsStateT]:
