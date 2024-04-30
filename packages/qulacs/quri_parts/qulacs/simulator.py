@@ -9,23 +9,23 @@
 # limitations under the License.
 
 from collections import Counter
-from typing import Union, Iterable, Any, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Iterable, Optional, Union
 
 import numpy as np
 import qulacs as ql
 from numpy import cfloat, zeros
 from numpy.typing import NDArray
 
-from quri_parts.core.utils.concurrent import execute_concurrently
-from quri_parts.core.sampling import ConcurrentStateSampler
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.core.sampling import (
+    ConcurrentStateSampler,
     MeasurementCounts,
     StateSampler,
     ideal_sample_from_state_vector,
     sample_from_state_vector,
 )
 from quri_parts.core.state import CircuitQuantumState, QuantumStateVector
+from quri_parts.core.utils.concurrent import execute_concurrently
 from quri_parts.qulacs.circuit import convert_circuit
 from quri_parts.qulacs.circuit.compiled_circuit import _QulacsCircuit
 
@@ -138,7 +138,9 @@ def create_qulacs_vector_state_sampler() -> StateSampler[QulacsStateT]:
     return state_sampler
 
 
-def _sequential_vector_state_sampler(_: Any, state_shots_tuples: Iterable[tuple[QulacsStateT, int]]) -> Iterable[MeasurementCounts]:
+def _sequential_vector_state_sampler(
+    _: Any, state_shots_tuples: Iterable[tuple[QulacsStateT, int]]
+) -> Iterable[MeasurementCounts]:
     state_sampler = create_qulacs_vector_state_sampler()
     return [state_sampler(state, shots) for state, shots in state_shots_tuples]
 
@@ -146,10 +148,17 @@ def _sequential_vector_state_sampler(_: Any, state_shots_tuples: Iterable[tuple[
 def create_concurrent_vector_state_sampler(
     executor: Optional["Executor"] = None, concurrency: int = 1
 ) -> ConcurrentStateSampler[QulacsStateT]:
-    def concurrent_state_sampler(state_shots_tuples: Iterable[tuple[QulacsStateT, int]]) -> Iterable[MeasurementCounts]:
+    def concurrent_state_sampler(
+        state_shots_tuples: Iterable[tuple[QulacsStateT, int]]
+    ) -> Iterable[MeasurementCounts]:
         return execute_concurrently(
-            _sequential_vector_state_sampler, None, state_shots_tuples, executor, concurrency
+            _sequential_vector_state_sampler,
+            None,
+            state_shots_tuples,
+            executor,
+            concurrency,
         )
+
     return concurrent_state_sampler
 
 
