@@ -252,7 +252,7 @@ def test_create_concurrent_vector_state_sampler() -> None:
     assert vector_sampling_cnts == ans
 
     # vector-valued state with circuit applied
-    state_shots_tuples = []
+    vector_state_shots_tuples = []
     ans = []
     for ind_shot, (i, j) in enumerate(itertools.product(range(2), repeat=2)):
         vector_valued_state = QuantumStateVector(
@@ -260,22 +260,22 @@ def test_create_concurrent_vector_state_sampler() -> None:
             vector=array([0, 1, 0, 0]),
             circuit=QuantumCircuit(n_qubits, gates=[X(1)] * i + [X(0)] * j),
         )
-        state_shots_tuples += [(vector_valued_state, n_shots[ind_shot])]
+        vector_state_shots_tuples += [(vector_valued_state, n_shots[ind_shot])]
         ans += [Counter({(2 * i + j) ^ (0b01): n_shots[ind_shot]})]
-    vector_sampling_cnts = state_vector_concurrent_sampler(state_shots_tuples)
+    vector_sampling_cnts = state_vector_concurrent_sampler(vector_state_shots_tuples)
     assert vector_sampling_cnts == ans
 
     # circuit state
-    state_shots_tuples = []
+    circuit_state_shots_tuples = []
     ans = []
     for ind_shot, (i, j) in enumerate(itertools.product(range(2), repeat=2)):
         circuit_state = GeneralCircuitQuantumState(
             n_qubits,
             circuit=QuantumCircuit(n_qubits, gates=[X(1)] * i + [X(0)] * j),
         )
-        state_shots_tuples += [(circuit_state, n_shots[ind_shot])]
+        circuit_state_shots_tuples += [(circuit_state, n_shots[ind_shot])]
         ans += [Counter({2 * i + j: n_shots[ind_shot]})]
-    vector_sampling_cnts = state_vector_concurrent_sampler(state_shots_tuples)
+    vector_sampling_cnts = state_vector_concurrent_sampler(circuit_state_shots_tuples)
     assert vector_sampling_cnts == ans
 
 
