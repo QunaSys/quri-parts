@@ -74,13 +74,17 @@ def get_backend_min_max_shot(backend: Backend) -> tuple[int, Optional[int]]:
     if not isinstance(backend, (BackendV1, BackendV2)):
         raise BackendError("Backend not supported.")
 
+    # BackendV1
     if isinstance(backend, BackendV1):
         max_shots = getattr(
             backend.configuration(), "max_shots", _set_max_shot_to_default()
         )
         if max_shots > 0:
             return 1, max_shots
+        else:
+            return 1, _set_max_shot_to_default()
 
+    # BackendV2
     if hasattr(backend, "max_shots"):
         return 1, backend.max_shots
     elif hasattr(backend, "configuration"):
