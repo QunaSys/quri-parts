@@ -75,13 +75,16 @@ def get_backend_min_max_shot(backend: Backend) -> tuple[int, Optional[int]]:
         raise BackendError("Backend not supported.")
 
     if hasattr(backend, "max_shots"):
-        return 1, backend.max_shots
-    if hasattr(backend, "configuration"):
+        max_shots = backend.max_shots
+    elif hasattr(backend, "configuration"):
         max_shots = getattr(
             backend.configuration(), "max_shots", _set_max_shot_to_default()
         )
-        if max_shots > 0:
-            return 1, max_shots
+    else:
+        max_shots = _set_max_shot_to_default()
+
+    if max_shots > 0:
+        return 1, max_shots
     return 1, _set_max_shot_to_default()
 
 
@@ -114,16 +117,14 @@ def get_job_mapper_and_circuit_transpiler(
         circuit_transpiler = SequentialTranspiler(
             [circuit_transpiler, mapper.circuit_transpiler]
         )
-        composite_job_qubit_mapper: Callable[
-            [SamplingJob], SamplingJob
-        ] = lambda job: QubitMappedSamplingJob(
-            job, mapper
+        composite_job_qubit_mapper: Callable[[SamplingJob], SamplingJob] = (
+            lambda job: QubitMappedSamplingJob(job, mapper)
         )  # noqa: E731
         return composite_job_qubit_mapper, circuit_transpiler
     else:
-        simple_job_qubit_mapper: Callable[
-            [SamplingJob], SamplingJob
-        ] = lambda job: job  # noqa: E731
+        simple_job_qubit_mapper: Callable[[SamplingJob], SamplingJob] = (
+            lambda job: job
+        )  # noqa: E731
         return simple_job_qubit_mapper, circuit_transpiler
 
 
