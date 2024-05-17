@@ -117,14 +117,16 @@ def get_job_mapper_and_circuit_transpiler(
         circuit_transpiler = SequentialTranspiler(
             [circuit_transpiler, mapper.circuit_transpiler]
         )
-        composite_job_qubit_mapper: Callable[[SamplingJob], SamplingJob] = (
-            lambda job: QubitMappedSamplingJob(job, mapper)
+        composite_job_qubit_mapper: Callable[
+            [SamplingJob], SamplingJob
+        ] = lambda job: QubitMappedSamplingJob(
+            job, mapper
         )  # noqa: E731
         return composite_job_qubit_mapper, circuit_transpiler
     else:
-        simple_job_qubit_mapper: Callable[[SamplingJob], SamplingJob] = (
-            lambda job: job
-        )  # noqa: E731
+        simple_job_qubit_mapper: Callable[
+            [SamplingJob], SamplingJob
+        ] = lambda job: job  # noqa: E731
         return simple_job_qubit_mapper, circuit_transpiler
 
 
