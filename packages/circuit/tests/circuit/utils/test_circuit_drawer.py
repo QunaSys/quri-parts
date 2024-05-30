@@ -29,6 +29,10 @@ def test_draw_empty_circuit(capsys: pytest.CaptureFixture[Any]) -> None:
     expected = " \n \n-\n \n"
     assert capsys.readouterr().out == expected
 
+    draw_circuit(QuantumCircuit(2))
+    expected = " \n \n-\n \n \n \n-\n \n"
+    assert capsys.readouterr().out == expected
+
 
 def test_generate_gate_aa() -> None:
     expected = ["  ___  ", " | X | ", "-|0  |-", " |___| "]
