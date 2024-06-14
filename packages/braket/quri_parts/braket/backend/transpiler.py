@@ -26,10 +26,22 @@ class AwsDeviceTranspiler(SequentialTranspiler):
     """
 
     def __init__(self, device: AwsDevice):
+        name_action_type = {
+            "LocalSimulator": "braket.ir.jaqcd.program",
+            "SV1": "braket.ir.jaqcd.program",
+            "TN1": "braket.ir.jaqcd.program",
+            "dm1": "braket.ir.jaqcd.program",
+            "Harmony": "braket.ir.jaqcd.program",
+            "Aria 1": "braket.ir.openqasm.program",
+            "Aria 2": "braket.ir.openqasm.program",
+            "Garnet": "braket.ir.openqasm.program",
+        }
         transpilers = []
+        action_type = name_action_type[device.name]
         device_operation = device.properties.dict()["action"][
-            "braket.ir.openqasm.program"
+            action_type
         ]["supportedOperations"]
+
         if "cz" not in device_operation:
             transpilers.append(CZ2CNOTHTranspiler())
         super().__init__(transpilers)
