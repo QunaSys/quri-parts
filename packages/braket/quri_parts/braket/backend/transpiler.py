@@ -38,9 +38,9 @@ class AwsDeviceTranspiler(SequentialTranspiler):
         }
         transpilers = []
         action_type = name_action_type[device.name]
-        device_operation = device.properties.dict()["action"][
-            action_type
-        ]["supportedOperations"]
+        device_operation = device.properties.dict()["action"][action_type][
+            "supportedOperations"
+        ]
 
         if "cz" not in device_operation:
             transpilers.append(CZ2CNOTHTranspiler())
