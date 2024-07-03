@@ -8,10 +8,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
 import numpy as np
+import pytest
+from qiskit.circuit import ParameterVector
 from qiskit.quantum_info import Pauli, SparsePauliOp
-from qiskit.circuit import ParameterVector, ParameterExpression
 
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
 from quri_parts.qiskit.operator import operator_from_qiskit_op

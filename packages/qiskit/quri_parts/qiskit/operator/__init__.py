@@ -8,16 +8,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from qiskit.quantum_info import SparsePauliOp
 from qiskit.circuit import ParameterExpression
+from qiskit.quantum_info import SparsePauliOp
 
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
 
 
 def operator_from_qiskit_op(pauli_operator: SparsePauliOp) -> Operator:
-    """
-    Converts an :class:`SparsePauliOp` to :class:`Operator.
-    """
+    """Converts an :class:`SparsePauliOp` to :class:`Operator."""
     qp_op = Operator()
     coeff_list, string_list = [], []
 
