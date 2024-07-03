@@ -15,7 +15,7 @@ from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
 
 
 def operator_from_qiskit_op(pauli_operator: SparsePauliOp) -> Operator:
-    """Converts an :class:`SparsePauliOp` to :class:`Operator."""
+    """Converts a :class:`SparsePauliOp` to :class:`Operator."""
     qp_op = Operator()
     coeff_list, string_list = [], []
 
