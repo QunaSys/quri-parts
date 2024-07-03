@@ -31,7 +31,8 @@ def mock_get_backend(is_simulator: bool = True) -> QiskitRuntimeService:
     to configure accounts, such as on github CI.
 
     Args:
-        is_simulator: (bool)
+        is_simulator: (bool) An argument that determines if the mock backend
+            mocks a simulator backend or not.
 
     Returns: Mock of qiskit_ibm_runtime.QiskitRuntimeService
 
@@ -39,11 +40,6 @@ def mock_get_backend(is_simulator: bool = True) -> QiskitRuntimeService:
         NameError: If the specified value of backend
     """
     mock_qiskit_runtime_service = MagicMock(spec=QiskitRuntimeService)
-    # if not hasattr(backend_mocks, backend):
-    #     raise NameError(
-    #         "The specified backend is not a valid mock from qiskit.test.mock"
-    #     )
-    # fake_backend = getattr(backend_mocks, backend)()
 
     conf = MagicMock(spec=QasmBackendConfiguration)
     conf.max_shots = int(1e6)
