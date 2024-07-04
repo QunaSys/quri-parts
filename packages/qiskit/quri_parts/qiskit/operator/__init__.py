@@ -15,7 +15,7 @@ from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
 
 
 def operator_from_qiskit_op(pauli_operator: SparsePauliOp) -> Operator:
-    """Converts a :class:`SparsePauliOp` to :class:`Operator.
+    """Converts a :class:`SparsePauliOp` to :class:`Operator`.
 
     Currently, :class:`SparsePauliOp` with parametric coefficient is not
     supported.
