@@ -346,8 +346,8 @@ def _place_check(
 def _write_gate_string(
     gate_string: Sequence[str],
     row_idx: int,
-    circuit_picture: npt.NDArray[np.string_],
-) -> npt.NDArray[np.string_]:
+    circuit_picture: npt.NDArray[np.bytes_],
+) -> npt.NDArray[np.bytes_]:
     rows, cols = circuit_picture.shape
 
     # Checks if existing circuit block can accomodate ``gate_string``.
