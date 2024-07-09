@@ -282,7 +282,8 @@ class LBFGS(Optimizer):
         cost_prev: float,
         extra_condition: Optional[
             Callable[
-                [float, "npt.NDArray[np.float64]", float, "npt.NDArray[np.float64]"], bool
+                [float, "npt.NDArray[np.float64]", float, "npt.NDArray[np.float64]"],
+                bool,
             ]
         ] = None,
     ) -> tuple[int, int, float, float, float, "npt.NDArray[np.float64]"]:
