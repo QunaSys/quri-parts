@@ -1,0 +1,3 @@
+from .gate import QuantumGate
+
+def X(target_index: int) -> QuantumGate: ...

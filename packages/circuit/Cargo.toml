@@ -1,0 +1,17 @@
+[package]
+name = "quri-parts-circuit"
+version = "0.19.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+num-complex = "0.4.6"
+quri-parts = { path = "../../", version = "0.19.0", features = ["python"] }
+
+[dependencies.pyo3]
+version = "0.22"
+features = ["extension-module", "macros", "num-complex"]
+
+[lib]
+path = "rust/lib.rs"
+crate-type = ["rlib", "cdylib"]
