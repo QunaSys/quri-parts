@@ -1,129 +1,60 @@
-use crate::gate::{OtherData, QuantumGate};
+use crate::gate::{ParametricQuantumGate, QuantumGate};
+use crate::parameter::Parameter;
+use crate::{GenericGateProperty, MaybeUnbound, QuriPartsGate};
 use pyo3::prelude::*;
-
-#[derive(Clone, Debug, PartialEq)]
-#[pyclass(
-    frozen,
-    eq,
-    extends=QuantumGate,
-    module = "quri_parts.circuit.rust.gates"
-)]
-struct XGate();
-
-#[pymethods]
-impl XGate {
-    #[pyo3(name = "__hash__")]
-    fn py_hash(slf: PyRef<'_, Self>) -> u64 {
-        let sup: &QuantumGate = slf.as_ref();
-        sup.py_hash()
-    }
-}
 
 #[pyfunction(
     name = "X",
     signature = (target_index),
     text_signature = "(target_index: int)",
 )]
-fn py_x<'py>(py: Python<'py>, target_index: usize) -> PyResult<Py<XGate>> {
-    Ok(Py::new(
-        py,
-        (XGate(), QuantumGate(QuriPartsGate::X(target_index))),
-    )?)
+fn x<'py>(target_index: usize) -> QuantumGate {
+    QuantumGate(QuriPartsGate::X(target_index))
 }
 
-#[pyclass(
-    frozen,
-    get_all,
-    eq,
-    extends=QuantumGate,
-    module = "quri_parts.circuit.rust.gates"
+#[pyfunction(
+    name = "RX",
+    signature = (target_index, angle),
+    text_signature = "(target_index: int, angle: float)",
 )]
-#[derive(PartialEq, Debug)]
-struct OtherGate();
-
-#[pymethods]
-impl OtherGate {
-    #[pyo3(name = "__hash__")]
-    fn py_hash(slf: PyRef<'_, Self>) -> u64 {
-        let sup: &QuantumGate = slf.as_ref();
-        sup.py_hash()
-    }
+fn rx<'py>(target_index: usize, angle: f64) -> QuantumGate {
+    QuantumGate(QuriPartsGate::RX(target_index, angle))
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub enum QuriPartsGate {
-    X(usize),
-    Other(Box<OtherData>),
-}
-
-impl QuriPartsGate {
-    pub fn get_qubits(&self) -> Vec<usize> {
-        match self {
-            Self::X(q) => vec![*q],
-            Self::Other(o) => {
-                let mut ret = o.control_indices.clone();
-                ret.extend(o.target_indices.clone());
-                ret
-            }
-        }
-    }
-
-    pub fn get_cbits(&self) -> Vec<usize> {
-        vec![]
-    }
-
-    pub fn from_other(other: OtherData) -> Self {
-        match other.name.as_str() {
-            "X" if other.target_indices.len() == 1
-                && other.control_indices.is_empty()
-                && other.classical_indices.is_empty()
-                && other.params.is_empty()
-                && other.pauli_ids.is_empty()
-                && other.unitary_matrix.is_none() =>
-            {
-                Self::X(other.target_indices[0])
-            }
-            _ => Self::Other(Box::new(other)),
-        }
-    }
-
-    pub fn into_other(self) -> OtherData {
-        match self {
-            Self::X(q) => OtherData {
-                name: "X".to_owned(),
-                target_indices: vec![q],
-                control_indices: vec![],
-                classical_indices: vec![],
-                params: vec![],
-                pauli_ids: vec![],
-                unitary_matrix: None,
-            },
-            Self::Other(o) => *o,
-        }
-    }
-
-    pub fn instantiate<'py>(self, py: Python<'py>) -> PyResult<Py<QuantumGate>> {
-        match &self {
-            Self::X(_) => Ok(Py::new(py, (XGate(), QuantumGate(self)))?
-                .into_any()
-                .downcast_bound::<QuantumGate>(py)
-                .unwrap()
-                .clone()
-                .unbind()),
-            Self::Other(_) => Ok(Py::new(py, (OtherGate(), QuantumGate(self)))?
-                .into_any()
-                .downcast_bound::<QuantumGate>(py)
-                .unwrap()
-                .clone()
-                .unbind()),
-        }
-    }
+#[pyfunction(
+    name = "ParametricRX",
+    signature = (target_index),
+    text_signature = "(target_index: int)",
+)]
+fn parametric_rx(target_index: usize) -> ParametricQuantumGate {
+    ParametricQuantumGate(GenericGateProperty {
+        name: "ParametricRX".to_owned(),
+        target_indices: vec![target_index],
+        control_indices: vec![],
+        classical_indices: vec![],
+        params: vec![],
+        pauli_ids: vec![],
+        unitary_matrix: None,
+    })
 }
 
 pub fn py_module<'py>(py: Python<'py>) -> PyResult<Bound<'py, PyModule>> {
     let m = PyModule::new_bound(py, "gates")?;
-    m.add_wrapped(wrap_pyfunction!(py_x))?;
-    m.add_class::<OtherGate>()?;
-    m.add_class::<XGate>()?;
+    m.add_wrapped(wrap_pyfunction!(x))?;
+    m.add_wrapped(wrap_pyfunction!(rx))?;
+    m.add_wrapped(wrap_pyfunction!(parametric_rx))?;
     Ok(m)
+}
+
+impl QuriPartsGate<MaybeUnbound> {
+    pub fn instantiate<'py>(self) -> Result<QuantumGate, (ParametricQuantumGate, Py<Parameter>)> {
+        match self {
+            Self::X(q) => Ok(x(q)),
+            Self::RX(q, p) => match p {
+                MaybeUnbound::Bound(p) => Ok(rx(q, p)),
+                MaybeUnbound::Unbound(pid) => Err((parametric_rx(q), pid)),
+            },
+            Self::Other(o) => Ok(QuantumGate(QuriPartsGate::Other(o))),
+        }
+    }
 }

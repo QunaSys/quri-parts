@@ -1,12 +1,11 @@
-use crate::gates;
-use gates::QuriPartsGate;
+use crate::{GenericGateProperty, QuriPartsGate};
 use num_complex::Complex64;
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
 
-#[pyclass(subclass, frozen, eq, module = "quri_parts.circuit.rust.gate")]
+#[pyclass(frozen, eq, module = "quri_parts.circuit.rust.gate")]
 #[derive(Clone, Debug, PartialEq)]
-pub struct QuantumGate(pub(crate) QuriPartsGate);
+pub struct QuantumGate(pub(crate) QuriPartsGate<f64>);
 
 #[pymethods]
 impl QuantumGate {
@@ -24,7 +23,6 @@ impl QuantumGate {
         )"
     )]
     fn py_new<'py>(
-        py: Python<'py>,
         name: String,
         target_indices: Vec<usize>,
         control_indices: Vec<usize>,
@@ -32,14 +30,14 @@ impl QuantumGate {
         params: Vec<f64>,
         pauli_ids: Vec<u8>,
         mut unitary_matrix: Option<Vec<Vec<Complex64>>>,
-    ) -> PyResult<Py<QuantumGate>> {
+    ) -> PyResult<QuantumGate> {
         if let Some(matrix) = &unitary_matrix {
             if matrix.len() == 0 {
                 unitary_matrix = None;
             }
         }
-        let other = OtherData {
-            name,
+        let prop = GenericGateProperty {
+            name: name.clone(),
             target_indices,
             control_indices,
             classical_indices,
@@ -47,12 +45,19 @@ impl QuantumGate {
             pauli_ids,
             unitary_matrix,
         };
-        QuriPartsGate::from_other(other).instantiate(py)
+        Ok(QuantumGate(
+            QuriPartsGate::<f64>::from_property(prop).ok_or(
+                pyo3::exceptions::PyValueError::new_err(format!(
+                    "Cannot initialize QuantumGate with {}",
+                    &name
+                )),
+            )?,
+        ))
     }
 
     #[pyo3(name = "__repr__")]
     fn py_repr(&self) -> String {
-        self.0.clone().into_other().get_compat_string()
+        self.0.clone().into_property().get_compat_string()
     }
 
     #[pyo3(name = "__reduce__")]
@@ -70,7 +75,7 @@ impl QuantumGate {
             Option<Vec<Vec<Complex64>>>,
         ),
     )> {
-        let data = &slf.get().0.clone().into_other();
+        let data = &slf.get().0.clone().into_property();
         Ok((
             Bound::new(slf.py(), QuantumGate(slf.get().0.clone()))
                 .unwrap()
@@ -94,7 +99,7 @@ impl QuantumGate {
         use std::collections::hash_map::DefaultHasher;
         use std::hash::{Hash, Hasher};
         let mut hasher = DefaultHasher::new();
-        let data = self.0.clone().into_other();
+        let data = self.0.clone().into_property();
         data.name.hash(&mut hasher);
         data.target_indices.hash(&mut hasher);
         data.control_indices.hash(&mut hasher);
@@ -116,37 +121,43 @@ impl QuantumGate {
 
     #[getter]
     fn get_name(&self) -> String {
-        self.0.clone().into_other().name
+        self.0.clone().into_property().name
     }
 
     #[getter]
     fn get_target_indices<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
-        PyTuple::new_bound(slf.py(), slf.get().0.clone().into_other().target_indices)
+        PyTuple::new_bound(slf.py(), slf.get().0.clone().into_property().target_indices)
     }
 
     #[getter]
     fn get_control_indices<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
-        PyTuple::new_bound(slf.py(), slf.get().0.clone().into_other().control_indices)
+        PyTuple::new_bound(
+            slf.py(),
+            slf.get().0.clone().into_property().control_indices,
+        )
     }
 
     #[getter]
     fn get_classical_indices<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
-        PyTuple::new_bound(slf.py(), slf.get().0.clone().into_other().classical_indices)
+        PyTuple::new_bound(
+            slf.py(),
+            slf.get().0.clone().into_property().classical_indices,
+        )
     }
 
     #[getter]
     fn get_params<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
-        PyTuple::new_bound(slf.py(), slf.get().0.clone().into_other().params)
+        PyTuple::new_bound(slf.py(), slf.get().0.clone().into_property().params)
     }
 
     #[getter]
     fn get_pauli_ids<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
-        PyTuple::new_bound(slf.py(), slf.get().0.clone().into_other().pauli_ids)
+        PyTuple::new_bound(slf.py(), slf.get().0.clone().into_property().pauli_ids)
     }
 
     #[getter]
     fn get_unitary_matrix<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
-        if let Some(mat) = slf.get().0.clone().into_other().unitary_matrix {
+        if let Some(mat) = slf.get().0.clone().into_property().unitary_matrix {
             PyTuple::new_bound(slf.py(), mat)
         } else {
             PyTuple::new_bound(slf.py(), None as Option<usize>)
@@ -154,31 +165,122 @@ impl QuantumGate {
     }
 }
 
+#[pyclass(subclass, frozen, eq, module = "quri_parts.circuit.rust.gate")]
 #[derive(Clone, Debug, PartialEq)]
-pub struct OtherData {
-    pub name: String,
-    pub target_indices: Vec<usize>,
-    pub control_indices: Vec<usize>,
-    pub classical_indices: Vec<usize>,
-    pub params: Vec<f64>,
-    pub pauli_ids: Vec<u8>,
-    pub unitary_matrix: Option<Vec<Vec<Complex64>>>,
+pub struct ParametricQuantumGate(pub(crate) GenericGateProperty);
+
+#[pymethods]
+impl ParametricQuantumGate {
+    #[new]
+    #[pyo3(
+        signature = (name, target_indices, control_indices=Vec::new(), pauli_ids=Vec::new()),
+        text_signature = "(
+            name: str,
+            target_indices: Sequence[int],
+            control_indices: Sequence[int] = [],
+            pauli_ids: Sequence[int] = [],
+        )"
+    )]
+    fn py_new<'py>(
+        name: String,
+        target_indices: Vec<usize>,
+        control_indices: Vec<usize>,
+        pauli_ids: Vec<u8>,
+    ) -> ParametricQuantumGate {
+        let prop = GenericGateProperty {
+            name: name.clone(),
+            target_indices,
+            control_indices,
+            pauli_ids,
+            classical_indices: vec![],
+            params: vec![],
+            unitary_matrix: None,
+        };
+        ParametricQuantumGate(prop)
+    }
+
+    #[pyo3(name = "__repr__")]
+    fn py_repr(&self) -> String {
+        self.0.get_compat_string_parametric()
+    }
+
+    #[pyo3(name = "__reduce__")]
+    fn py_reduce(
+        slf: &Bound<'_, Self>,
+    ) -> PyResult<(PyObject, (String, Vec<usize>, Vec<usize>, Vec<u8>))> {
+        let data = &slf.get().0;
+        Ok((
+            Bound::new(slf.py(), ParametricQuantumGate(slf.get().0.clone()))
+                .unwrap()
+                .getattr("__class__")
+                .unwrap()
+                .unbind(),
+            (
+                data.name.clone(),
+                data.target_indices.clone(),
+                data.control_indices.clone(),
+                data.pauli_ids.clone(),
+            ),
+        ))
+    }
+
+    #[pyo3(name = "__hash__")]
+    pub(crate) fn py_hash(&self) -> u64 {
+        use std::collections::hash_map::DefaultHasher;
+        use std::hash::{Hash, Hasher};
+        let mut hasher = DefaultHasher::new();
+        let data = self.0.clone();
+        data.name.hash(&mut hasher);
+        data.target_indices.hash(&mut hasher);
+        data.control_indices.hash(&mut hasher);
+        for p in data.params.iter() {
+            p.to_le_bytes().hash(&mut hasher);
+        }
+        data.pauli_ids.hash(&mut hasher);
+        hasher.finish()
+    }
+
+    #[getter]
+    fn get_name(&self) -> String {
+        self.0.name.clone()
+    }
+
+    #[getter]
+    fn get_target_indices<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
+        PyTuple::new_bound(slf.py(), slf.get().0.target_indices.clone())
+    }
+
+    #[getter]
+    fn get_control_indices<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
+        PyTuple::new_bound(slf.py(), slf.get().0.control_indices.clone())
+    }
+
+    #[getter]
+    fn get_params<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
+        PyTuple::new_bound(slf.py(), slf.get().0.params.clone())
+    }
+
+    #[getter]
+    fn get_pauli_ids<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
+        PyTuple::new_bound(slf.py(), slf.get().0.pauli_ids.clone())
+    }
 }
 
-impl OtherData {
+fn format_tuple<T: core::fmt::Display>(input: &[T]) -> String {
+    let out = input
+        .iter()
+        .map(|i| format!("{}", i))
+        .collect::<Vec<_>>()
+        .join(", ");
+    if input.len() == 1 {
+        out + ","
+    } else {
+        out
+    }
+}
+
+impl GenericGateProperty {
     pub fn get_compat_string(&self) -> String {
-        fn format_tuple<T: core::fmt::Display>(input: &[T]) -> String {
-            let out = input
-                .iter()
-                .map(|i| format!("{}", i))
-                .collect::<Vec<_>>()
-                .join(", ");
-            if input.len() == 1 {
-                out + ","
-            } else {
-                out
-            }
-        }
         format!("QuantumGate(name='{}', target_indices=({}), control_indices=({}), classical_indices=({}), params=({}), pauli_ids=({}), unitary_matrix={})",
             &self.name,
             format_tuple(self.target_indices.as_slice()),
@@ -193,10 +295,19 @@ impl OtherData {
             }
         )
     }
+    pub fn get_compat_string_parametric(&self) -> String {
+        format!("ParametricQuantumGate(name='{}', target_indices=({}), control_indices=({}), pauli_ids=({}))",
+            &self.name,
+            format_tuple(self.target_indices.as_slice()),
+            format_tuple(self.control_indices.as_slice()),
+            format_tuple(self.pauli_ids.as_slice()),
+        )
+    }
 }
 
 pub fn py_module<'py>(py: Python<'py>) -> PyResult<Bound<'py, PyModule>> {
     let m = PyModule::new_bound(py, "gate")?;
     m.add_class::<QuantumGate>()?;
+    m.add_class::<ParametricQuantumGate>()?;
     Ok(m)
 }
