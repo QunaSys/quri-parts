@@ -1,5 +1,5 @@
 use crate::gate::QuantumGate;
-use crate::gates::QuriPartsGate;
+use crate::QuriPartsGate;
 use pyo3::prelude::*;
 use pyo3::types::PySequence;
 use quri_parts::BasicBlock;
@@ -12,7 +12,7 @@ pub struct ImmutableQuantumCircuit {
     qubit_count: usize,
     #[pyo3(get)]
     cbit_count: usize,
-    gates: Box<RwLock<BasicBlock<QuriPartsGate>>>,
+    pub gates: Box<RwLock<BasicBlock<QuriPartsGate<f64>>>>,
     depth_cache: Box<RwLock<Option<usize>>>,
 }
 
@@ -61,13 +61,9 @@ impl ImmutableQuantumCircuit {
     }
 
     #[getter]
-    fn get_gates(slf: &Bound<'_, Self>) -> PyResult<Vec<Py<QuantumGate>>> {
+    fn get_gates(slf: &Bound<'_, Self>) -> Vec<QuantumGate> {
         let gates = slf.get().gates.read().unwrap();
-        gates
-            .0
-            .iter()
-            .map(|g| g.clone().instantiate(slf.py()))
-            .collect()
+        gates.0.iter().map(|g| QuantumGate(g.clone())).collect()
     }
 
     #[getter]

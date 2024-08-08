@@ -10,7 +10,7 @@ quri-parts = { path = "../../", version = "0.19.0", features = ["python"] }
 
 [dependencies.pyo3]
 version = "0.22"
-features = ["extension-module", "macros", "num-complex"]
+features = ["extension-module", "macros", "num-complex", "py-clone"]
 
 [lib]
 path = "rust/lib.rs"
