@@ -1,12 +1,12 @@
 use crate::gates;
-use gates::QuriPartsGates;
+use gates::QuriPartsGate;
 use num_complex::Complex64;
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
 
 #[pyclass(subclass, frozen, eq, module = "quri_parts.circuit.rust.gate")]
 #[derive(Clone, Debug, PartialEq)]
-pub struct QuantumGate(pub(crate) QuriPartsGates);
+pub struct QuantumGate(pub(crate) QuriPartsGate);
 
 #[pymethods]
 impl QuantumGate {
@@ -47,7 +47,7 @@ impl QuantumGate {
             pauli_ids,
             unitary_matrix,
         };
-        QuriPartsGates::from_other(other).instanciate(py)
+        QuriPartsGate::from_other(other).instantiate(py)
     }
 
     #[pyo3(name = "__repr__")]

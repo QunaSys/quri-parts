@@ -27,7 +27,7 @@ impl XGate {
 fn py_x<'py>(py: Python<'py>, target_index: usize) -> PyResult<Py<XGate>> {
     Ok(Py::new(
         py,
-        (XGate(), QuantumGate(QuriPartsGates::X(target_index))),
+        (XGate(), QuantumGate(QuriPartsGate::X(target_index))),
     )?)
 }
 
@@ -51,12 +51,12 @@ impl OtherGate {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum QuriPartsGates {
+pub enum QuriPartsGate {
     X(usize),
     Other(Box<OtherData>),
 }
 
-impl QuriPartsGates {
+impl QuriPartsGate {
     pub fn get_qubits(&self) -> Vec<usize> {
         match self {
             Self::X(q) => vec![*q],
@@ -102,7 +102,7 @@ impl QuriPartsGates {
         }
     }
 
-    pub fn instanciate<'py>(self, py: Python<'py>) -> PyResult<Py<QuantumGate>> {
+    pub fn instantiate<'py>(self, py: Python<'py>) -> PyResult<Py<QuantumGate>> {
         match &self {
             Self::X(_) => Ok(Py::new(py, (XGate(), QuantumGate(self)))?
                 .into_any()
