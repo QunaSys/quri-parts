@@ -1,10 +1,39 @@
 use pyo3::prelude::*;
 
+#[derive(Clone, Debug)]
+pub struct Wrapper(pub Py<Parameter>);
+
+impl core::cmp::PartialEq for Wrapper {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.as_ptr() as usize == other.0.as_ptr() as usize
+    }
+}
+
+impl core::cmp::Eq for Wrapper {}
+
+impl core::hash::Hash for Wrapper {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        state.write_u64(self.0.as_ptr() as u64)
+    }
+}
+
+impl pyo3::conversion::IntoPy<PyObject> for Wrapper {
+    fn into_py(self, py: Python<'_>) -> PyObject {
+        self.0.into_py(py)
+    }
+}
+
 #[pyclass]
-#[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Parameter {
     #[pyo3(get, set)]
     name: String,
+}
+
+impl core::fmt::Display for Parameter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.name)
+    }
 }
 
 #[pymethods]
