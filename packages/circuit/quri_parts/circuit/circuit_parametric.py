@@ -13,6 +13,7 @@ from collections.abc import Mapping, Sequence
 from functools import cached_property
 from typing import Optional, Protocol, Union, runtime_checkable
 
+import quri_parts.circuit.rust
 from quri_parts.circuit import gate_names
 
 from .circuit import (
@@ -456,9 +457,14 @@ class ImmutableBoundParametricQuantumCircuit(ImmutableQuantumCircuit):
         def map_param_gate(
             gate: Union[QuantumGate, ParametricQuantumGate], param: Optional[Parameter]
         ) -> QuantumGate:
-            if isinstance(gate, QuantumGate):
+            if isinstance(gate, QuantumGate) or isinstance(
+                gate, quri_parts.circuit.rust.gate.QuantumGate
+            ):
                 return gate
-            elif isinstance(gate, ParametricQuantumGate) and param is not None:
+            elif (
+                isinstance(gate, ParametricQuantumGate)
+                or isinstance(gate, quri_parts.circuit.rust.gate.ParametricQuantumGate)
+            ) and param is not None:
                 value = self.parameter_map[param]
                 if gate.name == gate_names.ParametricRX:
                     return RX(gate.target_indices[0], value)
