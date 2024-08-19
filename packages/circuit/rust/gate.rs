@@ -18,6 +18,15 @@ pub enum QuantumGate<P = f64> {
     T(usize),
     Tdag(usize),
     RX(usize, P),
+    RY(usize, P),
+    RZ(usize, P),
+    U1(usize, P),
+    U2(usize, P, P),
+    U3(usize, P, P, P),
+    CNOT(usize, usize),
+    CZ(usize, usize),
+    SWAP(usize, usize),
+    TOFFOLI(usize, usize, usize),
     UnitaryMatrix(Vec<usize>, Vec<Vec<Complex64>>),
     Pauli(Vec<usize>, Vec<u8>),
     PauliRotation(Vec<usize>, Vec<u8>, P),
@@ -40,7 +49,14 @@ impl<P: Clone> QuantumGate<P> {
             | Self::SqrtYdag(q)
             | Self::T(q)
             | Self::Tdag(q)
-            | Self::RX(q, _) => vec![*q],
+            | Self::RX(q, _)
+            | Self::RY(q, _)
+            | Self::RZ(q, _)
+            | Self::U1(q, _)
+            | Self::U2(q, _, _)
+            | Self::U3(q, _, _, _) => vec![*q],
+            Self::CNOT(q0, q1) | Self::CZ(q0, q1) | Self::SWAP(q0, q1) => vec![*q0, *q1],
+            Self::TOFFOLI(q0, q1, q2) => vec![*q0, *q1, *q2],
             Self::UnitaryMatrix(qs, _) | Self::Pauli(qs, _) | Self::PauliRotation(qs, _, _) => {
                 qs.clone()
             }
@@ -61,7 +77,9 @@ impl<P: Clone> QuantumGate<P> {
 
     pub fn get_params(&self) -> Vec<P> {
         match self {
-            Self::RX(_, p) => vec![p.clone()],
+            Self::RX(_, p) | Self::RY(_, p) | Self::RZ(_, p) | Self::U1(_, p) => vec![p.clone()],
+            Self::U2(_, p0, p1) => vec![p0.clone(), p1.clone()],
+            Self::U3(_, p0, p1, p2) => vec![p0.clone(), p1.clone(), p2.clone()],
             Self::PauliRotation(_, _, p) => vec![p.clone()],
             _ => vec![],
         }
@@ -83,6 +101,15 @@ impl<P: Clone> QuantumGate<P> {
             QuantumGate::T(q) => QuantumGate::T(q),
             QuantumGate::Tdag(q) => QuantumGate::Tdag(q),
             QuantumGate::RX(q, p) => QuantumGate::RX(q, f(p)),
+            QuantumGate::RY(q, p) => QuantumGate::RY(q, f(p)),
+            QuantumGate::RZ(q, p) => QuantumGate::RZ(q, f(p)),
+            QuantumGate::U1(q, p) => QuantumGate::U1(q, f(p)),
+            QuantumGate::U2(q, p0, p1) => QuantumGate::U2(q, f(p0), f(p1)),
+            QuantumGate::U3(q, p0, p1, p2) => QuantumGate::U3(q, f(p0), f(p1), f(p2)),
+            QuantumGate::CNOT(q0, q1) => QuantumGate::CNOT(q0, q1),
+            QuantumGate::CZ(q0, q1) => QuantumGate::CZ(q0, q1),
+            QuantumGate::SWAP(q0, q1) => QuantumGate::SWAP(q0, q1),
+            QuantumGate::TOFFOLI(q0, q1, q2) => QuantumGate::TOFFOLI(q0, q1, q2),
             QuantumGate::UnitaryMatrix(qs, mat) => QuantumGate::UnitaryMatrix(qs, mat),
             QuantumGate::Pauli(qs, ps) => QuantumGate::Pauli(qs, ps),
             QuantumGate::PauliRotation(qs, ps, a) => QuantumGate::PauliRotation(qs, ps, f(a)),
@@ -140,6 +167,88 @@ impl QuantumGate<f64> {
             "T" if is_nonpara_named_1q_gate() => Ok(Some(Self::T(prop.target_indices[0]))),
             "Tdag" if is_nonpara_named_1q_gate() => Ok(Some(Self::Tdag(prop.target_indices[0]))),
             "RX" if is_para_1q_gate() => Ok(Some(Self::RX(prop.target_indices[0], prop.params[0]))),
+            "RY" if is_para_1q_gate() => Ok(Some(Self::RY(prop.target_indices[0], prop.params[0]))),
+            "RZ" if is_para_1q_gate() => Ok(Some(Self::RZ(prop.target_indices[0], prop.params[0]))),
+            "U1" if is_para_1q_gate() => Ok(Some(Self::U1(prop.target_indices[0], prop.params[0]))),
+            "U2" if prop.control_indices.is_empty()
+                && prop.target_indices.len() == 1
+                && prop.classical_indices.is_empty()
+                && prop.params.len() == 2
+                && prop.pauli_ids.is_empty()
+                && prop.unitary_matrix.is_none() =>
+            {
+                Ok(Some(Self::U2(
+                    prop.target_indices[0],
+                    prop.params[0],
+                    prop.params[1],
+                )))
+            }
+            "U3" if prop.control_indices.is_empty()
+                && prop.target_indices.len() == 1
+                && prop.classical_indices.is_empty()
+                && prop.params.len() == 3
+                && prop.pauli_ids.is_empty()
+                && prop.unitary_matrix.is_none() =>
+            {
+                Ok(Some(Self::U3(
+                    prop.target_indices[0],
+                    prop.params[0],
+                    prop.params[1],
+                    prop.params[2],
+                )))
+            }
+            "CNOT"
+                if prop.control_indices.len() == 1
+                    && prop.target_indices.len() == 1
+                    && prop.classical_indices.is_empty()
+                    && prop.params.is_empty()
+                    && prop.pauli_ids.is_empty()
+                    && prop.unitary_matrix.is_none() =>
+            {
+                Ok(Some(Self::CNOT(
+                    prop.control_indices[0],
+                    prop.target_indices[0],
+                )))
+            }
+            "CZ" if prop.control_indices.len() == 1
+                && prop.target_indices.len() == 1
+                && prop.classical_indices.is_empty()
+                && prop.params.is_empty()
+                && prop.pauli_ids.is_empty()
+                && prop.unitary_matrix.is_none() =>
+            {
+                Ok(Some(Self::CZ(
+                    prop.control_indices[0],
+                    prop.target_indices[0],
+                )))
+            }
+            "SWAP"
+                if prop.control_indices.is_empty()
+                    && prop.target_indices.len() == 2
+                    && prop.classical_indices.is_empty()
+                    && prop.params.is_empty()
+                    && prop.pauli_ids.is_empty()
+                    && prop.unitary_matrix.is_none() =>
+            {
+                Ok(Some(Self::SWAP(
+                    prop.target_indices[0],
+                    prop.target_indices[1],
+                )))
+            }
+            "TOFFOLI"
+                if prop.control_indices.len() == 2
+                    && prop.target_indices.len() == 1
+                    && prop.classical_indices.is_empty()
+                    && prop.params.is_empty()
+                    && prop.pauli_ids.is_empty()
+                    && prop.unitary_matrix.is_none() =>
+            {
+                Ok(Some(Self::TOFFOLI(
+                    prop.control_indices[0],
+                    prop.control_indices[1],
+                    prop.target_indices[0],
+                )))
+            }
             "UnitaryMatrix" | "SingleQubitUnitaryMatrix" | "TwoQubitUnitaryMatrix"
                 if prop.control_indices.is_empty()
                     && prop.classical_indices.is_empty()
@@ -174,7 +283,7 @@ impl QuantumGate<f64> {
                     prop.params[0],
                 )))
             }
-            "ParametricRX" => Ok(None),
+            "ParametricRX" | "ParametricRY" | "ParametricRZ" => Ok(None),
             _ => Ok(Some(Self::Other(Box::new(prop)))),
         }
     }
@@ -219,6 +328,44 @@ impl QuantumGate<f64> {
             Self::T(q) => nonpara_named_1q_gate("T", q),
             Self::Tdag(q) => nonpara_named_1q_gate("Tdag", q),
             Self::RX(q, p) => para_1q_gate("RX", q, p),
+            Self::RY(q, p) => para_1q_gate("RY", q, p),
+            Self::RZ(q, p) => para_1q_gate("RZ", q, p),
+            Self::U1(q, p) => para_1q_gate("U1", q, p),
+            Self::U2(q, p0, p1) => GenericGateProperty {
+                name: "U2".to_owned(),
+                target_indices: vec![q],
+                params: vec![p0, p1],
+                ..Default::default()
+            },
+            Self::U3(q, p0, p1, p2) => GenericGateProperty {
+                name: "U3".to_owned(),
+                target_indices: vec![q],
+                params: vec![p0, p1, p2],
+                ..Default::default()
+            },
+            Self::CNOT(q0, q1) => GenericGateProperty {
+                name: "CNOT".to_owned(),
+                control_indices: vec![q0],
+                target_indices: vec![q1],
+                ..Default::default()
+            },
+            Self::CZ(q0, q1) => GenericGateProperty {
+                name: "CZ".to_owned(),
+                control_indices: vec![q0],
+                target_indices: vec![q1],
+                ..Default::default()
+            },
+            Self::SWAP(q0, q1) => GenericGateProperty {
+                name: "SWAP".to_owned(),
+                target_indices: vec![q0, q1],
+                ..Default::default()
+            },
+            Self::TOFFOLI(q0, q1, q2) => GenericGateProperty {
+                name: "CNOT".to_owned(),
+                control_indices: vec![q0, q1],
+                target_indices: vec![q2],
+                ..Default::default()
+            },
             Self::UnitaryMatrix(target_indices, mat) => GenericGateProperty {
                 name: match target_indices.len() {
                     1 => "SingleQubitUnitaryMatrix",
