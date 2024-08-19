@@ -2,6 +2,7 @@ use crate::gate::QuantumGate;
 use pyo3::prelude::*;
 use pyo3::types::{PySequence, PyString};
 use quri_parts::BasicBlock;
+use std::collections::HashMap;
 use std::sync::RwLock;
 
 const PICKLE_STUB_ARG: &'static str = "__QURI_PARTS_STUB_ARG_FOR_UNPICKLING";
@@ -93,7 +94,22 @@ impl ImmutableQuantumCircuit {
         if let Some(depth) = *self.depth_cache.read().unwrap() {
             depth
         } else {
-            todo!()
+            let mut ds = HashMap::<usize, usize>::new();
+            let gates = self.gates.read().unwrap();
+            for gate in gates.0.iter() {
+                let qubits = gate.get_qubits();
+                let d = 1 + qubits
+                    .iter()
+                    .map(|q| ds.get(&q).unwrap_or(&0))
+                    .max()
+                    .unwrap();
+                qubits.iter().for_each(|q| {
+                    ds.insert(*q, d);
+                });
+            }
+            let depth = ds.into_values().max().unwrap_or(0);
+            *self.depth_cache.write().unwrap() = Some(depth);
+            depth
         }
     }
 
@@ -232,6 +248,138 @@ impl QuantumCircuit {
     #[allow(non_snake_case)]
     fn add_X_gate(slf: PyRef<'_, Self>, qubit_index: usize) -> PyResult<()> {
         Self::add_gate(slf, QuantumGate::X(qubit_index), None)
+    }
+
+    #[allow(non_snake_case)]
+    fn add_Y_gate(slf: PyRef<'_, Self>, qubit_index: usize) -> PyResult<()> {
+        Self::add_gate(slf, QuantumGate::Y(qubit_index), None)
+    }
+
+    #[allow(non_snake_case)]
+    fn add_Z_gate(slf: PyRef<'_, Self>, qubit_index: usize) -> PyResult<()> {
+        Self::add_gate(slf, QuantumGate::Z(qubit_index), None)
+    }
+
+    #[allow(non_snake_case)]
+    fn add_H_gate(slf: PyRef<'_, Self>, qubit_index: usize) -> PyResult<()> {
+        Self::add_gate(slf, QuantumGate::H(qubit_index), None)
+    }
+
+    #[allow(non_snake_case)]
+    fn add_S_gate(slf: PyRef<'_, Self>, qubit_index: usize) -> PyResult<()> {
+        Self::add_gate(slf, QuantumGate::S(qubit_index), None)
+    }
+
+    #[allow(non_snake_case)]
+    fn add_Sdag_gate(slf: PyRef<'_, Self>, qubit_index: usize) -> PyResult<()> {
+        Self::add_gate(slf, QuantumGate::Sdag(qubit_index), None)
+    }
+
+    #[allow(non_snake_case)]
+    fn add_SqrtX_gate(slf: PyRef<'_, Self>, qubit_index: usize) -> PyResult<()> {
+        Self::add_gate(slf, QuantumGate::SqrtX(qubit_index), None)
+    }
+
+    #[allow(non_snake_case)]
+    fn add_SqrtXdag_gate(slf: PyRef<'_, Self>, qubit_index: usize) -> PyResult<()> {
+        Self::add_gate(slf, QuantumGate::SqrtXdag(qubit_index), None)
+    }
+
+    #[allow(non_snake_case)]
+    fn add_SqrtY_gate(slf: PyRef<'_, Self>, qubit_index: usize) -> PyResult<()> {
+        Self::add_gate(slf, QuantumGate::SqrtY(qubit_index), None)
+    }
+
+    #[allow(non_snake_case)]
+    fn add_SqrtYdag_gate(slf: PyRef<'_, Self>, qubit_index: usize) -> PyResult<()> {
+        Self::add_gate(slf, QuantumGate::SqrtYdag(qubit_index), None)
+    }
+
+    #[allow(non_snake_case)]
+    fn add_T_gate(slf: PyRef<'_, Self>, qubit_index: usize) -> PyResult<()> {
+        Self::add_gate(slf, QuantumGate::T(qubit_index), None)
+    }
+
+    #[allow(non_snake_case)]
+    fn add_Tdag_gate(slf: PyRef<'_, Self>, qubit_index: usize) -> PyResult<()> {
+        Self::add_gate(slf, QuantumGate::Tdag(qubit_index), None)
+    }
+
+    #[allow(non_snake_case)]
+    fn add_U1_gate(slf: PyRef<'_, Self>, qubit_index: usize, lmd: f64) -> PyResult<()> {
+        Self::add_gate(slf, QuantumGate::U1(qubit_index, lmd), None)
+    }
+
+    #[allow(non_snake_case)]
+    fn add_U2_gate(slf: PyRef<'_, Self>, qubit_index: usize, phi: f64, lmd: f64) -> PyResult<()> {
+        Self::add_gate(slf, QuantumGate::U2(qubit_index, phi, lmd), None)
+    }
+
+    #[allow(non_snake_case)]
+    fn add_U3_gate(
+        slf: PyRef<'_, Self>,
+        qubit_index: usize,
+        theta: f64,
+        phi: f64,
+        lmd: f64,
+    ) -> PyResult<()> {
+        Self::add_gate(slf, QuantumGate::U3(qubit_index, theta, phi, lmd), None)
+    }
+
+    #[allow(non_snake_case)]
+    fn add_RX_gate(slf: PyRef<'_, Self>, qubit_index: usize, angle: f64) -> PyResult<()> {
+        Self::add_gate(slf, QuantumGate::RX(qubit_index, angle), None)
+    }
+
+    #[allow(non_snake_case)]
+    fn add_RY_gate(slf: PyRef<'_, Self>, qubit_index: usize, angle: f64) -> PyResult<()> {
+        Self::add_gate(slf, QuantumGate::RY(qubit_index, angle), None)
+    }
+
+    #[allow(non_snake_case)]
+    fn add_RZ_gate(slf: PyRef<'_, Self>, qubit_index: usize, angle: f64) -> PyResult<()> {
+        Self::add_gate(slf, QuantumGate::RZ(qubit_index, angle), None)
+    }
+
+    #[allow(non_snake_case)]
+    fn add_CNOT_gate(
+        slf: PyRef<'_, Self>,
+        control_index: usize,
+        target_index: usize,
+    ) -> PyResult<()> {
+        Self::add_gate(slf, QuantumGate::CNOT(control_index, target_index), None)
+    }
+
+    #[allow(non_snake_case)]
+    fn add_CZ_gate(
+        slf: PyRef<'_, Self>,
+        control_index: usize,
+        target_index: usize,
+    ) -> PyResult<()> {
+        Self::add_gate(slf, QuantumGate::CZ(control_index, target_index), None)
+    }
+
+    #[allow(non_snake_case)]
+    fn add_SWAP_gate(
+        slf: PyRef<'_, Self>,
+        target_index1: usize,
+        target_index2: usize,
+    ) -> PyResult<()> {
+        Self::add_gate(slf, QuantumGate::SWAP(target_index1, target_index2), None)
+    }
+
+    #[allow(non_snake_case)]
+    fn add_TOFFOLI_gate(
+        slf: PyRef<'_, Self>,
+        control_index1: usize,
+        control_index2: usize,
+        target_index: usize,
+    ) -> PyResult<()> {
+        Self::add_gate(
+            slf,
+            QuantumGate::TOFFOLI(control_index1, control_index2, target_index),
+            None,
+        )
     }
 }
 

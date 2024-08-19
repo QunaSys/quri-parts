@@ -131,6 +131,24 @@ pub fn rx<'py>(target_index: usize, angle: f64) -> QuantumGate {
 }
 
 #[pyfunction(
+    name = "RY",
+    signature = (target_index, angle),
+    text_signature = "(target_index: int, angle: float)",
+)]
+pub fn ry<'py>(target_index: usize, angle: f64) -> QuantumGate {
+    QuantumGate::RY(target_index, angle)
+}
+
+#[pyfunction(
+    name = "RZ",
+    signature = (target_index, angle),
+    text_signature = "(target_index: int, angle: float)",
+)]
+pub fn rz<'py>(target_index: usize, angle: f64) -> QuantumGate {
+    QuantumGate::RZ(target_index, angle)
+}
+
+#[pyfunction(
     name = "ParametricRX",
     signature = (target_index),
     text_signature = "(target_index: int)",
@@ -145,6 +163,103 @@ pub fn parametric_rx(target_index: usize) -> ParametricQuantumGate {
         pauli_ids: vec![],
         unitary_matrix: None,
     })
+}
+
+#[pyfunction(
+    name = "ParametricRY",
+    signature = (target_index),
+    text_signature = "(target_index: int)",
+)]
+pub fn parametric_ry(target_index: usize) -> ParametricQuantumGate {
+    ParametricQuantumGate(GenericGateProperty {
+        name: "ParametricRY".to_owned(),
+        target_indices: vec![target_index],
+        control_indices: vec![],
+        classical_indices: vec![],
+        params: vec![],
+        pauli_ids: vec![],
+        unitary_matrix: None,
+    })
+}
+
+#[pyfunction(
+    name = "ParametricRZ",
+    signature = (target_index),
+    text_signature = "(target_index: int)",
+)]
+pub fn parametric_rz(target_index: usize) -> ParametricQuantumGate {
+    ParametricQuantumGate(GenericGateProperty {
+        name: "ParametricRZ".to_owned(),
+        target_indices: vec![target_index],
+        control_indices: vec![],
+        classical_indices: vec![],
+        params: vec![],
+        pauli_ids: vec![],
+        unitary_matrix: None,
+    })
+}
+
+#[pyfunction(
+    name = "U1",
+    signature = (target_index, lmd),
+    text_signature = "(target_index: int, lmd: float)",
+)]
+pub fn u1<'py>(target_index: usize, lmd: f64) -> QuantumGate {
+    QuantumGate::U1(target_index, lmd)
+}
+
+#[pyfunction(
+    name = "U2",
+    signature = (target_index, phi, lmd),
+    text_signature = "(target_index: int, phi: float, lmd: float)",
+)]
+pub fn u2<'py>(target_index: usize, phi: f64, lmd: f64) -> QuantumGate {
+    QuantumGate::U2(target_index, phi, lmd)
+}
+
+#[pyfunction(
+    name = "U3",
+    signature = (target_index, theta, phi, lmd),
+    text_signature = "(target_index: int, theta: float, phi: float, lmd: float)",
+)]
+pub fn u3<'py>(target_index: usize, theta: f64, phi: f64, lmd: f64) -> QuantumGate {
+    QuantumGate::U3(target_index, theta, phi, lmd)
+}
+
+#[pyfunction(
+    name = "CNOT",
+    signature = (control_index, target_index),
+    text_signature = "(control_index: int, target_index: int)",
+)]
+pub fn cnot(control_index: usize, target_index: usize) -> QuantumGate {
+    QuantumGate::CNOT(control_index, target_index)
+}
+
+#[pyfunction(
+    name = "CZ",
+    signature = (control_index, target_index),
+    text_signature = "(control_index: int, target_index: int)",
+)]
+pub fn cz(control_index: usize, target_index: usize) -> QuantumGate {
+    QuantumGate::CZ(control_index, target_index)
+}
+
+#[pyfunction(
+    name = "SWAP",
+    signature = (target_index1, target_index2),
+    text_signature = "(target_index1: int, target_index2: int)",
+)]
+pub fn swap(target_index1: usize, target_index2: usize) -> QuantumGate {
+    QuantumGate::SWAP(target_index1, target_index2)
+}
+
+#[pyfunction(
+    name = "TOFFOLI",
+    signature = (control_index1, control_index2, target_index),
+    text_signature = "(control_index1: int, control_index2: int, target_index: int)",
+)]
+pub fn toffoli(control_index1: usize, control_index2: usize, target_index: usize) -> QuantumGate {
+    QuantumGate::TOFFOLI(control_index1, control_index2, target_index)
 }
 
 #[pyfunction(
@@ -240,7 +355,18 @@ pub fn py_module<'py>(py: Python<'py>) -> PyResult<Bound<'py, PyModule>> {
     m.add_wrapped(wrap_pyfunction!(t))?;
     m.add_wrapped(wrap_pyfunction!(tdag))?;
     m.add_wrapped(wrap_pyfunction!(rx))?;
+    m.add_wrapped(wrap_pyfunction!(ry))?;
+    m.add_wrapped(wrap_pyfunction!(rz))?;
     m.add_wrapped(wrap_pyfunction!(parametric_rx))?;
+    m.add_wrapped(wrap_pyfunction!(parametric_ry))?;
+    m.add_wrapped(wrap_pyfunction!(parametric_rz))?;
+    m.add_wrapped(wrap_pyfunction!(u1))?;
+    m.add_wrapped(wrap_pyfunction!(u2))?;
+    m.add_wrapped(wrap_pyfunction!(u3))?;
+    m.add_wrapped(wrap_pyfunction!(cnot))?;
+    m.add_wrapped(wrap_pyfunction!(cz))?;
+    m.add_wrapped(wrap_pyfunction!(swap))?;
+    m.add_wrapped(wrap_pyfunction!(toffoli))?;
     m.add_wrapped(wrap_pyfunction!(unitary_matrix))?;
     m.add_wrapped(wrap_pyfunction!(single_qubit_unitary_matrix))?;
     m.add_wrapped(wrap_pyfunction!(two_qubit_unitary_matrix))?;
@@ -267,10 +393,42 @@ impl QuantumGate<MaybeUnbound> {
             Self::SqrtYdag(q) => Ok(Ok(sqrtydag(q))),
             Self::T(q) => Ok(Ok(t(q))),
             Self::Tdag(q) => Ok(Ok(tdag(q))),
+            Self::CNOT(q0, q1) => Ok(Ok(cnot(q0, q1))),
+            Self::CZ(q0, q1) => Ok(Ok(cz(q0, q1))),
+            Self::SWAP(q0, q1) => Ok(Ok(swap(q0, q1))),
+            Self::TOFFOLI(q0, q1, q2) => Ok(Ok(toffoli(q0, q1, q2))),
             Self::UnitaryMatrix(qs, mat) => Ok(Ok(unitary_matrix(qs, mat)?)),
             Self::RX(q, p) => match p {
                 MaybeUnbound::Bound(p) => Ok(Ok(rx(q, p))),
                 MaybeUnbound::Unbound(pid) => Ok(Err((parametric_rx(q), pid))),
+            },
+            Self::RY(q, p) => match p {
+                MaybeUnbound::Bound(p) => Ok(Ok(ry(q, p))),
+                MaybeUnbound::Unbound(pid) => Ok(Err((parametric_ry(q), pid))),
+            },
+            Self::RZ(q, p) => match p {
+                MaybeUnbound::Bound(p) => Ok(Ok(rz(q, p))),
+                MaybeUnbound::Unbound(pid) => Ok(Err((parametric_rz(q), pid))),
+            },
+            Self::U1(q, p) => match p {
+                MaybeUnbound::Bound(p) => Ok(Ok(u1(q, p))),
+                MaybeUnbound::Unbound(_pid) => todo!(),
+            },
+            Self::U2(q, p0, p1) => match (p0, p1) {
+                (MaybeUnbound::Bound(p0), MaybeUnbound::Bound(p1)) => Ok(Ok(u2(q, p0, p1))),
+                (MaybeUnbound::Unbound(_pid0), MaybeUnbound::Unbound(_pid1)) => todo!(),
+                _ => unreachable!(),
+            },
+            Self::U3(q, p0, p1, p2) => match (p0, p1, p2) {
+                (MaybeUnbound::Bound(p0), MaybeUnbound::Bound(p1), MaybeUnbound::Bound(p2)) => {
+                    Ok(Ok(u3(q, p0, p1, p2)))
+                }
+                (
+                    MaybeUnbound::Unbound(_pid0),
+                    MaybeUnbound::Unbound(_pid1),
+                    MaybeUnbound::Unbound(_pid2),
+                ) => todo!(),
+                _ => unreachable!(),
             },
             Self::Pauli(qs, ps) => Ok(Ok(pauli(qs, ps))),
             Self::PauliRotation(qs, ps, a) => match a {

@@ -343,13 +343,39 @@ impl ParametricQuantumCircuit {
     }
 
     #[allow(non_snake_case)]
-    fn add_ParametricRX_gate(slf: Bound<'_, Self>, qubit_index: usize) -> PyResult<()> {
+    fn add_ParametricRX_gate(slf: Bound<'_, Self>, qubit_index: usize) -> PyResult<Wrapper> {
         let param = Py::new(slf.py(), Parameter::new(String::new()))?;
+        let pw = Wrapper(param);
         Self::add_gate_inner(
             slf.borrow(),
-            QuantumGate::RX(qubit_index, MaybeUnbound::Unbound(Wrapper(param))),
+            QuantumGate::RX(qubit_index, MaybeUnbound::Unbound(pw.clone())),
             None,
-        )
+        )?;
+        Ok(pw)
+    }
+
+    #[allow(non_snake_case)]
+    fn add_ParametricRY_gate(slf: Bound<'_, Self>, qubit_index: usize) -> PyResult<Wrapper> {
+        let param = Py::new(slf.py(), Parameter::new(String::new()))?;
+        let pw = Wrapper(param);
+        Self::add_gate_inner(
+            slf.borrow(),
+            QuantumGate::RY(qubit_index, MaybeUnbound::Unbound(pw.clone())),
+            None,
+        )?;
+        Ok(pw)
+    }
+
+    #[allow(non_snake_case)]
+    fn add_ParametricRZ_gate(slf: Bound<'_, Self>, qubit_index: usize) -> PyResult<Wrapper> {
+        let param = Py::new(slf.py(), Parameter::new(String::new()))?;
+        let pw = Wrapper(param);
+        Self::add_gate_inner(
+            slf.borrow(),
+            QuantumGate::RZ(qubit_index, MaybeUnbound::Unbound(pw.clone())),
+            None,
+        )?;
+        Ok(pw)
     }
 }
 
