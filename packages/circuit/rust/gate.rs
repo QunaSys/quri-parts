@@ -119,14 +119,6 @@ impl<P: Clone> QuantumGate<P> {
 }
 
 impl QuantumGate<f64> {
-    pub fn downcast_from<'py>(input: &Bound<'py, PyAny>) -> PyResult<Self> {
-        <Self as pyo3::conversion::FromPyObject<'py>>::extract_bound(input)
-    }
-
-    pub fn into_any(self, py: Python<'_>) -> Py<PyAny> {
-        <Self as IntoPy<_>>::into_py(self, py)
-    }
-
     pub fn from_property(prop: GenericGateProperty) -> PyResult<Option<Self>> {
         let is_nonpara_named_1q_gate = || {
             prop.target_indices.len() == 1

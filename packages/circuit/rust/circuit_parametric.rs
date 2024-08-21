@@ -70,7 +70,7 @@ impl ImmutableParametricQuantumCircuit {
             .0
             .iter()
             .map(|g| match g.clone().instantiate()? {
-                Ok(g) => Ok(g.into_any(slf.py())),
+                Ok(g) => Ok(QuantumGate::into_py(g, slf.py())),
                 Err(g) => Ok(Py::new(slf.py(), g.0)?.into_any()),
             })
             .collect()
@@ -83,7 +83,7 @@ impl ImmutableParametricQuantumCircuit {
             .0
             .iter()
             .map(|g| match g.clone().instantiate()? {
-                Ok(g) => Ok((g.into_any(slf.py()), None)),
+                Ok(g) => Ok((QuantumGate::into_py(g, slf.py()), None)),
                 Err(g) => Ok((Py::new(slf.py(), g.0)?.into_any(), Some(g.1))),
             })
             .collect()
@@ -326,7 +326,7 @@ impl ParametricQuantumCircuit {
         } else if let Ok(other) = gates.downcast::<PySequence>() {
             for i in 0..other.len()? {
                 let item = other.get_item(i)?;
-                let gate = QuantumGate::downcast_from(&item)?;
+                let gate = QuantumGate::extract_bound(&item)?;
                 Self::add_gate(slf.borrow(), gate, None)?;
             }
             Ok(())
