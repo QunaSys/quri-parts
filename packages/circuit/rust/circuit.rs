@@ -228,7 +228,7 @@ impl QuantumCircuit {
             Ok(())
         } else if let Ok(other) = gates.downcast::<PySequence>() {
             for i in 0..other.len()? {
-                if let Ok(gate) = QuantumGate::downcast_from(&other.get_item(i)?) {
+                if let Ok(gate) = QuantumGate::extract_bound(&other.get_item(i)?) {
                     Self::add_gate(slf.borrow(), gate, None)?;
                 }
             }
