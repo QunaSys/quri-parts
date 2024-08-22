@@ -1,6 +1,7 @@
 use num_complex::Complex64;
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
+use std::collections::HashSet;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum QuantumGate<P = f64> {
@@ -30,6 +31,7 @@ pub enum QuantumGate<P = f64> {
     UnitaryMatrix(Vec<usize>, Vec<Vec<Complex64>>),
     Pauli(Vec<usize>, Vec<u8>),
     PauliRotation(Vec<usize>, Vec<u8>, P),
+    Measurement(Vec<usize>, Vec<usize>),
     Other(Box<GenericGateProperty>),
 }
 
@@ -55,6 +57,7 @@ impl<P: Clone> QuantumGate<P> {
             | Self::U1(q, _)
             | Self::U2(q, _, _)
             | Self::U3(q, _, _, _) => vec![*q],
+            Self::Measurement(qs, _) => qs.clone(),
             Self::CNOT(q0, q1) | Self::CZ(q0, q1) | Self::SWAP(q0, q1) => vec![*q0, *q1],
             Self::TOFFOLI(q0, q1, q2) => vec![*q0, *q1, *q2],
             Self::UnitaryMatrix(qs, _) | Self::Pauli(qs, _) | Self::PauliRotation(qs, _, _) => {
@@ -70,6 +73,7 @@ impl<P: Clone> QuantumGate<P> {
 
     pub fn get_cbits(&self) -> Vec<usize> {
         match self {
+            Self::Measurement(_, cs) => cs.clone(),
             Self::Other(o) => o.classical_indices.clone(),
             _ => vec![],
         }
@@ -113,6 +117,7 @@ impl<P: Clone> QuantumGate<P> {
             QuantumGate::UnitaryMatrix(qs, mat) => QuantumGate::UnitaryMatrix(qs, mat),
             QuantumGate::Pauli(qs, ps) => QuantumGate::Pauli(qs, ps),
             QuantumGate::PauliRotation(qs, ps, a) => QuantumGate::PauliRotation(qs, ps, f(a)),
+            QuantumGate::Measurement(qs, cs) => QuantumGate::Measurement(qs, cs),
             QuantumGate::Other(o) => QuantumGate::Other(o),
         }
     }
@@ -241,7 +246,7 @@ impl QuantumGate<f64> {
                     prop.target_indices[0],
                 )))
             }
-            "UnitaryMatrix" | "SingleQubitUnitaryMatrix" | "TwoQubitUnitaryMatrix"
+            "UnitaryMatrix"
                 if prop.control_indices.is_empty()
                     && prop.classical_indices.is_empty()
                     && prop.params.is_empty()
@@ -276,6 +281,19 @@ impl QuantumGate<f64> {
                 )))
             }
             "ParametricRX" | "ParametricRY" | "ParametricRZ" => Ok(None),
+            "Measurement"
+                if prop.control_indices.is_empty()
+                    && prop.target_indices.len() == prop.classical_indices.len()
+                    && prop.params.is_empty()
+                    && prop.pauli_ids.is_empty()
+                    && prop.unitary_matrix.is_none() =>
+            {
+                Ok(Some(Self::Measurement(
+                    prop.target_indices,
+                    prop.classical_indices,
+                )))
+            }
+
             _ => Ok(Some(Self::Other(Box::new(prop)))),
         }
     }
@@ -353,18 +371,13 @@ impl QuantumGate<f64> {
                 ..Default::default()
             },
             Self::TOFFOLI(q0, q1, q2) => GenericGateProperty {
-                name: "CNOT".to_owned(),
+                name: "TOFFOLI".to_owned(),
                 control_indices: vec![q0, q1],
                 target_indices: vec![q2],
                 ..Default::default()
             },
             Self::UnitaryMatrix(target_indices, mat) => GenericGateProperty {
-                name: match target_indices.len() {
-                    1 => "SingleQubitUnitaryMatrix",
-                    2 => "TwoQubitUnitaryMatrix",
-                    _ => "UnitaryMatrix",
-                }
-                .to_owned(),
+                name: "UnitaryMatrix".to_owned(),
                 target_indices,
                 unitary_matrix: Some(mat),
                 ..Default::default()
@@ -382,12 +395,18 @@ impl QuantumGate<f64> {
                 pauli_ids,
                 ..Default::default()
             },
+            Self::Measurement(target_indices, classical_indices) => GenericGateProperty {
+                name: "Measurement".to_owned(),
+                target_indices,
+                classical_indices,
+                ..Default::default()
+            },
             Self::Other(o) => *o,
         }
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct GenericGateProperty {
     pub name: String,
     pub target_indices: Vec<usize>,
@@ -397,6 +416,59 @@ pub struct GenericGateProperty {
     pub pauli_ids: Vec<u8>,
     pub unitary_matrix: Option<Vec<Vec<Complex64>>>,
 }
+
+impl PartialEq for GenericGateProperty {
+    fn eq(&self, other: &Self) -> bool {
+        if &self.name != &other.name
+            || &self.control_indices.iter().collect::<HashSet<_>>()
+                != &other.control_indices.iter().collect::<HashSet<_>>()
+            || &self.params != &other.params
+        {
+            return false;
+        }
+        if &self.name == "UnitaryMatrix" {
+            if &self.target_indices != &other.target_indices {
+                return false;
+            }
+        } else {
+            if &self.target_indices.iter().collect::<HashSet<_>>()
+                != &other.target_indices.iter().collect::<HashSet<_>>()
+            {
+                return false;
+            }
+        }
+        if &self
+            .target_indices
+            .iter()
+            .zip(&self.pauli_ids)
+            .collect::<HashSet<_>>()
+            != &other
+                .target_indices
+                .iter()
+                .zip(&other.pauli_ids)
+                .collect::<HashSet<_>>()
+        {
+            return false;
+        }
+        if &self.name == "Measurement" {
+            if &self
+                .target_indices
+                .iter()
+                .zip(&self.classical_indices)
+                .collect::<HashSet<_>>()
+                != &other
+                    .target_indices
+                    .iter()
+                    .zip(&other.classical_indices)
+                    .collect::<HashSet<_>>()
+            {
+                return false;
+            }
+        }
+        &self.unitary_matrix == &other.unitary_matrix
+    }
+}
+
 #[pyclass(subclass, frozen, eq, module = "quri_parts.circuit.rust.gate")]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ParametricQuantumGate(pub(crate) GenericGateProperty);
@@ -539,12 +611,7 @@ impl GenericGateProperty {
 
 pub fn py_module<'py>(py: Python<'py>) -> PyResult<Bound<'py, PyModule>> {
     fn add_quantum_gate(m: &Bound<'_, PyModule>) -> PyResult<()> {
-        #[pyclass(
-            frozen,
-            eq,
-            module = "quri_parts.circuit.rust.gate",
-            name = "QuantumGate"
-        )]
+        #[pyclass(frozen, module = "quri_parts.circuit.rust.gate", name = "QuantumGate")]
         #[derive(Clone, Debug, PartialEq)]
         struct QuantumGateWrapper(QuantumGate<f64>);
 
@@ -610,6 +677,11 @@ pub fn py_module<'py>(py: Python<'py>) -> PyResult<Bound<'py, PyModule>> {
                         &name
                     )),
                 )?))
+            }
+
+            #[pyo3(name = "__eq__")]
+            fn py_eq(&self, other: &Self) -> bool {
+                self.0.clone().into_property() == other.0.clone().into_property()
             }
 
             #[pyo3(name = "__repr__")]
@@ -711,7 +783,21 @@ pub fn py_module<'py>(py: Python<'py>) -> PyResult<Bound<'py, PyModule>> {
             #[getter]
             fn get_unitary_matrix<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
                 if let Some(mat) = slf.get().0.clone().into_property().unitary_matrix {
-                    PyTuple::new_bound(slf.py(), mat)
+                    PyTuple::new_bound(
+                        slf.py(),
+                        mat.iter().map(|v| {
+                            PyTuple::new_bound(
+                                slf.py(),
+                                v.iter().map(|c| {
+                                    if &c.im == &0.0 {
+                                        c.re.into_py(slf.py())
+                                    } else {
+                                        c.into_py(slf.py())
+                                    }
+                                }),
+                            )
+                        }),
+                    )
                 } else {
                     PyTuple::new_bound(slf.py(), None as Option<usize>)
                 }

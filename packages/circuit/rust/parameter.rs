@@ -3,6 +3,15 @@ use pyo3::prelude::*;
 #[derive(Clone, Debug)]
 pub struct Wrapper(pub Py<Parameter>);
 
+impl core::fmt::Display for Wrapper {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Python::with_gil(|py| {
+            let p = self.0.borrow(py);
+            f.write_str(&format!("Parameter(name={})", &p.name))
+        })
+    }
+}
+
 impl core::cmp::PartialEq for Wrapper {
     fn eq(&self, other: &Self) -> bool {
         self.0.as_ptr() as usize == other.0.as_ptr() as usize
@@ -20,6 +29,14 @@ impl core::hash::Hash for Wrapper {
 impl pyo3::conversion::IntoPy<PyObject> for Wrapper {
     fn into_py(self, py: Python<'_>) -> PyObject {
         self.0.into_py(py)
+    }
+}
+
+impl<'py> pyo3::conversion::FromPyObject<'py> for Wrapper {
+    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
+        Ok(Self(<Py<Parameter> as pyo3::conversion::FromPyObject<
+            'py,
+        >>::extract_bound(ob)?))
     }
 }
 

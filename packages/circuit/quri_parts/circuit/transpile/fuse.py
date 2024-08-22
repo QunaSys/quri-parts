@@ -161,7 +161,17 @@ class NormalizeRotationTranspiler(GateKindDecomposer):
 
     def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
         theta = self._normalize(gate.params[0])
-        return [gate._replace(params=(theta,))]
+        return [
+            QuantumGate(
+                gate.name,
+                gate.target_indices,
+                gate.control_indices,
+                gate.classical_indices,
+                (theta,),
+                gate.pauli_ids,
+                gate.unitary_matrix,
+            )
+        ]
 
 
 class RX2NamedTranspiler(GateKindDecomposer):
