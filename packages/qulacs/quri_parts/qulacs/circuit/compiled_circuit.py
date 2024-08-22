@@ -7,13 +7,13 @@ from qulacs import QuantumCircuit as QulacsQuantumCircuit
 import quri_parts.qulacs.circuit as qlc
 from quri_parts.circuit import (
     ImmutableLinearMappedUnboundParametricQuantumCircuit,
-    ImmutableQuantumCircuit,
-    ImmutableUnboundParametricQuantumCircuit,
+    ImmutableParametricQuantumCircuit,
     LinearMappedUnboundParametricQuantumCircuit,
     LinearMappedUnboundParametricQuantumCircuitBase,
     NonParametricQuantumCircuit,
+    ParametricQuantumCircuit,
+    QuantumCircuit,
     UnboundParametricQuantumCircuit,
-    UnboundParametricQuantumCircuitBase,
 )
 
 
@@ -96,22 +96,39 @@ def compile_parametric_circuit(
         raise ValueError(f"Unsupported parametric circuit type: {type(circuit)}")
 
 
-class _QulacsCircuit(ImmutableQuantumCircuit):
-    def __init__(self, circuit: NonParametricQuantumCircuit):
-        super().__init__(circuit)
-        self._qulacs_circuit = qlc.convert_circuit(circuit)
+# ImmutableQuantumCircuit is not extendable
+class _QulacsCircuit(QuantumCircuit):
+    _qulacs_circuit: QulacsQuantumCircuit
+
+    def __new__(cls, circuit: NonParametricQuantumCircuit) -> "_QulacsCircuit":
+        obj: "_QulacsCircuit" = super().__new__(
+            cls, circuit.qubit_count, circuit.cbit_count, circuit.gates
+        )  # type: ignore
+        obj._qulacs_circuit = qlc.convert_circuit(circuit)
+        return obj
+
+    def freeze(self) -> "_QulacsCircuit":
+        return self
 
     @property
     def qulacs_circuit(self) -> QulacsQuantumCircuit:
         return self._qulacs_circuit.copy()
 
 
-class _QulacsUnboundParametricCircuit(ImmutableUnboundParametricQuantumCircuit):
-    def __init__(self, circuit: UnboundParametricQuantumCircuitBase):
-        super().__init__(circuit)
-        self._qulacs_circuit, self._param_mapper = qlc.convert_parametric_circuit(
-            circuit
-        )
+# ImmutableParametricQuantumCircuit is not extendable
+class _QulacsUnboundParametricCircuit(ParametricQuantumCircuit):
+    _qulacs_circuit: QulacsParametricQuantumCircuit
+    _param_mapper: Callable[[Sequence[float]], Sequence[float]]
+
+    def __new__(
+        cls, circuit: ImmutableParametricQuantumCircuit
+    ) -> "_QulacsUnboundParametricCircuit":
+        obj: "_QulacsUnboundParametricCircuit" = super().__new__(
+            cls, circuit.qubit_count, circuit.cbit_count
+        )  # type: ignore
+        obj.extend(circuit)
+        obj._qulacs_circuit, obj._param_mapper = qlc.convert_parametric_circuit(circuit)
+        return obj
 
     @property
     def qulacs_circuit(self) -> QulacsParametricQuantumCircuit:

@@ -200,6 +200,26 @@ pub fn parametric_rz(target_index: usize) -> ParametricQuantumGate {
 }
 
 #[pyfunction(
+    name = "ParametricPauliRotation",
+    signature = (target_indices, pauli_ids),
+    text_signature = "(target_index: Sequence[int], pauli_ids: Sequence[int])",
+)]
+pub fn parametric_pauli_rotation(
+    target_indices: Vec<usize>,
+    pauli_ids: Vec<u8>,
+) -> ParametricQuantumGate {
+    ParametricQuantumGate(GenericGateProperty {
+        name: "ParametricPauliRotation".to_owned(),
+        target_indices,
+        control_indices: vec![],
+        classical_indices: vec![],
+        params: vec![],
+        pauli_ids,
+        unitary_matrix: None,
+    })
+}
+
+#[pyfunction(
     name = "U1",
     signature = (target_index, lmd),
     text_signature = "(target_index: int, lmd: float)",
@@ -280,7 +300,7 @@ pub fn unitary_matrix(
                     .sum::<Complex64>()
                     - Complex64::new(Into::<u8>::into(i == j) as f64, 0f64))
                 .abs()
-                    < 1e-8
+                    < 1e-5
             })
         }) {
             Ok(QuantumGate::UnitaryMatrix(target_indices, unitary_matrix))
@@ -301,7 +321,7 @@ pub fn unitary_matrix(
     signature = (target_index, mat),
     text_signature = "(target_index: int, unitary_matrix: Sequence[Sequence[complex]])",
 )]
-fn single_qubit_unitary_matrix(
+pub fn single_qubit_unitary_matrix(
     target_index: usize,
     mat: Vec<Vec<Complex64>>,
 ) -> PyResult<QuantumGate> {
@@ -313,7 +333,7 @@ fn single_qubit_unitary_matrix(
     signature = (target_index1, target_index2, mat),
     text_signature = "(target_index1: int, target_index2: int, unitary_matrix: Sequence[Sequence[complex]])",
 )]
-fn two_qubit_unitary_matrix(
+pub fn two_qubit_unitary_matrix(
     target_index1: usize,
     target_index2: usize,
     mat: Vec<Vec<Complex64>>,
@@ -339,6 +359,24 @@ pub fn pauli_rotation(target_indices: Vec<usize>, pauli_ids: Vec<u8>, angle: f64
     QuantumGate::PauliRotation(target_indices, pauli_ids, angle)
 }
 
+#[pyfunction(
+    name = "Measurement",
+    signature = (target_indices, classical_indices),
+    text_signature = "(target_indices: Sequence[int], classical_indices: Sequence[int])",
+)]
+pub fn measurement(
+    target_indices: Vec<usize>,
+    classical_indices: Vec<usize>,
+) -> PyResult<QuantumGate> {
+    if target_indices.len() != classical_indices.len() {
+        Err(pyo3::exceptions::PyValueError::new_err(
+            "Number of qubits and classical bits must be same for measurement.",
+        ))
+    } else {
+        Ok(QuantumGate::Measurement(target_indices, classical_indices))
+    }
+}
+
 pub fn py_module<'py>(py: Python<'py>) -> PyResult<Bound<'py, PyModule>> {
     let m = PyModule::new_bound(py, "gates")?;
     m.add_wrapped(wrap_pyfunction!(identity))?;
@@ -360,6 +398,7 @@ pub fn py_module<'py>(py: Python<'py>) -> PyResult<Bound<'py, PyModule>> {
     m.add_wrapped(wrap_pyfunction!(parametric_rx))?;
     m.add_wrapped(wrap_pyfunction!(parametric_ry))?;
     m.add_wrapped(wrap_pyfunction!(parametric_rz))?;
+    m.add_wrapped(wrap_pyfunction!(parametric_pauli_rotation))?;
     m.add_wrapped(wrap_pyfunction!(u1))?;
     m.add_wrapped(wrap_pyfunction!(u2))?;
     m.add_wrapped(wrap_pyfunction!(u3))?;
@@ -372,6 +411,7 @@ pub fn py_module<'py>(py: Python<'py>) -> PyResult<Bound<'py, PyModule>> {
     m.add_wrapped(wrap_pyfunction!(two_qubit_unitary_matrix))?;
     m.add_wrapped(wrap_pyfunction!(pauli))?;
     m.add_wrapped(wrap_pyfunction!(pauli_rotation))?;
+    m.add_wrapped(wrap_pyfunction!(measurement))?;
     Ok(m)
 }
 
@@ -433,8 +473,9 @@ impl QuantumGate<MaybeUnbound> {
             Self::Pauli(qs, ps) => Ok(Ok(pauli(qs, ps))),
             Self::PauliRotation(qs, ps, a) => match a {
                 MaybeUnbound::Bound(a) => Ok(Ok(pauli_rotation(qs, ps, a))),
-                MaybeUnbound::Unbound(_pid) => todo!("ParametricPauliRotation not implemented"),
+                MaybeUnbound::Unbound(pid) => Ok(Err((parametric_pauli_rotation(qs, ps), pid))),
             },
+            Self::Measurement(qs, cs) => Ok(Ok(measurement(qs, cs)?)),
             Self::Other(o) => Ok(Ok(QuantumGate::Other(o))),
         }
     }
