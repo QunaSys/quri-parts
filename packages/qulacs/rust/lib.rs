@@ -1,0 +1,118 @@
+use pyo3::exceptions::PyRuntimeError;
+use pyo3::prelude::*;
+use pyo3_commonize::commonize;
+use quri_parts_circuit::circuit::ImmutableQuantumCircuit;
+use quri_parts_circuit::gate::{commonize_quantum_gate, QuantumGate};
+
+#[pyfunction]
+fn convert_circuit<'py>(
+    py: Python<'py>,
+    circuit: Bound<'py, ImmutableQuantumCircuit>,
+) -> PyResult<Bound<'py, PyAny>> {
+    let circuit = circuit.borrow();
+    let qulacs_circuit = py
+        .import_bound("qulacs")?
+        .getattr("QuantumCircuit")?
+        .call1((circuit.qubit_count,))?;
+    for gate in &circuit.gates.read().unwrap().0 {
+        match gate {
+            QuantumGate::Identity(q1) => {
+                qulacs_circuit.call_method1("add_Identity_gate", (*q1,))?;
+            }
+            QuantumGate::X(q1) => {
+                qulacs_circuit.call_method1("add_X_gate", (*q1,))?;
+            }
+            QuantumGate::Y(q1) => {
+                qulacs_circuit.call_method1("add_Y_gate", (*q1,))?;
+            }
+            QuantumGate::Z(q1) => {
+                qulacs_circuit.call_method1("add_Z_gate", (*q1,))?;
+            }
+            QuantumGate::H(q1) => {
+                qulacs_circuit.call_method1("add_H_gate", (*q1,))?;
+            }
+            QuantumGate::S(q1) => {
+                qulacs_circuit.call_method1("add_S_gate", (*q1,))?;
+            }
+            QuantumGate::Sdag(q1) => {
+                qulacs_circuit.call_method1("add_Sdag_gate", (*q1,))?;
+            }
+            QuantumGate::SqrtX(q1) => {
+                qulacs_circuit.call_method1("add_sqrtX_gate", (*q1,))?;
+            }
+            QuantumGate::SqrtXdag(q1) => {
+                qulacs_circuit.call_method1("add_sqrtXdag_gate", (*q1,))?;
+            }
+            QuantumGate::SqrtY(q1) => {
+                qulacs_circuit.call_method1("add_sqrtY_gate", (*q1,))?;
+            }
+            QuantumGate::SqrtYdag(q1) => {
+                qulacs_circuit.call_method1("add_sqrtYdag_gate", (*q1,))?;
+            }
+            QuantumGate::T(q1) => {
+                qulacs_circuit.call_method1("add_T_gate", (*q1,))?;
+            }
+            QuantumGate::Tdag(q1) => {
+                qulacs_circuit.call_method1("add_Tdag_gate", (*q1,))?;
+            }
+            QuantumGate::RX(q1, p1) => {
+                qulacs_circuit.call_method1("add_RX_gate", (*q1, -*p1))?;
+            }
+            QuantumGate::RY(q1, p1) => {
+                qulacs_circuit.call_method1("add_RY_gate", (*q1, -*p1))?;
+            }
+            QuantumGate::RZ(q1, p1) => {
+                qulacs_circuit.call_method1("add_RZ_gate", (*q1, -*p1))?;
+            }
+            QuantumGate::U1(q1, p1) => {
+                qulacs_circuit.call_method1("add_U1_gate", (*q1, *p1))?;
+            }
+            QuantumGate::U2(q1, p1, p2) => {
+                qulacs_circuit.call_method1("add_U2_gate", (*q1, *p1, *p2))?;
+            }
+            QuantumGate::U3(q1, p1, p2, p3) => {
+                qulacs_circuit.call_method1("add_U3_gate", (*q1, *p1, *p2, *p3))?;
+            }
+            QuantumGate::CNOT(q1, q2) => {
+                qulacs_circuit.call_method1("add_CNOT_gate", (*q1, *q2))?;
+            }
+            QuantumGate::CZ(q1, q2) => {
+                qulacs_circuit.call_method1("add_CZ_gate", (*q1, *q2))?;
+            }
+            QuantumGate::SWAP(q1, q2) => {
+                qulacs_circuit.call_method1("add_SWAP_gate", (*q1, *q2))?;
+            }
+            QuantumGate::TOFFOLI(q1, q2, q3) => {
+                qulacs_circuit.call_method1("add_TOFFOLI_gate", (*q1, *q2, *q3))?;
+            }
+            QuantumGate::UnitaryMatrix(qs, mat) => {
+                qulacs_circuit.call_method1("add_dense_matrix_gate", (qs.clone(), mat.clone()))?;
+            }
+            QuantumGate::Pauli(qs, pauli_ids) => {
+                qulacs_circuit
+                    .call_method1("add_multi_Pauli_gate", (qs.clone(), pauli_ids.clone()))?;
+            }
+            QuantumGate::PauliRotation(qs, pauli_ids, angle) => {
+                qulacs_circuit.call_method1(
+                    "add_multi_Pauli_rotation_gate",
+                    (qs.clone(), pauli_ids.clone(), -*angle),
+                )?;
+            }
+            other => {
+                return Err(PyRuntimeError::new_err(format!(
+                    "{} is not supported",
+                    &other.clone().into_property().name
+                )))
+            }
+        }
+    }
+    Ok(qulacs_circuit.as_any().clone())
+}
+
+#[pymodule]
+fn quri_parts_qulacs_rs(py: Python<'_>, m: Bound<'_, PyModule>) -> PyResult<()> {
+    commonize::<ImmutableQuantumCircuit>(py)?;
+    commonize_quantum_gate(py)?;
+    m.add_function(wrap_pyfunction!(convert_circuit, &m)?)?;
+    Ok(())
+}

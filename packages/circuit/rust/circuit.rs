@@ -2,6 +2,7 @@ use crate::gate::QuantumGate;
 use num_complex::Complex64;
 use pyo3::prelude::*;
 use pyo3::types::{PySequence, PyString, PyTuple};
+use pyo3_commonize::Commonized;
 use quri_parts::BasicBlock;
 use std::collections::HashMap;
 use std::sync::RwLock;
@@ -9,14 +10,14 @@ use std::sync::RwLock;
 const PICKLE_STUB_ARG: &'static str = "__QURI_PARTS_STUB_ARG_FOR_UNPICKLING";
 
 #[pyclass(subclass, frozen, eq, module = "quri_parts.circuit.rust.circuit")]
-#[derive(Debug)]
+#[derive(Debug, Commonized)]
 pub struct ImmutableQuantumCircuit {
     #[pyo3(get)]
-    qubit_count: usize,
+    pub qubit_count: usize,
     #[pyo3(get)]
-    cbit_count: usize,
+    pub cbit_count: usize,
     pub gates: Box<RwLock<BasicBlock<QuantumGate<f64>>>>,
-    depth_cache: Box<RwLock<Option<usize>>>,
+    pub depth_cache: Box<RwLock<Option<usize>>>,
 }
 
 impl PartialEq for ImmutableQuantumCircuit {
@@ -146,7 +147,7 @@ impl ImmutableQuantumCircuit {
     subclass,
     module = "quri_parts.circuit.rust.circuit"
 )]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Commonized)]
 pub struct QuantumCircuit();
 
 #[pymethods]

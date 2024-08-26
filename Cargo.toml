@@ -23,6 +23,7 @@ optional = true
 
 [workspace]
 members = [
-	"packages/circuit"
+	"packages/circuit",
+	"packages/qulacs",
 ]
 resolver = "2"
