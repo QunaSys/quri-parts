@@ -1,18 +1,19 @@
-from typing import Optional, Sequence, Tuple, Union
+from typing import Mapping, Optional, Sequence, Tuple, Union
 
 from quri_parts.circuit.circuit_parametric import (
-    ImmutableBoundParametricQuantumCircuit,
     MutableUnboundParametricQuantumCircuitProtocol,
     UnboundParametricQuantumCircuitProtocol,
 )
 from quri_parts.circuit.parameter_mapping import LinearParameterMapping
 
-from .circuit import GateSequence, QuantumCircuit
+from .circuit import GateSequence, ImmutableQuantumCircuit, QuantumCircuit
 from .gate import ParametricQuantumGate, QuantumGate
 from .parameter import Parameter
 
 class ImmutableParametricQuantumCircuit(UnboundParametricQuantumCircuitProtocol):
-    def __init__(self, circuit: "ImmutableParametricQuantumCircuit") -> None: ...
+    def __new__(
+        cls, circuit: "ImmutableParametricQuantumCircuit"
+    ) -> "ImmutableParametricQuantumCircuit": ...
     def __eq__(self, other: object) -> bool: ...
     @property
     def qubit_count(self) -> int: ...
@@ -46,10 +47,10 @@ class ImmutableParametricQuantumCircuit(UnboundParametricQuantumCircuitProtocol)
     def freeze(self) -> "ImmutableParametricQuantumCircuit": ...
     def bind_parameters(
         self, params: Sequence[float]
-    ) -> ImmutableBoundParametricQuantumCircuit: ...
+    ) -> "ImmutableBoundParametricQuantumCircuit": ...
     def bind_parameters_by_dict(
         self, params_dict: dict[Parameter, float]
-    ) -> ImmutableBoundParametricQuantumCircuit: ...
+    ) -> "ImmutableBoundParametricQuantumCircuit": ...
     @property
     def _params(self) -> Sequence[Parameter]: ...
     @property
@@ -64,7 +65,9 @@ class ImmutableParametricQuantumCircuit(UnboundParametricQuantumCircuitProtocol)
 class ParametricQuantumCircuit(
     ImmutableParametricQuantumCircuit, MutableUnboundParametricQuantumCircuitProtocol
 ):
-    def __init__(self, qubit_count: int, cbit_count: int = 0) -> None: ...
+    def __new__(
+        cls, qubit_count: int, cbit_count: int = 0
+    ) -> "ParametricQuantumCircuit": ...
     def add_gate(self, gate: QuantumGate, gate_index: Optional[int] = None) -> None: ...
     def extend(
         self, gates: Union[GateSequence, "ImmutableParametricQuantumCircuit"]
@@ -135,3 +138,15 @@ class ParametricQuantumCircuit(
         qubit_indices: Union[int, Sequence[int]],
         classical_indices: Union[int, Sequence[int]],
     ) -> None: ...
+
+class ImmutableBoundParametricQuantumCircuit(ImmutableQuantumCircuit):
+    def __new__(
+        cls,
+        circuit: ImmutableParametricQuantumCircuit,
+        parameter_map: Mapping[Parameter, float],
+    ) -> "ImmutableBoundParametricQuantumCircuit": ...
+    def freeze(self) -> "ImmutableBoundParametricQuantumCircuit": ...
+    @property
+    def unbound_param_circuit(self) -> "ImmutableParametricQuantumCircuit": ...
+    @property
+    def parameter_map(self) -> dict[Parameter, float]: ...

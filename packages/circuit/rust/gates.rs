@@ -450,26 +450,9 @@ impl QuantumGate<MaybeUnbound> {
                 MaybeUnbound::Bound(p) => Ok(Ok(rz(q, p))),
                 MaybeUnbound::Unbound(pid) => Ok(Err((parametric_rz(q), pid))),
             },
-            Self::U1(q, p) => match p {
-                MaybeUnbound::Bound(p) => Ok(Ok(u1(q, p))),
-                MaybeUnbound::Unbound(_pid) => todo!(),
-            },
-            Self::U2(q, p0, p1) => match (p0, p1) {
-                (MaybeUnbound::Bound(p0), MaybeUnbound::Bound(p1)) => Ok(Ok(u2(q, p0, p1))),
-                (MaybeUnbound::Unbound(_pid0), MaybeUnbound::Unbound(_pid1)) => todo!(),
-                _ => unreachable!(),
-            },
-            Self::U3(q, p0, p1, p2) => match (p0, p1, p2) {
-                (MaybeUnbound::Bound(p0), MaybeUnbound::Bound(p1), MaybeUnbound::Bound(p2)) => {
-                    Ok(Ok(u3(q, p0, p1, p2)))
-                }
-                (
-                    MaybeUnbound::Unbound(_pid0),
-                    MaybeUnbound::Unbound(_pid1),
-                    MaybeUnbound::Unbound(_pid2),
-                ) => todo!(),
-                _ => unreachable!(),
-            },
+            Self::U1(q, p) => Ok(Ok(u1(q, p))),
+            Self::U2(q, p0, p1) => Ok(Ok(u2(q, p0, p1))),
+            Self::U3(q, p0, p1, p2) => Ok(Ok(u3(q, p0, p1, p2))),
             Self::Pauli(qs, ps) => Ok(Ok(pauli(qs, ps))),
             Self::PauliRotation(qs, ps, a) => match a {
                 MaybeUnbound::Bound(a) => Ok(Ok(pauli_rotation(qs, ps, a))),

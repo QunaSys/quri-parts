@@ -1,4 +1,5 @@
 use pyo3::prelude::*;
+use pyo3_commonize::Commonized;
 
 #[derive(Clone, Debug)]
 pub struct Wrapper(pub Py<Parameter>);
@@ -41,7 +42,7 @@ impl<'py> pyo3::conversion::FromPyObject<'py> for Wrapper {
 }
 
 #[pyclass]
-#[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Commonized)]
 pub struct Parameter {
     #[pyo3(get, set)]
     name: String,

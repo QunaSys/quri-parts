@@ -1,10 +1,36 @@
 [build-system]
-requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning", "setuptools"]
-build-backend = "poetry_dynamic_versioning.backend"
+requires = ["poetry-core>=1.0.0", "maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
+[project]
+dependencies = [
+	"typing-extensions>=4.1.1,<5.0.0",
+	"quri-parts-circuit",
+	"quri-parts-core",
+	"Qulacs>=0.3.0,<0.6.0",
+]
+name = "quri-parts-qulacs"
+version = "0.19.0"
+description = "A plugin to use Qulacs with QURI Parts"
+license = { text = "Apache-2.0"}
+authors = [
+	{name = "QURI Parts Authors", email = "<opensource@qunasys.com>"},
+]
+readme = "README.md"
+requires-python = ">=3.9.8,<4.0.0"
+keywords = ["quantum", "quantum computing"]
+classifiers = [
+    "Topic :: Scientific/Engineering :: Physics",
+    "Typing :: Typed"
+]
+
+[project.urls]
+Repository = "https://github.com/QunaSys/quri-parts"
+Documentation = "https://quri-parts.qunasys.com"
 
 [tool.poetry]
 name = "quri-parts-qulacs"
-version = "0.0.0"
+version = "0.19.0"
 description = "A plugin to use Qulacs with QURI Parts"
 license = "Apache-2.0"
 authors = ["QURI Parts Authors <opensource@qunasys.com>"]
@@ -19,10 +45,6 @@ classifiers = [
 packages = [
     { include = "quri_parts" }
 ]
-
-[tool.poetry-dynamic-versioning]
-enable = true
-style = "pep440"
 
 [tool.poetry.dependencies]
 python = ">=3.9.8,<3.13.0"
@@ -41,9 +63,14 @@ mypy = ">=0.950"
 docformatter = "^1.4"
 isort = "^5.10.1"
 black = "^23.1.0"
+maturin = "1.7.0"
 
 [tool.black]
 line-length = 88
 
 [tool.isort]
 profile = "black"
+
+[tool.maturin]
+python-source = "."
+module-name = "quri_parts.qulacs.quri_parts_qulacs_rs"

@@ -17,7 +17,6 @@ from typing_extensions import assert_never
 
 from quri_parts.circuit import (
     LinearMappedUnboundParametricQuantumCircuitBase,
-    NonParametricQuantumCircuit,
     QuantumGate,
     UnboundParametricQuantumCircuitBase,
     UnboundParametricQuantumCircuitProtocol,
@@ -36,6 +35,7 @@ from quri_parts.circuit.gate_names import (
     is_two_qubit_gate_name,
     is_unitary_matrix_gate_name,
 )
+from quri_parts.qulacs.quri_parts_qulacs_rs import convert_circuit
 
 from .. import cast_to_list
 from .compiled_circuit import compile_circuit, compile_parametric_circuit
@@ -189,13 +189,6 @@ def convert_gate(
         # It seems that currently assert_never does not work here
         # assert_never(gate.name)
         assert False, "Unreachable"
-
-
-def convert_circuit(circuit: NonParametricQuantumCircuit) -> qulacs.QuantumCircuit:
-    qulacs_circuit = qulacs.QuantumCircuit(circuit.qubit_count)
-    for gate in circuit.gates:
-        qulacs_circuit.add_gate(convert_gate(gate))
-    return qulacs_circuit
 
 
 def convert_parametric_circuit(

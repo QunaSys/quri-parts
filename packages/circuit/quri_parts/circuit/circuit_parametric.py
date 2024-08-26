@@ -9,37 +9,17 @@
 # limitations under the License.
 
 from abc import abstractmethod, abstractproperty
-from collections.abc import Mapping, Sequence
-from functools import cached_property
-from typing import Optional, Protocol, Union, runtime_checkable
+from collections.abc import Sequence
+from typing import Protocol, Union, runtime_checkable
 
-from quri_parts.circuit import gate_names
-
-#: A mutable unbound parametric quantum circuit.
-#:
-#: This class is for parametric circuits where all parametric gates have independent
-#: parameters, i.e., no two parametric gates share the same parameter. If you want to
-#: make dependency between parameters, see
-#: : class: `~LinearMappedUnboundParametricQuantumCircuit`.
-#: An immutable unbound parametric quantum circuit.
-#:
-#: This class is for parametric circuits where all parametric gates have independent
-#: parameters, i.e., no two parametric gates share the same parameter. If you want to
-#: make dependency between parameters, see
-#: : class: `~ImmutableLinearMappedUnboundParametricQuantumCircuit`.
 from quri_parts.circuit.rust.circuit_parametric import (
+    ImmutableBoundParametricQuantumCircuit,
     ImmutableParametricQuantumCircuit,
     ParametricQuantumCircuit,
 )
 
-from .circuit import (
-    GateSequence,
-    MutableQuantumCircuitProtocol,
-    QuantumCircuit,
-    QuantumCircuitProtocol,
-)
+from .circuit import GateSequence, MutableQuantumCircuitProtocol, QuantumCircuitProtocol
 from .gate import ParametricQuantumGate, QuantumGate
-from .gates import RX, RY, RZ, PauliRotation
 from .parameter import Parameter
 from .parameter_mapping import ParameterMapping
 
@@ -176,67 +156,25 @@ class MutableUnboundParametricQuantumCircuitProtocol(
 #: :class:`~LinearMappedUnboundParametricQuantumCircuitBase`.
 UnboundParametricQuantumCircuitBase = ImmutableParametricQuantumCircuit
 
+#: A mutable unbound parametric quantum circuit.
+#:
+#: This class is for parametric circuits where all parametric gates have independent
+#: parameters, i.e., no two parametric gates share the same parameter. If you want to
+#: make dependency between parameters, see
+#: : class: `~LinearMappedUnboundParametricQuantumCircuit`.
 UnboundParametricQuantumCircuit = ParametricQuantumCircuit
+
+#: An immutable unbound parametric quantum circuit.
+#:
+#: This class is for parametric circuits where all parametric gates have independent
+#: parameters, i.e., no two parametric gates share the same parameter. If you want to
+#: make dependency between parameters, see
+#: : class: `~ImmutableLinearMappedUnboundParametricQuantumCircuit`.
 ImmutableUnboundParametricQuantumCircuit = ImmutableParametricQuantumCircuit
 
-
-class ImmutableBoundParametricQuantumCircuit(QuantumCircuit):
-    """An immutable \"bound\" parametric quantum circuit, i.e. a parametric
-    circuit with its parameters assigned concrete values."""
-
-    unbound_param_circuit: ImmutableParametricQuantumCircuit
-    parameter_map: dict[Parameter, float]
-
-    def __new__(
-        cls,
-        circuit: UnboundParametricQuantumCircuitBase,
-        parameter_map: Mapping[Parameter, float],
-    ) -> "ImmutableBoundParametricQuantumCircuit":
-        # We cannot extend ImmutableQuantumCircuit, because it is frozen.
-        # For workaround, we extend QuantumCircuit instead of ImmutableQuantumCircuit.
-        ob: "ImmutableBoundParametricQuantumCircuit" = super().__new__(
-            cls, circuit.qubit_count, circuit.cbit_count
-        )  # type: ignore
-        ob.unbound_param_circuit = circuit.freeze()
-        ob.parameter_map = dict(parameter_map)
-        return ob
-
-    @cached_property
-    def gates(self) -> Sequence[QuantumGate]:
-        def map_param_gate(
-            gate: Union[QuantumGate, ParametricQuantumGate], param: Optional[Parameter]
-        ) -> QuantumGate:
-            if isinstance(gate, QuantumGate):
-                return gate
-            elif isinstance(gate, ParametricQuantumGate) and param is not None:
-                value = self.parameter_map[param]
-                if gate.name == gate_names.ParametricRX:
-                    return RX(gate.target_indices[0], value)
-                elif gate.name == gate_names.ParametricRY:
-                    return RY(gate.target_indices[0], value)
-                elif gate.name == gate_names.ParametricRZ:
-                    return RZ(gate.target_indices[0], value)
-                elif gate.name == gate_names.ParametricPauliRotation:
-                    return PauliRotation(gate.target_indices, gate.pauli_ids, value)
-                else:
-                    raise ValueError("Unknown gate")
-            else:
-                raise ValueError("ParametricQuantumGate must have a parameter.")
-
-        return tuple(map_param_gate(*t) for t in self.unbound_param_circuit._gates)
-
-    @cached_property
-    def depth(self) -> int:
-        max_layers_each_qubit = [0] * self.qubit_count
-        for gate in self.gates:
-            acting_ids = [*gate.control_indices, *gate.target_indices]
-            max_layers = max(max_layers_each_qubit[index] for index in acting_ids)
-            for index in acting_ids:
-                max_layers_each_qubit[index] = max_layers + 1
-        return max(max_layers_each_qubit)
-
-    def freeze(self) -> "ImmutableBoundParametricQuantumCircuit":
-        return self
+#: An immutable \"bound\" parametric quantum circuit, i.e. a parametric
+#: circuit with its parameters assigned concrete values.
+ImmutableBoundParametricQuantumCircuit = ImmutableBoundParametricQuantumCircuit
 
 
 __all__ = [
