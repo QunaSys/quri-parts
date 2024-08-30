@@ -380,10 +380,9 @@ impl ImmutableParametricQuantumCircuit {
 #[pyclass(
     extends=ImmutableParametricQuantumCircuit,
     subclass,
-    eq,
     module = "quri_parts.circuit.rust.circuit_parametric"
 )]
-#[derive(Clone, Debug, PartialEq, Commonized)]
+#[derive(Clone, Debug, Commonized)]
 pub struct ParametricQuantumCircuit();
 
 impl ParametricQuantumCircuit {
@@ -486,7 +485,7 @@ impl ParametricQuantumCircuit {
 
     #[pyo3(name = "__iadd__")]
     fn py_iadd(slf: &Bound<'_, Self>, gates: &Bound<'_, PyAny>) -> PyResult<()> {
-        Self::extend(slf, gates)
+        Self::extend(slf, gates).map_err(|_| pyo3::exceptions::PyNotImplementedError::new_err(""))
     }
 
     #[allow(non_snake_case)]
