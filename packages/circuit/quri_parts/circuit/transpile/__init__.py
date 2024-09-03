@@ -10,6 +10,8 @@
 
 from typing import Callable
 
+from quri_parts.circuit import gate_names
+
 from .clifford_approximation import CliffordApproximationTranspiler
 from .fuse import (
     CNOTHCNOTFusingTranspiler,
@@ -93,82 +95,18 @@ from .unitary_matrix_decomposer import (
 #: CircuitTranspiler to transpile a QuntumCircuit into another
 #: QuantumCircuit containing only X, SqrtX, CNOT, and RZ.
 #: (UnitaryMatrix gate for 3 or more qubits are not decomposed.)
-RZSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
-    [
-        SingleQubitUnitaryMatrix2RYRZTranspiler(),
-        TwoQubitUnitaryMatrixKAKTranspiler(),
-        ParallelDecomposer(
-            [
-                CZ2CNOTHTranspiler(),
-                PauliDecomposeTranspiler(),
-                PauliRotationDecomposeTranspiler(),
-                TOFFOLI2HTTdagCNOTTranspiler(),
-            ]
-        ),
-        ParallelDecomposer(
-            [
-                Identity2RZTranspiler(),
-                Y2RZXTranspiler(),
-                Z2RZTranspiler(),
-                H2RZSqrtXTranspiler(),
-                SqrtXdag2RZSqrtXTranspiler(),
-                SqrtY2RZSqrtXTranspiler(),
-                SqrtYdag2RZSqrtXTranspiler(),
-                S2RZTranspiler(),
-                Sdag2RZTranspiler(),
-                T2RZTranspiler(),
-                Tdag2RZTranspiler(),
-                RX2RZSqrtXTranspiler(),
-                RY2RZSqrtXTranspiler(),
-                U1ToRZTranspiler(),
-                U2ToRZSqrtXTranspiler(),
-                U3ToRZSqrtXTranspiler(),
-                SWAP2CNOTTranspiler(),
-            ]
-        ),
-        FuseRotationTranspiler(),
-    ]
+RZSetTranspiler: Callable[[], CircuitTranspiler] = lambda: GateSetConversionTranspiler(
+    [gate_names.X, gate_names.SqrtX, gate_names.RZ, gate_names.CNOT]
 )
 
 
 #: CircuitTranspiler to transpile a QuntumCircuit into another
 #: QuantumCircuit containing only RX, RY, RZ, and CNOT.
 #: (UnitaryMatrix gate for 3 or more qubits are not decomposed.)
-RotationSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
-    [
-        SingleQubitUnitaryMatrix2RYRZTranspiler(),
-        TwoQubitUnitaryMatrixKAKTranspiler(),
-        ParallelDecomposer(
-            [
-                PauliDecomposeTranspiler(),
-                PauliRotationDecomposeTranspiler(),
-                TOFFOLI2HTTdagCNOTTranspiler(),
-            ]
-        ),
-        ParallelDecomposer(
-            [
-                Identity2RZTranspiler(),
-                H2RXRYTranspiler(),
-                X2RXTranspiler(),
-                Y2RYTranspiler(),
-                Z2RZTranspiler(),
-                SqrtX2RXTranspiler(),
-                SqrtXdag2RXTranspiler(),
-                SqrtY2RYTranspiler(),
-                SqrtYdag2RYTranspiler(),
-                S2RZTranspiler(),
-                Sdag2RZTranspiler(),
-                T2RZTranspiler(),
-                Tdag2RZTranspiler(),
-                U1ToRZTranspiler(),
-                U2ToRXRZTranspiler(),
-                U3ToRXRZTranspiler(),
-                CZ2RXRYCNOTTranspiler(),
-                SWAP2CNOTTranspiler(),
-            ]
-        ),
-        FuseRotationTranspiler(),
-    ]
+RotationSetTranspiler: Callable[
+    [], CircuitTranspiler
+] = lambda: GateSetConversionTranspiler(
+    [gate_names.RX, gate_names.RY, gate_names.RZ, gate_names.CNOT]
 )
 
 
@@ -216,45 +154,53 @@ class CliffordRZSetTranspiler(SequentialTranspiler):
         )
 
 
+#: CircuitTranspiler to transpile a QuntumCircuit into another
+#: QuantumCircuit containing only basic gates for STAR architecture (H, RZ, and CNOT).
+#: (UnitaryMatrix gate for 3 or more qubits are not decomposed.)
+STARSetTranspiler: Callable[
+    [], CircuitTranspiler
+] = lambda: GateSetConversionTranspiler([gate_names.H, gate_names.RZ, gate_names.CNOT])
+
+
 __all__ = [
     "CliffordConversionTranspiler",
+    "CliffordRZSetTranspiler",
+    "CliffordApproximationTranspiler",
+    "CircuitTranspiler",
+    "CircuitTranspilerProtocol",
+    "CNOT2CZHTranspiler",
+    "CZ2CNOTHTranspiler",
+    "CZ2RXRYCNOTTranspiler",
+    "CNOTHCNOTFusingTranspiler",
+    "FuseRotationTranspiler",
+    "GateDecomposer",
+    "GateKindDecomposer",
     "GateSetConversionTranspiler",
+    "H2RXRYTranspiler",
+    "H2RZSqrtXTranspiler",
+    "IdentityEliminationTranspiler",
+    "IdentityInsertionTranspiler",
+    "Identity2RZTranspiler",
+    "NormalizeRotationTranspiler",
+    "ParallelDecomposer",
+    "PauliDecomposeTranspiler",
+    "PauliRotationDecomposeTranspiler",
+    "QubitRemappingTranspiler",
     "RotationConversionTranspiler",
     "RX2RYRZTranspiler",
     "RX2RZHTranspiler",
     "RY2RXRZTranspiler",
     "RY2RZHTranspiler",
     "RZ2RXRYTranspiler",
-    "CircuitTranspiler",
-    "CircuitTranspilerProtocol",
-    "GateDecomposer",
-    "GateKindDecomposer",
-    "ParallelDecomposer",
-    "SequentialTranspiler",
     "RZSetTranspiler",
     "RotationSetTranspiler",
-    "CliffordRZSetTranspiler",
-    "CliffordApproximationTranspiler",
-    "IdentityEliminationTranspiler",
-    "IdentityInsertionTranspiler",
-    "Identity2RZTranspiler",
-    "PauliDecomposeTranspiler",
-    "PauliRotationDecomposeTranspiler",
-    "CNOT2CZHTranspiler",
-    "CZ2CNOTHTranspiler",
-    "CZ2RXRYCNOTTranspiler",
-    "CNOTHCNOTFusingTranspiler",
-    "FuseRotationTranspiler",
-    "NormalizeRotationTranspiler",
-    "H2RXRYTranspiler",
-    "H2RZSqrtXTranspiler",
-    "QubitRemappingTranspiler",
     "Rotation2NamedTranspiler",
     "RX2RZSqrtXTranspiler",
     "RY2RZSqrtXTranspiler",
     "RX2NamedTranspiler",
     "RY2NamedTranspiler",
     "RZ2NamedTranspiler",
+    "SequentialTranspiler",
     "S2RZTranspiler",
     "Sdag2RZTranspiler",
     "SingleQubitUnitaryMatrix2RYRZTranspiler",
@@ -267,6 +213,7 @@ __all__ = [
     "SqrtYdag2RYTranspiler",
     "SqrtYdag2RZSqrtXTranspiler",
     "SWAP2CNOTTranspiler",
+    "STARSetTranspiler",
     "T2RZTranspiler",
     "Tdag2RZTranspiler",
     "TOFFOLI2HTTdagCNOTTranspiler",
