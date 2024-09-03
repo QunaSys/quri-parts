@@ -38,6 +38,7 @@ from quri_parts.circuit import (
     X,
     Y,
     Z,
+    gate_names,
 )
 from quri_parts.circuit.transpile import (
     CliffordRZSetTranspiler,
@@ -59,6 +60,7 @@ from quri_parts.circuit.transpile import (
     SqrtY2RZSqrtXTranspiler,
     SqrtYdag2RYTranspiler,
     SqrtYdag2RZSqrtXTranspiler,
+    STARSetTranspiler,
     SWAP2CNOTTranspiler,
     T2RZTranspiler,
     Tdag2RZTranspiler,
@@ -673,3 +675,18 @@ class TestCliffordRZSetTranspile:
 
         for t, e in zip(transpiled.gates, expect.gates):
             assert _gates_close(t, e)
+
+
+class TestSTARSetTranspile:
+    def test_starset_transpile(self) -> None:
+        theta = np.pi / 7.0
+
+        circuit = QuantumCircuit(3)
+        circuit.add_Pauli_gate([2, 0, 1], [2, 3, 1])
+        circuit.add_PauliRotation_gate([1, 0, 2], [1, 3, 2], theta)
+        transpiled = STARSetTranspiler()(circuit)
+
+        target_set = {gate.name for gate in transpiled.gates}
+        expect_set = {gate_names.H, gate_names.RZ, gate_names.CNOT}
+
+        assert target_set <= expect_set
