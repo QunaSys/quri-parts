@@ -21,6 +21,7 @@ from .fuse import (
     RX2NamedTranspiler,
     RY2NamedTranspiler,
     RZ2NamedTranspiler,
+    ZeroRotationEliminationTranspiler,
 )
 from .gate_kind_decomposer import (
     CNOT2CZHTranspiler,
@@ -95,8 +96,41 @@ from .unitary_matrix_decomposer import (
 #: CircuitTranspiler to transpile a QuntumCircuit into another
 #: QuantumCircuit containing only X, SqrtX, CNOT, and RZ.
 #: (UnitaryMatrix gate for 3 or more qubits are not decomposed.)
-RZSetTranspiler: Callable[[], CircuitTranspiler] = lambda: GateSetConversionTranspiler(
-    [gate_names.X, gate_names.SqrtX, gate_names.RZ, gate_names.CNOT]
+RZSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
+    [
+        SingleQubitUnitaryMatrix2RYRZTranspiler(),
+        TwoQubitUnitaryMatrixKAKTranspiler(),
+        ParallelDecomposer(
+            [
+                CZ2CNOTHTranspiler(),
+                PauliDecomposeTranspiler(),
+                PauliRotationDecomposeTranspiler(),
+                TOFFOLI2HTTdagCNOTTranspiler(),
+            ]
+        ),
+        ParallelDecomposer(
+            [
+                Identity2RZTranspiler(),
+                Y2RZXTranspiler(),
+                Z2RZTranspiler(),
+                H2RZSqrtXTranspiler(),
+                SqrtXdag2RZSqrtXTranspiler(),
+                SqrtY2RZSqrtXTranspiler(),
+                SqrtYdag2RZSqrtXTranspiler(),
+                S2RZTranspiler(),
+                Sdag2RZTranspiler(),
+                T2RZTranspiler(),
+                Tdag2RZTranspiler(),
+                RX2RZSqrtXTranspiler(),
+                RY2RZSqrtXTranspiler(),
+                U1ToRZTranspiler(),
+                U2ToRZSqrtXTranspiler(),
+                U3ToRZSqrtXTranspiler(),
+                SWAP2CNOTTranspiler(),
+            ]
+        ),
+        FuseRotationTranspiler(),
+    ]
 )
 
 
@@ -230,6 +264,7 @@ __all__ = [
     "Y2RZXTranspiler",
     "Z2HXTranspiler",
     "Z2RZTranspiler",
+    "ZeroRotationEliminationTranspiler",
     "su2_decompose",
     "su4_decompose",
 ]

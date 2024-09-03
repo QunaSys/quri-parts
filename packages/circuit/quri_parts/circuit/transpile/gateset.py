@@ -48,7 +48,12 @@ from quri_parts.circuit.gate_names import (
     Z,
 )
 
-from .fuse import FuseRotationTranspiler, Rotation2NamedTranspiler
+from .fuse import (
+    FuseRotationTranspiler,
+    NormalizeRotationTranspiler,
+    Rotation2NamedTranspiler,
+    ZeroRotationEliminationTranspiler,
+)
 from .gate_kind_decomposer import (
     CNOT2CZHTranspiler,
     CZ2CNOTHTranspiler,
@@ -388,7 +393,7 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
         target_gateset: A Sequence of allowed output gate names.
     """
 
-    def __init__(self, target_gateset: Iterable[GateNameType]):
+    def __init__(self, target_gateset: Iterable[GateNameType], epsilon: float = 1.0e-9):
         self._gateset = set(target_gateset)
         self._target_clifford = cast(
             set[CliffordGateNameType],
@@ -423,6 +428,8 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
                     favorable_clifford=tuple(self._target_clifford),
                 ),
                 FuseRotationTranspiler(),  # Optimizer
+                NormalizeRotationTranspiler(),
+                ZeroRotationEliminationTranspiler(),
             ]
         )
 
