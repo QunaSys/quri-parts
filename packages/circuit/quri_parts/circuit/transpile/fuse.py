@@ -292,7 +292,7 @@ class ZeroRotationEliminationTranspiler(GateKindDecomposer):
 
     def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
         theta = gate.params[0] % (2.0 * np.pi)
-        if self._is_close(theta, 0.0):
+        if self._is_close(theta, 0.0) or self._is_close(theta, 2.0 * np.pi):
             return []
         else:
             return [gate]
