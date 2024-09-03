@@ -47,6 +47,7 @@ from quri_parts.circuit.transpile import (
     H2RXRYTranspiler,
     H2RZSqrtXTranspiler,
     Identity2RZTranspiler,
+    RotationSetTranspiler,
     RX2RZSqrtXTranspiler,
     RY2RZSqrtXTranspiler,
     RZSetTranspiler,
@@ -632,6 +633,19 @@ class TestRotationSetTranspile:
         )
 
         assert transpiled.gates == expect.gates
+
+    def test_rotationset_transpile(self) -> None:
+        theta = np.pi / 7.0
+
+        circuit = QuantumCircuit(3)
+        circuit.add_Pauli_gate([2, 0, 1], [2, 3, 1])
+        circuit.add_PauliRotation_gate([1, 0, 2], [1, 3, 2], theta)
+        transpiled = RotationSetTranspiler()(circuit)
+
+        target_set = {gate.name for gate in transpiled.gates}
+        expect_set = {gate_names.RX, gate_names.RY, gate_names.RZ, gate_names.CNOT}
+
+        assert target_set <= expect_set
 
 
 class TestCliffordRZSetTranspile:
