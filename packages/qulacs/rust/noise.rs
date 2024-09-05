@@ -167,7 +167,7 @@ pub fn convert_circuit_with_noise_model<'py>(
     let noise_model = noise_model_instance.borrow();
     let mut circuit_noise = noise_model.noises_for_circuit();
 
-    for gate in &circuit.gates.read().0 {
+    for gate in &circuit.gates.0 {
         let gate_qubits = gate.get_qubits();
 
         // circuit noises for depth

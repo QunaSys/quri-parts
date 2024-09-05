@@ -6,18 +6,16 @@ from qulacs import QuantumCircuit as QulacsQuantumCircuit
 
 import quri_parts.qulacs.circuit as qlc
 from quri_parts.circuit import (
-    ImmutableLinearMappedUnboundParametricQuantumCircuit,
+    ImmutableLinearMappedParametricQuantumCircuit,
     ImmutableParametricQuantumCircuit,
-    LinearMappedUnboundParametricQuantumCircuit,
-    LinearMappedUnboundParametricQuantumCircuitBase,
-    NonParametricQuantumCircuit,
+    ImmutableQuantumCircuit,
+    LinearMappedParametricQuantumCircuit,
     ParametricQuantumCircuit,
     QuantumCircuit,
-    UnboundParametricQuantumCircuit,
 )
 
 
-def compile_circuit(circuit: NonParametricQuantumCircuit) -> "_QulacsCircuit":
+def compile_circuit(circuit: ImmutableQuantumCircuit) -> "_QulacsCircuit":
     """Compiles a quri-parts circuit into an `ImmutableQuantumCircuit` that
     holds the corresponding qulacs circuit on memory. The qulacs circuit can be
     accessed by the `.qulacs_circuit` property.
@@ -38,32 +36,30 @@ def compile_circuit(circuit: NonParametricQuantumCircuit) -> "_QulacsCircuit":
 
 @overload
 def compile_parametric_circuit(
-    circuit: UnboundParametricQuantumCircuit,
+    circuit: ParametricQuantumCircuit,
 ) -> "_QulacsUnboundParametricCircuit":
     ...
 
 
 @overload
 def compile_parametric_circuit(
-    circuit: LinearMappedUnboundParametricQuantumCircuit,
+    circuit: LinearMappedParametricQuantumCircuit,
 ) -> "_QulacsLinearMappedUnboundParametricCircuit":
     ...
 
 
 def compile_parametric_circuit(
-    circuit: Union[
-        UnboundParametricQuantumCircuit, LinearMappedUnboundParametricQuantumCircuit
-    ]
+    circuit: Union[ParametricQuantumCircuit, LinearMappedParametricQuantumCircuit]
 ) -> Union[
     "_QulacsUnboundParametricCircuit", "_QulacsLinearMappedUnboundParametricCircuit"
 ]:
     """Compiles a:
 
-        - quri-parts `UnboundParametricQuantumCircuit` into an
-            `ImmutableUnboundParametricQuantumCircuit` that holds the corresponding
+        - quri-parts `ParametricQuantumCircuit` into an
+            `ImmutableParametricQuantumCircuit` that holds the corresponding
             qulacs parametric circuit on memory.
-        - quri-parts `LinearMappedUnboundParametricQuantumCircuit` into an
-            `ImmutableUnboundParametricQuantumCircuit` that holds the corresponding
+        - quri-parts `LinearMappedParametricQuantumCircuit` into an
+            `ImmutableParametricQuantumCircuit` that holds the corresponding
             qulacs parametric circuit on memory.
 
     The qulacs circuit can be accessed by the `.qulacs_circuit` property.
@@ -73,7 +69,7 @@ def compile_parametric_circuit(
 
     Example:
 
-    >>> parametric_circuit = UnboundParametricQuantumCircuit(2)
+    >>> parametric_circuit = ParametricQuantumCircuit(2)
     >>> parametric_circuit.add_ParametricRX_gate(0)
     >>> parametric_circuit.add_ParametricRX_gate(1)
 
@@ -88,9 +84,9 @@ def compile_parametric_circuit(
     >>> quri_parts_circuit_param = [0, 1]
     >>> qulacs_circuit_param = param_mapper(quri_parts_circuit_param)
     """
-    if isinstance(circuit, UnboundParametricQuantumCircuit):
+    if isinstance(circuit, ParametricQuantumCircuit):
         return _QulacsUnboundParametricCircuit(circuit)
-    elif isinstance(circuit, LinearMappedUnboundParametricQuantumCircuit):
+    elif isinstance(circuit, LinearMappedParametricQuantumCircuit):
         return _QulacsLinearMappedUnboundParametricCircuit(circuit)
     else:
         raise ValueError(f"Unsupported parametric circuit type: {type(circuit)}")
@@ -100,7 +96,7 @@ def compile_parametric_circuit(
 class _QulacsCircuit(QuantumCircuit):
     _qulacs_circuit: QulacsQuantumCircuit
 
-    def __new__(cls, circuit: NonParametricQuantumCircuit) -> "_QulacsCircuit":
+    def __new__(cls, circuit: ImmutableQuantumCircuit) -> "_QulacsCircuit":
         obj: "_QulacsCircuit" = super().__new__(
             cls, circuit.qubit_count, circuit.cbit_count, circuit.gates
         )  # type: ignore
@@ -140,9 +136,9 @@ class _QulacsUnboundParametricCircuit(ParametricQuantumCircuit):
 
 
 class _QulacsLinearMappedUnboundParametricCircuit(
-    ImmutableLinearMappedUnboundParametricQuantumCircuit
+    ImmutableLinearMappedParametricQuantumCircuit
 ):
-    def __init__(self, circuit: LinearMappedUnboundParametricQuantumCircuitBase):
+    def __init__(self, circuit: ImmutableLinearMappedParametricQuantumCircuit):
         super().__init__(circuit)
         (
             self._qulacs_circuit,

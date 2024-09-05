@@ -13,12 +13,12 @@ from collections.abc import Sequence
 import numpy as np
 
 from quri_parts.circuit import (
-    LinearMappedUnboundParametricQuantumCircuit,
+    LinearMappedParametricQuantumCircuit,
     LinearParameterMapping,
     ParameterOrLinearFunction,
+    ParametricQuantumCircuitProtocol,
     ParametricQuantumGate,
     QuantumGate,
-    UnboundParametricQuantumCircuitProtocol,
     gate_names,
     gates,
 )
@@ -100,7 +100,7 @@ class ParametricPauliRotationDecomposeTranspiler(ParametricCircuitTranspilerProt
     @staticmethod
     def add_decomposed_gates(
         gate: ParametricQuantumGate,
-        circuit: LinearMappedUnboundParametricQuantumCircuit,
+        circuit: LinearMappedParametricQuantumCircuit,
         param: ParameterOrLinearFunction,
     ) -> None:
         indices = gate.target_indices
@@ -115,9 +115,9 @@ class ParametricPauliRotationDecomposeTranspiler(ParametricCircuitTranspilerProt
         circuit.extend(rot_gates(-1, indices, pauli_ids))
 
     def __call__(
-        self, circuit: UnboundParametricQuantumCircuitProtocol
-    ) -> LinearMappedUnboundParametricQuantumCircuit:
-        ret = LinearMappedUnboundParametricQuantumCircuit(
+        self, circuit: ParametricQuantumCircuitProtocol
+    ) -> LinearMappedParametricQuantumCircuit:
+        ret = LinearMappedParametricQuantumCircuit(
             circuit.qubit_count, circuit.cbit_count
         )
         ret._param_mapping = LinearParameterMapping(circuit.param_mapping.in_params)

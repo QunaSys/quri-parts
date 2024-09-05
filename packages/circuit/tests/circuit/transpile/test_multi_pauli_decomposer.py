@@ -18,12 +18,12 @@ from quri_parts.circuit import (
     RZ,
     H,
     ParametricQuantumCircuit,
+    ParametricQuantumCircuitProtocol,
     ParametricQuantumGate,
     Pauli,
     PauliRotation,
     QuantumCircuit,
     QuantumGate,
-    UnboundParametricQuantumCircuitProtocol,
     X,
     Y,
     Z,
@@ -55,8 +55,8 @@ def _gates_close(
 
 
 def _circuit_close(
-    x: UnboundParametricQuantumCircuitProtocol,
-    y: UnboundParametricQuantumCircuitProtocol,
+    x: ParametricQuantumCircuitProtocol,
+    y: ParametricQuantumCircuitProtocol,
 ) -> bool:
     return len(x.gates) == len(y.gates) and all(
         _gates_close(a, b) for a, b in zip(x.gates, y.gates)

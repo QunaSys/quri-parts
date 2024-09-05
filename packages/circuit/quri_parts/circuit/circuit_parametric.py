@@ -25,7 +25,7 @@ from .parameter_mapping import ParameterMapping
 
 
 @runtime_checkable
-class UnboundParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
+class ParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
     """Interface protocol for a quantum circuit containing unbound (i.e. not
     assigned values) parameters.
 
@@ -45,7 +45,7 @@ class UnboundParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
         ...
 
     @abstractmethod
-    def freeze(self) -> "UnboundParametricQuantumCircuitProtocol":
+    def freeze(self) -> "ParametricQuantumCircuitProtocol":
         """Returns a \"freezed\" version of itself.
 
         The \"freezed\" version is an immutable object and can be reused
@@ -54,7 +54,7 @@ class UnboundParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
         ...
 
     @abstractmethod
-    def get_mutable_copy(self) -> "MutableUnboundParametricQuantumCircuitProtocol":
+    def get_mutable_copy(self) -> "MutableParametricQuantumCircuitProtocol":
         """Returns a copy of itself that can be modified.
 
         Use this method when you want to get a new circuit based on an
@@ -63,12 +63,12 @@ class UnboundParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
         ...
 
     @abstractmethod
-    def primitive_circuit(self) -> "ImmutableUnboundParametricQuantumCircuit":
+    def primitive_circuit(self) -> "ImmutableParametricQuantumCircuit":
         r"""Returns the parametric circuit where each gate has an independent
         parameter.
 
         Note that some parametric circuit,
-        e.g. :class:`LinearMappedUnboundParametricQuantumCircuit`, can have non-trivial
+        e.g. :class:`LinearMappedParametricQuantumCircuit`, can have non-trivial
         mapping of the parameters. In this "primitive circuit", however,
         gate parameters are treated as independent,
         even if those in the original circuit depend on the same parameters.
@@ -104,9 +104,9 @@ class UnboundParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
         """Returns if the input parameters are used for parametric gates
         without any conversions.
 
-        Note that some parametric circuit,
-        e.g. :class:`LinearMappedUnboundParametricQuantumCircuit`, can have non-trivial
-        mapping of the parameters.
+        Note that some parametric circuit, e.g.
+        :class:`LinearMappedParametricQuantumCircuit`, can have non-
+        trivial mapping of the parameters.
         """
         ...
 
@@ -129,47 +129,54 @@ class UnboundParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
         return self.bind_parameters(param_list)
 
     def __add__(
-        self, gates: Union[GateSequence, "UnboundParametricQuantumCircuitProtocol"]
-    ) -> "UnboundParametricQuantumCircuitProtocol":
+        self, gates: Union[GateSequence, "ParametricQuantumCircuitProtocol"]
+    ) -> "ParametricQuantumCircuitProtocol":
         """Returns a new combined circuit with the given gates added."""
         ...
 
     def __radd__(
-        self, gates: Union[GateSequence, "UnboundParametricQuantumCircuitProtocol"]
-    ) -> "UnboundParametricQuantumCircuitProtocol":
+        self, gates: Union[GateSequence, "ParametricQuantumCircuitProtocol"]
+    ) -> "ParametricQuantumCircuitProtocol":
         """Returns a new combined circuit with the given gates added."""
         ...
 
 
-class MutableUnboundParametricQuantumCircuitProtocol(
-    UnboundParametricQuantumCircuitProtocol, MutableQuantumCircuitProtocol, Protocol
+#: Deprecated: use `ParametricQuantumCircuitProtocol` instead
+UnboundParametricQuantumCircuitProtocol = ParametricQuantumCircuitProtocol
+
+
+class MutableParametricQuantumCircuitProtocol(
+    ParametricQuantumCircuitProtocol, MutableQuantumCircuitProtocol, Protocol
 ):
     ...
 
 
-#: A base class for quantum circuits having parametric gates with unbound
-#: parameters.
-#:
-#: This class is for parametric circuits where all parametric gates have independent
-#: parameters, i.e., no two parametric gates share the same parameter. If you want to
-#: make dependency between parameters, see
-#: :class:`~LinearMappedUnboundParametricQuantumCircuitBase`.
-UnboundParametricQuantumCircuitBase = ImmutableParametricQuantumCircuit
+#: Deprecated: use `MutableParametricQuantumCircuitProtocol` instead
+MutableUnboundParametricQuantumCircuitProtocol = MutableParametricQuantumCircuitProtocol
 
-#: A mutable unbound parametric quantum circuit.
-#:
-#: This class is for parametric circuits where all parametric gates have independent
-#: parameters, i.e., no two parametric gates share the same parameter. If you want to
-#: make dependency between parameters, see
-#: : class: `~LinearMappedUnboundParametricQuantumCircuit`.
-UnboundParametricQuantumCircuit = ParametricQuantumCircuit
 
 #: An immutable unbound parametric quantum circuit.
 #:
 #: This class is for parametric circuits where all parametric gates have independent
 #: parameters, i.e., no two parametric gates share the same parameter. If you want to
 #: make dependency between parameters, see
-#: : class: `~ImmutableLinearMappedUnboundParametricQuantumCircuit`.
+#: : class: `~ImmutableLinearMappedParametricQuantumCircuit`.
+ImmutableParametricQuantumCircuit = ImmutableParametricQuantumCircuit
+
+#: A mutable unbound parametric quantum circuit.
+#:
+#: This class is for parametric circuits where all parametric gates have independent
+#: parameters, i.e., no two parametric gates share the same parameter. If you want to
+#: make dependency between parameters, see
+#: : class: `~LinearMappedParametricQuantumCircuit`.
+ParametricQuantumCircuit = ParametricQuantumCircuit
+
+
+#: Deprecated use `ParametricQuantumCircuit` instead
+UnboundParametricQuantumCircuit = ParametricQuantumCircuit
+
+
+#: Deprecated: use :class:`ImmutableParametricQuantumCircuit` instead
 ImmutableUnboundParametricQuantumCircuit = ImmutableParametricQuantumCircuit
 
 #: An immutable \"bound\" parametric quantum circuit, i.e. a parametric
@@ -181,7 +188,10 @@ __all__ = [
     "ImmutableParametricQuantumCircuit",
     "ParametricQuantumCircuit",
     "UnboundParametricQuantumCircuit",
+    "ParametricQuantumCircuitProtocol",
     "UnboundParametricQuantumCircuitProtocol",
     "MutableUnboundParametricQuantumCircuitProtocol",
     "ImmutableBoundParametricQuantumCircuit",
+    "ImmutableUnboundParametricQuantumCircuit",
+    "MutableParametricQuantumCircuitProtocol",
 ]

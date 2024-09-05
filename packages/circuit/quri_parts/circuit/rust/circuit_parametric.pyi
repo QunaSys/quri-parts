@@ -1,8 +1,8 @@
 from typing import Mapping, Optional, Sequence, Tuple, Union
 
 from quri_parts.circuit.circuit_parametric import (
-    MutableUnboundParametricQuantumCircuitProtocol,
-    UnboundParametricQuantumCircuitProtocol,
+    MutableParametricQuantumCircuitProtocol,
+    ParametricQuantumCircuitProtocol,
 )
 from quri_parts.circuit.parameter_mapping import LinearParameterMapping
 
@@ -10,7 +10,7 @@ from .circuit import GateSequence, ImmutableQuantumCircuit, QuantumCircuit
 from .gate import ParametricQuantumGate, QuantumGate
 from .parameter import Parameter
 
-class ImmutableParametricQuantumCircuit(UnboundParametricQuantumCircuitProtocol):
+class ImmutableParametricQuantumCircuit(ParametricQuantumCircuitProtocol):
     def __new__(
         cls, circuit: "ImmutableParametricQuantumCircuit"
     ) -> "ImmutableParametricQuantumCircuit": ...
@@ -56,14 +56,14 @@ class ImmutableParametricQuantumCircuit(UnboundParametricQuantumCircuitProtocol)
     @property
     def parameter_count(self) -> int: ...
     def __add__(
-        self, gates: Union[GateSequence, "UnboundParametricQuantumCircuitProtocol"]
+        self, gates: Union[GateSequence, "ParametricQuantumCircuitProtocol"]
     ) -> "ImmutableParametricQuantumCircuit": ...
     def __radd__(
-        self, gates: Union[GateSequence, "UnboundParametricQuantumCircuitProtocol"]
+        self, gates: Union[GateSequence, "ParametricQuantumCircuitProtocol"]
     ) -> "ImmutableParametricQuantumCircuit": ...
 
 class ParametricQuantumCircuit(
-    ImmutableParametricQuantumCircuit, MutableUnboundParametricQuantumCircuitProtocol
+    ImmutableParametricQuantumCircuit, MutableParametricQuantumCircuitProtocol
 ):
     def __new__(
         cls, qubit_count: int, cbit_count: int = 0
@@ -73,7 +73,7 @@ class ParametricQuantumCircuit(
         self, gates: Union[GateSequence, "ImmutableParametricQuantumCircuit"]
     ) -> None: ...
     def __iadd__(
-        self, gates: Union[GateSequence, "UnboundParametricQuantumCircuitProtocol"]
+        self, gates: Union[GateSequence, "ParametricQuantumCircuitProtocol"]
     ) -> "ParametricQuantumCircuit": ...
     def add_ParametricRX_gate(self, qubit_index: int) -> Parameter: ...
     def add_ParametricRY_gate(self, qubit_index: int) -> Parameter: ...

@@ -51,13 +51,13 @@ from .gates import (
     Z,
 )
 
-GateSequence: TypeAlias = Union["NonParametricQuantumCircuit", Sequence[QuantumGate]]
+GateSequence: TypeAlias = Union["ImmutableQuantumCircuit", Sequence[QuantumGate]]
 
 
 def is_gate_sequence(
     gates: Union["QuantumCircuitProtocol", GateSequence]
 ) -> TypeGuard[GateSequence]:
-    return isinstance(gates, (NonParametricQuantumCircuit, Sequence))
+    return isinstance(gates, (ImmutableQuantumCircuit, Sequence))
 
 
 class QuantumCircuitProtocol(Protocol):
@@ -258,6 +258,10 @@ class MutableQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
 #: A base class for quantum circuits having only non-parametric gates.
 #:
 #: This class support ``+`` operator with ``GateSequence``.
+ImmutableQuantumCircuit = ImmutableQuantumCircuit
+
+
+#: Deprecated: use `quri_parts.circuit.ImmutableQuantumCircuit` instead
 NonParametricQuantumCircuit = ImmutableQuantumCircuit
 
 __all__ = [

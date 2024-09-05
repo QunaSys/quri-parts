@@ -10,6 +10,8 @@
 
 from typing import Any, Literal
 
+from typing_extensions import deprecated
+
 from quri_parts.circuit import gate_names
 from quri_parts.circuit.rust.gates import (
     CNOT,
@@ -173,6 +175,7 @@ Y = Y
 X = X
 
 
+@deprecated("Factory class is deprecated")
 class IdentityFactory:
     name: Literal["Identity"] = gate_names.Identity
 
@@ -180,6 +183,7 @@ class IdentityFactory:
         return Identity(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class XFactory:
     name: Literal["X"] = gate_names.X
 
@@ -187,6 +191,7 @@ class XFactory:
         return X(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class YFactory:
     name: Literal["Y"] = gate_names.Y
 
@@ -194,6 +199,7 @@ class YFactory:
         return Y(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class ZFactory:
     name: Literal["Z"] = gate_names.Z
 
@@ -201,6 +207,7 @@ class ZFactory:
         return Z(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class HFactory:
     name: Literal["H"] = gate_names.H
 
@@ -208,6 +215,7 @@ class HFactory:
         return H(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class SFactory:
     name: Literal["S"] = gate_names.S
 
@@ -215,6 +223,7 @@ class SFactory:
         return S(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class SdagFactory:
     name: Literal["Sdag"] = gate_names.Sdag
 
@@ -222,6 +231,7 @@ class SdagFactory:
         return Sdag(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class SqrtXFactory:
     name: Literal["SqrtX"] = gate_names.SqrtX
 
@@ -229,6 +239,7 @@ class SqrtXFactory:
         return SqrtX(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class SqrtXdagFactory:
     name: Literal["SqrtXdag"] = gate_names.SqrtXdag
 
@@ -236,6 +247,7 @@ class SqrtXdagFactory:
         return SqrtXdag(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class SqrtYFactory:
     name: Literal["SqrtY"] = gate_names.SqrtY
 
@@ -243,6 +255,7 @@ class SqrtYFactory:
         return SqrtY(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class SqrtYdagFactory:
     name: Literal["SqrtYdag"] = gate_names.SqrtYdag
 
@@ -250,6 +263,7 @@ class SqrtYdagFactory:
         return SqrtYdag(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class TFactory:
     name: Literal["T"] = gate_names.T
 
@@ -257,6 +271,7 @@ class TFactory:
         return T(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class TdagFactory:
     name: Literal["Tdag"] = gate_names.Tdag
 
@@ -264,6 +279,7 @@ class TdagFactory:
         return Tdag(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class RXFactory:
     name: Literal["RX"] = gate_names.RX
 
@@ -271,6 +287,7 @@ class RXFactory:
         return RX(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class RYFactory:
     name: Literal["RY"] = gate_names.RY
 
@@ -278,6 +295,7 @@ class RYFactory:
         return RY(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class RZFactory:
     name: Literal["RZ"] = gate_names.RZ
 
@@ -285,6 +303,7 @@ class RZFactory:
         return RZ(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class U1Factory:
     name: Literal["U1"] = gate_names.U1
 
@@ -292,6 +311,7 @@ class U1Factory:
         return U1(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class U2Factory:
     name: Literal["U2"] = gate_names.U2
 
@@ -299,6 +319,7 @@ class U2Factory:
         return U2(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class U3Factory:
     name: Literal["U3"] = gate_names.U3
 
@@ -306,6 +327,7 @@ class U3Factory:
         return U3(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class CNOTFactory:
     name: Literal["CNOT"] = gate_names.CNOT
 
@@ -313,6 +335,7 @@ class CNOTFactory:
         return CNOT(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class CZFactory:
     name: Literal["CZ"] = gate_names.CZ
 
@@ -320,6 +343,7 @@ class CZFactory:
         return CZ(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class SWAPFactory:
     name: Literal["SWAP"] = gate_names.SWAP
 
@@ -327,6 +351,7 @@ class SWAPFactory:
         return SWAP(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class TOFFOLIFactory:
     name: Literal["TOFFOLI"] = gate_names.TOFFOLI
 
@@ -334,6 +359,7 @@ class TOFFOLIFactory:
         return TOFFOLI(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class UnitaryMatrixFactory:
     name: Literal["UnitaryMatrix"] = gate_names.UnitaryMatrix
 
@@ -341,6 +367,7 @@ class UnitaryMatrixFactory:
         return UnitaryMatrix(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class SingleQubitUnitaryMatrixFactory:
     name: Literal["UnitaryMatrix"] = gate_names.UnitaryMatrix
 
@@ -348,6 +375,7 @@ class SingleQubitUnitaryMatrixFactory:
         return UnitaryMatrix(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class TwoQubitUnitaryMatrixFactory:
     name: Literal["UnitaryMatrix"] = gate_names.UnitaryMatrix
 
@@ -355,6 +383,7 @@ class TwoQubitUnitaryMatrixFactory:
         return UnitaryMatrix(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class PauliFactory:
     name: Literal["Pauli"] = gate_names.Pauli
 
@@ -362,6 +391,7 @@ class PauliFactory:
         return Pauli(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class PauliRotationFactory:
     name: Literal["PauliRotation"] = gate_names.PauliRotation
 
@@ -369,6 +399,7 @@ class PauliRotationFactory:
         return PauliRotation(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class ParametricRXFactory:
     name: Literal["ParametricRX"] = gate_names.ParametricRX
 
@@ -376,6 +407,7 @@ class ParametricRXFactory:
         return ParametricRX(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class ParametricRYFactory:
     name: Literal["ParametricRY"] = gate_names.ParametricRY
 
@@ -383,6 +415,7 @@ class ParametricRYFactory:
         return ParametricRY(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class ParametricRZFactory:
     name: Literal["ParametricRZ"] = gate_names.ParametricRZ
 
@@ -390,6 +423,7 @@ class ParametricRZFactory:
         return ParametricRZ(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class ParametricPauliRotationFactory:
     name: Literal["ParametricPauliRotation"] = gate_names.ParametricPauliRotation
 
@@ -397,6 +431,7 @@ class ParametricPauliRotationFactory:
         return ParametricPauliRotation(*args, **kwargs)
 
 
+@deprecated("Factory class is deprecated")
 class MeasurementFactory:
     name: Literal["Measurement"] = gate_names.Measurement
 

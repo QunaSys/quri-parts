@@ -15,30 +15,28 @@ from typing import Callable, Protocol
 from typing_extensions import TypeAlias
 
 from quri_parts.circuit import (
-    LinearMappedUnboundParametricQuantumCircuit,
+    ImmutableQuantumCircuit,
+    LinearMappedParametricQuantumCircuit,
     LinearParameterMapping,
-    NonParametricQuantumCircuit,
+    ParametricQuantumCircuitProtocol,
     QuantumCircuit,
     QuantumGate,
-    UnboundParametricQuantumCircuitProtocol,
     gate_names,
 )
 
 #: CircuitTranspiler Interface. A function or callable object that can map
-#: NonParametricQuantumCircuit to NonParametricQuantumCircuit.
+#: ImmutableQuantumCircuit to ImmutableQuantumCircuit.
 CircuitTranspiler: TypeAlias = Callable[
-    [NonParametricQuantumCircuit], NonParametricQuantumCircuit
+    [ImmutableQuantumCircuit], ImmutableQuantumCircuit
 ]
 
 
 class CircuitTranspilerProtocol(Protocol):
-    """Protocol of callable class that transpiles NonParametricQuantumCircuit
-    to NonParametricQuantumCircuit."""
+    """Protocol of callable class that transpiles ImmutableQuantumCircuit to
+    ImmutableQuantumCircuit."""
 
     @abstractmethod
-    def __call__(
-        self, circuit: NonParametricQuantumCircuit
-    ) -> NonParametricQuantumCircuit:
+    def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
         ...
 
 
@@ -65,9 +63,7 @@ class SequentialTranspiler(CircuitTranspilerProtocol):
     def __init__(self, transpilers: Sequence[CircuitTranspiler]):
         self._transpilers = transpilers
 
-    def __call__(
-        self, circuit: NonParametricQuantumCircuit
-    ) -> NonParametricQuantumCircuit:
+    def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
         for transpiler in self._transpilers:
             circuit = transpiler(circuit)
         return circuit
@@ -97,9 +93,7 @@ class GateDecomposer(CircuitTranspilerProtocol, ABC):
         """
         ...
 
-    def __call__(
-        self, circuit: NonParametricQuantumCircuit
-    ) -> NonParametricQuantumCircuit:
+    def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
         cg: list[QuantumGate] = []
         for gate in circuit.gates:
             if self.is_target_gate(gate):
@@ -152,9 +146,7 @@ class ParallelDecomposer(CircuitTranspilerProtocol):
                     )
                 self._decomposer_map[name] = dc
 
-    def __call__(
-        self, circuit: NonParametricQuantumCircuit
-    ) -> NonParametricQuantumCircuit:
+    def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
         cg: list[QuantumGate] = []
         for gate in circuit.gates:
             if gate.name in self._decomposer_map:
@@ -171,7 +163,8 @@ class ParallelDecomposer(CircuitTranspilerProtocol):
 #: ParametricCircuitTranspiler Interface. A function or callable object that can map
 #: ParametricQuantumCircuit to ParametricQuantumCircuit.
 ParametricCircuitTranspiler: TypeAlias = Callable[
-    [UnboundParametricQuantumCircuitProtocol], UnboundParametricQuantumCircuitProtocol
+    [ParametricQuantumCircuitProtocol],
+    ParametricQuantumCircuitProtocol,
 ]
 
 
@@ -180,15 +173,15 @@ class ParametricCircuitTranspilerProtocol(Protocol):
     ParametricQuantumCircuit."""
 
     def __call__(
-        self, circuit: UnboundParametricQuantumCircuitProtocol
-    ) -> UnboundParametricQuantumCircuitProtocol:
+        self, circuit: ParametricQuantumCircuitProtocol
+    ) -> ParametricQuantumCircuitProtocol:
         ...
 
 
 class ParametricTranspiler(ParametricCircuitTranspilerProtocol):
-    """Circuit transpiler for UnboundParametricQuantumCircuitProtocol, which
-    wraps CircuitTranspiler and allows it to be applied to
-    UnboundParametricQuantumCircuitProtocol.
+    """Circuit transpiler for ParametricQuantumCircuitProtocol, which wraps
+    CircuitTranspiler and allows it to be applied to
+    ParametricQuantumCircuitProtocol.
 
     Each successive QuantumGate sequence in the circuit is transpiled respectively and
     the results are concatenated. ParametricQuantumGates and parameter mappings are
@@ -202,9 +195,9 @@ class ParametricTranspiler(ParametricCircuitTranspilerProtocol):
         self._transpiler = transpiler
 
     def __call__(
-        self, circuit: UnboundParametricQuantumCircuitProtocol
-    ) -> LinearMappedUnboundParametricQuantumCircuit:
-        ret = LinearMappedUnboundParametricQuantumCircuit(
+        self, circuit: ParametricQuantumCircuitProtocol
+    ) -> LinearMappedParametricQuantumCircuit:
+        ret = LinearMappedParametricQuantumCircuit(
             circuit.qubit_count, circuit.cbit_count
         )
         ret._param_mapping = LinearParameterMapping(circuit.param_mapping.in_params)

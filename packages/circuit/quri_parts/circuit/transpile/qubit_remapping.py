@@ -10,7 +10,7 @@
 
 from collections.abc import Mapping
 
-from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit, QuantumGate
+from quri_parts.circuit import ImmutableQuantumCircuit, QuantumCircuit, QuantumGate
 
 from .transpiler import CircuitTranspilerProtocol
 
@@ -36,9 +36,7 @@ class QubitRemappingTranspiler(CircuitTranspilerProtocol):
         self._qubit_mapping = qubit_mapping
         self._max_index = max(qubit_mapping.values())
 
-    def __call__(
-        self, circuit: NonParametricQuantumCircuit
-    ) -> NonParametricQuantumCircuit:
+    def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
         transpiled = QuantumCircuit(self._max_index + 1)
         qm = self._qubit_mapping
         try:
