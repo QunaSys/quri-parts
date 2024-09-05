@@ -124,8 +124,8 @@ class TestImmutableQuantumCircuit:
         mut_circuit = circuit.get_mutable_copy()
         assert isinstance(mut_circuit, QuantumCircuit)
         assert circuit == mut_circuit
+        assert id(circuit) != id(mut_circuit)
 
-    @pytest.mark.skip(reason="Rust implementation clones circuit")
     def test_freeze(self) -> None:
         circuit = immutable_circuit()
         circuit_ = circuit.freeze()

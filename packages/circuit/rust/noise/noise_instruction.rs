@@ -216,7 +216,7 @@ impl CircuitNoiseResolver for MeasurementNoiseResolver {
         depths: &Vec<usize>,
         circuit: &ImmutableQuantumCircuit,
     ) -> Vec<QubitNoisePair> {
-        if depths.contains(&circuit.get_depth()) {
+        if depths.contains(&circuit.depth()) {
             if self.qubit_indices.is_empty() || self.qubit_indices.contains(&qubit) {
                 return self
                     .noises

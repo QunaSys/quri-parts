@@ -14,7 +14,7 @@ from collections.abc import Sequence
 import numpy as np
 
 from quri_parts.circuit import (
-    NonParametricQuantumCircuit,
+    ImmutableQuantumCircuit,
     QuantumCircuit,
     QuantumGate,
     gate_names,
@@ -44,9 +44,7 @@ class AdjacentGateFuser(CircuitTranspilerProtocol, ABC):
     def fuse(self, seq: Sequence[QuantumGate]) -> Sequence[QuantumGate]:
         ...
 
-    def __call__(
-        self, circuit: NonParametricQuantumCircuit
-    ) -> NonParametricQuantumCircuit:
+    def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
         xs = list(circuit.gates)
         ys: list[QuantumGate] = []
 

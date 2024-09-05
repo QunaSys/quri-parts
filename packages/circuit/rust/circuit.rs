@@ -1,6 +1,5 @@
 use crate::gate::QuantumGate;
-use abi_stable::external_types::RRwLock;
-use abi_stable::std_types::{RBox, ROption, RSome};
+use abi_stable::std_types::{ROption, RSome};
 use num_complex::Complex64;
 use pyo3::prelude::*;
 use pyo3::types::{PySequence, PyString, PyTuple};
@@ -10,39 +9,42 @@ use std::collections::HashMap;
 
 const PICKLE_STUB_ARG: &'static str = "__QURI_PARTS_STUB_ARG_FOR_UNPICKLING";
 
-#[pyclass(subclass, frozen, eq, module = "quri_parts.circuit.rust.circuit")]
-#[derive(Commonized)]
+#[pyclass(subclass, eq, module = "quri_parts.circuit.rust.circuit")]
+#[derive(Commonized, Clone)]
 #[repr(C)]
 pub struct ImmutableQuantumCircuit {
     #[pyo3(get)]
     pub qubit_count: usize,
     #[pyo3(get)]
     pub cbit_count: usize,
-    pub gates: RBox<RRwLock<BasicBlock<QuantumGate<f64>>>>,
-    pub depth_cache: RBox<RRwLock<ROption<usize>>>,
+    pub gates: BasicBlock<QuantumGate<f64>>,
+    pub depth_cache: ROption<usize>,
+    pub is_immutable: bool,
 }
 
 impl PartialEq for ImmutableQuantumCircuit {
     fn eq(&self, other: &Self) -> bool {
-        if self.qubit_count != other.qubit_count || self.cbit_count != other.cbit_count {
-            return false;
-        }
-        let lhs = self.gates.read();
-        let rhs = other.gates.read();
-        *lhs == *rhs
+        self.qubit_count == other.qubit_count
+            && self.cbit_count == other.cbit_count
+            && &self.gates == &other.gates
     }
 }
 
-impl Clone for ImmutableQuantumCircuit {
-    fn clone(&self) -> Self {
-        let gates = self.gates.read().clone();
-        let depth_cache = self.depth_cache.read().clone();
-        ImmutableQuantumCircuit {
-            qubit_count: self.qubit_count,
-            cbit_count: self.cbit_count,
-            gates: RBox::new(RRwLock::new(gates)),
-            depth_cache: RBox::new(RRwLock::new(depth_cache)),
+impl ImmutableQuantumCircuit {
+    pub fn depth(&self) -> usize {
+        let mut ds = HashMap::<usize, usize>::new();
+        for gate in self.gates.0.iter() {
+            let qubits = gate.get_qubits();
+            let d = 1 + qubits
+                .iter()
+                .map(|q| ds.get(&q).unwrap_or(&0))
+                .max()
+                .unwrap();
+            qubits.iter().for_each(|q| {
+                ds.insert(*q, d);
+            });
         }
+        ds.into_values().max().unwrap_or(0)
     }
 }
 
@@ -62,61 +64,52 @@ impl ImmutableQuantumCircuit {
                     Self {
                         qubit_count,
                         cbit_count,
-                        gates: RBox::new(RRwLock::new(BasicBlock(gates.into()))),
-                        depth_cache: RBox::new(RRwLock::new(ROption::RNone)),
+                        gates: BasicBlock(gates.into()),
+                        depth_cache: ROption::RNone,
+                        is_immutable: true,
                     },
                 );
             }
         }
-        Ok(args.extract::<(Py<ImmutableQuantumCircuit>,)>()?.0)
+        let immut = args.extract::<(Py<ImmutableQuantumCircuit>,)>()?.0;
+        {
+            let mut borrowed = immut.borrow_mut(args.py());
+            borrowed.is_immutable = true;
+        }
+        Ok(immut)
     }
 
     #[pyo3(name = "__reduce__")]
     fn py_reduce(
         slf: &Bound<'_, Self>,
     ) -> PyResult<(PyObject, (Py<PyString>, usize, usize, Vec<QuantumGate>))> {
-        let gates = slf.get().gates.read();
+        let borrowed = slf.borrow();
         Ok((
             slf.getattr("__class__")?.unbind(),
             (
                 PyString::new_bound(slf.py(), PICKLE_STUB_ARG).unbind(),
-                slf.get().qubit_count,
-                slf.get().cbit_count,
-                gates.0.clone().into(),
+                borrowed.qubit_count,
+                borrowed.cbit_count,
+                borrowed.gates.0.clone().into(),
             ),
         ))
     }
 
     #[getter]
-    fn get_gates<'py>(slf: &Bound<'py, Self>) -> PyResult<Bound<'py, PyTuple>> {
-        let gates = slf.get().gates.read();
+    fn get_gates<'py>(slf: PyRef<'py, Self>) -> PyResult<Bound<'py, PyTuple>> {
         Ok(PyTuple::new_bound(
             slf.py(),
-            gates.0.iter().map(|g| g.clone().into_py(slf.py())),
+            slf.gates.0.iter().map(|g| g.clone().into_py(slf.py())),
         ))
     }
 
     #[getter]
-    pub fn get_depth(&self) -> usize {
-        let mut depth = self.depth_cache.write();
-        if let RSome(depth) = *depth {
+    fn get_depth(mut slf: PyRefMut<'_, Self>) -> usize {
+        if let RSome(depth) = slf.depth_cache {
             depth
         } else {
-            let mut ds = HashMap::<usize, usize>::new();
-            let gates = self.gates.read();
-            for gate in gates.0.iter() {
-                let qubits = gate.get_qubits();
-                let d = 1 + qubits
-                    .iter()
-                    .map(|q| ds.get(&q).unwrap_or(&0))
-                    .max()
-                    .unwrap();
-                qubits.iter().for_each(|q| {
-                    ds.insert(*q, d);
-                });
-            }
-            let d = ds.into_values().max().unwrap_or(0);
-            *depth = ROption::RSome(d);
+            let d = slf.depth();
+            slf.depth_cache = ROption::RSome(d);
             d
         }
     }
@@ -135,12 +128,18 @@ impl ImmutableQuantumCircuit {
             .unwrap_or(slf.py().NotImplemented())
     }
 
-    fn freeze(&self) -> Self {
-        self.clone()
+    fn freeze(slf: Bound<'_, Self>) -> PyResult<Bound<'_, Self>> {
+        if slf.borrow().is_immutable {
+            Ok(slf)
+        } else {
+            let mut cloned = slf.borrow().clone();
+            cloned.is_immutable = true;
+            Bound::new(slf.py(), cloned)
+        }
     }
 
     fn get_mutable_copy(slf: &Bound<'_, Self>) -> PyResult<Py<QuantumCircuit>> {
-        Py::new(slf.py(), (QuantumCircuit(), slf.get().clone()))
+        Py::new(slf.py(), (QuantumCircuit(), slf.borrow().clone()))
     }
 }
 
@@ -193,8 +192,9 @@ warnings.warn(
         let base = ImmutableQuantumCircuit {
             qubit_count,
             cbit_count,
-            gates: RBox::new(RRwLock::new(BasicBlock(gates.into()))),
-            depth_cache: RBox::new(RRwLock::new(ROption::RNone)),
+            gates: BasicBlock(gates.into()),
+            depth_cache: ROption::RNone,
+            is_immutable: false,
         };
         Ok((QuantumCircuit(), base))
     }
@@ -203,21 +203,20 @@ warnings.warn(
     fn py_reduce(slf: &Bound<'_, Self>) -> PyResult<(PyObject, (usize, usize, Vec<QuantumGate>))> {
         let borrowed = slf.borrow();
         let sup = borrowed.as_super();
-        let gates = sup.gates.read();
         Ok((
             slf.getattr("__class__")?.unbind(),
-            (sup.qubit_count, sup.cbit_count, gates.0.clone().into()),
+            (sup.qubit_count, sup.cbit_count, sup.gates.0.clone().into()),
         ))
     }
 
     #[pyo3(signature = (gate, gate_index = None))]
     #[pyo3(text_signature = "(gate: QuantumGate, gate_index: Optional[int])")]
     fn add_gate(
-        slf: PyRef<'_, Self>,
+        mut slf: PyRefMut<'_, Self>,
         gate: QuantumGate,
         gate_index: Option<usize>,
     ) -> PyResult<()> {
-        slf.as_super().depth_cache.write().take();
+        slf.as_super().depth_cache.take();
         if gate
             .get_qubits()
             .iter()
@@ -240,7 +239,7 @@ warnings.warn(
                 "The classical indices of the gate applied must be smaller than cbit_count",
             ));
         }
-        let gates = &mut slf.as_super().gates.write().0;
+        let gates = &mut slf.as_super().gates.0;
         if let Some(gate_index) = gate_index {
             if gate_index <= gates.len() {
                 gates.insert(gate_index, gate.clone());
@@ -257,14 +256,14 @@ warnings.warn(
     #[pyo3(text_signature = "(gates: ImmutableQuantumCircuit | Sequence[QuantumGate])")]
     fn extend(slf: &Bound<'_, Self>, gates: Bound<'_, PyAny>) -> PyResult<()> {
         if let Ok(other) = gates.downcast::<ImmutableQuantumCircuit>() {
-            for gate in other.get().gates.read().0.iter() {
-                Self::add_gate(slf.borrow(), gate.clone(), None)?;
+            for gate in other.borrow().gates.0.iter() {
+                Self::add_gate(slf.borrow_mut(), gate.clone(), None)?;
             }
             Ok(())
         } else if let Ok(other) = gates.downcast::<PySequence>() {
             for i in 0..other.len()? {
                 if let Ok(gate) = QuantumGate::extract_bound(&other.get_item(i)?) {
-                    Self::add_gate(slf.borrow(), gate, None)?;
+                    Self::add_gate(slf.borrow_mut(), gate, None)?;
                 }
             }
             Ok(())
@@ -282,83 +281,88 @@ warnings.warn(
     }
 
     #[allow(non_snake_case)]
-    fn add_Identity_gate(slf: PyRef<'_, Self>, qubit_index: usize) -> PyResult<()> {
+    fn add_Identity_gate(slf: PyRefMut<'_, Self>, qubit_index: usize) -> PyResult<()> {
         Self::add_gate(slf, QuantumGate::Identity(qubit_index), None)
     }
 
     #[allow(non_snake_case)]
-    fn add_X_gate(slf: PyRef<'_, Self>, qubit_index: usize) -> PyResult<()> {
+    fn add_X_gate(slf: PyRefMut<'_, Self>, qubit_index: usize) -> PyResult<()> {
         Self::add_gate(slf, QuantumGate::X(qubit_index), None)
     }
 
     #[allow(non_snake_case)]
-    fn add_Y_gate(slf: PyRef<'_, Self>, qubit_index: usize) -> PyResult<()> {
+    fn add_Y_gate(slf: PyRefMut<'_, Self>, qubit_index: usize) -> PyResult<()> {
         Self::add_gate(slf, QuantumGate::Y(qubit_index), None)
     }
 
     #[allow(non_snake_case)]
-    fn add_Z_gate(slf: PyRef<'_, Self>, qubit_index: usize) -> PyResult<()> {
+    fn add_Z_gate(slf: PyRefMut<'_, Self>, qubit_index: usize) -> PyResult<()> {
         Self::add_gate(slf, QuantumGate::Z(qubit_index), None)
     }
 
     #[allow(non_snake_case)]
-    fn add_H_gate(slf: PyRef<'_, Self>, qubit_index: usize) -> PyResult<()> {
+    fn add_H_gate(slf: PyRefMut<'_, Self>, qubit_index: usize) -> PyResult<()> {
         Self::add_gate(slf, QuantumGate::H(qubit_index), None)
     }
 
     #[allow(non_snake_case)]
-    fn add_S_gate(slf: PyRef<'_, Self>, qubit_index: usize) -> PyResult<()> {
+    fn add_S_gate(slf: PyRefMut<'_, Self>, qubit_index: usize) -> PyResult<()> {
         Self::add_gate(slf, QuantumGate::S(qubit_index), None)
     }
 
     #[allow(non_snake_case)]
-    fn add_Sdag_gate(slf: PyRef<'_, Self>, qubit_index: usize) -> PyResult<()> {
+    fn add_Sdag_gate(slf: PyRefMut<'_, Self>, qubit_index: usize) -> PyResult<()> {
         Self::add_gate(slf, QuantumGate::Sdag(qubit_index), None)
     }
 
     #[allow(non_snake_case)]
-    fn add_SqrtX_gate(slf: PyRef<'_, Self>, qubit_index: usize) -> PyResult<()> {
+    fn add_SqrtX_gate(slf: PyRefMut<'_, Self>, qubit_index: usize) -> PyResult<()> {
         Self::add_gate(slf, QuantumGate::SqrtX(qubit_index), None)
     }
 
     #[allow(non_snake_case)]
-    fn add_SqrtXdag_gate(slf: PyRef<'_, Self>, qubit_index: usize) -> PyResult<()> {
+    fn add_SqrtXdag_gate(slf: PyRefMut<'_, Self>, qubit_index: usize) -> PyResult<()> {
         Self::add_gate(slf, QuantumGate::SqrtXdag(qubit_index), None)
     }
 
     #[allow(non_snake_case)]
-    fn add_SqrtY_gate(slf: PyRef<'_, Self>, qubit_index: usize) -> PyResult<()> {
+    fn add_SqrtY_gate(slf: PyRefMut<'_, Self>, qubit_index: usize) -> PyResult<()> {
         Self::add_gate(slf, QuantumGate::SqrtY(qubit_index), None)
     }
 
     #[allow(non_snake_case)]
-    fn add_SqrtYdag_gate(slf: PyRef<'_, Self>, qubit_index: usize) -> PyResult<()> {
+    fn add_SqrtYdag_gate(slf: PyRefMut<'_, Self>, qubit_index: usize) -> PyResult<()> {
         Self::add_gate(slf, QuantumGate::SqrtYdag(qubit_index), None)
     }
 
     #[allow(non_snake_case)]
-    fn add_T_gate(slf: PyRef<'_, Self>, qubit_index: usize) -> PyResult<()> {
+    fn add_T_gate(slf: PyRefMut<'_, Self>, qubit_index: usize) -> PyResult<()> {
         Self::add_gate(slf, QuantumGate::T(qubit_index), None)
     }
 
     #[allow(non_snake_case)]
-    fn add_Tdag_gate(slf: PyRef<'_, Self>, qubit_index: usize) -> PyResult<()> {
+    fn add_Tdag_gate(slf: PyRefMut<'_, Self>, qubit_index: usize) -> PyResult<()> {
         Self::add_gate(slf, QuantumGate::Tdag(qubit_index), None)
     }
 
     #[allow(non_snake_case)]
-    fn add_U1_gate(slf: PyRef<'_, Self>, qubit_index: usize, lmd: f64) -> PyResult<()> {
+    fn add_U1_gate(slf: PyRefMut<'_, Self>, qubit_index: usize, lmd: f64) -> PyResult<()> {
         Self::add_gate(slf, QuantumGate::U1(qubit_index, lmd), None)
     }
 
     #[allow(non_snake_case)]
-    fn add_U2_gate(slf: PyRef<'_, Self>, qubit_index: usize, phi: f64, lmd: f64) -> PyResult<()> {
+    fn add_U2_gate(
+        slf: PyRefMut<'_, Self>,
+        qubit_index: usize,
+        phi: f64,
+        lmd: f64,
+    ) -> PyResult<()> {
         Self::add_gate(slf, QuantumGate::U2(qubit_index, phi, lmd), None)
     }
 
     #[allow(non_snake_case)]
     fn add_U3_gate(
-        slf: PyRef<'_, Self>,
+        slf: PyRefMut<'_, Self>,
         qubit_index: usize,
         theta: f64,
         phi: f64,
@@ -368,23 +372,23 @@ warnings.warn(
     }
 
     #[allow(non_snake_case)]
-    fn add_RX_gate(slf: PyRef<'_, Self>, qubit_index: usize, angle: f64) -> PyResult<()> {
+    fn add_RX_gate(slf: PyRefMut<'_, Self>, qubit_index: usize, angle: f64) -> PyResult<()> {
         Self::add_gate(slf, QuantumGate::RX(qubit_index, angle), None)
     }
 
     #[allow(non_snake_case)]
-    fn add_RY_gate(slf: PyRef<'_, Self>, qubit_index: usize, angle: f64) -> PyResult<()> {
+    fn add_RY_gate(slf: PyRefMut<'_, Self>, qubit_index: usize, angle: f64) -> PyResult<()> {
         Self::add_gate(slf, QuantumGate::RY(qubit_index, angle), None)
     }
 
     #[allow(non_snake_case)]
-    fn add_RZ_gate(slf: PyRef<'_, Self>, qubit_index: usize, angle: f64) -> PyResult<()> {
+    fn add_RZ_gate(slf: PyRefMut<'_, Self>, qubit_index: usize, angle: f64) -> PyResult<()> {
         Self::add_gate(slf, QuantumGate::RZ(qubit_index, angle), None)
     }
 
     #[allow(non_snake_case)]
     fn add_CNOT_gate(
-        slf: PyRef<'_, Self>,
+        slf: PyRefMut<'_, Self>,
         control_index: usize,
         target_index: usize,
     ) -> PyResult<()> {
@@ -393,7 +397,7 @@ warnings.warn(
 
     #[allow(non_snake_case)]
     fn add_CZ_gate(
-        slf: PyRef<'_, Self>,
+        slf: PyRefMut<'_, Self>,
         control_index: usize,
         target_index: usize,
     ) -> PyResult<()> {
@@ -402,7 +406,7 @@ warnings.warn(
 
     #[allow(non_snake_case)]
     fn add_SWAP_gate(
-        slf: PyRef<'_, Self>,
+        slf: PyRefMut<'_, Self>,
         target_index1: usize,
         target_index2: usize,
     ) -> PyResult<()> {
@@ -411,7 +415,7 @@ warnings.warn(
 
     #[allow(non_snake_case)]
     fn add_TOFFOLI_gate(
-        slf: PyRef<'_, Self>,
+        slf: PyRefMut<'_, Self>,
         control_index1: usize,
         control_index2: usize,
         target_index: usize,
@@ -425,7 +429,7 @@ warnings.warn(
 
     #[allow(non_snake_case)]
     fn add_UnitaryMatrix_gate(
-        slf: PyRef<'_, Self>,
+        slf: PyRefMut<'_, Self>,
         target_indices: Vec<usize>,
         unitary_matrix: Vec<Vec<Complex64>>,
     ) -> PyResult<()> {
@@ -438,7 +442,7 @@ warnings.warn(
 
     #[allow(non_snake_case)]
     fn add_SingleQubitUnitaryMatrix_gate(
-        slf: PyRef<'_, Self>,
+        slf: PyRefMut<'_, Self>,
         target_index: usize,
         unitary_matrix: Vec<Vec<Complex64>>,
     ) -> PyResult<()> {
@@ -451,7 +455,7 @@ warnings.warn(
 
     #[allow(non_snake_case)]
     fn add_TwoQubitUnitaryMatrix_gate(
-        slf: PyRef<'_, Self>,
+        slf: PyRefMut<'_, Self>,
         target_index1: usize,
         target_index2: usize,
         unitary_matrix: Vec<Vec<Complex64>>,
@@ -465,7 +469,7 @@ warnings.warn(
 
     #[allow(non_snake_case)]
     fn add_Pauli_gate(
-        slf: PyRef<'_, Self>,
+        slf: PyRefMut<'_, Self>,
         target_indices: Vec<usize>,
         pauli_ids: Vec<u8>,
     ) -> PyResult<()> {
@@ -474,7 +478,7 @@ warnings.warn(
 
     #[allow(non_snake_case)]
     fn add_PauliRotation_gate(
-        slf: PyRef<'_, Self>,
+        slf: PyRefMut<'_, Self>,
         target_qubits: Vec<usize>,
         pauli_id_list: Vec<u8>,
         angle: f64,
@@ -487,7 +491,7 @@ warnings.warn(
     }
 
     fn measure(
-        slf: PyRef<'_, Self>,
+        slf: PyRefMut<'_, Self>,
         qubit_indices: &Bound<'_, PyAny>,
         classical_indices: &Bound<'_, PyAny>,
     ) -> PyResult<()> {

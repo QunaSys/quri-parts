@@ -3,7 +3,6 @@ use num_complex::Complex64;
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
 use pyo3_commonize::{commonize, Commonized};
-use std::collections::HashSet;
 
 #[derive(Clone, Debug, PartialEq)]
 #[repr(C)]
@@ -423,11 +422,33 @@ pub struct GenericGateProperty {
     pub unitary_matrix: ROption<RVec<RVec<Complex64>>>,
 }
 
+fn unordered_eq<I0, I1>(lhs: I0, rhs: I1) -> bool
+where
+    I0: IntoIterator,
+    I1: IntoIterator,
+    I0::IntoIter: ExactSizeIterator + Clone,
+    I1::IntoIter: ExactSizeIterator<Item = I0::Item> + Clone,
+    I0::Item: PartialEq,
+    I1::Item: Clone,
+{
+    let lhs = lhs.into_iter();
+    let mut rhs = rhs.into_iter();
+    if lhs.len() != rhs.len() {
+        return false;
+    }
+    lhs.clone().all(|q| rhs.clone().find(|r| *r == q).is_some())
+        && rhs.all(|q| lhs.clone().find(|r| *r == q).is_some())
+}
+
+#[test]
+fn test_unordered_eq() {
+    assert!(unordered_eq(&[0, 1], &[1, 0]));
+}
+
 impl PartialEq for GenericGateProperty {
     fn eq(&self, other: &Self) -> bool {
         if &self.name != &other.name
-            || &self.control_indices.iter().collect::<HashSet<_>>()
-                != &other.control_indices.iter().collect::<HashSet<_>>()
+            || !unordered_eq(&self.control_indices, &other.control_indices)
             || &self.params != &other.params
         {
             return false;
@@ -437,37 +458,21 @@ impl PartialEq for GenericGateProperty {
                 return false;
             }
         } else {
-            if &self.target_indices.iter().collect::<HashSet<_>>()
-                != &other.target_indices.iter().collect::<HashSet<_>>()
-            {
+            if !unordered_eq(&self.target_indices, &other.target_indices) {
                 return false;
             }
         }
-        if &self
-            .target_indices
-            .iter()
-            .zip(&self.pauli_ids)
-            .collect::<HashSet<_>>()
-            != &other
-                .target_indices
-                .iter()
-                .zip(&other.pauli_ids)
-                .collect::<HashSet<_>>()
-        {
+        if !unordered_eq(
+            self.target_indices.iter().zip(&self.pauli_ids),
+            other.target_indices.iter().zip(&other.pauli_ids),
+        ) {
             return false;
         }
         if &self.name == "Measurement" {
-            if &self
-                .target_indices
-                .iter()
-                .zip(&self.classical_indices)
-                .collect::<HashSet<_>>()
-                != &other
-                    .target_indices
-                    .iter()
-                    .zip(&other.classical_indices)
-                    .collect::<HashSet<_>>()
-            {
+            if !unordered_eq(
+                self.target_indices.iter().zip(&self.classical_indices),
+                other.target_indices.iter().zip(&other.classical_indices),
+            ) {
                 return false;
             }
         }

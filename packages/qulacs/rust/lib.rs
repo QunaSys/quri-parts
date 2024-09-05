@@ -126,7 +126,7 @@ fn convert_circuit<'py>(
         .import_bound("qulacs")?
         .getattr("QuantumCircuit")?
         .call1((circuit.qubit_count,))?;
-    for gate in &circuit.gates.read().0 {
+    for gate in &circuit.gates.0 {
         qulacs_circuit = convert_add_gate(gate, qulacs_circuit)?;
     }
     Ok(qulacs_circuit.as_any().clone())

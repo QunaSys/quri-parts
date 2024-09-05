@@ -16,10 +16,10 @@ from numpy.typing import ArrayLike
 from typing_extensions import assert_never
 
 from quri_parts.circuit import (
-    LinearMappedUnboundParametricQuantumCircuitBase,
+    ImmutableLinearMappedParametricQuantumCircuit,
+    ImmutableParametricQuantumCircuit,
+    ParametricQuantumCircuitProtocol,
     QuantumGate,
-    UnboundParametricQuantumCircuitBase,
-    UnboundParametricQuantumCircuitProtocol,
     gate_names,
 )
 from quri_parts.circuit.gate_names import (
@@ -192,13 +192,13 @@ def convert_gate(
 
 
 def convert_parametric_circuit(
-    circuit: UnboundParametricQuantumCircuitProtocol,
+    circuit: ParametricQuantumCircuitProtocol,
 ) -> tuple[
     qulacs.ParametricQuantumCircuit, Callable[[Sequence[float]], Sequence[float]]
 ]:
-    param_circuit: UnboundParametricQuantumCircuitBase
+    param_circuit: ImmutableParametricQuantumCircuit
     param_mapper: Callable[[Sequence[float]], Sequence[float]]
-    if isinstance(circuit, LinearMappedUnboundParametricQuantumCircuitBase):
+    if isinstance(circuit, ImmutableLinearMappedParametricQuantumCircuit):
         param_mapping = circuit.param_mapping
         param_circuit = circuit.primitive_circuit()
         orig_param_mapper = param_mapping.seq_mapper
@@ -206,7 +206,7 @@ def convert_parametric_circuit(
         def param_mapper(s: Sequence[float]) -> Sequence[float]:
             return tuple(-p for p in orig_param_mapper(s))
 
-    elif isinstance(circuit, UnboundParametricQuantumCircuitBase):
+    elif isinstance(circuit, ImmutableParametricQuantumCircuit):
         param_circuit = circuit
 
         def param_mapper(s: Sequence[float]) -> Sequence[float]:

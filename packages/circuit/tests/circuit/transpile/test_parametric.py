@@ -13,13 +13,13 @@ from typing import Union, cast
 import numpy as np
 
 from quri_parts.circuit import (
-    LinearMappedUnboundParametricQuantumCircuit,
+    LinearMappedParametricQuantumCircuit,
     LinearParameterFunction,
     Parameter,
     ParametricQuantumCircuit,
+    ParametricQuantumCircuitProtocol,
     ParametricQuantumGate,
     QuantumGate,
-    UnboundParametricQuantumCircuitProtocol,
     gates,
 )
 from quri_parts.circuit.transpile import (
@@ -48,8 +48,8 @@ def _gates_close(
 
 
 def _circuit_close(
-    x: UnboundParametricQuantumCircuitProtocol,
-    y: UnboundParametricQuantumCircuitProtocol,
+    x: ParametricQuantumCircuitProtocol,
+    y: ParametricQuantumCircuitProtocol,
 ) -> bool:
     return len(x.gates) == len(y.gates) and all(
         _gates_close(a, b) for a, b in zip(x.gates, y.gates)
@@ -150,8 +150,8 @@ class TestParametricTranspile:
 
 
 def _assert_param_map_equal(
-    x: LinearMappedUnboundParametricQuantumCircuit,
-    y: LinearMappedUnboundParametricQuantumCircuit,
+    x: LinearMappedParametricQuantumCircuit,
+    y: LinearMappedParametricQuantumCircuit,
 ) -> None:
     xmap, ymap = x.param_mapping.mapping, y.param_mapping.mapping
     assert len(xmap) == len(ymap)
@@ -161,8 +161,8 @@ def _assert_param_map_equal(
 
 
 def _assert_param_map_name_equal(
-    x: LinearMappedUnboundParametricQuantumCircuit,
-    y: LinearMappedUnboundParametricQuantumCircuit,
+    x: LinearMappedParametricQuantumCircuit,
+    y: LinearMappedParametricQuantumCircuit,
 ) -> None:
     xmap, ymap = x.param_mapping.mapping, y.param_mapping.mapping
     assert len(xmap) == len(ymap)
@@ -179,8 +179,8 @@ def _assert_param_map_name_equal(
                 assert xvv == yvv
 
 
-def _linear_mapped_rotation_circuit() -> LinearMappedUnboundParametricQuantumCircuit:
-    circuit = LinearMappedUnboundParametricQuantumCircuit(3)
+def _linear_mapped_rotation_circuit() -> LinearMappedParametricQuantumCircuit:
+    circuit = LinearMappedParametricQuantumCircuit(3)
     ps = circuit.add_parameters("ps0", "ps1", "ps2")
     circuit.add_H_gate(0)
     circuit.add_CNOT_gate(0, 1)
@@ -208,7 +208,7 @@ class TestLinearMappedParametricTranspile:
         tr = ParametricTranspiler(IdentityEliminationTranspiler())
         circuit = _linear_mapped_rotation_circuit()
         transpiled = tr(circuit)
-        expect = LinearMappedUnboundParametricQuantumCircuit(3)
+        expect = LinearMappedParametricQuantumCircuit(3)
         ps = expect.add_parameters("ps0", "ps1", "ps2")
         expect.add_H_gate(0)
         expect.add_CNOT_gate(0, 1)
@@ -223,10 +223,10 @@ class TestLinearMappedParametricTranspile:
 
     def test_non_parametric(self) -> None:
         tr = ParametricTranspiler(IdentityEliminationTranspiler())
-        circuit = LinearMappedUnboundParametricQuantumCircuit(2)
+        circuit = LinearMappedParametricQuantumCircuit(2)
         circuit.extend(_non_parametric_circuit())
         transpiled = tr(circuit)
-        expect = LinearMappedUnboundParametricQuantumCircuit(2)
+        expect = LinearMappedParametricQuantumCircuit(2)
         expect.extend(
             [
                 gates.H(0),
