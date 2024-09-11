@@ -264,7 +264,7 @@ class RZ2NamedTranspiler(GateKindDecomposer):
 
 class Rotation2NamedTranspiler(SequentialTranspiler):
     """Convert rotation gates (RX, RY, and RZ) to Identity, Z, S, Sdag, T, or
-    Tdag gates if it is equivalent ot a sequence of these gates."""
+    Tdag gates if it is equivalent to a sequence of these gates."""
 
     def __init__(self, epsilon: float = 1.0e-9):
         super().__init__(
