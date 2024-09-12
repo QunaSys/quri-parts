@@ -14,7 +14,7 @@ fn convert_circuit<'py>(
         .import_bound("qulacs")?
         .getattr("QuantumCircuit")?
         .call1((circuit.qubit_count,))?;
-    for gate in &circuit.gates.read().unwrap().0 {
+    for gate in &circuit.gates.read().0 {
         match gate {
             QuantumGate::Identity(q1) => {
                 qulacs_circuit.call_method1("add_Identity_gate", (*q1,))?;
@@ -86,16 +86,26 @@ fn convert_circuit<'py>(
                 qulacs_circuit.call_method1("add_TOFFOLI_gate", (*q1, *q2, *q3))?;
             }
             QuantumGate::UnitaryMatrix(qs, mat) => {
-                qulacs_circuit.call_method1("add_dense_matrix_gate", (qs.clone(), mat.clone()))?;
+                qulacs_circuit.call_method1(
+                    "add_dense_matrix_gate",
+                    (
+                        Vec::from(qs.clone()),
+                        mat.iter()
+                            .map(|v| v.clone().into())
+                            .collect::<Vec<Vec<_>>>(),
+                    ),
+                )?;
             }
             QuantumGate::Pauli(qs, pauli_ids) => {
-                qulacs_circuit
-                    .call_method1("add_multi_Pauli_gate", (qs.clone(), pauli_ids.clone()))?;
+                qulacs_circuit.call_method1(
+                    "add_multi_Pauli_gate",
+                    (Vec::from(qs.clone()), Vec::from(pauli_ids.clone())),
+                )?;
             }
             QuantumGate::PauliRotation(qs, pauli_ids, angle) => {
                 qulacs_circuit.call_method1(
                     "add_multi_Pauli_rotation_gate",
-                    (qs.clone(), pauli_ids.clone(), -*angle),
+                    (Vec::from(qs.clone()), Vec::from(pauli_ids.clone()), -*angle),
                 )?;
             }
             other => {

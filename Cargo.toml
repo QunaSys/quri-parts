@@ -16,6 +16,9 @@ python = ["pyo3"]
 path = "rust/lib.rs"
 crate-type = ["rlib", "dylib"]
 
+[dependencies]
+abi_stable = "=0.11.3"
+
 [dependencies.pyo3]
 version = "*"
 features = ["extension-module"]

@@ -1,23 +1,25 @@
 use crate::gate::QuantumGate;
+use abi_stable::external_types::RRwLock;
+use abi_stable::std_types::{RBox, ROption, RSome};
 use num_complex::Complex64;
 use pyo3::prelude::*;
 use pyo3::types::{PySequence, PyString, PyTuple};
 use pyo3_commonize::Commonized;
 use quri_parts::BasicBlock;
 use std::collections::HashMap;
-use std::sync::RwLock;
 
 const PICKLE_STUB_ARG: &'static str = "__QURI_PARTS_STUB_ARG_FOR_UNPICKLING";
 
 #[pyclass(subclass, frozen, eq, module = "quri_parts.circuit.rust.circuit")]
-#[derive(Debug, Commonized)]
+#[derive(Commonized)]
+#[repr(C)]
 pub struct ImmutableQuantumCircuit {
     #[pyo3(get)]
     pub qubit_count: usize,
     #[pyo3(get)]
     pub cbit_count: usize,
-    pub gates: Box<RwLock<BasicBlock<QuantumGate<f64>>>>,
-    pub depth_cache: Box<RwLock<Option<usize>>>,
+    pub gates: RBox<RRwLock<BasicBlock<QuantumGate<f64>>>>,
+    pub depth_cache: RBox<RRwLock<ROption<usize>>>,
 }
 
 impl PartialEq for ImmutableQuantumCircuit {
@@ -25,21 +27,21 @@ impl PartialEq for ImmutableQuantumCircuit {
         if self.qubit_count != other.qubit_count || self.cbit_count != other.cbit_count {
             return false;
         }
-        let lhs = self.gates.read().unwrap();
-        let rhs = other.gates.read().unwrap();
+        let lhs = self.gates.read();
+        let rhs = other.gates.read();
         *lhs == *rhs
     }
 }
 
 impl Clone for ImmutableQuantumCircuit {
     fn clone(&self) -> Self {
-        let gates = self.gates.read().unwrap().clone();
-        let depth_cache = self.depth_cache.read().unwrap().clone();
+        let gates = self.gates.read().clone();
+        let depth_cache = self.depth_cache.read().clone();
         ImmutableQuantumCircuit {
             qubit_count: self.qubit_count,
             cbit_count: self.cbit_count,
-            gates: Box::new(RwLock::new(gates)),
-            depth_cache: Box::new(RwLock::new(depth_cache)),
+            gates: RBox::new(RRwLock::new(gates)),
+            depth_cache: RBox::new(RRwLock::new(depth_cache)),
         }
     }
 }
@@ -60,8 +62,8 @@ impl ImmutableQuantumCircuit {
                     Self {
                         qubit_count,
                         cbit_count,
-                        gates: Box::new(RwLock::new(BasicBlock(gates))),
-                        depth_cache: Box::new(RwLock::new(None)),
+                        gates: RBox::new(RRwLock::new(BasicBlock(gates.into()))),
+                        depth_cache: RBox::new(RRwLock::new(ROption::RNone)),
                     },
                 );
             }
@@ -73,21 +75,21 @@ impl ImmutableQuantumCircuit {
     fn py_reduce(
         slf: &Bound<'_, Self>,
     ) -> PyResult<(PyObject, (Py<PyString>, usize, usize, Vec<QuantumGate>))> {
-        let gates = slf.get().gates.read().unwrap();
+        let gates = slf.get().gates.read();
         Ok((
             slf.getattr("__class__")?.unbind(),
             (
                 PyString::new_bound(slf.py(), PICKLE_STUB_ARG).unbind(),
                 slf.get().qubit_count,
                 slf.get().cbit_count,
-                gates.0.clone(),
+                gates.0.clone().into(),
             ),
         ))
     }
 
     #[getter]
     fn get_gates<'py>(slf: &Bound<'py, Self>) -> PyResult<Bound<'py, PyTuple>> {
-        let gates = slf.get().gates.read().unwrap();
+        let gates = slf.get().gates.read();
         Ok(PyTuple::new_bound(
             slf.py(),
             gates.0.iter().map(|g| g.clone().into_py(slf.py())),
@@ -96,12 +98,12 @@ impl ImmutableQuantumCircuit {
 
     #[getter]
     fn get_depth(&self) -> usize {
-        let mut depth = self.depth_cache.write().unwrap();
-        if let Some(depth) = *depth {
+        let mut depth = self.depth_cache.write();
+        if let RSome(depth) = *depth {
             depth
         } else {
             let mut ds = HashMap::<usize, usize>::new();
-            let gates = self.gates.read().unwrap();
+            let gates = self.gates.read();
             for gate in gates.0.iter() {
                 let qubits = gate.get_qubits();
                 let d = 1 + qubits
@@ -114,7 +116,7 @@ impl ImmutableQuantumCircuit {
                 });
             }
             let d = ds.into_values().max().unwrap_or(0);
-            *depth = Some(d);
+            *depth = ROption::RSome(d);
             d
         }
     }
@@ -191,8 +193,8 @@ warnings.warn(
         let base = ImmutableQuantumCircuit {
             qubit_count,
             cbit_count,
-            gates: Box::new(RwLock::new(BasicBlock(gates))),
-            depth_cache: Box::new(RwLock::new(None)),
+            gates: RBox::new(RRwLock::new(BasicBlock(gates.into()))),
+            depth_cache: RBox::new(RRwLock::new(ROption::RNone)),
         };
         Ok((QuantumCircuit(), base))
     }
@@ -201,10 +203,10 @@ warnings.warn(
     fn py_reduce(slf: &Bound<'_, Self>) -> PyResult<(PyObject, (usize, usize, Vec<QuantumGate>))> {
         let borrowed = slf.borrow();
         let sup = borrowed.as_super();
-        let gates = sup.gates.read().unwrap();
+        let gates = sup.gates.read();
         Ok((
             slf.getattr("__class__")?.unbind(),
-            (sup.qubit_count, sup.cbit_count, gates.0.clone()),
+            (sup.qubit_count, sup.cbit_count, gates.0.clone().into()),
         ))
     }
 
@@ -215,7 +217,7 @@ warnings.warn(
         gate: QuantumGate,
         gate_index: Option<usize>,
     ) -> PyResult<()> {
-        slf.as_super().depth_cache.write().unwrap().take();
+        slf.as_super().depth_cache.write().take();
         if gate
             .get_qubits()
             .iter()
@@ -238,7 +240,7 @@ warnings.warn(
                 "The classical indices of the gate applied must be smaller than cbit_count",
             ));
         }
-        let gates = &mut slf.as_super().gates.write().unwrap().0;
+        let gates = &mut slf.as_super().gates.write().0;
         if let Some(gate_index) = gate_index {
             if gate_index <= gates.len() {
                 gates.insert(gate_index, gate.clone());
@@ -255,7 +257,7 @@ warnings.warn(
     #[pyo3(text_signature = "(gates: ImmutableQuantumCircuit | Sequence[QuantumGate])")]
     fn extend(slf: &Bound<'_, Self>, gates: Bound<'_, PyAny>) -> PyResult<()> {
         if let Ok(other) = gates.downcast::<ImmutableQuantumCircuit>() {
-            for gate in other.get().gates.read().unwrap().0.iter() {
+            for gate in other.get().gates.read().0.iter() {
                 Self::add_gate(slf.borrow(), gate.clone(), None)?;
             }
             Ok(())

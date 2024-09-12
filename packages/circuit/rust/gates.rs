@@ -1,6 +1,7 @@
 use crate::gate::{GenericGateProperty, ParametricQuantumGate, QuantumGate};
 use crate::parameter::Wrapper;
 use crate::MaybeUnbound;
+use abi_stable::std_types::RNone;
 use num_complex::{Complex64, ComplexFloat};
 use pyo3::prelude::*;
 
@@ -155,13 +156,13 @@ pub fn rz<'py>(target_index: usize, angle: f64) -> QuantumGate {
 )]
 pub fn parametric_rx(target_index: usize) -> ParametricQuantumGate {
     ParametricQuantumGate(GenericGateProperty {
-        name: "ParametricRX".to_owned(),
-        target_indices: vec![target_index],
-        control_indices: vec![],
-        classical_indices: vec![],
-        params: vec![],
-        pauli_ids: vec![],
-        unitary_matrix: None,
+        name: "ParametricRX".to_owned().into(),
+        target_indices: vec![target_index].into(),
+        control_indices: vec![].into(),
+        classical_indices: vec![].into(),
+        params: vec![].into(),
+        pauli_ids: vec![].into(),
+        unitary_matrix: RNone,
     })
 }
 
@@ -172,13 +173,13 @@ pub fn parametric_rx(target_index: usize) -> ParametricQuantumGate {
 )]
 pub fn parametric_ry(target_index: usize) -> ParametricQuantumGate {
     ParametricQuantumGate(GenericGateProperty {
-        name: "ParametricRY".to_owned(),
-        target_indices: vec![target_index],
-        control_indices: vec![],
-        classical_indices: vec![],
-        params: vec![],
-        pauli_ids: vec![],
-        unitary_matrix: None,
+        name: "ParametricRY".to_owned().into(),
+        target_indices: vec![target_index].into(),
+        control_indices: vec![].into(),
+        classical_indices: vec![].into(),
+        params: vec![].into(),
+        pauli_ids: vec![].into(),
+        unitary_matrix: RNone,
     })
 }
 
@@ -189,13 +190,13 @@ pub fn parametric_ry(target_index: usize) -> ParametricQuantumGate {
 )]
 pub fn parametric_rz(target_index: usize) -> ParametricQuantumGate {
     ParametricQuantumGate(GenericGateProperty {
-        name: "ParametricRZ".to_owned(),
-        target_indices: vec![target_index],
-        control_indices: vec![],
-        classical_indices: vec![],
-        params: vec![],
-        pauli_ids: vec![],
-        unitary_matrix: None,
+        name: "ParametricRZ".to_owned().into(),
+        target_indices: vec![target_index].into(),
+        control_indices: vec![].into(),
+        classical_indices: vec![].into(),
+        params: vec![].into(),
+        pauli_ids: vec![].into(),
+        unitary_matrix: RNone,
     })
 }
 
@@ -209,13 +210,13 @@ pub fn parametric_pauli_rotation(
     pauli_ids: Vec<u8>,
 ) -> ParametricQuantumGate {
     ParametricQuantumGate(GenericGateProperty {
-        name: "ParametricPauliRotation".to_owned(),
-        target_indices,
-        control_indices: vec![],
-        classical_indices: vec![],
-        params: vec![],
-        pauli_ids,
-        unitary_matrix: None,
+        name: "ParametricPauliRotation".to_owned().into(),
+        target_indices: target_indices.into(),
+        control_indices: vec![].into(),
+        classical_indices: vec![].into(),
+        params: vec![].into(),
+        pauli_ids: pauli_ids.into(),
+        unitary_matrix: RNone,
     })
 }
 
@@ -303,7 +304,10 @@ pub fn unitary_matrix(
                     < 1e-5
             })
         }) {
-            Ok(QuantumGate::UnitaryMatrix(target_indices, unitary_matrix))
+            Ok(QuantumGate::UnitaryMatrix(
+                target_indices.into(),
+                unitary_matrix.into_iter().map(Into::into).collect(),
+            ))
         } else {
             Err(pyo3::exceptions::PyValueError::new_err(
                 "The given matrix is not unitary.",
@@ -347,7 +351,7 @@ pub fn two_qubit_unitary_matrix(
     text_signature = "(target_indices: Sequence[int], pauli_ids: Sequence[int])",
 )]
 pub fn pauli(target_indices: Vec<usize>, pauli_ids: Vec<u8>) -> QuantumGate {
-    QuantumGate::Pauli(target_indices, pauli_ids)
+    QuantumGate::Pauli(target_indices.into(), pauli_ids.into())
 }
 
 #[pyfunction(
@@ -356,7 +360,7 @@ pub fn pauli(target_indices: Vec<usize>, pauli_ids: Vec<u8>) -> QuantumGate {
     text_signature = "(target_indices: Sequence[int], pauli_ids: Sequence[int], angle: float)",
 )]
 pub fn pauli_rotation(target_indices: Vec<usize>, pauli_ids: Vec<u8>, angle: f64) -> QuantumGate {
-    QuantumGate::PauliRotation(target_indices, pauli_ids, angle)
+    QuantumGate::PauliRotation(target_indices.into(), pauli_ids.into(), angle)
 }
 
 #[pyfunction(
@@ -373,7 +377,10 @@ pub fn measurement(
             "Number of qubits and classical bits must be same for measurement.",
         ))
     } else {
-        Ok(QuantumGate::Measurement(target_indices, classical_indices))
+        Ok(QuantumGate::Measurement(
+            target_indices.into(),
+            classical_indices.into(),
+        ))
     }
 }
 
@@ -437,7 +444,10 @@ impl QuantumGate<MaybeUnbound> {
             Self::CZ(q0, q1) => Ok(Ok(cz(q0, q1))),
             Self::SWAP(q0, q1) => Ok(Ok(swap(q0, q1))),
             Self::TOFFOLI(q0, q1, q2) => Ok(Ok(toffoli(q0, q1, q2))),
-            Self::UnitaryMatrix(qs, mat) => Ok(Ok(unitary_matrix(qs, mat)?)),
+            Self::UnitaryMatrix(qs, mat) => Ok(Ok(unitary_matrix(
+                qs.into(),
+                mat.into_iter().map(Into::into).collect(),
+            )?)),
             Self::RX(q, p) => match p {
                 MaybeUnbound::Bound(p) => Ok(Ok(rx(q, p))),
                 MaybeUnbound::Unbound(pid) => Ok(Err((parametric_rx(q), pid))),
@@ -453,12 +463,14 @@ impl QuantumGate<MaybeUnbound> {
             Self::U1(q, p) => Ok(Ok(u1(q, p))),
             Self::U2(q, p0, p1) => Ok(Ok(u2(q, p0, p1))),
             Self::U3(q, p0, p1, p2) => Ok(Ok(u3(q, p0, p1, p2))),
-            Self::Pauli(qs, ps) => Ok(Ok(pauli(qs, ps))),
+            Self::Pauli(qs, ps) => Ok(Ok(pauli(qs.into(), ps.into()))),
             Self::PauliRotation(qs, ps, a) => match a {
-                MaybeUnbound::Bound(a) => Ok(Ok(pauli_rotation(qs, ps, a))),
-                MaybeUnbound::Unbound(pid) => Ok(Err((parametric_pauli_rotation(qs, ps), pid))),
+                MaybeUnbound::Bound(a) => Ok(Ok(pauli_rotation(qs.into(), ps.into(), a))),
+                MaybeUnbound::Unbound(pid) => {
+                    Ok(Err((parametric_pauli_rotation(qs.into(), ps.into()), pid)))
+                }
             },
-            Self::Measurement(qs, cs) => Ok(Ok(measurement(qs, cs)?)),
+            Self::Measurement(qs, cs) => Ok(Ok(measurement(qs.into(), cs.into())?)),
             Self::Other(o) => Ok(Ok(QuantumGate::Other(o))),
         }
     }
