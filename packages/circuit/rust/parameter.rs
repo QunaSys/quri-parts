@@ -1,3 +1,4 @@
+use abi_stable::std_types::RString;
 use pyo3::prelude::*;
 use pyo3_commonize::Commonized;
 
@@ -44,8 +45,7 @@ impl<'py> pyo3::conversion::FromPyObject<'py> for Wrapper {
 #[pyclass]
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Commonized)]
 pub struct Parameter {
-    #[pyo3(get, set)]
-    name: String,
+    name: RString,
 }
 
 impl core::fmt::Display for Parameter {
@@ -59,7 +59,17 @@ impl Parameter {
     #[new]
     #[pyo3(signature = (name = String::new()))]
     pub fn new(name: String) -> Self {
-        Parameter { name }
+        Parameter { name: name.into() }
+    }
+
+    #[getter]
+    fn get_name(&self) -> String {
+        self.name.clone().into()
+    }
+
+    #[setter]
+    fn set_name(&mut self, s: String) {
+        self.name = s.into();
     }
 
     #[pyo3(name = "__eq__")]
@@ -83,14 +93,14 @@ impl Parameter {
             Bound::new(
                 slf.py(),
                 Self {
-                    name: String::new(),
+                    name: RString::new(),
                 },
             )
             .unwrap()
             .getattr("__class__")
             .unwrap()
             .unbind(),
-            (slf.borrow().name.clone(),),
+            (slf.borrow().name.clone().into(),),
         )
     }
 }

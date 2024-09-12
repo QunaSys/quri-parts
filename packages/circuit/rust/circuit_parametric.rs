@@ -2,6 +2,8 @@ use crate::circuit::ImmutableQuantumCircuit;
 use crate::gate::QuantumGate;
 use crate::parameter::{Parameter, Wrapper};
 use crate::MaybeUnbound;
+use abi_stable::external_types::RRwLock;
+use abi_stable::std_types::{RBox, RNone, ROption, RSome, RVec};
 use num_complex::Complex64;
 use pyo3::conversion::FromPyObject;
 use pyo3::prelude::*;
@@ -10,7 +12,6 @@ use pyo3_commonize::Commonized;
 use quri_parts::BasicBlock;
 use std::collections::HashMap;
 use std::collections::VecDeque;
-use std::sync::RwLock;
 
 #[pyclass(
     subclass,
@@ -18,14 +19,14 @@ use std::sync::RwLock;
     eq,
     module = "quri_parts.circuit.rust.circuit_parametric"
 )]
-#[derive(Debug, Commonized)]
+#[derive(Commonized)]
 pub struct ImmutableParametricQuantumCircuit {
     #[pyo3(get)]
     qubit_count: usize,
     #[pyo3(get)]
     cbit_count: usize,
-    gates: Box<RwLock<BasicBlock<QuantumGate<MaybeUnbound>>>>,
-    depth_cache: Box<RwLock<Option<usize>>>,
+    gates: RBox<RRwLock<BasicBlock<QuantumGate<MaybeUnbound>>>>,
+    depth_cache: RBox<RRwLock<ROption<usize>>>,
 }
 
 impl PartialEq for ImmutableParametricQuantumCircuit {
@@ -33,21 +34,21 @@ impl PartialEq for ImmutableParametricQuantumCircuit {
         if self.qubit_count != other.qubit_count || self.cbit_count != other.cbit_count {
             return false;
         }
-        let lhs = self.gates.read().unwrap();
-        let rhs = other.gates.read().unwrap();
+        let lhs = self.gates.read();
+        let rhs = other.gates.read();
         *lhs == *rhs
     }
 }
 
 impl Clone for ImmutableParametricQuantumCircuit {
     fn clone(&self) -> Self {
-        let gates = self.gates.read().unwrap().clone();
-        let depth_cache = self.depth_cache.read().unwrap().clone();
+        let gates = self.gates.read().clone();
+        let depth_cache = self.depth_cache.read().clone();
         ImmutableParametricQuantumCircuit {
             qubit_count: self.qubit_count,
             cbit_count: self.cbit_count,
-            gates: Box::new(RwLock::new(gates)),
-            depth_cache: Box::new(RwLock::new(depth_cache)),
+            gates: RBox::new(RRwLock::new(gates)),
+            depth_cache: RBox::new(RRwLock::new(depth_cache)),
         }
     }
 }
@@ -71,7 +72,6 @@ impl ImmutableParametricQuantumCircuit {
             .get()
             .gates
             .read()
-            .unwrap()
             .0
             .iter()
             .map(|gate| {
@@ -148,10 +148,8 @@ impl ImmutableParametricQuantumCircuit {
                     ImmutableQuantumCircuit {
                         qubit_count: slf.get().qubit_count,
                         cbit_count: slf.get().cbit_count,
-                        gates: Box::new(RwLock::new(BasicBlock(gates))),
-                        depth_cache: Box::new(RwLock::new(
-                            slf.get().depth_cache.read().unwrap().clone(),
-                        )),
+                        gates: RBox::new(RRwLock::new(BasicBlock(gates))),
+                        depth_cache: RBox::new(RRwLock::new(slf.get().depth_cache.read().clone())),
                     },
                     map,
                 ));
@@ -170,18 +168,18 @@ impl ImmutableParametricQuantumCircuit {
     #[pyo3(signature = (circuit))]
     #[pyo3(text_signature = "(circuit: ImmutableParametricQuantumCircuit)")]
     fn py_new(circuit: &Self) -> Self {
-        let gates = circuit.gates.read().unwrap().clone();
+        let gates = circuit.gates.read().clone();
         ImmutableParametricQuantumCircuit {
             qubit_count: circuit.qubit_count,
             cbit_count: circuit.cbit_count,
-            gates: Box::new(RwLock::new(gates)),
-            depth_cache: Box::new(RwLock::new(None)),
+            gates: RBox::new(RRwLock::new(gates)),
+            depth_cache: RBox::new(RRwLock::new(RNone)),
         }
     }
 
     #[getter]
     fn get_gates<'py>(slf: PyRef<'py, Self>) -> PyResult<Vec<PyObject>> {
-        let gates = slf.gates.read().unwrap();
+        let gates = slf.gates.read();
         gates
             .0
             .iter()
@@ -194,7 +192,7 @@ impl ImmutableParametricQuantumCircuit {
 
     #[getter]
     fn get_gates_and_params(slf: &Bound<'_, Self>) -> PyResult<Vec<(Py<PyAny>, Option<Wrapper>)>> {
-        let gates = slf.get().gates.read().unwrap();
+        let gates = slf.get().gates.read();
         gates
             .0
             .iter()
@@ -220,12 +218,12 @@ impl ImmutableParametricQuantumCircuit {
 
     #[getter]
     fn get_depth(&self) -> usize {
-        let mut depth = self.depth_cache.write().unwrap();
-        if let Some(depth) = *depth {
+        let mut depth = self.depth_cache.write();
+        if let RSome(depth) = *depth {
             depth
         } else {
             let mut ds = HashMap::<usize, usize>::new();
-            let gates = self.gates.read().unwrap();
+            let gates = self.gates.read();
             for gate in gates.0.iter() {
                 let qubits = gate.get_qubits();
                 let d = 1 + qubits
@@ -238,7 +236,7 @@ impl ImmutableParametricQuantumCircuit {
                 });
             }
             let d = ds.into_values().max().unwrap_or(0);
-            *depth = Some(d);
+            *depth = RSome(d);
             d
         }
     }
@@ -326,7 +324,7 @@ impl ImmutableParametricQuantumCircuit {
     #[allow(non_snake_case)]
     #[getter]
     fn get__params(slf: &Bound<'_, Self>) -> Vec<Wrapper> {
-        let gates = slf.get().gates.read().unwrap();
+        let gates = slf.get().gates.read();
         gates
             .0
             .iter()
@@ -366,8 +364,8 @@ impl ImmutableParametricQuantumCircuit {
                 Self {
                     qubit_count: slf.get().qubit_count,
                     cbit_count: 0,
-                    gates: Box::new(RwLock::new(BasicBlock(Vec::new()))),
-                    depth_cache: Box::new(RwLock::new(None)),
+                    gates: RBox::new(RRwLock::new(BasicBlock(RVec::new()))),
+                    depth_cache: RBox::new(RRwLock::new(RNone)),
                 },
             ),
         )?;
@@ -391,7 +389,7 @@ impl ParametricQuantumCircuit {
         gate: QuantumGate<MaybeUnbound>,
         gate_index: Option<usize>,
     ) -> PyResult<()> {
-        slf.as_super().depth_cache.write().unwrap().take();
+        slf.as_super().depth_cache.write().take();
         if gate
             .get_qubits()
             .iter()
@@ -414,7 +412,7 @@ impl ParametricQuantumCircuit {
                 "The classical indices of the gate applied must be smaller than cbit_count",
             ));
         }
-        let gates = &mut slf.as_super().gates.write().unwrap().0;
+        let gates = &mut slf.as_super().gates.write().0;
         if let Some(gate_index) = gate_index {
             if gate_index <= gates.len() {
                 gates.insert(gate_index, gate);
@@ -438,8 +436,8 @@ impl ParametricQuantumCircuit {
         let base = ImmutableParametricQuantumCircuit {
             qubit_count,
             cbit_count,
-            gates: Box::new(RwLock::new(BasicBlock(vec![]))),
-            depth_cache: Box::new(RwLock::new(None)),
+            gates: RBox::new(RRwLock::new(BasicBlock(vec![].into()))),
+            depth_cache: RBox::new(RRwLock::new(RNone)),
         };
         (ParametricQuantumCircuit(), base)
     }
@@ -460,12 +458,12 @@ impl ParametricQuantumCircuit {
     )]
     fn extend(slf: &Bound<'_, Self>, gates: &Bound<'_, PyAny>) -> PyResult<()> {
         if let Ok(other) = gates.downcast::<ImmutableQuantumCircuit>() {
-            for gate in other.get().gates.read().unwrap().0.iter() {
+            for gate in other.get().gates.read().0.iter() {
                 Self::add_gate(slf.borrow(), gate.clone(), None)?;
             }
             Ok(())
         } else if let Ok(other) = gates.downcast::<ImmutableParametricQuantumCircuit>() {
-            for gate in other.get().gates.read().unwrap().0.iter() {
+            for gate in other.get().gates.read().0.iter() {
                 Self::add_gate_inner(slf.borrow(), gate.clone(), None)?;
             }
             Ok(())
@@ -535,8 +533,8 @@ impl ParametricQuantumCircuit {
         Self::add_gate_inner(
             slf.borrow(),
             QuantumGate::PauliRotation(
-                target_indices,
-                pauli_ids,
+                target_indices.into(),
+                pauli_ids.into(),
                 MaybeUnbound::Unbound(pw.clone()),
             ),
             None,
