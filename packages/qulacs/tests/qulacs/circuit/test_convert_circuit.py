@@ -184,7 +184,9 @@ def test_convert_pauli_rotation_gate() -> None:
     # We need to disable type check due to an error in qulacs type annotation
     # https://github.com/qulacs/qulacs/issues/537
     assert np.allclose(
-        convert_gate(gates.PauliRotation((0,), (1,), np.pi / 2)).get_matrix(),  # noqa: E501
+        convert_gate(
+            gates.PauliRotation((0,), (1,), np.pi / 2)
+        ).get_matrix(),  # noqa: E501
         [[c, -s * 1j], [-s * 1j, c]],
     )
 

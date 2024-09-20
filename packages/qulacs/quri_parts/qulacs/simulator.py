@@ -78,9 +78,7 @@ def evaluate_state_to_vector(state: QulacsStateT) -> QuantumStateVector:
 
     # We need to disable type check due to an error in qulacs type annotation
     # https://github.com/qulacs/qulacs/issues/537
-    return QuantumStateVector(
-        state.qubit_count, out_state_vector.get_vector()
-    )
+    return QuantumStateVector(state.qubit_count, out_state_vector.get_vector())
 
 
 def run_circuit(
