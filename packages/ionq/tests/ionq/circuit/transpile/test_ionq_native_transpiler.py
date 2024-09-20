@@ -106,7 +106,8 @@ def ionq_circuit_state(
             # We need to disable type check due to an error in qulacs type annotation
             # https://github.com/qulacs/qulacs/issues/537
             qs_circuit.add_dense_matrix_gate(
-                [gate.target_indices[0], gate.target_indices[1]], ionq_gate_matrix(gate)  # noqa: E501
+                [gate.target_indices[0], gate.target_indices[1]],
+                ionq_gate_matrix(gate),  # noqa: E501
             )
         elif gate.name == gate_names.RX:
             qs_circuit.add_RX_gate(gate.target_indices[0], -gate.params[0])
