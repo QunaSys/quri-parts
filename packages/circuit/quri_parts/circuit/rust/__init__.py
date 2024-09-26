@@ -6,6 +6,7 @@ from quri_parts.circuit.quri_parts_circuit_rs import (  # type: ignore[import-un
     circuit_parametric,
     gate,
     gates,
+    noise,
     parameter,
 )
 
@@ -29,6 +30,6 @@ sys.modules["quri_parts.circuit.rust.gates"] = gates
 sys.modules["quri_parts.circuit.rust.circuit"] = circuit
 sys.modules["quri_parts.circuit.rust.parameter"] = parameter
 sys.modules["quri_parts.circuit.rust.circuit_parametric"] = circuit_parametric
+sys.modules["quri_parts.circuit.rust.noise"] = noise
 
-
-__all__ = ["gate", "gates", "parameter", "circuit", "circuit_parametric"]
+__all__ = ["gate", "gates", "parameter", "circuit", "circuit_parametric", "noise"]
