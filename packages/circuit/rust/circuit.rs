@@ -97,7 +97,7 @@ impl ImmutableQuantumCircuit {
     }
 
     #[getter]
-    fn get_depth(&self) -> usize {
+    pub fn get_depth(&self) -> usize {
         let mut depth = self.depth_cache.write();
         if let RSome(depth) = *depth {
             depth
