@@ -244,19 +244,19 @@ class TestGeneralSampler(TestCase):
         ) == [{0: 3000}, {0: 14000}, {0: (-8 + 20) * 1000}, {0: (-14 + 38) * 2000}]
 
     def test_state_sampler_input(self) -> None:
-        state = self.param_state_1.bind_parameters([1, 2])
+        state = self.param_state_1.bind_parameters([1.0, 2.0])
         assert self.general_sampler(state, 1000) == {0: 3000}
-        state = self.param_state_1.bind_parameters([3, 4])
+        state = self.param_state_1.bind_parameters([3.0, 4.0])
         assert self.general_sampler(state, 2000) == {0: 14000}
 
-        state_vector = self.param_state_2.bind_parameters([1, 2])
+        state_vector = self.param_state_2.bind_parameters([1.0, 2.0])
         assert self.general_sampler(state_vector, 1000) == {0: (-8 + 20) * 1000 * 2}
-        state_vector = self.param_state_2.bind_parameters([3, 4])
+        state_vector = self.param_state_2.bind_parameters([3.0, 4.0])
         assert self.general_sampler(state_vector, 2000) == {0: (-14 + 38) * 2000 * 2}
 
     def test_concurrent_state_sampler_input(self) -> None:
-        state_1 = self.param_state_1.bind_parameters([1, 2])
-        state_2 = self.param_state_1.bind_parameters([3, 4])
+        state_1 = self.param_state_1.bind_parameters([1.0, 2.0])
+        state_2 = self.param_state_1.bind_parameters([3.0, 4.0])
         assert self.general_sampler((state_1, 1000), (state_2, 2000)) == [
             {0: 3000},
             {0: 14000},
@@ -267,12 +267,12 @@ class TestGeneralSampler(TestCase):
         ]
 
     def test_param_state_sampler_input(self) -> None:
-        assert self.general_sampler(self.param_state_1, 1000, [1, 2]) == {0: 3000}
-        assert self.general_sampler(self.param_state_1, 2000, [3, 4]) == {0: 14000}
-        assert self.general_sampler(self.param_state_2, 1000, [1, 2]) == {
+        assert self.general_sampler(self.param_state_1, 1000, [1.0, 2.0]) == {0: 3000}
+        assert self.general_sampler(self.param_state_1, 2000, [3.0, 4.0]) == {0: 14000}
+        assert self.general_sampler(self.param_state_2, 1000, [1.0, 2.0]) == {
             0: (-8 + 20) * 1000 * 2
         }
-        assert self.general_sampler(self.param_state_2, 2000, [3, 4]) == {
+        assert self.general_sampler(self.param_state_2, 2000, [3.0, 4.0]) == {
             0: (-14 + 38) * 2000 * 2
         }
 
