@@ -7,7 +7,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from quri_parts.circuit.rust.noise import CircuitNoiseInstance, NoiseModel
+from quri_parts.rust.circuit.noise import CircuitNoiseInstance, NoiseModel
 
 __all__ = [
     "NoiseModel",

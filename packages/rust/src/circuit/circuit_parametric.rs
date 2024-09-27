@@ -1,19 +1,17 @@
-use crate::circuit::ImmutableQuantumCircuit;
-use crate::gate::QuantumGate;
-use crate::parameter::{Parameter, Wrapper};
-use crate::MaybeUnbound;
-use abi_stable::std_types::{RNone, ROption, RSome, RVec};
+use crate::circuit::circuit::ImmutableQuantumCircuit;
+use crate::circuit::gate::QuantumGate;
+use crate::circuit::parameter::{Parameter, Wrapper};
+use crate::circuit::MaybeUnbound;
 use num_complex::Complex64;
 use pyo3::conversion::FromPyObject;
 use pyo3::prelude::*;
 use pyo3::types::{PyMapping, PySequence};
-use pyo3_commonize::Commonized;
 use quri_parts::BasicBlock;
 use std::collections::HashMap;
 use std::collections::VecDeque;
 
-#[pyclass(subclass, eq, module = "quri_parts.circuit.rust.circuit_parametric")]
-#[derive(Commonized, Clone)]
+#[pyclass(subclass, eq, module = "quri_parts.rust.circuit.circuit_parametric")]
+#[derive(Clone)]
 #[repr(C)]
 pub struct ImmutableParametricQuantumCircuit {
     #[pyo3(get)]
@@ -21,7 +19,7 @@ pub struct ImmutableParametricQuantumCircuit {
     #[pyo3(get)]
     cbit_count: usize,
     gates: BasicBlock<QuantumGate<MaybeUnbound>>,
-    depth_cache: ROption<usize>,
+    depth_cache: Option<usize>,
     is_immutable: bool,
 }
 
@@ -152,7 +150,7 @@ impl ImmutableParametricQuantumCircuit {
             qubit_count: circuit.qubit_count,
             cbit_count: circuit.cbit_count,
             gates: circuit.gates.clone(),
-            depth_cache: RNone,
+            depth_cache: None,
             is_immutable: false,
         }
     }
@@ -197,7 +195,7 @@ impl ImmutableParametricQuantumCircuit {
     #[getter]
     fn get_depth(&mut self) -> usize {
         let depth = &mut self.depth_cache;
-        if let RSome(depth) = *depth {
+        if let Some(depth) = *depth {
             depth
         } else {
             let mut ds = HashMap::<usize, usize>::new();
@@ -213,7 +211,7 @@ impl ImmutableParametricQuantumCircuit {
                 });
             }
             let d = ds.into_values().max().unwrap_or(0);
-            *depth = RSome(d);
+            *depth = Some(d);
             d
         }
     }
@@ -348,8 +346,8 @@ impl ImmutableParametricQuantumCircuit {
                 Self {
                     qubit_count: slf.borrow().qubit_count,
                     cbit_count: 0,
-                    gates: BasicBlock(RVec::new()),
-                    depth_cache: RNone,
+                    gates: BasicBlock(Vec::new()),
+                    depth_cache: None,
                     is_immutable: false,
                 },
             ),
@@ -363,9 +361,9 @@ impl ImmutableParametricQuantumCircuit {
 #[pyclass(
     extends=ImmutableParametricQuantumCircuit,
     subclass,
-    module = "quri_parts.circuit.rust.circuit_parametric"
+    module = "quri_parts.rust.circuit.circuit_parametric"
 )]
-#[derive(Clone, Debug, Commonized)]
+#[derive(Clone, Debug)]
 pub struct ParametricQuantumCircuit();
 
 impl ParametricQuantumCircuit {
@@ -422,7 +420,7 @@ impl ParametricQuantumCircuit {
             qubit_count,
             cbit_count,
             gates: BasicBlock(vec![].into()),
-            depth_cache: RNone,
+            depth_cache: None,
             is_immutable: false,
         };
         (ParametricQuantumCircuit(), base)
@@ -683,7 +681,7 @@ impl ParametricQuantumCircuit {
     ) -> PyResult<()> {
         Self::add_gate(
             slf,
-            crate::gates::unitary_matrix(target_indices, unitary_matrix)?,
+            crate::circuit::gates::unitary_matrix(target_indices, unitary_matrix)?,
             None,
         )
     }
@@ -696,7 +694,7 @@ impl ParametricQuantumCircuit {
     ) -> PyResult<()> {
         Self::add_gate(
             slf,
-            crate::gates::single_qubit_unitary_matrix(target_index, unitary_matrix)?,
+            crate::circuit::gates::single_qubit_unitary_matrix(target_index, unitary_matrix)?,
             None,
         )
     }
@@ -710,7 +708,11 @@ impl ParametricQuantumCircuit {
     ) -> PyResult<()> {
         Self::add_gate(
             slf,
-            crate::gates::two_qubit_unitary_matrix(target_index1, target_index2, unitary_matrix)?,
+            crate::circuit::gates::two_qubit_unitary_matrix(
+                target_index1,
+                target_index2,
+                unitary_matrix,
+            )?,
             None,
         )
     }
@@ -721,7 +723,11 @@ impl ParametricQuantumCircuit {
         target_indices: Vec<usize>,
         pauli_ids: Vec<u8>,
     ) -> PyResult<()> {
-        Self::add_gate(slf, crate::gates::pauli(target_indices, pauli_ids), None)
+        Self::add_gate(
+            slf,
+            crate::circuit::gates::pauli(target_indices, pauli_ids),
+            None,
+        )
     }
 
     fn measure(
@@ -747,7 +753,7 @@ impl ParametricQuantumCircuit {
 
         Self::add_gate(
             slf,
-            crate::gates::measurement(qubit_indices, classical_indices)?,
+            crate::circuit::gates::measurement(qubit_indices, classical_indices)?,
             None,
         )
     }
@@ -756,9 +762,9 @@ impl ParametricQuantumCircuit {
 #[pyclass(
     extends=ImmutableQuantumCircuit,
     subclass,
-    module = "quri_parts.circuit.rust.circuit_parametric"
+    module = "quri_parts.rust.circuit.circuit_parametric"
 )]
-#[derive(Debug, Commonized)]
+#[derive(Debug)]
 pub struct ImmutableBoundParametricQuantumCircuit(
     HashMap<Wrapper, f64>,
     Py<ImmutableParametricQuantumCircuit>,

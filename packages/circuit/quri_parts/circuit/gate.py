@@ -19,7 +19,7 @@
 #: methods. A QuantumGate object contains information of gate name,
 #: control qubit, target qubit, classical bits, parameters, and pauli
 #: ids.
-from quri_parts.circuit.rust.gate import ParametricQuantumGate, QuantumGate
+from quri_parts.rust.circuit.gate import ParametricQuantumGate, QuantumGate
 
 __all__ = [
     "ParametricQuantumGate",

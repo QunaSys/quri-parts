@@ -1,16 +1,15 @@
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
-use pyo3_commonize::Commonized;
 use std::collections::HashMap;
 
-use crate::circuit::ImmutableQuantumCircuit;
-use crate::gate::QuantumGate;
-use crate::noise::noise_instruction::{
+use crate::circuit::circuit::ImmutableQuantumCircuit;
+use crate::circuit::gate::QuantumGate;
+use crate::circuit::noise::noise_instruction::{
     CircuitNoiseInstruction, CircuitNoiseResolver, DepthIntervalNoise, GateIntervalNoise,
     GateNoiseInstruction, MeasurementNoise, QubitIndex,
 };
 
-#[pyclass(module = "quri_parts.circuit.rust.noise")]
+#[pyclass(module = "quri_parts.rust.circuit.noise")]
 pub struct CircuitNoiseInstance {
     resolvers: Vec<Box<dyn CircuitNoiseResolver + Send>>,
     index: usize,
@@ -55,8 +54,8 @@ impl CircuitNoiseInstance {
     }
 }
 
-#[pyclass(module = "quri_parts.circuit.rust.noise")]
-#[derive(Debug, Commonized)]
+#[pyclass(module = "quri_parts.rust.circuit.noise")]
+#[derive(Debug)]
 pub struct NoiseModel {
     gate_noises: Vec<Py<GateNoiseInstruction>>,
 

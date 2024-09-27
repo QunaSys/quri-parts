@@ -1,8 +1,6 @@
-use abi_stable::std_types::{RBox, ROption, RString, RVec};
 use num_complex::Complex64;
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
-use pyo3_commonize::{commonize, Commonized};
 
 #[derive(Clone, Debug, PartialEq)]
 #[repr(C)]
@@ -30,11 +28,11 @@ pub enum QuantumGate<P = f64> {
     CZ(usize, usize),
     SWAP(usize, usize),
     TOFFOLI(usize, usize, usize),
-    UnitaryMatrix(RVec<usize>, RVec<RVec<Complex64>>),
-    Pauli(RVec<usize>, RVec<u8>),
-    PauliRotation(RVec<usize>, RVec<u8>, P),
-    Measurement(RVec<usize>, RVec<usize>),
-    Other(RBox<GenericGateProperty>),
+    UnitaryMatrix(Vec<usize>, Vec<Vec<Complex64>>),
+    Pauli(Vec<usize>, Vec<u8>),
+    PauliRotation(Vec<usize>, Vec<u8>, P),
+    Measurement(Vec<usize>, Vec<usize>),
+    Other(Box<GenericGateProperty>),
 }
 
 impl<P: Clone> QuantumGate<P> {
@@ -253,7 +251,7 @@ impl QuantumGate<f64> {
                     && prop.pauli_ids.is_empty()
                     && prop.unitary_matrix.is_some() =>
             {
-                Ok(Some(crate::gates::unitary_matrix(
+                Ok(Some(crate::circuit::gates::unitary_matrix(
                     prop.target_indices.into(),
                     prop.unitary_matrix
                         .unwrap()
@@ -298,7 +296,7 @@ impl QuantumGate<f64> {
                 )))
             }
 
-            _ => Ok(Some(Self::Other(RBox::new(prop)))),
+            _ => Ok(Some(Self::Other(Box::new(prop)))),
         }
     }
 
@@ -311,7 +309,7 @@ impl QuantumGate<f64> {
                 classical_indices: vec![].into(),
                 params: vec![].into(),
                 pauli_ids: vec![].into(),
-                unitary_matrix: ROption::RNone,
+                unitary_matrix: None,
             }
         }
 
@@ -323,7 +321,7 @@ impl QuantumGate<f64> {
                 classical_indices: vec![].into(),
                 params: vec![p].into(),
                 pauli_ids: vec![].into(),
-                unitary_matrix: ROption::RNone,
+                unitary_matrix: None,
             }
         }
 
@@ -405,7 +403,7 @@ impl QuantumGate<f64> {
                 classical_indices,
                 ..Default::default()
             },
-            Self::Other(o) => RBox::into_inner(o),
+            Self::Other(o) => *o,
         }
     }
 }
@@ -413,13 +411,13 @@ impl QuantumGate<f64> {
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct GenericGateProperty {
-    pub name: RString,
-    pub target_indices: RVec<usize>,
-    pub control_indices: RVec<usize>,
-    pub classical_indices: RVec<usize>,
-    pub params: RVec<f64>,
-    pub pauli_ids: RVec<u8>,
-    pub unitary_matrix: ROption<RVec<RVec<Complex64>>>,
+    pub name: String,
+    pub target_indices: Vec<usize>,
+    pub control_indices: Vec<usize>,
+    pub classical_indices: Vec<usize>,
+    pub params: Vec<f64>,
+    pub pauli_ids: Vec<u8>,
+    pub unitary_matrix: Option<Vec<Vec<Complex64>>>,
 }
 
 fn unordered_eq<I0, I1>(lhs: I0, rhs: I1) -> bool
@@ -480,8 +478,8 @@ impl PartialEq for GenericGateProperty {
     }
 }
 
-#[pyclass(subclass, frozen, eq, module = "quri_parts.circuit.rust.gate")]
-#[derive(Clone, Debug, PartialEq, Commonized)]
+#[pyclass(subclass, frozen, eq, module = "quri_parts.rust.circuit.gate")]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ParametricQuantumGate(pub(crate) GenericGateProperty);
 
 #[pymethods]
@@ -509,7 +507,7 @@ impl ParametricQuantumGate {
             pauli_ids: pauli_ids.into(),
             classical_indices: vec![].into(),
             params: vec![].into(),
-            unitary_matrix: ROption::RNone,
+            unitary_matrix: None,
         };
         ParametricQuantumGate(prop)
     }
@@ -608,7 +606,7 @@ impl GenericGateProperty {
             format_tuple(self.params.as_slice()),
             format_tuple(self.pauli_ids.as_slice()),
             {
-                if let ROption::RSome(matrix) = &self.unitary_matrix {
+                if let Some(matrix) = &self.unitary_matrix {
                     format_tuple(matrix.iter().map(|row| format!("({})", format_tuple(row))).collect::<Vec<_>>().as_slice())
                 }else {"()".to_owned()}
             }
@@ -626,8 +624,8 @@ impl GenericGateProperty {
 
 mod wrapper {
     use super::*;
-    #[pyclass(frozen, module = "quri_parts.circuit.rust.gate", name = "QuantumGate")]
-    #[derive(Clone, Debug, PartialEq, Commonized)]
+    #[pyclass(frozen, module = "quri_parts.rust.circuit.gate", name = "QuantumGate")]
+    #[derive(Clone, Debug, PartialEq)]
     struct QuantumGateWrapper(QuantumGate<f64>);
 
     impl<T> IntoPy<T> for QuantumGate<f64>
@@ -745,7 +743,7 @@ mod wrapper {
                 p.to_le_bytes().hash(&mut hasher);
             }
             data.pauli_ids.hash(&mut hasher);
-            if let ROption::RSome(matrix) = &data.unitary_matrix {
+            if let Some(matrix) = &data.unitary_matrix {
                 for p in matrix.iter() {
                     for q in p.iter() {
                         q.re.to_le_bytes().hash(&mut hasher);
@@ -798,7 +796,7 @@ mod wrapper {
 
         #[getter]
         fn get_unitary_matrix<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
-            if let ROption::RSome(mat) = slf.get().0.clone().into_property().unitary_matrix {
+            if let Some(mat) = slf.get().0.clone().into_property().unitary_matrix {
                 let mat = mat
                     .into_iter()
                     .map(|row| {
@@ -828,18 +826,11 @@ mod wrapper {
         }
     }
 
-    pub fn commonize_quantum_gate(py: Python<'_>) -> PyResult<()> {
-        commonize::<QuantumGateWrapper>(py)
-    }
-
     pub fn add_quantum_gate(m: &Bound<'_, PyModule>) -> PyResult<()> {
         m.add_class::<QuantumGateWrapper>()?;
         Ok(())
     }
 }
-
-#[doc(hidden)]
-pub use wrapper::commonize_quantum_gate;
 
 pub fn py_module<'py>(py: Python<'py>) -> PyResult<Bound<'py, PyModule>> {
     let m = PyModule::new_bound(py, "gate")?;

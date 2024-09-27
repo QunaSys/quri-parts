@@ -1,6 +1,4 @@
-use abi_stable::std_types::RString;
 use pyo3::prelude::*;
-use pyo3_commonize::Commonized;
 
 #[derive(Clone, Debug)]
 pub struct Wrapper(pub Py<Parameter>);
@@ -43,9 +41,9 @@ impl<'py> pyo3::conversion::FromPyObject<'py> for Wrapper {
 }
 
 #[pyclass]
-#[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Commonized)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Parameter {
-    name: RString,
+    name: String,
 }
 
 impl core::fmt::Display for Parameter {
@@ -93,7 +91,7 @@ impl Parameter {
             Bound::new(
                 slf.py(),
                 Self {
-                    name: RString::new(),
+                    name: String::new(),
                 },
             )
             .unwrap()

@@ -16,7 +16,7 @@ from typing_extensions import TypeAlias, TypeGuard
 
 #: An immutable quantum circuit having only non-parametric gates.
 #: A mutable quantum circuit having only non-parametric gates.
-from quri_parts.circuit.rust.circuit import ImmutableQuantumCircuit, QuantumCircuit
+from quri_parts.rust.circuit.circuit import ImmutableQuantumCircuit, QuantumCircuit
 
 from .gate import QuantumGate
 from .gates import (

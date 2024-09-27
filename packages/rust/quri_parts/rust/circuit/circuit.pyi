@@ -2,7 +2,7 @@ from typing import Optional, Sequence, Union
 
 from .gate import QuantumGate
 
-GateSequence = Union[ImmutableQuantumCircuit, Sequence[QuantumGate]]
+GateSequence = Union["ImmutableQuantumCircuit", Sequence[QuantumGate]]
 
 class ImmutableQuantumCircuit:
     def __new__(

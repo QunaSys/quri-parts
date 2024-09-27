@@ -20,7 +20,7 @@ import numpy.typing as npt
 from typing_extensions import TypeAlias
 
 from quri_parts.circuit.gate_names import NonParametricGateNameType
-from quri_parts.circuit.rust.noise import (
+from quri_parts.rust.circuit.noise import (
     DepthIntervalNoise,
     GateIntervalNoise,
     GateNoiseInstruction,

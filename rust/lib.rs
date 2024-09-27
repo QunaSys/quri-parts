@@ -1,12 +1,9 @@
-use abi_stable::std_types::RVec;
-use abi_stable::StableAbi;
-
-#[derive(Clone, Debug, PartialEq, StableAbi)]
+#[derive(Clone, Debug, PartialEq)]
 #[repr(transparent)]
-pub struct BasicBlock<T>(pub RVec<T>);
+pub struct BasicBlock<T>(pub Vec<T>);
 
 impl<T> BasicBlock<T> {
     pub fn new() -> Self {
-        Self(RVec::new())
+        Self(Vec::new())
     }
 }
