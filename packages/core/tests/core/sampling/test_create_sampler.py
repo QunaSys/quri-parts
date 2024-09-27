@@ -22,6 +22,7 @@ from quri_parts.circuit import (
     UnboundParametricQuantumCircuit,
 )
 from quri_parts.core.sampling import (
+    ConcurrentParametricStateSampler,
     GeneralSampler,
     MeasurementCounts,
     create_concurrent_parametric_sampler_from_concurrent_sampler,
@@ -31,11 +32,17 @@ from quri_parts.core.sampling import (
     create_parametric_state_sampler_from_state_sampler,
     create_sampler_from_sampling_backend,
 )
-from quri_parts.core.state import CircuitQuantumState, QuantumStateVector, quantum_state
+from quri_parts.core.state import (
+    CircuitQuantumState,
+    ParametricCircuitQuantumState,
+    ParametricQuantumStateVector,
+    QuantumStateVector,
+    quantum_state,
+)
 
 
 def fake_sampler(circuit: NonParametricQuantumCircuit, shot: int) -> MeasurementCounts:
-    cnt = 0
+    cnt = 0.0
     for g in circuit.gates:
         cnt += sum(g.params)
     return {0: int(cnt) * shot}
@@ -50,7 +57,7 @@ def fake_concurrent_sampler(
 def fake_state_sampler(
     state: Union[CircuitQuantumState, QuantumStateVector], shot: int
 ) -> MeasurementCounts:
-    cnt = 0
+    cnt = 0.0
     for g in state.circuit.gates:
         cnt += sum(g.params)
     if isinstance(state, QuantumStateVector):
@@ -69,6 +76,8 @@ def fake_concurrent_state_sampler(
 class TestParametricSampler(TestCase):
     param_circuit_1: UnboundParametricQuantumCircuit
     param_circuit_2: LinearMappedUnboundParametricQuantumCircuit
+    param_state_1: ParametricCircuitQuantumState
+    param_state_2: ParametricQuantumStateVector
 
     def setUp(self) -> None:
         self.param_circuit_1 = UnboundParametricQuantumCircuit(2)
@@ -134,10 +143,10 @@ class TestParametricSampler(TestCase):
         self,
     ) -> None:
         concurrent_state_sampler = fake_concurrent_state_sampler
-        concurrent_parametric_state_sampler = (
-            create_concurrent_parametric_state_sampler_from_concurrent_state_sampler(
-                concurrent_state_sampler
-            )
+        concurrent_parametric_state_sampler: ConcurrentParametricStateSampler[
+            Union[ParametricCircuitQuantumState, ParametricQuantumStateVector]
+        ] = create_concurrent_parametric_state_sampler_from_concurrent_state_sampler(
+            concurrent_state_sampler
         )
         assert concurrent_parametric_state_sampler(
             [
@@ -155,6 +164,15 @@ class TestParametricSampler(TestCase):
 
 
 class TestGeneralSampler(TestCase):
+    param_circuit_1: UnboundParametricQuantumCircuit
+    param_circuit_2: LinearMappedUnboundParametricQuantumCircuit
+    param_state_1: ParametricCircuitQuantumState
+    param_state_2: ParametricQuantumStateVector
+    general_sampler: GeneralSampler[
+        Union[CircuitQuantumState, QuantumStateVector],
+        Union[ParametricQuantumStateVector, ParametricQuantumStateVector],
+    ]
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.param_circuit_1 = UnboundParametricQuantumCircuit(2)
@@ -230,10 +248,11 @@ class TestGeneralSampler(TestCase):
         assert self.general_sampler(state, 1000) == {0: 3000}
         state = self.param_state_1.bind_parameters([3, 4])
         assert self.general_sampler(state, 2000) == {0: 14000}
-        state = self.param_state_2.bind_parameters([1, 2])
-        assert self.general_sampler(state, 1000) == {0: (-8 + 20) * 1000 * 2}
-        state = self.param_state_2.bind_parameters([3, 4])
-        assert self.general_sampler(state, 2000) == {0: (-14 + 38) * 2000 * 2}
+
+        state_vector = self.param_state_2.bind_parameters([1, 2])
+        assert self.general_sampler(state_vector, 1000) == {0: (-8 + 20) * 1000 * 2}
+        state_vector = self.param_state_2.bind_parameters([3, 4])
+        assert self.general_sampler(state_vector, 2000) == {0: (-14 + 38) * 2000 * 2}
 
     def test_concurrent_state_sampler_input(self) -> None:
         state_1 = self.param_state_1.bind_parameters([1, 2])

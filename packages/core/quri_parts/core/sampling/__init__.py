@@ -49,8 +49,8 @@ _StateT = TypeVar("_StateT", bound=Union[CircuitQuantumState, QuantumStateVector
 
 #: A type variable represents *any* parametric quantum state classes.
 #: This is different from :class:`quri_parts.core.state.ParametricQuantumStateT`;
-#: ``ParametricQuantumStateT`` represents *either one of* the classes, while ``_ParametricStateT``
-#: also covers *a union of* multiple state classes.
+#: ``ParametricQuantumStateT`` represents *either one of* the classes, while
+#: ``_ParametricStateT`` also covers *a union of* multiple state classes.
 _ParametricStateT = TypeVar(
     "_ParametricStateT",
     bound=Union[ParametricCircuitQuantumState, ParametricQuantumStateVector],
@@ -120,7 +120,9 @@ class GeneralSampler(Generic[_StateT, _ParametricStateT]):
     sampler: Sampler
     state_sampler: StateSampler[_StateT]
     parametric_sampler: ParametricSampler = field(init=False)
-    parametric_state_sampler: ParametricStateSampler = field(init=False)
+    parametric_state_sampler: ParametricStateSampler[_ParametricStateT] = field(
+        init=False
+    )
 
     def __post_init__(self) -> None:
         self.parametric_sampler = create_parametric_sampler_from_sampler(self.sampler)
@@ -153,7 +155,7 @@ class GeneralSampler(Generic[_StateT, _ParametricStateT]):
         if isinstance(sampler_input[0][0], Iterable):
             return self(*sampler_input[0])
 
-        return [self(*comb) for comb in sampler_input]
+        return [cast(MeasurementCounts, self(*comb)) for comb in sampler_input]
 
 
 def create_parametric_sampler_from_sampler(sampler: Sampler) -> ParametricSampler:
@@ -173,7 +175,8 @@ def create_parametric_sampler_from_sampler(sampler: Sampler) -> ParametricSample
 def create_concurrent_parametric_sampler_from_concurrent_sampler(
     concurrent_sampler: ConcurrentSampler,
 ) -> ConcurrentParametricSampler:
-    """Create a :class:`ConcurrentParametricSampler` from a :class:`ConcurrentSampler`."""
+    """Create a :class:`ConcurrentParametricSampler` from a
+    :class:`ConcurrentSampler`."""
 
     def _concurrent_parametric_sampler(
         circuit_shot_param_tuples: Iterable[
@@ -192,7 +195,8 @@ def create_concurrent_parametric_sampler_from_concurrent_sampler(
 def create_parametric_state_sampler_from_state_sampler(
     state_sampler: StateSampler[_StateT],
 ) -> ParametricStateSampler[_ParametricStateT]:
-    """Create a :class:`ParametricStateSampler` from a :class:`StateSampler`."""
+    """Create a :class:`ParametricStateSampler` from a
+    :class:`StateSampler`."""
 
     def _parametric_state_sampler(
         param_state: _ParametricStateT,
