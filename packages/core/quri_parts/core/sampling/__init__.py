@@ -22,7 +22,9 @@ from typing import (
     TypeVar,
     Union,
     cast,
+    overload,
 )
+from typing_extensions import Unpack
 
 import numpy as np
 import numpy.typing as npt
@@ -130,32 +132,162 @@ class GeneralSampler(Generic[_StateT, _ParametricStateT]):
             create_parametric_state_sampler_from_state_sampler(self.state_sampler)
         )
 
+    @overload
+    def __call__(
+        self, *sampler_input: Unpack[tuple[NonParametricQuantumCircuit, int]]
+    ) -> MeasurementCounts:
+        """A :class:`Sampler`"""
+        ...
+
+    @overload
+    def __call__(
+        self,
+        *sampler_input: Unpack[
+            tuple[UnboundParametricQuantumCircuitProtocol, int, Sequence[float]]
+        ],
+    ) -> MeasurementCounts:
+        """A :class:`ParametricSampler`"""
+
+    @overload
+    def __call__(
+        self, *sampler_input: Unpack[tuple[_StateT, int]]
+    ) -> MeasurementCounts:
+        """A :class:`StateSampler`"""
+        ...
+
+    @overload
+    def __call__(
+        self, *sampler_input: Unpack[tuple[_ParametricStateT, int, Sequence[float]]]
+    ) -> MeasurementCounts:
+        """A :class:`ParametricStateSampler`"""
+        ...
+
+    @overload
+    def __call__(
+        self,
+        *sampler_input: Unpack[
+            tuple[ParametricCircuitQuantumState, int, Sequence[float]]
+        ],
+    ) -> MeasurementCounts:
+        """A :class:`ParametricStateSampler`"""
+        # NOTE: the `tuple[ParametricCircuitQuantumState, int, Sequence[float]]`
+        # is added because mypy recognizes _ParametricStateT as:
+        # Union[ParametricQuantumStateVector, ParametricQuantumStateVector]
+        ...
+
+    @overload
+    def __call__(
+        self,
+        *sampler_input: Union[
+            tuple[NonParametricQuantumCircuit, int],
+            tuple[UnboundParametricQuantumCircuitProtocol, int, Sequence[float]],
+            tuple[_StateT, int],
+            tuple[_ParametricStateT, int, Sequence[float]],
+            tuple[ParametricCircuitQuantumState, int, Sequence[float]],
+        ],
+    ) -> Iterable[MeasurementCounts]:
+        """Mixing :class:`ConcurrentSampler`, :class:`ConcurrentStateSampler`,
+        :class:`ConcurrentParametricSampler`, :class:`ConcurrentParametricStateSampler`
+        """
+        # NOTE: the `tuple[ParametricCircuitQuantumState, int, Sequence[float]]`
+        # is added because mypy recognizes _ParametricStateT as:
+        # Union[ParametricQuantumStateVector, ParametricQuantumStateVector]
+        ...
+
+    @overload
+    def __call__(
+        self,
+        *sampler_input: Unpack[
+            tuple[
+                Iterable[
+                    Union[
+                        tuple[NonParametricQuantumCircuit, int],
+                        tuple[
+                            UnboundParametricQuantumCircuitProtocol,
+                            int,
+                            Sequence[float],
+                        ],
+                        tuple[_StateT, int],
+                        tuple[_ParametricStateT, int, Sequence[float]],
+                        tuple[ParametricCircuitQuantumState, int, Sequence[float]],
+                    ]
+                ]
+            ]
+        ],
+    ) -> Iterable[MeasurementCounts]:
+        """Mixing :class:`ConcurrentSampler`, :class:`ConcurrentStateSampler`,
+        :class:`ConcurrentParametricSampler`, :class:`ConcurrentParametricStateSampler`
+        """
+        # NOTE: the `tuple[ParametricCircuitQuantumState, int, Sequence[float]]`
+        # is added because mypy recognizes _ParametricStateT as:
+        # Union[ParametricQuantumStateVector, ParametricQuantumStateVector]
+        ...
+
     def __call__(
         self, *sampler_input: Any
     ) -> Union[MeasurementCounts, Iterable[MeasurementCounts]]:
         if isinstance(sampler_input[0], NonParametricQuantumCircuit):
-            assert isinstance(sampler_input[1], int), "Shot is not specified properly."
-            return self.sampler(*sampler_input)
+            return self._sample(*sampler_input)
         if isinstance(sampler_input[0], UnboundParametricQuantumCircuitProtocol):
-            assert isinstance(sampler_input[1], int), "Shot is not specified properly."
-            assert isinstance(
-                sampler_input[2], Iterable
-            ), "Circuit parameter is not specified properly."
-            return self.parametric_sampler(*sampler_input)
+            return self._parametric_sample(*sampler_input)
         if isinstance(sampler_input[0], (CircuitQuantumState, QuantumStateVector)):
-            assert isinstance(sampler_input[1], int), "Shot is not specified properly."
-            return self.state_sampler(*sampler_input)
+            return self._sample_state(*sampler_input)
         if isinstance(
             sampler_input[0],
             (ParametricCircuitQuantumState, ParametricQuantumStateVector),
         ):
-            assert isinstance(sampler_input[1], int), "Shot is not specified properly."
-            return self.parametric_state_sampler(*sampler_input)
+            return self._sample_parametric_state(*sampler_input)
 
-        if isinstance(sampler_input[0][0], Iterable):
+        if isinstance(sampler_input[0][0], Iterable) and isinstance(
+            sampler_input[0], Iterable
+        ):
             return self(*sampler_input[0])
 
         return [cast(MeasurementCounts, self(*comb)) for comb in sampler_input]
+
+    def _check_shot_is_int(self, shots: int) -> None:
+        if not isinstance(shots, int):
+            raise ValueError(
+                f"Shot expected to be integer, but got {type(shots)}. "
+                f"Input value is {shots}."
+            )
+
+    def _check_param_is_iterable(self, params: Sequence[float]) -> None:
+        if not isinstance(params, Iterable) and not isinstance(params, np.ndarray):
+            raise ValueError(
+                "Circuit parameter is expected to be an iterable or an array, "
+                f"but got {type(params)}. Input value is {params}."
+            )
+
+    def _sample(
+        self, circuit: NonParametricQuantumCircuit, shots: int
+    ) -> MeasurementCounts:
+        self._check_shot_is_int(shots)
+        return self.sampler(circuit, shots)
+
+    def _parametric_sample(
+        self,
+        param_circuit: UnboundParametricQuantumCircuitProtocol,
+        shots: int,
+        params: Sequence[float],
+    ) -> MeasurementCounts:
+        self._check_shot_is_int(shots)
+        self._check_param_is_iterable(params)
+        return self.parametric_sampler(param_circuit, shots, params)
+
+    def _sample_state(self, state: _StateT, shots: int) -> MeasurementCounts:
+        self._check_shot_is_int(shots)
+        return self.state_sampler(state, shots)
+
+    def _sample_parametric_state(
+        self,
+        param_state: _ParametricStateT,
+        shots: int,
+        params: Sequence[float],
+    ) -> MeasurementCounts:
+        self._check_shot_is_int(shots)
+        self._check_param_is_iterable(params)
+        return self.parametric_state_sampler(param_state, shots, params)
 
 
 def create_parametric_sampler_from_sampler(sampler: Sampler) -> ParametricSampler:
