@@ -35,7 +35,7 @@ from quri_parts.circuit.gate_names import (
     is_two_qubit_gate_name,
     is_unitary_matrix_gate_name,
 )
-from quri_parts.qulacs.quri_parts_qulacs_rs import convert_circuit
+from quri_parts.rust.qulacs import convert_circuit
 
 from .. import cast_to_list
 from .compiled_circuit import compile_circuit, compile_parametric_circuit

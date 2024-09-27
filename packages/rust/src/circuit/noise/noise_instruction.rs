@@ -2,8 +2,8 @@ use pyo3::prelude::*;
 use std::collections::HashMap;
 use std::fmt;
 
-use crate::circuit::ImmutableQuantumCircuit;
-use crate::gate::QuantumGate;
+use crate::circuit::circuit::ImmutableQuantumCircuit;
+use crate::circuit::gate::QuantumGate;
 
 pub type QubitIndex = usize;
 pub type QubitNoisePair = (Vec<QubitIndex>, GateNoiseInstruction);
@@ -32,7 +32,7 @@ pub trait CircuitNoiseInstruction: fmt::Debug {
     fn create_resolver(&self) -> Box<dyn CircuitNoiseResolver + Send>;
 }
 
-#[pyclass(eq, frozen, subclass, module = "quri_parts.circuit.rust.noise")]
+#[pyclass(eq, frozen, subclass, module = "quri_parts.rust.circuit.noise")]
 #[derive(Debug, Clone, PartialEq)]
 pub struct GateNoiseInstruction {
     #[pyo3(get)]
@@ -84,7 +84,7 @@ impl GateNoiseInstruction {
     }
 }
 
-#[pyclass(eq, frozen, module = "quri_parts.circuit.rust.noise")]
+#[pyclass(eq, frozen, module = "quri_parts.rust.circuit.noise")]
 #[derive(Debug, Clone, PartialEq)]
 pub struct GateIntervalNoise {
     noises: Vec<GateNoiseInstruction>,
@@ -142,7 +142,7 @@ impl CircuitNoiseInstruction for GateIntervalNoise {
     }
 }
 
-#[pyclass(eq, frozen, module = "quri_parts.circuit.rust.noise")]
+#[pyclass(eq, frozen, module = "quri_parts.circuit.circuit.noise")]
 #[derive(Debug, Clone, PartialEq)]
 pub struct DepthIntervalNoise {
     noises: Vec<GateNoiseInstruction>,
@@ -196,7 +196,7 @@ impl CircuitNoiseInstruction for DepthIntervalNoise {
     }
 }
 
-#[pyclass(eq, frozen, module = "quri_parts.circuit.rust.noise")]
+#[pyclass(eq, frozen, module = "quri_parts.rust.circuit.noise")]
 #[derive(Debug, Clone, PartialEq)]
 pub struct MeasurementNoise {
     id: usize,

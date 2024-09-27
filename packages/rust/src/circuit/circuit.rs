@@ -1,16 +1,14 @@
-use crate::gate::QuantumGate;
-use abi_stable::std_types::{ROption, RSome};
+use crate::circuit::gate::QuantumGate;
 use num_complex::Complex64;
 use pyo3::prelude::*;
 use pyo3::types::{PySequence, PyString, PyTuple};
-use pyo3_commonize::Commonized;
 use quri_parts::BasicBlock;
 use std::collections::HashMap;
 
 const PICKLE_STUB_ARG: &'static str = "__QURI_PARTS_STUB_ARG_FOR_UNPICKLING";
 
-#[pyclass(subclass, eq, module = "quri_parts.circuit.rust.circuit")]
-#[derive(Commonized, Clone)]
+#[pyclass(subclass, eq, module = "quri_parts.rust.circuit.circuit")]
+#[derive(Clone)]
 #[repr(C)]
 pub struct ImmutableQuantumCircuit {
     #[pyo3(get)]
@@ -18,7 +16,7 @@ pub struct ImmutableQuantumCircuit {
     #[pyo3(get)]
     pub cbit_count: usize,
     pub gates: BasicBlock<QuantumGate<f64>>,
-    pub depth_cache: ROption<usize>,
+    pub depth_cache: Option<usize>,
     pub is_immutable: bool,
 }
 
@@ -65,7 +63,7 @@ impl ImmutableQuantumCircuit {
                         qubit_count,
                         cbit_count,
                         gates: BasicBlock(gates.into()),
-                        depth_cache: ROption::RNone,
+                        depth_cache: None,
                         is_immutable: true,
                     },
                 );
@@ -105,11 +103,11 @@ impl ImmutableQuantumCircuit {
 
     #[getter]
     fn get_depth(mut slf: PyRefMut<'_, Self>) -> usize {
-        if let RSome(depth) = slf.depth_cache {
+        if let Some(depth) = slf.depth_cache {
             depth
         } else {
             let d = slf.depth();
-            slf.depth_cache = ROption::RSome(d);
+            slf.depth_cache = Some(d);
             d
         }
     }
@@ -146,9 +144,9 @@ impl ImmutableQuantumCircuit {
 #[pyclass(
     extends=ImmutableQuantumCircuit,
     subclass,
-    module = "quri_parts.circuit.rust.circuit"
+    module = "quri_parts.rust.circuit.circuit"
 )]
-#[derive(Clone, Debug, PartialEq, Commonized)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct QuantumCircuit();
 
 #[pymethods]
@@ -193,7 +191,7 @@ warnings.warn(
             qubit_count,
             cbit_count,
             gates: BasicBlock(gates.into()),
-            depth_cache: ROption::RNone,
+            depth_cache: None,
             is_immutable: false,
         };
         Ok((QuantumCircuit(), base))
@@ -435,7 +433,7 @@ warnings.warn(
     ) -> PyResult<()> {
         Self::add_gate(
             slf,
-            crate::gates::unitary_matrix(target_indices, unitary_matrix)?,
+            crate::circuit::gates::unitary_matrix(target_indices, unitary_matrix)?,
             None,
         )
     }
@@ -448,7 +446,7 @@ warnings.warn(
     ) -> PyResult<()> {
         Self::add_gate(
             slf,
-            crate::gates::single_qubit_unitary_matrix(target_index, unitary_matrix)?,
+            crate::circuit::gates::single_qubit_unitary_matrix(target_index, unitary_matrix)?,
             None,
         )
     }
@@ -462,7 +460,11 @@ warnings.warn(
     ) -> PyResult<()> {
         Self::add_gate(
             slf,
-            crate::gates::two_qubit_unitary_matrix(target_index1, target_index2, unitary_matrix)?,
+            crate::circuit::gates::two_qubit_unitary_matrix(
+                target_index1,
+                target_index2,
+                unitary_matrix,
+            )?,
             None,
         )
     }
@@ -473,7 +475,11 @@ warnings.warn(
         target_indices: Vec<usize>,
         pauli_ids: Vec<u8>,
     ) -> PyResult<()> {
-        Self::add_gate(slf, crate::gates::pauli(target_indices, pauli_ids), None)
+        Self::add_gate(
+            slf,
+            crate::circuit::gates::pauli(target_indices, pauli_ids),
+            None,
+        )
     }
 
     #[allow(non_snake_case)]
@@ -485,7 +491,7 @@ warnings.warn(
     ) -> PyResult<()> {
         Self::add_gate(
             slf,
-            crate::gates::pauli_rotation(target_qubits, pauli_id_list, angle),
+            crate::circuit::gates::pauli_rotation(target_qubits, pauli_id_list, angle),
             None,
         )
     }
@@ -513,7 +519,7 @@ warnings.warn(
 
         Self::add_gate(
             slf,
-            crate::gates::measurement(qubit_indices, classical_indices)?,
+            crate::circuit::gates::measurement(qubit_indices, classical_indices)?,
             None,
         )
     }

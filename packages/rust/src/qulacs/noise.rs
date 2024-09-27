@@ -1,10 +1,10 @@
+use crate::circuit::circuit::ImmutableQuantumCircuit;
+use crate::circuit::noise::noise_instruction::GateNoiseInstruction;
+use crate::circuit::noise::noise_model::NoiseModel;
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
-use quri_parts_circuit::circuit::ImmutableQuantumCircuit;
-use quri_parts_circuit::noise::noise_instruction::GateNoiseInstruction;
-use quri_parts_circuit::noise::noise_model::NoiseModel;
 
-use crate::convert_add_gate;
+use crate::qulacs::convert_add_gate;
 
 fn make_dense_matrix<'py>(
     py: Python<'py>,

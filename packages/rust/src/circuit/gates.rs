@@ -1,7 +1,6 @@
-use crate::gate::{GenericGateProperty, ParametricQuantumGate, QuantumGate};
-use crate::parameter::Wrapper;
-use crate::MaybeUnbound;
-use abi_stable::std_types::RNone;
+use crate::circuit::gate::{GenericGateProperty, ParametricQuantumGate, QuantumGate};
+use crate::circuit::parameter::Wrapper;
+use crate::circuit::MaybeUnbound;
 use num_complex::{Complex64, ComplexFloat};
 use pyo3::prelude::*;
 
@@ -162,7 +161,7 @@ pub fn parametric_rx(target_index: usize) -> ParametricQuantumGate {
         classical_indices: vec![].into(),
         params: vec![].into(),
         pauli_ids: vec![].into(),
-        unitary_matrix: RNone,
+        unitary_matrix: None,
     })
 }
 
@@ -179,7 +178,7 @@ pub fn parametric_ry(target_index: usize) -> ParametricQuantumGate {
         classical_indices: vec![].into(),
         params: vec![].into(),
         pauli_ids: vec![].into(),
-        unitary_matrix: RNone,
+        unitary_matrix: None,
     })
 }
 
@@ -196,7 +195,7 @@ pub fn parametric_rz(target_index: usize) -> ParametricQuantumGate {
         classical_indices: vec![].into(),
         params: vec![].into(),
         pauli_ids: vec![].into(),
-        unitary_matrix: RNone,
+        unitary_matrix: None,
     })
 }
 
@@ -216,7 +215,7 @@ pub fn parametric_pauli_rotation(
         classical_indices: vec![].into(),
         params: vec![].into(),
         pauli_ids: pauli_ids.into(),
-        unitary_matrix: RNone,
+        unitary_matrix: None,
     })
 }
 

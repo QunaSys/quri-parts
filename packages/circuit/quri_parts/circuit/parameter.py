@@ -16,7 +16,7 @@
 #: This means that even if two Parameters have the same name they are not equal if
 #: they are different objects. To achieve this behavior, it is avoided to 1) inherit
 #: :class:`~NamedTuple` and 2) define ``__eq__`` method.
-from quri_parts.circuit.rust.parameter import Parameter
+from quri_parts.rust.circuit.parameter import Parameter
 
 #: A placeholder representing a constant term.
 CONST = Parameter()

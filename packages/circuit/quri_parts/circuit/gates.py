@@ -13,7 +13,7 @@ from typing import Any, Literal
 from typing_extensions import deprecated
 
 from quri_parts.circuit import gate_names
-from quri_parts.circuit.rust.gates import (
+from quri_parts.rust.circuit.gates import (
     CNOT,
     CZ,
     RX,

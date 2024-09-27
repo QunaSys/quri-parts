@@ -12,7 +12,7 @@ from abc import abstractmethod, abstractproperty
 from collections.abc import Sequence
 from typing import Protocol, Union, runtime_checkable
 
-from quri_parts.circuit.rust.circuit_parametric import (
+from quri_parts.rust.circuit.circuit_parametric import (
     ImmutableBoundParametricQuantumCircuit,
     ImmutableParametricQuantumCircuit,
     ParametricQuantumCircuit,

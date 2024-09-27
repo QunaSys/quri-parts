@@ -1,10 +1,7 @@
+use crate::circuit::circuit::ImmutableQuantumCircuit;
+use crate::circuit::gate::QuantumGate;
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
-use pyo3_commonize::commonize;
-use quri_parts_circuit::circuit::ImmutableQuantumCircuit;
-use quri_parts_circuit::gate::commonize_quantum_gate;
-use quri_parts_circuit::gate::QuantumGate;
-use quri_parts_circuit::noise::noise_model::NoiseModel;
 
 mod noise;
 
@@ -132,15 +129,12 @@ fn convert_circuit<'py>(
     Ok(qulacs_circuit.as_any().clone())
 }
 
-#[pymodule]
-fn quri_parts_qulacs_rs(py: Python<'_>, m: Bound<'_, PyModule>) -> PyResult<()> {
-    commonize::<ImmutableQuantumCircuit>(py)?;
-    commonize::<NoiseModel>(py)?;
-    commonize_quantum_gate(py)?;
+pub fn py_module(py: Python<'_>) -> PyResult<Bound<'_, PyModule>> {
+    let m = PyModule::new_bound(py, "qulacs")?;
     m.add_function(wrap_pyfunction!(convert_circuit, &m)?)?;
     m.add_function(wrap_pyfunction!(
         noise::convert_circuit_with_noise_model,
         &m
     )?)?;
-    Ok(())
+    Ok(m)
 }
