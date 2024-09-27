@@ -20,13 +20,13 @@ from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.circuit.noise import NoiseModel
 from quri_parts.core.sampling import (
     ConcurrentSampler,
+    GeneralSampler,
     MeasurementCounts,
     Sampler,
-    GeneralSampler,
 )
 from quri_parts.core.state import GeneralCircuitQuantumState
 from quri_parts.core.utils.concurrent import execute_concurrently
-from quri_parts.qulacs import QulacsStateT, QulacsParametricStateT
+from quri_parts.qulacs import QulacsParametricStateT, QulacsStateT
 
 from .circuit.noise import convert_circuit_with_noise_model
 from .simulator import (

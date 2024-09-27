@@ -24,11 +24,10 @@ from typing import (
     cast,
     overload,
 )
-from typing_extensions import Unpack
 
 import numpy as np
 import numpy.typing as npt
-from typing_extensions import TypeAlias
+from typing_extensions import TypeAlias, Unpack
 
 from quri_parts.backend import SamplingBackend
 from quri_parts.circuit import (
