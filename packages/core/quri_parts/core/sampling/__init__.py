@@ -10,10 +10,13 @@
 
 from collections import Counter
 from dataclasses import dataclass, field
+from dataclasses import dataclass, field
 from typing import (
+    Any,
     Any,
     Callable,
     Collection,
+    Generic,
     Generic,
     Iterable,
     Mapping,
@@ -85,6 +88,21 @@ ParametricSampler: TypeAlias = Callable[
 #: circuit with a (shot, circuit parameter) pairs.
 ConcurrentParametricSampler: TypeAlias = Callable[
     [UnboundParametricQuantumCircuitProtocol, Iterable[tuple[int, Sequence[float]]]],
+    Iterable[MeasurementCounts],
+]
+
+
+#: ParametricSampler represents a sampler that samples from a parametric circuit with
+#: a fixed set of circuit parameters.
+ParametricSampler: TypeAlias = Callable[
+    [UnboundParametricQuantumCircuitProtocol, int, Sequence[float]], MeasurementCounts
+]
+
+
+#: ConcurrentParametricSampler represents a sampler that samples from a parametric
+#: circuit with a sequence of circuit parameter list.
+ConcurrentParametricSampler: TypeAlias = Callable[
+    [Iterable[tuple[UnboundParametricQuantumCircuitProtocol, int, Sequence[float]]]],
     Iterable[MeasurementCounts],
 ]
 
