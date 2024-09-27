@@ -316,6 +316,20 @@ class TestGeneralSampler(TestCase):
             {0: (-14 + 38) * 2000 * 2},
         ]
 
+        assert self.general_sampler(
+            [
+                (self.param_circuit_1.bind_parameters([1, 2]), 1000),
+                (self.param_circuit_1, 2000, [3, 4]),
+                (self.param_state_2.bind_parameters([1, 2]), 1000),
+                (self.param_state_2, 2000, [3, 4]),
+            ]
+        ) == [
+            {0: 3000},
+            {0: 14000},
+            {0: (-8 + 20) * 1000 * 2},
+            {0: (-14 + 38) * 2000 * 2},
+        ]
+
 
 def create_mock_backend(counts: Sequence[MeasurementCounts]) -> mock.Mock:
     def create_job(c: MeasurementCounts) -> mock.Mock:
