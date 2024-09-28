@@ -22,16 +22,16 @@ from quri_parts.core.sampling import (
     ConcurrentStateSampler,
     MeasurementCounts,
     StateSampler,
-    ideal_sample_from_state_vector,
-    sample_from_state_vector,
-    sample_from_density_matrix,
     ideal_sample_from_density_matrix,
+    ideal_sample_from_state_vector,
+    sample_from_density_matrix,
+    sample_from_state_vector,
 )
 from quri_parts.core.state import CircuitQuantumState, QuantumStateVector
 from quri_parts.core.utils.concurrent import execute_concurrently
 from quri_parts.qulacs.circuit import convert_circuit
-from quri_parts.qulacs.circuit.noise import convert_circuit_with_noise_model
 from quri_parts.qulacs.circuit.compiled_circuit import _QulacsCircuit
+from quri_parts.qulacs.circuit.noise import convert_circuit_with_noise_model
 
 from . import QulacsStateT, cast_to_list
 
@@ -244,8 +244,10 @@ def create_qulacs_ideal_density_matrix_state_sampler(
     """Creates a noisy state sampler for a specific noise model."""
 
     def density_matrix_sampler(state: QulacsStateT, shots: int) -> MeasurementCounts:
+        # We need to disable type check due to an error in qulacs type annotation
+        # https://github.com/qulacs/qulacs/issues/537
         density_matrix = _evaluate_qp_state_to_qulacs_state(state, model)
         mat = density_matrix.get_matrix()
-        return ideal_sample_from_density_matrix(mat, shots)
+        return ideal_sample_from_density_matrix(mat, shots) # type: ignore
 
     return density_matrix_sampler
