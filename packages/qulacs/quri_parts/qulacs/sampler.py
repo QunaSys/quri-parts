@@ -12,9 +12,7 @@ from collections import Counter
 from collections.abc import Callable, Iterable
 from typing import TYPE_CHECKING, Any, Optional
 
-import numpy as np
 import qulacs
-from numpy.random import default_rng
 
 from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.circuit.noise import NoiseModel
