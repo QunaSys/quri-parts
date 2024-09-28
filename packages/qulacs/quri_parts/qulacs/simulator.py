@@ -248,6 +248,6 @@ def create_qulacs_ideal_density_matrix_state_sampler(
         # https://github.com/qulacs/qulacs/issues/537
         density_matrix = _evaluate_qp_state_to_qulacs_state(state, model)
         mat = density_matrix.get_matrix()
-        return ideal_sample_from_density_matrix(mat, shots) # type: ignore
+        return ideal_sample_from_density_matrix(mat, shots)  # type: ignore
 
     return density_matrix_sampler
