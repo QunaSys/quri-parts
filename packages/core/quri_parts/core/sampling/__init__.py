@@ -468,7 +468,7 @@ def sample_from_state_vector(
     assert n_qubits.is_integer(), "Length of the state vector must be a power of 2."
     if not np.isclose(np.linalg.norm(state_vector), 1):
         raise ValueError("probabilities do not sum to 1")
-    probs = np.abs(state_vector) ** 2
+    probs = cast(npt.NDArray[np.float64], np.abs(state_vector) ** 2)
     return sample_from_probibility_distribution(n_shots, probs)
 
 
