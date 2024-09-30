@@ -32,6 +32,7 @@ from .simulator import (
     create_qulacs_ideal_density_matrix_state_sampler,
     create_qulacs_ideal_vector_state_sampler,
     create_qulacs_vector_state_sampler,
+    create_qulacs_noisesimulator_state_sampler,
 )
 
 if TYPE_CHECKING:
@@ -174,15 +175,15 @@ def create_qulacs_density_matrix_general_sampler(
 def create_qulacs_noisesimulator_sampler(model: NoiseModel) -> Sampler:
     """Returns a :class:`~Sampler` that uses Qulacs NoiseSimulator."""
 
+    state_sampler = create_qulacs_noisesimulator_state_sampler(model)
+
     def _sample_with_noise(
         circuit: ImmutableQuantumCircuit, shots: int
     ) -> MeasurementCounts:
-        qubit_count = circuit.qubit_count
-        qs_circuit = convert_circuit_with_noise_model(circuit, model)
-        state = qulacs.QuantumState(qubit_count)
-        sim = qulacs.NoiseSimulator(qs_circuit, state)
-
-        return Counter(sim.execute(shots))
+        return state_sampler(
+            GeneralCircuitQuantumState(circuit.qubit_count, circuit),
+            shots
+        )
 
     return _sample_with_noise
 
@@ -258,3 +259,12 @@ def create_qulacs_noisesimulator_concurrent_sampler(
         executor,
         concurrency,
     )
+
+
+def create_qulacs_noisesimulator_general_sampler(
+    model: NoiseModel,
+) -> GeneralSampler[QulacsStateT, QulacsParametricStateT]:
+    """A :class:`~GeneralSampler` based on qulacs NoiseSimulator."""
+    sampler = create_qulacs_noisesimulator_sampler(model)
+    state_sampler = create_qulacs_noisesimulator_state_sampler(model)
+    return GeneralSampler(sampler, state_sampler)
