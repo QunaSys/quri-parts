@@ -31,8 +31,8 @@ from .simulator import (
     create_qulacs_density_matrix_state_sampler,
     create_qulacs_ideal_density_matrix_state_sampler,
     create_qulacs_ideal_vector_state_sampler,
-    create_qulacs_vector_state_sampler,
     create_qulacs_noisesimulator_state_sampler,
+    create_qulacs_vector_state_sampler,
 )
 
 if TYPE_CHECKING:
@@ -181,8 +181,7 @@ def create_qulacs_noisesimulator_sampler(model: NoiseModel) -> Sampler:
         circuit: ImmutableQuantumCircuit, shots: int
     ) -> MeasurementCounts:
         return state_sampler(
-            GeneralCircuitQuantumState(circuit.qubit_count, circuit),
-            shots
+            GeneralCircuitQuantumState(circuit.qubit_count, circuit), shots
         )
 
     return _sample_with_noise
