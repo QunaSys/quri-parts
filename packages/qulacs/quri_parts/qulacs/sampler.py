@@ -96,8 +96,18 @@ def create_qulacs_vector_concurrent_sampler(
 def create_qulacs_general_vector_sampler() -> (
     GeneralSampler[QulacsStateT, QulacsParametricStateT]
 ):
+    """Creates a Qulacs :class:`GeneralSampler`"""
     sampler = create_qulacs_vector_sampler()
     state_sampler = create_qulacs_vector_state_sampler()
+    return GeneralSampler(sampler, state_sampler)
+
+
+def create_qulacs_general_vector_ideal_sampler() -> (
+    GeneralSampler[QulacsStateT, QulacsParametricStateT]
+):
+    """Creates an ideal Qulacs :class:`GeneralSampler`"""
+    sampler = create_qulacs_vector_ideal_sampler()
+    state_sampler = create_qulacs_ideal_vector_state_sampler()
     return GeneralSampler(sampler, state_sampler)
 
 
