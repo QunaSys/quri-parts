@@ -166,9 +166,21 @@ def create_qulacs_density_matrix_ideal_sampler(model: NoiseModel) -> Sampler:
 
 def create_qulacs_density_matrix_general_sampler(
     model: NoiseModel,
+    executor: Optional["Executor"] = None,
+    concurrency: int = 1,
 ) -> GeneralSampler[QulacsStateT, QulacsParametricStateT]:
     sampler = create_qulacs_density_matrix_sampler(model)
     state_sampler = create_qulacs_density_matrix_state_sampler(model)
+    return GeneralSampler(sampler, state_sampler)
+
+
+def create_qulacs_ideal_density_matrix_general_sampler(
+    model: NoiseModel,
+    executor: Optional["Executor"] = None,
+    concurrency: int = 1,
+) -> GeneralSampler[QulacsStateT, QulacsParametricStateT]:
+    sampler = create_qulacs_density_matrix_ideal_sampler(model)
+    state_sampler = create_qulacs_ideal_density_matrix_state_sampler(model)
     return GeneralSampler(sampler, state_sampler)
 
 
@@ -262,6 +274,8 @@ def create_qulacs_noisesimulator_concurrent_sampler(
 
 def create_qulacs_noisesimulator_general_sampler(
     model: NoiseModel,
+    executor: Optional["Executor"] = None,
+    concurrency: int = 1,
 ) -> GeneralSampler[QulacsStateT, QulacsParametricStateT]:
     """A :class:`~GeneralSampler` based on qulacs NoiseSimulator."""
     sampler = create_qulacs_noisesimulator_sampler(model)
