@@ -8,11 +8,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
 from collections.abc import Iterable, Sequence
 from typing import Union
 from unittest import TestCase, mock
 
 import numpy as np
+import pytest
 
 from quri_parts.circuit import (
     CONST,
@@ -329,6 +331,95 @@ class TestGeneralSampler(TestCase):
             {0: (-8 + 20) * 1000 * 2},
             {0: (-14 + 38) * 2000 * 2},
         ]
+
+    def test_error_raises_correctly(self) -> None:
+        # Test sample
+        with pytest.raises(
+            ValueError,
+            match=(
+                "Shot expected to be integer, but got <class 'float'>. "
+                "Input value is 0.87."
+            ),
+        ):
+            self.general_sampler(self.param_circuit_1.bind_parameters([1.0, 2.0]), 0.87)  # type: ignore # noqa: E501
+
+        with pytest.raises(
+            TypeError,
+            match=re.escape("_sample() takes 3 positional arguments but 4 were given"),
+        ):
+            self.general_sampler(
+                self.param_circuit_1.bind_parameters([1.0, 2.0]), 0.87, [3.0, 4.0]  # type: ignore # noqa: E501
+            )
+
+        # Test param sample
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "Shot expected to be integer, but got <class 'list'>. "
+                "Input value is [1.0, 2.0]."
+            ),
+        ):
+            self.general_sampler(self.param_circuit_1, [1.0, 2.0], 100)  # type: ignore
+
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "Circuit parameter is expected to be an iterable or an array, "
+                "but got <class 'int'>. Input value is 909090."
+            ),
+        ):
+            self.general_sampler(self.param_circuit_1, 100, 909090)  # type: ignore
+
+        with pytest.raises(
+            TypeError,
+            match=re.escape("unsupported operand type(s) for +: 'int' and 'str'"),
+        ):
+            self.general_sampler(self.param_circuit_1, 100, "ab")  # type: ignore
+
+        # Test state sample
+        with pytest.raises(
+            ValueError,
+            match=(
+                "Shot expected to be integer, but got <class 'float'>. "
+                "Input value is 0.87."
+            ),
+        ):
+            self.general_sampler(self.param_state_1.bind_parameters([1.0, 2.0]), 0.87)  # type: ignore  # noqa: E501
+
+        with pytest.raises(
+            TypeError,
+            match=re.escape(
+                "_sample_state() takes 3 positional arguments but 4 were given"
+            ),
+        ):
+            self.general_sampler(
+                self.param_state_1.bind_parameters([1.0, 2.0]), 0.87, [3.0, 4.0]  # type: ignore    # noqa: E501
+            )
+
+        # Test param sample
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "Shot expected to be integer, but got <class 'list'>. "
+                "Input value is [1.0, 2.0]."
+            ),
+        ):
+            self.general_sampler(self.param_state_1, [1.0, 2.0], 100)  # type: ignore
+
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "Circuit parameter is expected to be an iterable or an array, "
+                "but got <class 'int'>. Input value is 909090."
+            ),
+        ):
+            self.general_sampler(self.param_state_1, 100, 909090)  # type: ignore
+
+        with pytest.raises(
+            TypeError,
+            match=re.escape("unsupported operand type(s) for +: 'int' and 'str'"),
+        ):
+            self.general_sampler(self.param_state_1, 100, "ab")  # type: ignore
 
 
 def create_mock_backend(counts: Sequence[MeasurementCounts]) -> mock.Mock:
