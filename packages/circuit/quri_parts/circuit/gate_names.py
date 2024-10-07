@@ -130,8 +130,20 @@ def is_multi_qubit_gate_name(gate_name: str) -> TypeGuard[MultiQubitGateNameType
 
 #: A set of strings representing gate names.
 NonParametricGateNameType: TypeAlias = Union[
-    SingleQubitGateNameType, TwoQubitGateNameType, MultiQubitGateNameType
+    SingleQubitGateNameType,
+    TwoQubitGateNameType,
+    ThreeQubitGateNameType,
+    MultiQubitGateNameType,
 ]
+
+
+def is_non_parametric_gate_name(gate_name: str) -> TypeGuard[NonParametricGateNameType]:
+    return gate_name in (
+        SINGLE_QUBIT_GATE_NAMES
+        | TWO_QUBIT_GATE_NAMES
+        | THREE_QUBIT_GATE_NAMES
+        | MULTI_QUBIT_GATE_NAMES
+    )
 
 
 UnitaryMatrixGateNameType: TypeAlias = Literal["UnitaryMatrix"]
