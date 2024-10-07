@@ -1,7 +1,14 @@
+from collections.abc import Collection, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Optional
 
-from quri_parts.circuit.gate_names import NonParametricGateNameType
+import networkx as nx
+
+from quri_parts.circuit import QuantumGate
+from quri_parts.circuit.gate_names import (
+    NonParametricGateNameType,
+    is_non_parametric_gate_name,
+)
 
 from .units import FrequencyValue, TimeValue
 
@@ -37,7 +44,7 @@ class GateProperty:
 
     Args:
         gate (GateNameType): gate name
-        quibts (list[int]): target qubits for the gate. The order is control_index0,
+        qubits (Sequence[int]): target qubits for the gate. The order is control_index0,
             control_index1, ..., target_index0, ...
         gate_error (float, optional): 1 - fidelity of the gate operation
         gate_time (float, optional): time duration of the gate operation
@@ -45,7 +52,85 @@ class GateProperty:
     """
 
     gate: NonParametricGateNameType
-    qubits: list[int]
+    qubits: Sequence[int]
     gate_error: Optional[float] = None
     gate_time: Optional[TimeValue] = None
     name: Optional[str] = None
+
+
+@dataclass
+class DeviceProperty:
+    """Stores properties of a quantum device for circuit cost estimation.
+
+    Args:
+        qubit_count (int): Number of qubits.
+        qubits (Sequence[int]): Qubit indices.
+        qubit_graph (newtorkx.Graph): Topology of qubit connections.
+        qubit_properties (Mapping[int, QubitProperty]): Mapping from qubit index to
+            QubitProperty.
+        native_gates (Collection[NonParametricGateNameType]): Names of supported gates.
+        gate_properties (Collection[GateProperty]): Collection of GateProperty.
+        physical_qubit_count: (int, optional): Number of physical qubits.
+        background_error: (tuple[float, TimeValue], optional): The errors that
+            occur with respect to the passage of time for each qubit, regardless
+            of the application of gates, etc.  It must be given together with the
+            time unit.
+        name (str, optional): Name of the device.
+        provider (str, optional): Provider of the device.
+    """
+
+    qubit_count: int
+    qubits: Sequence[int]
+    qubit_graph: nx.Graph
+    qubit_properties: Mapping[int, QubitProperty]
+    native_gates: Sequence[NonParametricGateNameType]
+    _gate_properties: Mapping[
+        tuple[NonParametricGateNameType, tuple[int, ...]], GateProperty
+    ]
+    physical_qubit_count: Optional[int] = None
+    background_error: Optional[tuple[float, TimeValue]] = None
+    name: Optional[str] = None
+    provider: Optional[str] = None
+
+    def __init__(
+        self,
+        qubit_count: int,
+        qubits: Sequence[int],
+        qubit_graph: nx.Graph,
+        qubit_properties: Mapping[int, QubitProperty],
+        native_gates: Collection[NonParametricGateNameType],
+        gate_properties: Collection[GateProperty],
+        physical_qubit_count: Optional[int] = None,
+        background_error: Optional[tuple[float, TimeValue]] = None,
+        name: Optional[str] = None,
+        provider: Optional[str] = None,
+    ) -> None:
+        self.qubit_count = qubit_count
+        self.qubits = tuple(qubits)
+        self.qubit_graph = qubit_graph
+        self.qubit_properties = qubit_properties
+        self.native_gates = tuple(native_gates)
+        self._gate_properties = {
+            (prop.gate, tuple(prop.qubits)): prop for prop in gate_properties
+        }
+        self.physical_qubit_count = physical_qubit_count
+        self.background_error = background_error
+        self.name = name
+        self.provider = provider
+
+    def gate_property(self, quantum_gate: QuantumGate) -> GateProperty:
+        """Returns GateProperty of the device corresponding to the given
+        QuantumGate.
+
+        If the given quantum gate is not specified with qubits, the
+        GateProperty for the kind of the quantum gate is searched.
+        """
+
+        if not is_non_parametric_gate_name(quantum_gate.name):
+            raise ValueError(f"Unsupported gate kind: {quantum_gate.name}")
+        gate = (
+            quantum_gate.name,
+            tuple(quantum_gate.control_indices) + tuple(quantum_gate.target_indices),
+        )
+        gate = gate if gate in self._gate_properties else (gate[0], ())
+        return self._gate_properties[gate]
