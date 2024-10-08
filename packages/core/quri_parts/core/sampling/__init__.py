@@ -149,6 +149,19 @@ class GeneralSampler(Generic[_StateT, _ParametricStateT]):
 
     @overload
     def __call__(
+        self,
+        *sampler_input: Unpack[
+            tuple[
+                UnboundParametricQuantumCircuitProtocol,
+                Iterable[tuple[int, Sequence[float]]],
+            ]
+        ],
+    ) -> Iterable[MeasurementCounts]:
+        """A :class:`ConcurrentParametricSampler`"""
+        ...
+
+    @overload
+    def __call__(
         self, *sampler_input: Unpack[tuple[_StateT, int]]
     ) -> MeasurementCounts:
         """A :class:`StateSampler`"""
@@ -172,6 +185,16 @@ class GeneralSampler(Generic[_StateT, _ParametricStateT]):
         # NOTE: the `tuple[ParametricCircuitQuantumState, int, Sequence[float]]`
         # is added because mypy recognizes _ParametricStateT as:
         # Union[ParametricQuantumStateVector, ParametricQuantumStateVector]
+        ...
+
+    @overload
+    def __call__(
+        self,
+        *sampler_input: Unpack[
+            tuple[_ParametricStateT, Iterable[tuple[int, Sequence[float]]]]
+        ],
+    ) -> Iterable[MeasurementCounts]:
+        """A :class:`ConcurrentParametricStateSampler`"""
         ...
 
     @overload
@@ -228,6 +251,8 @@ class GeneralSampler(Generic[_StateT, _ParametricStateT]):
         if isinstance(sampler_input[0], NonParametricQuantumCircuit):
             return self._sample(*sampler_input)
         if isinstance(sampler_input[0], UnboundParametricQuantumCircuitProtocol):
+            if isinstance(sampler_input[1], Iterable):
+                return self(self._distribute_for_concurrent_sampling(*sampler_input))
             return self._parametric_sample(*sampler_input)
         if isinstance(sampler_input[0], (CircuitQuantumState, QuantumStateVector)):
             return self._sample_state(*sampler_input)
@@ -235,6 +260,8 @@ class GeneralSampler(Generic[_StateT, _ParametricStateT]):
             sampler_input[0],
             (ParametricCircuitQuantumState, ParametricQuantumStateVector),
         ):
+            if isinstance(sampler_input[1], Iterable):
+                return self(self._distribute_for_concurrent_sampling(*sampler_input))
             return self._sample_parametric_state(*sampler_input)
 
         if isinstance(sampler_input[0][0], Iterable) and isinstance(
@@ -257,6 +284,37 @@ class GeneralSampler(Generic[_StateT, _ParametricStateT]):
                 "Circuit parameter is expected to be an iterable or an array, "
                 f"but got {type(params)}. Input value is {params}."
             )
+
+    @overload
+    @staticmethod
+    def _distribute_for_concurrent_sampling(
+        param_circuit_or_state: UnboundParametricQuantumCircuitProtocol,
+        shot_param_tuples: Iterable[tuple[int, Sequence[float]]],
+    ) -> Iterable[tuple[UnboundParametricQuantumCircuitProtocol, int, Sequence[float]]]:
+        ...
+
+    @overload
+    @staticmethod
+    def _distribute_for_concurrent_sampling(
+        param_circuit_or_state: _StateT,
+        shot_param_tuples: Iterable[tuple[int, Sequence[float]]],
+    ) -> Iterable[tuple[_StateT, int, Sequence[float]]]:
+        ...
+
+    @staticmethod
+    def _distribute_for_concurrent_sampling(
+        param_circuit_or_state: Union[UnboundParametricQuantumCircuitProtocol, _StateT],
+        shot_param_tuples: Iterable[tuple[int, Sequence[float]]],
+    ) -> Iterable[
+        tuple[
+            Union[UnboundParametricQuantumCircuitProtocol, _StateT],
+            int,
+            Sequence[float],
+        ]
+    ]:
+        return [
+            (param_circuit_or_state, shot, param) for shot, param in shot_param_tuples
+        ]
 
     def _sample(
         self, circuit: NonParametricQuantumCircuit, shots: int
