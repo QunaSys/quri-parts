@@ -84,7 +84,7 @@ ParametricSampler: TypeAlias = Callable[
 #: ConcurrentParametricSampler represents a sampler that samples from a parametric
 #: circuit with a sequence of circuit parameter list.
 ConcurrentParametricSampler: TypeAlias = Callable[
-    [Iterable[tuple[UnboundParametricQuantumCircuitProtocol, int, Sequence[float]]]],
+    [UnboundParametricQuantumCircuitProtocol, Iterable[tuple[int, Sequence[float]]]],
     Iterable[MeasurementCounts],
 ]
 
@@ -111,7 +111,7 @@ ParametricStateSampler: TypeAlias = Callable[
 #: ConcurrentParametricStateSampler represents a state sampler that samples from a
 #: parametric state with a sequence of circuit parameter list.
 ConcurrentParametricStateSampler: TypeAlias = Callable[
-    [Iterable[tuple[_ParametricStateT, int, Sequence[float]]]],
+    [_ParametricStateT, Iterable[tuple[int, Sequence[float]]]],
     Iterable[MeasurementCounts],
 ]
 
@@ -310,13 +310,12 @@ def create_concurrent_parametric_sampler_from_concurrent_sampler(
     :class:`ConcurrentSampler`."""
 
     def _concurrent_parametric_sampler(
-        circuit_shot_param_tuples: Iterable[
-            tuple[UnboundParametricQuantumCircuitProtocol, int, Sequence[float]]
-        ]
+        param_circuit: UnboundParametricQuantumCircuitProtocol,
+        shot_param_tuples: Iterable[tuple[int, Sequence[float]]],
     ) -> Iterable[MeasurementCounts]:
         circuit_shot_tuples = [
-            (circuit.bind_parameters(param), shot)
-            for circuit, shot, param in circuit_shot_param_tuples
+            (param_circuit.bind_parameters(param), shot)
+            for shot, param in shot_param_tuples
         ]
         return concurrent_sampler(circuit_shot_tuples)
 
@@ -348,13 +347,12 @@ def create_concurrent_parametric_state_sampler_from_concurrent_state_sampler(
     """
 
     def _concurrent_parametric_state_sampler(
-        state_shot_param_tuples: Iterable[
-            tuple[_ParametricStateT, int, Sequence[float]]
-        ]
+        param_state: _ParametricStateT,
+        shot_param_tuples: Iterable[tuple[int, Sequence[float]]],
     ) -> Iterable[MeasurementCounts]:
         state_shot_tuples = [
-            (cast(_StateT, state.bind_parameters(param)), shot)
-            for state, shot, param in state_shot_param_tuples
+            (cast(_StateT, param_state.bind_parameters(param)), shot)
+            for shot, param in shot_param_tuples
         ]
         return concurrent_state_sampler(state_shot_tuples)
 
