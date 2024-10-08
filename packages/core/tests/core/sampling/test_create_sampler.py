@@ -224,6 +224,14 @@ class TestGeneralSampler(TestCase):
 
     def test_concurrent_param_sampler_input(self) -> None:
         assert self.general_sampler(
+            self.param_circuit_1, [(1000, [1, 2]), (2000, [3, 4])]
+        ) == [{0: 3000}, {0: 14000}]
+
+        assert self.general_sampler(
+            self.param_circuit_2, [(1000, [1, 2]), (2000, [3, 4])]
+        ) == [{0: (-8 + 20) * 1000}, {0: (-14 + 38) * 2000}]
+
+        assert self.general_sampler(
             (self.param_circuit_1, 1000, [1, 2]),
             (self.param_circuit_1, 2000, [3, 4]),
             (self.param_circuit_2, 1000, [1, 2]),
