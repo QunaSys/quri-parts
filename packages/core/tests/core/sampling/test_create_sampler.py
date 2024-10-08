@@ -274,6 +274,14 @@ class TestGeneralSampler(TestCase):
 
     def test_concurrent_param_state_sampler_input(self) -> None:
         assert self.general_sampler(
+            self.param_state_1, [(1000, [1, 2]), (2000, [3, 4])]
+        ) == [{0: 3000}, {0: 14000}]
+
+        assert self.general_sampler(
+            self.param_state_2, [(1000, [1, 2]), (2000, [3, 4])]
+        ) == [{0: (-8 + 20) * 1000 * 2}, {0: (-14 + 38) * 2000 * 2}]
+
+        assert self.general_sampler(
             (self.param_state_1, 1000, [1, 2]),
             (self.param_state_1, 2000, [3, 4]),
             (self.param_state_2, 1000, [1, 2]),
@@ -346,13 +354,7 @@ class TestGeneralSampler(TestCase):
             )
 
         # Test param sample
-        with pytest.raises(
-            ValueError,
-            match=re.escape(
-                "Shot expected to be integer, but got <class 'list'>. "
-                "Input value is [1.0, 2.0]."
-            ),
-        ):
+        with pytest.raises(TypeError):
             self.general_sampler(self.param_circuit_1, [1.0, 2.0], 100)  # type: ignore
 
         with pytest.raises(
@@ -391,13 +393,7 @@ class TestGeneralSampler(TestCase):
             )
 
         # Test param sample
-        with pytest.raises(
-            ValueError,
-            match=re.escape(
-                "Shot expected to be integer, but got <class 'list'>. "
-                "Input value is [1.0, 2.0]."
-            ),
-        ):
+        with pytest.raises(TypeError):
             self.general_sampler(self.param_state_1, [1.0, 2.0], 100)  # type: ignore
 
         with pytest.raises(
