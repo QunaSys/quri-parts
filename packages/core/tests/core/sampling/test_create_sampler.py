@@ -119,13 +119,13 @@ class TestParametricSampler(TestCase):
         )
 
         assert concurrent_param_sampler(
-            [
-                (self.param_circuit_1, 1000, [1, 2]),
-                (self.param_circuit_1, 2000, [3, 4]),
-                (self.param_circuit_2, 1000, [1, 2]),
-                (self.param_circuit_2, 2000, [3, 4]),
-            ],
-        ) == [{0: 3000}, {0: 14000}, {0: (-8 + 20) * 1000}, {0: (-14 + 38) * 2000}]
+            self.param_circuit_1, [(1000, [1, 2]), (2000, [3, 4])]
+        ) == [{0: 3000}, {0: 14000}]
+
+        assert concurrent_param_sampler(
+            self.param_circuit_2,
+            [(1000, [1, 2]), (2000, [3, 4])],
+        ) == [{0: (-8 + 20) * 1000}, {0: (-14 + 38) * 2000}]
 
     def test_create_parametric_state_sampler_from_state_sampler(self) -> None:
         state_sampler = fake_state_sampler
@@ -151,18 +151,12 @@ class TestParametricSampler(TestCase):
             concurrent_state_sampler
         )
         assert concurrent_parametric_state_sampler(
-            [
-                (self.param_state_1, 1000, [1, 2]),
-                (self.param_state_1, 2000, [3, 4]),
-                (self.param_state_2, 1000, [1, 2]),
-                (self.param_state_2, 2000, [3, 4]),
-            ]
-        ) == [
-            {0: 3000},
-            {0: 14000},
-            {0: (-8 + 20) * 1000 * 2},
-            {0: (-14 + 38) * 2000 * 2},
-        ]
+            self.param_state_1, [(1000, [1, 2]), (2000, [3, 4])]
+        ) == [{0: 3000}, {0: 14000}]
+
+        assert concurrent_parametric_state_sampler(
+            self.param_state_2, [(1000, [1, 2]), (2000, [3, 4])]
+        ) == [{0: (-8 + 20) * 1000 * 2}, {0: (-14 + 38) * 2000 * 2}]
 
 
 class TestGeneralSampler(TestCase):
