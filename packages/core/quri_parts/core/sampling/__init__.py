@@ -200,6 +200,19 @@ class GeneralSampler(Generic[_StateT, _ParametricStateT]):
     @overload
     def __call__(
         self,
+        *sampler_input: Unpack[
+            tuple[ParametricCircuitQuantumState, Iterable[tuple[int, Sequence[float]]]]
+        ],
+    ) -> Iterable[MeasurementCounts]:
+        """A :class:`ConcurrentParametricStateSampler`"""
+        # NOTE: the `tuple[ParametricCircuitQuantumState, int, Sequence[float]]`
+        # is added because mypy recognizes _ParametricStateT as:
+        # Union[ParametricQuantumStateVector, ParametricQuantumStateVector]
+        ...
+
+    @overload
+    def __call__(
+        self,
         *sampler_input: Union[
             tuple[NonParametricQuantumCircuit, int],
             tuple[UnboundParametricQuantumCircuitProtocol, int, Sequence[float]],
