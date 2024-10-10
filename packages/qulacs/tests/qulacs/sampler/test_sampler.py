@@ -443,6 +443,28 @@ class TestQulacsVectorIdealGeneralSampler(unittest.TestCase):
         ).assert_called_once_with(self.param_state_2, 600, [20.0])
         assert counts == self.unbound_state_vec_cnt
 
+    def test_call_as_param_concurrent_sampler(self) -> None:
+        counts = list(
+            self.general_sampler(
+                self.param_circuit_1,
+                [(300, [10.0, 20.0]), (100, [0.0, 0.0])],
+            )
+        )
+        assert len(counts) == 2
+        assert counts[0] == self.linear_mapped_circuit_cnt
+        assert counts[1] == self.circuit_cnt
+
+    def test_call_as_param_concurrent_state_sampler(self) -> None:
+        counts = list(
+            self.general_sampler(
+                self.param_state_1,
+                [(300, [10.0, 20.0]), (100, [0.0, 0.0])],
+            )
+        )
+        assert len(counts) == 2
+        assert counts[0] == self.linear_mapped_circuit_cnt
+        assert counts[1] == self.circuit_cnt
+
     def test_call_as_mixed_concurrent_sampler(self) -> None:
         # Call without list
         counts = self.general_sampler(
