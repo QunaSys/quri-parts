@@ -82,7 +82,7 @@ ParametricSampler: TypeAlias = Callable[
 
 
 #: ConcurrentParametricSampler represents a sampler that samples from a parametric
-#: circuit with a sequence of circuit parameter list.
+#: circuit with a (shot, circuit parameter) pairs.
 ConcurrentParametricSampler: TypeAlias = Callable[
     [UnboundParametricQuantumCircuitProtocol, Iterable[tuple[int, Sequence[float]]]],
     Iterable[MeasurementCounts],
@@ -109,7 +109,7 @@ ParametricStateSampler: TypeAlias = Callable[
 
 
 #: ConcurrentParametricStateSampler represents a state sampler that samples from a
-#: parametric state with a sequence of circuit parameter list.
+#: parametric state with a sequence of (shot, circuit parameter) pairs.
 ConcurrentParametricStateSampler: TypeAlias = Callable[
     [_ParametricStateT, Iterable[tuple[int, Sequence[float]]]],
     Iterable[MeasurementCounts],
@@ -222,8 +222,9 @@ class GeneralSampler(Generic[_StateT, _ParametricStateT]):
         ],
     ) -> Iterable[MeasurementCounts]:
         """Mixing :class:`ConcurrentSampler`, :class:`ConcurrentStateSampler`,
-        :class:`ConcurrentParametricSampler`, :class:`ConcurrentParametricStateSampler`
-        """
+        `Iterable[tuple[UnboundParametricQuantumCircuitProtocol, int,
+        Sequence[float]]]`, `Iterable[tuple[_ParametricStateT, int,
+        Sequence[float]]]`"""
         # NOTE: the `tuple[ParametricCircuitQuantumState, int, Sequence[float]]`
         # is added because mypy recognizes _ParametricStateT as:
         # Union[ParametricQuantumStateVector, ParametricQuantumStateVector]
@@ -251,8 +252,9 @@ class GeneralSampler(Generic[_StateT, _ParametricStateT]):
         ],
     ) -> Iterable[MeasurementCounts]:
         """Mixing :class:`ConcurrentSampler`, :class:`ConcurrentStateSampler`,
-        :class:`ConcurrentParametricSampler`, :class:`ConcurrentParametricStateSampler`
-        """
+        `Iterable[tuple[UnboundParametricQuantumCircuitProtocol, int,
+        Sequence[float]]]`, `Iterable[tuple[_ParametricStateT, int,
+        Sequence[float]]]`"""
         # NOTE: the `tuple[ParametricCircuitQuantumState, int, Sequence[float]]`
         # is added because mypy recognizes _ParametricStateT as:
         # Union[ParametricQuantumStateVector, ParametricQuantumStateVector]
