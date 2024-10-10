@@ -1,14 +1,179 @@
 name: Package and release
 
 on:
-  pull_request:
   push:
     branches: [main]
   release:
     types: [published]
 
 jobs:
-  package:
+  pre-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        # Necessary to get tags for correct versioning
+        fetch-depth: 0
+
+    - name: check manual versioning
+      shell: bash
+      run: |
+        GIT_VERSION_TAG="$(git describe --tags --abbrev=0 | head -n 1)"
+        
+        # process pyproject.toml files
+        for FILE in $(find . -name "pyproject.toml"); do
+          PYPROJECT_VERSION="$(sed -ne 's/version = "\(.*\)"$/\1/p' "$FILE" | head -n 1)"
+          if [[ ! "$PYPROJECT_VERSION" = "0.0.0" && ! "v$PYPROJECT_VERSION" = $GIT_VERSION_TAG ]]; then
+            echo "Version mismatch in $FILE; #PYPROJECT_VERSION != $GIT_VERSION_TAG" 1>&2
+            false
+          fi
+        done
+        
+        # process Cargo.toml files
+        for FILE in $(find . -name "Cargo.toml"); do
+          CARGO_VERSION="$(sed -ne 's/version = "\(.*\)"$/\1/p' "$FILE" | head -n 1)"
+          if [[ ! "v$CARGO_VERSION" = $GIT_VERSION_TAG ]]; then
+            echo "Version mismatch in $FILE; #CARGO_VERSION != $GIT_VERSION_TAG" 1>&2
+            false
+          fi
+        done
+        
+        echo "Version check finished successfully." 1>&2
+
+  rust-package:
+    name: Rust package on ${{matrix.os}}-${{matrix.target}} ${{matrix.python-version}}
+    needs: [pre-check]
+    runs-on: ${{matrix.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu-latest", "macos-latest", "macos-13", "windows-latest"]
+        target: [ "x86_64", "x86_64-apple-darwin", "aarch64-apple-darwin", "x86_64-pc-windows-gnu" ]
+        python-version: [ "3.9", "3.10", "3.11" ]
+        toolchain: [ "stable" ]
+        exclude:
+          - { os: "macos-latest", target: "x86_64" }
+          - { os: "macos-latest", target: "x86_64-apple-darwin" }
+          - { os: "macos-latest", target: "x86_64-pc-windows-gnu" }
+          - { os: "macos-13", target: "x86_64" }
+          - { os: "macos-13", target: "aarch64-apple-darwin" }
+          - { os: "macos-13", target: "x86_64-pc-windows-gnu" }
+          - { os: "ubuntu-latest", target: "x86_64-apple-darwin" }
+          - { os: "ubuntu-latest", target: "aarch64-apple-darwin" }
+          - { os: "ubuntu-latest", target: "x86_64-pc-windows-gnu" }
+          - { os: "windows-latest", target: "x86_64-apple-darwin" }
+          - { os: "windows-latest", target: "aarch64-apple-darwin" }
+          - { os: "windows-latest", target: "x86_64" }
+          - { os: "windows-latest", python-version: "3.9" }
+          - { os: "windows-latest", python-version: "3.10" }
+    defaults:
+      run:
+        shell: ${{ matrix.os == 'windows-latest' && 'msys2 {0}' || 'bash'}}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install MSYS2 MinGW
+        uses: msys2/setup-msys2@v2
+        if: matrix.os == 'windows-latest'
+        with:
+          msystem: MINGW64
+          path-type: inherit
+          install: >-
+            m4
+            patch
+            mingw-w64-x86_64-diffutils
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-python
+            mingw-w64-x86_64-python-pip
+            mingw-w64-x86_64-cython
+            mingw-w64-x86_64-python-poetry
+            mingw-w64-x86_64-python-maturin
+            mingw-w64-x86_64-python-build
+            mingw-w64-x86_64-python-wheel
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-z3
+
+      - name: Install Rustup using win.rustup.rs
+        if: matrix.os == 'windows-latest'
+        run: |
+          curl -o rustup-init.exe -sSL https://win.rustup.rs/
+          ./rustup-init.exe -y --default-host=${{ matrix.target }} --profile=minimal
+          rm rustup-init.exe
+
+      - uses: ./.github/actions/rust-install-cache
+        if: matrix.os == 'windows-latest'
+        with:
+          os: "windows-latest"
+          shell: msys2 {0}
+          toolchain: ${{ matrix.toolchain }}
+          target: ${{ matrix.target }}
+          additional-key: "python"
+
+      - uses: ./.github/actions/rust-install-cache
+        if: matrix.os != 'windows-latest'
+        with:
+          os: ${{ runner.os }}
+          toolchain: ${{ matrix.toolchain }}
+          additional-key: "python"
+
+      - name: Create libpython symlink
+        if: matrix.os == 'windows-latest' && matrix.python-version == '3.11'
+        run: |
+          ln -s /mingw64/lib/libpython3.11.dll.a /mingw64/lib/libpython311.dll.a
+
+      - uses: ./.github/actions/python-poetry-install
+        if: matrix.os != 'windows-latest'
+        with:
+          poetry-version: '1.4.0'
+          python-version: ${{ matrix.python-version }}
+
+      - run: |
+          if [[ "${{matrix.os}}" = "windows-latest" ]]; then
+            export SETUPTOOLS_USE_DISTUTILS=stdlib
+          fi
+          poetry env use ${{ matrix.python-version }}
+          mkdir -p dist
+          cp -f NOTICE quri_parts/
+          poetry run pip install maturin==1.7.1
+          poetry build
+          cd packages
+          for pkg in *
+          do
+            cd $pkg
+            if [[ -e "Cargo.toml" ]]; then
+              cp -f NOTICE quri_parts/$pkg/
+              cd ../..
+              poetry run maturin build --strip -i python${{ matrix.python-version }} --release --out dist -m packages/$pkg/Cargo.toml
+              cd packages/$pkg
+            fi
+            cd ..
+          done
+
+      - name: Run test
+        if: matrix.os != 'windows-latest'
+        shell: bash
+        run: |
+          if [[ "${{matrix.os}}" = "windows-latest" ]]; then
+            pip install --user poetry
+            echo "$HOME/.local/bin" >> $GITHUB_PATH
+            export PATH = "$HOME/.local/bin:$PATH"
+            poetry env use ${{ matrix.python-version }}
+          fi
+          poetry install --only dev
+          for FILE in "$(find dist -name '*.whl')"; do
+            poetry run pip install $FILE
+          done
+          poetry install --only main
+          poetry run pytest packages
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: QURI parts packages
+          path: dist/*
+          if-no-files-found: error
+
+  python-package:
+    needs: [pre-check]
     runs-on: ubuntu-latest
 
     steps:
@@ -34,9 +199,11 @@ jobs:
         for pkg in *
         do
           cd $pkg
-          cp -f NOTICE quri_parts/$pkg/
-          poetry build
-          mv dist/* ../../dist
+          if [[ ! -e "Cargo.toml" ]]; then
+            cp -f NOTICE quri_parts/$pkg/
+            poetry build
+            mv dist/* ../../dist
+          fi
           cd ..
         done
 
@@ -47,7 +214,7 @@ jobs:
         if-no-files-found: error
 
   release:
-    needs: [package]
+    needs: [python-package, rust-package]
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:
