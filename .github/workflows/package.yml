@@ -5,6 +5,7 @@ on:
     branches: [main]
   release:
     types: [published]
+  pull_request:
 
 jobs:
   pre-check:
@@ -40,102 +41,113 @@ jobs:
         
         echo "Version check finished successfully." 1>&2
 
-  rust-package:
-    name: Rust package on ${{matrix.os}}-${{matrix.target}} ${{matrix.python-version}}
+  rust-sdist-package:
+    name: Rust sdist package
     needs: [pre-check]
-    runs-on: ${{matrix.os}}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: ["ubuntu-latest", "macos-latest", "macos-13", "windows-latest"]
-        target: [ "x86_64", "x86_64-apple-darwin", "aarch64-apple-darwin", "x86_64-pc-windows-gnu" ]
-        python-version: [ "3.9", "3.10", "3.11" ]
-        toolchain: [ "stable" ]
-        exclude:
-          - { os: "macos-latest", target: "x86_64" }
-          - { os: "macos-latest", target: "x86_64-apple-darwin" }
-          - { os: "macos-latest", target: "x86_64-pc-windows-gnu" }
-          - { os: "macos-13", target: "x86_64" }
-          - { os: "macos-13", target: "aarch64-apple-darwin" }
-          - { os: "macos-13", target: "x86_64-pc-windows-gnu" }
-          - { os: "ubuntu-latest", target: "x86_64-apple-darwin" }
-          - { os: "ubuntu-latest", target: "aarch64-apple-darwin" }
-          - { os: "ubuntu-latest", target: "x86_64-pc-windows-gnu" }
-          - { os: "windows-latest", target: "x86_64-apple-darwin" }
-          - { os: "windows-latest", target: "aarch64-apple-darwin" }
-          - { os: "windows-latest", target: "x86_64" }
-          - { os: "windows-latest", python-version: "3.9" }
-          - { os: "windows-latest", python-version: "3.10" }
-    defaults:
-      run:
-        shell: ${{ matrix.os == 'windows-latest' && 'msys2 {0}' || 'bash'}}
+    runs-on: "ubuntu-latest"
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install MSYS2 MinGW
-        uses: msys2/setup-msys2@v2
-        if: matrix.os == 'windows-latest'
+      - uses: actions/setup-python@v5
+        id: setup-python
         with:
-          msystem: MINGW64
-          path-type: inherit
-          install: >-
-            m4
-            patch
-            mingw-w64-x86_64-diffutils
-            mingw-w64-x86_64-toolchain
-            mingw-w64-x86_64-python
-            mingw-w64-x86_64-python-pip
-            mingw-w64-x86_64-cython
-            mingw-w64-x86_64-python-poetry
-            mingw-w64-x86_64-python-maturin
-            mingw-w64-x86_64-python-build
-            mingw-w64-x86_64-python-wheel
-            mingw-w64-x86_64-cmake
-            mingw-w64-x86_64-z3
+          python-version: "3.11"
 
-      - name: Install Rustup using win.rustup.rs
-        if: matrix.os == 'windows-latest'
-        run: |
-          curl -o rustup-init.exe -sSL https://win.rustup.rs/
-          ./rustup-init.exe -y --default-host=${{ matrix.target }} --profile=minimal
-          rm rustup-init.exe
+      - run: python -m pip install --upgrade pip
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
 
       - uses: ./.github/actions/rust-install-cache
-        if: matrix.os == 'windows-latest'
         with:
-          os: "windows-latest"
-          shell: msys2 {0}
-          toolchain: ${{ matrix.toolchain }}
-          target: ${{ matrix.target }}
+          os: ${{ runner.os }}
+          toolchain: "stable"
           additional-key: "python"
 
+      - run: |
+          poetry env use 3.11
+          mkdir -p dist
+          poetry run pip install maturin==1.7.1
+          source $VENV
+          cp -f packages/rust/NOTICE packages/rust/quri_parts/rust/
+
+          # For sdist generation, only files under `packages/rust` or `rust` are needed.
+          # To prevent errors, we remove some files of `quri-parts` package.
+          rm -rf README.md pyproject.toml quri_parts docs
+          mv packages/rust/pyproject.toml .
+          mv packages/rust/quri_parts .
+          echo 'manifest-path = "packages/rust/Cargo.toml"' >> pyproject.toml
+          poetry run maturin build --sdist -i python3.11 --out dist -m packages/rust/Cargo.toml -vv
+          rm dist/*.whl
+
+      - run: |
+          git reset --hard
+          poetry install -vv --only dev
+          poetry run pip uninstall -y quri-parts-rust
+          poetry run pip install dist/*.tar.gz
+          poetry run pytest packages
+
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: QURI parts packages
+          path: dist/*
+          if-no-files-found: error
+
+  rust-wheel-package:
+    name: Rust wheel package on ${{matrix.system.os}}-${{matrix.python-version}}
+    needs: [pre-check]
+    runs-on: ${{matrix.system.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        system:
+          - os: "ubuntu-latest"
+            target: "x86_64-unknown-linux-gnu"
+          - os: "macos-13"
+            target: "x86_64-apple-darwin"
+          - os: "macos-latest"
+            target: "aarch64-apple-darwin"
+          - os: "windows-latest"
+            target: "x86_64-pc-windows-msvc"
+        python-version: [ "3.9", "3.10", "3.11" ]
+        toolchain: [ "stable" ]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v5
+        id: setup-python
+        with:
+          python-version: ${{matrix.python-version}}
+
+      - run: python -m pip install --upgrade pip
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
       - uses: ./.github/actions/rust-install-cache
-        if: matrix.os != 'windows-latest'
         with:
           os: ${{ runner.os }}
           toolchain: ${{ matrix.toolchain }}
           additional-key: "python"
-
-      - name: Create libpython symlink
-        if: matrix.os == 'windows-latest' && matrix.python-version == '3.11'
-        run: |
-          ln -s /mingw64/lib/libpython3.11.dll.a /mingw64/lib/libpython311.dll.a
-
-      - uses: ./.github/actions/python-poetry-install
-        if: matrix.os != 'windows-latest'
-        with:
-          poetry-version: '1.4.0'
-          python-version: ${{ matrix.python-version }}
+          target: ${{matrix.system.target}}
 
       - run: |
-          if [[ "${{matrix.os}}" = "windows-latest" ]]; then
-            export SETUPTOOLS_USE_DISTUTILS=stdlib
-          fi
-          poetry env use ${{ matrix.python-version }}
+          poetry env use '${{ steps.setup-python.outputs.python-path }}'
           mkdir -p dist
           cp -f NOTICE quri_parts/
           poetry run pip install maturin==1.7.1
           poetry build
+          source $VENV
           cd packages
           for pkg in *
           do
@@ -150,21 +162,24 @@ jobs:
           done
 
       - name: Run test
-        if: matrix.os != 'windows-latest'
         shell: bash
         run: |
-          if [[ "${{matrix.os}}" = "windows-latest" ]]; then
-            pip install --user poetry
-            echo "$HOME/.local/bin" >> $GITHUB_PATH
-            export PATH = "$HOME/.local/bin:$PATH"
-            poetry env use ${{ matrix.python-version }}
+          poetry run pip install pytest
+          if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
+            poetry install -vv --only main
+          else
+            poetry install -vv --only dev
           fi
-          poetry install --only dev
           for FILE in "$(find dist -name '*.whl')"; do
             poetry run pip install $FILE
           done
-          poetry install --only main
-          poetry run pytest packages
+          if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
+            # We cannot run tests on native Windows, since pyscf does not support it.
+            poetry install -vv --only main --extras qulacs --extras braket --extras qiskit --extras cirq --extras openfermion --extras stim --extras openqasm --extras quantinuum --extras ionq --extras tket
+            poetry run pytest packages --ignore=packages/pyscf --ignore=packages/itensor
+          else
+            poetry run pytest packages
+          fi
 
       - uses: actions/upload-artifact@v3
         with:
@@ -214,7 +229,7 @@ jobs:
         if-no-files-found: error
 
   release:
-    needs: [python-package, rust-package]
+    needs: [python-package, rust-wheel-package, rust-sdist-package]
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:
