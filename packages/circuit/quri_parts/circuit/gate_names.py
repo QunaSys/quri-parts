@@ -53,7 +53,6 @@ RZ: Literal["RZ"] = "RZ"
 U1: Literal["U1"] = "U1"
 U2: Literal["U2"] = "U2"
 U3: Literal["U3"] = "U3"
-Measurement: Literal["Measurement"] = "Measurement"
 
 SINGLE_QUBIT_GATE_NAMES: set[SingleQubitGateNameType] = {
     Identity,
@@ -183,6 +182,11 @@ def is_parametric_gate_name(gate_name: str) -> TypeGuard[ParametricGateNameType]
     return gate_name in PARAMETRIC_GATE_NAMES
 
 
+MeasurementGateNameType: TypeAlias = Literal["Measurement"]
+Measurement: Literal["Measurement"] = "Measurement"
+MEASUREMENT_GATE_NAMES: set[MeasurementGateNameType] = {Measurement}
+
+
 #: Valid Pauli gate names.
 PauliNameType: TypeAlias = Literal["X", "Y", "Z", "Pauli"]
 
@@ -242,6 +246,7 @@ GateNameType: TypeAlias = Literal[
     MultiQubitGateNameType,
     UnitaryMatrixGateNameType,
     ParametricGateNameType,
+    MeasurementGateNameType,
 ]
 
 GATE_NAMES: set[GateNameType] = (
@@ -251,6 +256,7 @@ GATE_NAMES: set[GateNameType] = (
     | MULTI_QUBIT_GATE_NAMES
     | UNITARY_MATRIX_GATE_NAMES
     | PARAMETRIC_GATE_NAMES
+    | MEASUREMENT_GATE_NAMES
 )
 
 
