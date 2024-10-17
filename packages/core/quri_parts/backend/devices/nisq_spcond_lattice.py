@@ -26,7 +26,8 @@ def generate_device_property(
     gate_time_1q: TimeValue,
     gate_time_2q: TimeValue,
     gate_time_meas: TimeValue,
-    background_error: Optional[tuple[float, TimeValue]] = None,
+    t1: Optional[TimeValue] = None,
+    t2: Optional[TimeValue] = None,
 ) -> DeviceProperty:
     native_gate_set = set(native_gates)
     gates_1q = native_gate_set & gate_names.SINGLE_QUBIT_GATE_NAMES
@@ -84,6 +85,7 @@ def generate_device_property(
         native_gates=native_gates,
         gate_properties=gate_properties,
         physical_qubit_count=qubit_count,
-        background_error=background_error,
+        # TODO Calculate backgraound error from t1 and t2
+        background_error=None,
         transpiler=trans,
     )
