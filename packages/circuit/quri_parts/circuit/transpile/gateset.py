@@ -12,7 +12,7 @@ from collections.abc import Iterable, Mapping, Sequence
 from math import pi
 from typing import cast
 
-from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
+from quri_parts.circuit import ImmutableQuantumCircuit, QuantumCircuit
 from quri_parts.circuit import gates as gf
 from quri_parts.circuit.gate import QuantumGate
 from quri_parts.circuit.gate_names import (
@@ -48,7 +48,12 @@ from quri_parts.circuit.gate_names import (
     Z,
 )
 
-from .fuse import FuseRotationTranspiler, Rotation2NamedTranspiler
+from .fuse import (
+    FuseRotationTranspiler,
+    NormalizeRotationTranspiler,
+    Rotation2NamedTranspiler,
+    ZeroRotationEliminationTranspiler,
+)
 from .gate_kind_decomposer import (
     CNOT2CZHTranspiler,
     CZ2CNOTHTranspiler,
@@ -165,9 +170,7 @@ class CliffordConversionTranspiler(CircuitTranspilerProtocol):
                 "Target gateset must contain only single qubit clifford gates."
             )
 
-    def __call__(
-        self, circuit: NonParametricQuantumCircuit
-    ) -> NonParametricQuantumCircuit:
+    def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
         ret = []
         cache: dict[str, list[QuantumGate]] = {}
 
@@ -299,9 +302,7 @@ class RY2RZHTranspiler(GateKindDecomposer):
 class IdentityTranspiler(CircuitTranspilerProtocol):
     """A CircuitTranspiler returns the same circuit as the input."""
 
-    def __call__(
-        self, circuit: NonParametricQuantumCircuit
-    ) -> NonParametricQuantumCircuit:
+    def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
         return circuit
 
 
@@ -364,14 +365,12 @@ class RotationConversionTranspiler(CircuitTranspilerProtocol):
             frozenset(self._target_rotation), IdentityTranspiler()
         )
 
-    def _validate(self, circuit: NonParametricQuantumCircuit) -> None:
+    def _validate(self, circuit: ImmutableQuantumCircuit) -> None:
         for gate in circuit.gates:
             if gate.name in {RX, RY, RZ} and gate.name not in self._target_rotation:
                 raise ValueError(f"{gate} cannot be converted into the target gateset.")
 
-    def __call__(
-        self, circuit: NonParametricQuantumCircuit
-    ) -> NonParametricQuantumCircuit:
+    def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
         tr_circuit = self._decomposer(circuit)
         self._validate(tr_circuit)
         return tr_circuit
@@ -388,7 +387,8 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
         target_gateset: A Sequence of allowed output gate names.
     """
 
-    def __init__(self, target_gateset: Iterable[GateNameType]):
+    def __init__(self, target_gateset: Iterable[GateNameType], epsilon: float = 1.0e-9):
+        self._epsilon = epsilon
         self._gateset = set(target_gateset)
         self._target_clifford = cast(
             set[CliffordGateNameType],
@@ -404,9 +404,10 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
         ts.extend(self._construct_two_qubit_gate_decomposer())
 
         if self._target_clifford:
+            ts.extend(self._construct_rotation_fuser())
             ts.extend(
                 [
-                    Rotation2NamedTranspiler(),  # Optimizer
+                    Rotation2NamedTranspiler(epsilon=self._epsilon),  # Optimizer
                     CliffordConversionTranspiler(tuple(self._target_clifford)),
                 ]
             )
@@ -415,18 +416,23 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
             ts.append(IdentityEliminationTranspiler())
 
         ts.extend(self._construct_clifford_to_rotation_decomposer())
-        ts.extend(
-            [
-                FuseRotationTranspiler(),  # Optimizer
-                RotationConversionTranspiler(
-                    target_rotation=tuple(self._target_rotation),
-                    favorable_clifford=tuple(self._target_clifford),
-                ),
-                FuseRotationTranspiler(),  # Optimizer
-            ]
+        ts.extend(self._construct_rotation_fuser())
+        ts.append(
+            RotationConversionTranspiler(
+                target_rotation=tuple(self._target_rotation),
+                favorable_clifford=tuple(self._target_clifford),
+            )
         )
+        ts.extend(self._construct_rotation_fuser())
 
         return SequentialTranspiler(ts)
+
+    def _construct_rotation_fuser(self) -> list[CircuitTranspiler]:
+        return [
+            FuseRotationTranspiler(),  # Optimizer
+            NormalizeRotationTranspiler(),
+            ZeroRotationEliminationTranspiler(epsilon=self._epsilon),  # Optimizer
+        ]
 
     def _construct_complex_gate_decomposer(self) -> list[CircuitTranspiler]:
         return self._collect_decomposers_for_target_gateset(
@@ -483,14 +489,12 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
                 ts.append(trans)
         return ts
 
-    def _validate(self, circuit: NonParametricQuantumCircuit) -> None:
+    def _validate(self, circuit: ImmutableQuantumCircuit) -> None:
         for gate in circuit.gates:
             if gate.name not in self._gateset:
                 raise ValueError(f"{gate} cannot be converted into the target gateset.")
 
-    def __call__(
-        self, circuit: NonParametricQuantumCircuit
-    ) -> NonParametricQuantumCircuit:
+    def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
         tr_circuit = self._decomposer(circuit)
         self._validate(tr_circuit)
         return tr_circuit
