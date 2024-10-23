@@ -376,7 +376,7 @@ class TestGeneralSampler(TestCase):
 
         with pytest.raises(
             TypeError,
-            match=re.escape("arguments 'params': Can't extract 'str' to 'Vec'"),
+            match=re.escape("argument 'params': Can't extract 'str' to 'Vec'"),
         ):
             self.general_sampler(self.param_circuit_1, 100, "ab")  # type: ignore
 
@@ -415,7 +415,7 @@ class TestGeneralSampler(TestCase):
 
         with pytest.raises(
             TypeError,
-            match=re.escape("arguments 'params': Can't extract 'str' to 'Vec'"),
+            match="argument 'params': Can't extract 'str' to 'Vec'",
         ):
             self.general_sampler(self.param_state_1, 100, "ab")  # type: ignore
 
