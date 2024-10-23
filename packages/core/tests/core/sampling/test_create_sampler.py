@@ -376,7 +376,7 @@ class TestGeneralSampler(TestCase):
 
         with pytest.raises(
             TypeError,
-            match=re.escape("unsupported operand type(s) for +: 'int' and 'str'"),
+            match=re.escape("arguments 'params': Can't extract 'str' to 'Vec'"),
         ):
             self.general_sampler(self.param_circuit_1, 100, "ab")  # type: ignore
 
@@ -415,7 +415,7 @@ class TestGeneralSampler(TestCase):
 
         with pytest.raises(
             TypeError,
-            match=re.escape("unsupported operand type(s) for +: 'int' and 'str'"),
+            match=re.escape("arguments 'params': Can't extract 'str' to 'Vec'"),
         ):
             self.general_sampler(self.param_state_1, 100, "ab")  # type: ignore
 
