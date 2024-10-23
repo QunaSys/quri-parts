@@ -1,5 +1,5 @@
 use crate::circuit::gate::{GenericGateProperty, ParametricQuantumGate, QuantumGate};
-use crate::circuit::parameter::Wrapper;
+use crate::circuit::parameter::Parameter;
 use crate::circuit::MaybeUnbound;
 use num_complex::{Complex64, ComplexFloat};
 use pyo3::prelude::*;
@@ -424,7 +424,7 @@ pub fn py_module<'py>(py: Python<'py>) -> PyResult<Bound<'py, PyModule>> {
 impl QuantumGate<MaybeUnbound> {
     pub fn instantiate<'py>(
         self,
-    ) -> PyResult<Result<QuantumGate, (ParametricQuantumGate, Wrapper)>> {
+    ) -> PyResult<Result<QuantumGate, (ParametricQuantumGate, Parameter)>> {
         match self {
             Self::Identity(q) => Ok(Ok(identity(q))),
             Self::X(q) => Ok(Ok(x(q))),
