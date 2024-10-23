@@ -133,7 +133,7 @@ class GeneralSampler(Generic[_StateT, _ParametricStateT]):
 
     @overload
     def __call__(
-        self, *sampler_input: Unpack[tuple[NonParametricQuantumCircuit, int]]
+        self, *sampler_input: Unpack[tuple[ImmutableQuantumCircuit, int]]
     ) -> MeasurementCounts:
         """A :class:`Sampler`"""
         ...
@@ -214,7 +214,7 @@ class GeneralSampler(Generic[_StateT, _ParametricStateT]):
     def __call__(
         self,
         *sampler_input: Union[
-            tuple[NonParametricQuantumCircuit, int],
+            tuple[ImmutableQuantumCircuit, int],
             tuple[UnboundParametricQuantumCircuitProtocol, int, Sequence[float]],
             tuple[_StateT, int],
             tuple[_ParametricStateT, int, Sequence[float]],
@@ -237,7 +237,7 @@ class GeneralSampler(Generic[_StateT, _ParametricStateT]):
             tuple[
                 Iterable[
                     Union[
-                        tuple[NonParametricQuantumCircuit, int],
+                        tuple[ImmutableQuantumCircuit, int],
                         tuple[
                             UnboundParametricQuantumCircuitProtocol,
                             int,
@@ -263,7 +263,7 @@ class GeneralSampler(Generic[_StateT, _ParametricStateT]):
     def __call__(
         self, *sampler_input: Any
     ) -> Union[MeasurementCounts, Iterable[MeasurementCounts]]:
-        if isinstance(sampler_input[0], NonParametricQuantumCircuit):
+        if isinstance(sampler_input[0], ImmutableQuantumCircuit):
             return self._sample(*sampler_input)
         if isinstance(sampler_input[0], UnboundParametricQuantumCircuitProtocol):
             if isinstance(sampler_input[1], Iterable):
@@ -332,7 +332,7 @@ class GeneralSampler(Generic[_StateT, _ParametricStateT]):
         ]
 
     def _sample(
-        self, circuit: NonParametricQuantumCircuit, shots: int
+        self, circuit: ImmutableQuantumCircuit, shots: int
     ) -> MeasurementCounts:
         self._check_shot_is_int(shots)
         return self.sampler(circuit, shots)
