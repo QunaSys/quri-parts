@@ -71,9 +71,10 @@ def _evaluate_qp_state_to_qulacs_state(
     init_state_vector = _get_init_vector_from_state(state)
     if noise_model is None:
         return _get_updated_qulacs_state_from_vector(state.circuit, init_state_vector)
-    return _get_updated_qulacs_density_matrix_from_vector(
-        state.circuit, init_state_vector, noise_model
-    )
+    else:
+        return _get_updated_qulacs_density_matrix_from_vector(
+            state.circuit, init_state_vector, noise_model
+        )
 
 
 def _get_updated_qulacs_state_from_vector(
