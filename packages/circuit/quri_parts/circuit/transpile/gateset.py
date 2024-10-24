@@ -188,7 +188,10 @@ class CliffordConversionTranspiler(CircuitTranspilerProtocol):
                 continue
 
             if gate.name in cache:
-                ret.extend(cache[gate.name])
+                ret.extend(
+                    QuantumGate(name=c.name, target_indices=gate.target_indices)
+                    for c in cache[gate.name]
+                )
                 continue
 
             for candidate in _equiv_clifford_table[gate.name]:
