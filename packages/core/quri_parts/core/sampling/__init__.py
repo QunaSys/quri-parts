@@ -480,7 +480,7 @@ def sample_from_density_matrix(
     if not np.isclose(np.trace(density_matrix), 1):
         raise ValueError("probabilities do not sum to 1")
 
-    probs = np.diag(density_matrix).real.round(12)
+    probs = np.diag(density_matrix).real
     return sample_from_probibility_distribution(n_shots, probs)
 
 
