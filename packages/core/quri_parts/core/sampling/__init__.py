@@ -10,13 +10,10 @@
 
 from collections import Counter
 from dataclasses import dataclass, field
-from dataclasses import dataclass, field
 from typing import (
-    Any,
     Any,
     Callable,
     Collection,
-    Generic,
     Generic,
     Iterable,
     Mapping,
@@ -498,7 +495,7 @@ def sample_from_density_matrix(
     if not np.isclose(np.trace(density_matrix), 1):
         raise ValueError("probabilities do not sum to 1")
 
-    probs = np.diag(density_matrix).real
+    probs = np.diag(density_matrix).real.round(12)
     return sample_from_probibility_distribution(n_shots, probs)
 
 
