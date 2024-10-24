@@ -111,9 +111,7 @@ def _get_updated_qulacs_density_matrix_from_vector(
     qs_circuit = convert_circuit_with_noise_model(circuit, noise_model)
     density_matrix = ql.DensityMatrix(circuit.qubit_count)
 
-    # We need to disable type check due to an error in qulacs type annotation
-    # https://github.com/qulacs/qulacs/issues/537
-    density_matrix.load(init_state)  # type: ignore
+    density_matrix.load(init_state)
 
     qs_circuit.update_quantum_state(density_matrix)
 
@@ -244,11 +242,9 @@ def create_qulacs_density_matrix_state_sampler(
         density_matrix = _evaluate_qp_state_to_qulacs_state(state, model)
         qubit_count = state.qubit_count
 
-        # We need to disable type check due to an error in qulacs type annotation
-        # https://github.com/qulacs/qulacs/issues/537
         if shots > max(2**10, (2**qubit_count) ** 2 / 10):
             mat = density_matrix.get_matrix()
-            return sample_from_density_matrix(mat, shots)  # type: ignore
+            return sample_from_density_matrix(mat, shots)
 
         return Counter(density_matrix.sampling(shots))
 
@@ -261,11 +257,9 @@ def create_qulacs_ideal_density_matrix_state_sampler(
     """Creates a noisy state sampler for a specific noise model."""
 
     def density_matrix_sampler(state: QulacsStateT, shots: int) -> MeasurementCounts:
-        # We need to disable type check due to an error in qulacs type annotation
-        # https://github.com/qulacs/qulacs/issues/537
         density_matrix = _evaluate_qp_state_to_qulacs_state(state, model)
         mat = density_matrix.get_matrix()
-        return ideal_sample_from_density_matrix(mat, shots)  # type: ignore
+        return ideal_sample_from_density_matrix(mat, shots)
 
     return density_matrix_sampler
 
