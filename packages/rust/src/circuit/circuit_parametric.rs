@@ -27,7 +27,27 @@ impl PartialEq for ImmutableParametricQuantumCircuit {
     fn eq(&self, other: &Self) -> bool {
         &self.qubit_count == &other.qubit_count
             && &self.cbit_count == &other.cbit_count
-            && &self.gates == &other.gates
+            && &self.gates.0.len() == &other.gates.0.len()
+            && self.gates.0.iter().zip(&other.gates.0).all(|(l, r)| {
+                l.clone()
+                    .map_param(|p| {
+                        if let MaybeUnbound::Bound(p) = p {
+                            Some(p)
+                        } else {
+                            None
+                        }
+                    })
+                    .into_property()
+                    == r.clone()
+                        .map_param(|p| {
+                            if let MaybeUnbound::Bound(p) = p {
+                                Some(p)
+                            } else {
+                                None
+                            }
+                        })
+                        .into_property()
+            })
     }
 }
 
@@ -143,16 +163,64 @@ impl ImmutableParametricQuantumCircuit {
 #[pymethods]
 impl ImmutableParametricQuantumCircuit {
     #[new]
-    #[pyo3(signature = (circuit))]
+    #[pyo3(signature = (circuit=None))]
     #[pyo3(text_signature = "(circuit: ImmutableParametricQuantumCircuit)")]
-    fn py_new(circuit: &Self) -> Self {
-        ImmutableParametricQuantumCircuit {
-            qubit_count: circuit.qubit_count,
-            cbit_count: circuit.cbit_count,
-            gates: circuit.gates.clone(),
-            depth_cache: None,
-            is_immutable: false,
+    fn py_new(circuit: Option<&Self>) -> Self {
+        if let Some(circuit) = circuit {
+            ImmutableParametricQuantumCircuit {
+                qubit_count: circuit.qubit_count,
+                cbit_count: circuit.cbit_count,
+                gates: circuit.gates.clone(),
+                depth_cache: None,
+                is_immutable: true,
+            }
+        } else {
+            // used with __setstate__()
+            ImmutableParametricQuantumCircuit {
+                qubit_count: 0,
+                cbit_count: 0,
+                gates: BasicBlock(Vec::new()),
+                depth_cache: None,
+                is_immutable: true,
+            }
         }
+    }
+
+    #[pyo3(name = "__getstate__")]
+    fn py_getstate(
+        slf: Bound<'_, Self>,
+    ) -> PyResult<(usize, usize, Vec<(Py<PyAny>, Option<Parameter>)>)> {
+        let gates = Self::get_gates_and_params(slf.borrow())?;
+        let borrowed = slf.borrow();
+        Ok((borrowed.qubit_count, borrowed.cbit_count, gates))
+    }
+
+    #[pyo3(name = "__setstate__")]
+    fn py_setstate(
+        slf: Bound<'_, Self>,
+        state: (usize, usize, Vec<(Py<PyAny>, Option<Parameter>)>),
+    ) -> PyResult<()> {
+        let mut borrowed = slf.borrow_mut();
+        let gates = state
+            .2
+            .into_iter()
+            .map(|(gate, param)| {
+                if let Ok(gate) = gate.extract::<'_, '_, QuantumGate<f64>>(slf.py()) {
+                    Ok(gate.map_param(MaybeUnbound::Bound))
+                } else {
+                    let gate = gate.extract::<'_, '_, QuantumGate<()>>(slf.py())?;
+                    let param = param.ok_or(pyo3::exceptions::PyValueError::new_err(format!(
+                        "Requires parameter",
+                    )))?;
+                    Ok(gate.map_param(|()| MaybeUnbound::Unbound(param.clone())))
+                }
+            })
+            .collect::<PyResult<Vec<_>>>()?;
+        borrowed.gates = quri_parts::BasicBlock(gates);
+        borrowed.qubit_count = state.0;
+        borrowed.cbit_count = state.1;
+        borrowed.depth_cache = None;
+        Ok(())
     }
 
     #[getter]
@@ -162,7 +230,7 @@ impl ImmutableParametricQuantumCircuit {
             .iter()
             .map(|g| match g.clone().instantiate()? {
                 Ok(g) => Ok(QuantumGate::into_py(g, slf.py())),
-                Err(g) => Ok(Py::new(slf.py(), g.0)?.into_any()),
+                Err(g) => Ok(g.0.into_py(slf.py()).into_any()),
             })
             .collect()
     }
@@ -174,7 +242,7 @@ impl ImmutableParametricQuantumCircuit {
             .iter()
             .map(|g| match g.clone().instantiate()? {
                 Ok(g) => Ok((QuantumGate::into_py(g, slf.py()), None)),
-                Err(g) => Ok((Py::new(slf.py(), g.0)?.into_any(), Some(g.1))),
+                Err(g) => Ok((g.0.into_py(slf.py()).into_any(), Some(g.1))),
             })
             .collect()
     }
@@ -408,7 +476,7 @@ impl ParametricQuantumCircuit {
 #[pymethods]
 impl ParametricQuantumCircuit {
     #[new]
-    #[pyo3(signature = (qubit_count, cbit_count=0))]
+    #[pyo3(signature = (qubit_count=0, cbit_count=0))]
     #[pyo3(text_signature = "(qubit_count: int, cbit_count: int = 0)")]
     fn py_new(qubit_count: usize, cbit_count: usize) -> (Self, ImmutableParametricQuantumCircuit) {
         let base = ImmutableParametricQuantumCircuit {
