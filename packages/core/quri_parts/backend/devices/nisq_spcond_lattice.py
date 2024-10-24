@@ -52,7 +52,7 @@ def generate_device_property(
     gates_1q = native_gate_set & gate_names.SINGLE_QUBIT_GATE_NAMES
     gates_2q = native_gate_set & gate_names.TWO_QUBIT_GATE_NAMES
 
-    if gates_1q & gates_2q != native_gate_set:
+    if gates_1q | gates_2q != native_gate_set:
         raise ValueError(
             "Only single and two qubit gates are supported as native gates"
         )
