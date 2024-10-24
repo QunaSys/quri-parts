@@ -22,6 +22,24 @@ def generate_device_property(
     t1: Optional[TimeValue] = None,
     t2: Optional[TimeValue] = None,
 ) -> DeviceProperty:
+    """Generate DeviceInfo object for typical NISQ ion trapped devices.
+
+    Assumes that the device's qubits are all-to-all connected and that a subset of
+    the gates natively supported by QURI Parts can be used as the native gates.
+
+    Args:
+        qubit_count: Number of qubits.
+        native_gates: Native gates supported by the device.
+        gate_error_1q: Error rate of single qubit gate operations.
+        gate_error_2q: Error rate of two qubit gate operations.
+        gate_error_meas: Error rate of readout operations.
+        gate_time_1q: Latency of single qubit gate operations.
+        gate_time_2q: Latency of two qubit gate operations.
+        gate_time_meas: Latency of readout operations.
+        t1: T1 coherence time.
+        t2: T2 coherence time.
+    """
+
     native_gate_set = set(native_gates)
     gates_1q = native_gate_set & gate_names.SINGLE_QUBIT_GATE_NAMES
     gates_2q = native_gate_set & gate_names.TWO_QUBIT_GATE_NAMES
