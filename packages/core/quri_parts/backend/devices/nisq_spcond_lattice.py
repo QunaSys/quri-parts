@@ -29,8 +29,8 @@ def generate_device_property(
     t1: Optional[TimeValue] = None,
     t2: Optional[TimeValue] = None,
 ) -> DeviceProperty:
-    """Generate DeviceInfo object for typical NISQ superconducting qubits
-    devices.
+    """Generate DeviceProperty object for a typical NISQ superconducting qubit
+    device.
 
     Assumes that the device's qubits are connected as square lattice with no defects
     and that a subset of the gates natively supported by QURI Parts can be used as

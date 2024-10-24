@@ -22,7 +22,7 @@ def generate_device_property(
     t1: Optional[TimeValue] = None,
     t2: Optional[TimeValue] = None,
 ) -> DeviceProperty:
-    """Generate DeviceInfo object for typical NISQ ion trapped devices.
+    """Generate DeviceProperty object for a typical NISQ trapped ion device.
 
     Assumes that the device's qubits are all-to-all connected and that a subset of
     the gates natively supported by QURI Parts can be used as the native gates.
