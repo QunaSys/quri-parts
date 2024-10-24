@@ -114,7 +114,7 @@ def test_estimate_cost_for_empty() -> None:
     circuit = QuantumCircuit(3)
 
     for device in [_ideal_device(), _imperfect_device()]:
-        assert 0.0 == estimate_circuit_latency(circuit, device)
+        assert 0.0 == estimate_circuit_latency(circuit, device).value
         assert 1.0 == estimate_circuit_fidelity(circuit, device)
 
 
@@ -122,7 +122,7 @@ def test_estimate_cost_ideal() -> None:
     circuit = _circuit()
     device = _ideal_device()
 
-    assert math.isclose(4.0, estimate_circuit_latency(circuit, device))
+    assert math.isclose(4.0, estimate_circuit_latency(circuit, device).value)
     assert math.isclose(1.0, estimate_circuit_fidelity(circuit, device))
 
 
@@ -130,7 +130,7 @@ def test_estimate_cost_real() -> None:
     circuit = _circuit()
     device = _imperfect_device()
 
-    assert math.isclose(130.0e3, estimate_circuit_latency(circuit, device))
+    assert math.isclose(130.0e3, estimate_circuit_latency(circuit, device).value)
     assert math.isclose(0.9840996904986060, estimate_circuit_fidelity(circuit, device))
 
 
