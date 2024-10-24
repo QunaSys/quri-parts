@@ -98,7 +98,7 @@ def _get_updated_qulacs_state_from_vector(
 
 
 def _get_updated_qulacs_density_matrix_from_vector(
-    circuit: Union[NonParametricQuantumCircuit, _QulacsCircuit],
+    circuit: Union[ImmutableQuantumCircuit, _QulacsCircuit],
     init_state: NDArray[complex128],
     noise_model: NoiseModel,
 ) -> ql.DensityMatrix:
@@ -121,7 +121,7 @@ def _get_updated_qulacs_density_matrix_from_vector(
 
 
 def _get_noise_simulator_from_vector(
-    circuit: Union[NonParametricQuantumCircuit, _QulacsCircuit],
+    circuit: Union[ImmutableQuantumCircuit, _QulacsCircuit],
     init_state: NDArray[complex128],
     noise_model: NoiseModel,
 ) -> ql.NoiseSimulator:
