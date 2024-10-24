@@ -89,21 +89,6 @@ ConcurrentParametricSampler: TypeAlias = Callable[
 ]
 
 
-#: ParametricSampler represents a sampler that samples from a parametric circuit with
-#: a fixed set of circuit parameters.
-ParametricSampler: TypeAlias = Callable[
-    [UnboundParametricQuantumCircuitProtocol, int, Sequence[float]], MeasurementCounts
-]
-
-
-#: ConcurrentParametricSampler represents a sampler that samples from a parametric
-#: circuit with a sequence of circuit parameter list.
-ConcurrentParametricSampler: TypeAlias = Callable[
-    [Iterable[tuple[UnboundParametricQuantumCircuitProtocol, int, Sequence[float]]]],
-    Iterable[MeasurementCounts],
-]
-
-
 #: StateSampler representes a function that samples a specific (non-parametric) state by
 #: specified times and returns the count statistics. In the case of an ideal
 #: StateSampler, the return value corresponds to probabilities multiplied by shot count.
