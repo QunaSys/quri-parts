@@ -10,11 +10,11 @@ from quri_parts.circuit import gate_names
 
 def generate_device_property(
     qubit_count: int,
-    physical_error_rate: float,
     code_distance: int,
     qec_cycle: TimeValue,
     delta_sk: float,
     mode_block: str,
+    physical_error_rate: float = 0.0,
 ) -> DeviceProperty:
     """Generate DeviceInfo object for Clifford + T architecture devices.
 
@@ -22,7 +22,8 @@ def generate_device_property(
         qubit_count: Number of logical qubits.
         physical_error_rate: Error rate of physical qubit operations.
         code_distance: Code distance of the quantum error correction code.
-        qec_cycle: Time duration of each quantum error correction cycle.
+        qec_cycle: Time duration of each syndrome measurement for quantum
+            error correction (without code distance dependency).
         delta_sk: Required accuracy of sk decompositon of each rotation gate.
         mode_block: Layout plan for each area on the lattice. One of "fast",
             "intermediate", or "compact"
@@ -73,20 +74,50 @@ def generate_device_property(
             gate_names.H,
             [],
             gate_error=0.0,
-            gate_time=TimeValue(value=3.0 * qec_cycle.value, unit=qec_cycle.unit),
+            gate_time=TimeValue(
+                value=3.0 * code_distance * qec_cycle.value, unit=qec_cycle.unit
+            ),
+        ),
+        GateProperty(
+            gate_names.S,
+            [],
+            gate_error=0.0,
+            # TODO Confirm latency value
+            gate_time=TimeValue(
+                value=2.0 * code_distance * qec_cycle.value, unit=qec_cycle.unit
+            ),
+        ),
+        GateProperty(
+            gate_names.T,
+            [],
+            gate_error=0.0,
+            # TODO Confirm latency value
+            gate_time=TimeValue(
+                value=latency_1T * code_distance * qec_cycle.value, unit=qec_cycle.unit
+            ),
         ),
         GateProperty(
             gate_names.CNOT,
             [],
             gate_error=0.0,
-            gate_time=TimeValue(value=2.0 * qec_cycle.value, unit=qec_cycle.unit),
+            gate_time=TimeValue(
+                value=2.0 * code_distance * qec_cycle.value, unit=qec_cycle.unit
+            ),
         ),
         GateProperty(
             gate_names.RZ,
             [],
             gate_error=delta_sk,
             gate_time=TimeValue(
-                value=latency_1q * qec_cycle.value, unit=qec_cycle.unit
+                value=latency_1q * code_distance * qec_cycle.value, unit=qec_cycle.unit
+            ),
+        ),
+        GateProperty(
+            gate_names.ParametricRZ,
+            [],
+            gate_error=delta_sk,
+            gate_time=TimeValue(
+                value=latency_1q * code_distance * qec_cycle.value, unit=qec_cycle.unit
             ),
         ),
     ]
@@ -106,7 +137,12 @@ def generate_device_property(
         qubits=qubits,
         qubit_graph=nx.complete_graph(qubit_count),
         qubit_properties=qubit_properties,
-        native_gates=[gate_names.H, gate_names.CNOT, gate_names.RZ],
+        native_gates=[
+            gate_names.H,
+            gate_names.S,
+            gate_names.T,
+            gate_names.CNOT,
+        ],
         gate_properties=gate_properties,
         physical_qubit_count=physical_qubit_count,
         background_error=(1.0 - qec_fidelity_per_qec_cycle, qec_cycle),

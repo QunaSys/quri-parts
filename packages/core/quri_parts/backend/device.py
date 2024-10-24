@@ -5,10 +5,9 @@ from typing import Optional
 import networkx as nx
 
 from quri_parts.circuit import QuantumGate
-from quri_parts.circuit.gate_names import (
-    NonParametricGateNameType,
-    is_non_parametric_gate_name,
-)
+from quri_parts.circuit.gate_names import GateNameType, is_non_parametric_gate_name
+from quri_parts.circuit.noise import NoiseModel
+from quri_parts.circuit.transpile import CircuitTranspiler, ParametricCircuitTranspiler
 
 from .units import FrequencyValue, TimeValue
 
@@ -51,7 +50,7 @@ class GateProperty:
         name (str, optional): name of the gate
     """
 
-    gate: NonParametricGateNameType
+    gate: GateNameType
     qubits: Sequence[int]
     gate_error: Optional[float] = None
     gate_time: Optional[TimeValue] = None
@@ -68,7 +67,7 @@ class DeviceProperty:
         qubit_graph (newtorkx.Graph): Topology of qubit connections.
         qubit_properties (Mapping[int, QubitProperty]): Mapping from qubit index to
             QubitProperty.
-        native_gates (Collection[NonParametricGateNameType]): Names of supported gates.
+        native_gates (Collection[GateNameType]): Names of supported gates.
         gate_properties (Collection[GateProperty]): Collection of GateProperty.
         physical_qubit_count: (int, optional): Number of physical qubits.
         background_error: (tuple[float, TimeValue], optional): The errors that
@@ -77,20 +76,29 @@ class DeviceProperty:
             time unit.
         name (str, optional): Name of the device.
         provider (str, optional): Provider of the device.
+        transpiler (CircuitTranspiler, optional): CircuitTranspiler for converting
+            to an instruction sequence supported by the target device.
+        parametric_transpiler (ParametricCircuitTranspiler, optional):
+            ParametricCircuitTranspiler for converting to an instruction sequence
+            supported by the target device.
+        noise_model (NoiseModel, optional): Noise models that reproduce device
+            behaviour.
     """
 
     qubit_count: int
     qubits: Sequence[int]
     qubit_graph: nx.Graph
     qubit_properties: Mapping[int, QubitProperty]
-    native_gates: Sequence[NonParametricGateNameType]
-    _gate_properties: Mapping[
-        tuple[NonParametricGateNameType, tuple[int, ...]], GateProperty
-    ]
+    native_gates: Sequence[GateNameType]
+    _gate_properties: Mapping[tuple[GateNameType, tuple[int, ...]], GateProperty]
     physical_qubit_count: Optional[int] = None
     background_error: Optional[tuple[float, TimeValue]] = None
     name: Optional[str] = None
     provider: Optional[str] = None
+
+    transpiler: Optional[CircuitTranspiler] = None
+    parametric_transpiler: Optional[ParametricCircuitTranspiler] = None
+    noise_model: Optional[NoiseModel] = None
 
     def __init__(
         self,
@@ -98,12 +106,15 @@ class DeviceProperty:
         qubits: Sequence[int],
         qubit_graph: nx.Graph,
         qubit_properties: Mapping[int, QubitProperty],
-        native_gates: Collection[NonParametricGateNameType],
+        native_gates: Collection[GateNameType],
         gate_properties: Collection[GateProperty],
         physical_qubit_count: Optional[int] = None,
         background_error: Optional[tuple[float, TimeValue]] = None,
         name: Optional[str] = None,
         provider: Optional[str] = None,
+        transpiler: Optional[CircuitTranspiler] = None,
+        parametric_transpiler: Optional[ParametricCircuitTranspiler] = None,
+        noise_model: Optional[NoiseModel] = None,
     ) -> None:
         self.qubit_count = qubit_count
         self.qubits = tuple(qubits)
@@ -117,6 +128,9 @@ class DeviceProperty:
         self.background_error = background_error
         self.name = name
         self.provider = provider
+        self.transpiler = transpiler
+        self.parametric_transpiler = parametric_transpiler
+        self.noise_model = noise_model
 
     def gate_property(self, quantum_gate: QuantumGate) -> GateProperty:
         """Returns GateProperty of the device corresponding to the given

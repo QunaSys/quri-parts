@@ -2,10 +2,10 @@ from collections.abc import Collection, Mapping
 from typing import Callable, cast
 
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate
-from quri_parts.circuit.gate_names import NonParametricGateNameType
+from quri_parts.circuit.gate_names import GateNameType
 
 from .device import DeviceProperty
-from .units import TimeValue
+from .units import TimeUnit, TimeValue
 
 
 def _gate_weighted_depth(
@@ -36,8 +36,8 @@ def _gate_kind_weighted_depth(
 def _estimate_gate_latency(
     circuit: NonParametricQuantumCircuit,
     device: DeviceProperty,
-    kinds: Collection[NonParametricGateNameType] = [],
-) -> float:
+    kinds: Collection[GateNameType] = [],
+) -> TimeValue:
     latency = 0.0
     for gate in circuit.gates:
         lat = device.gate_property(gate).gate_time
@@ -46,13 +46,13 @@ def _estimate_gate_latency(
         if kinds and gate.name not in kinds:
             continue
         latency += lat.in_ns()
-    return latency
+    return TimeValue(value=latency, unit=TimeUnit.NANOSECOND)
 
 
 def estimate_circuit_latency(
     circuit: NonParametricQuantumCircuit,
     device: DeviceProperty,
-) -> float:
+) -> TimeValue:
     """Estimates the execution time for processing the given quantum circuit on
     the given device.
 
@@ -68,16 +68,19 @@ def estimate_circuit_latency(
         if device.gate_property(gate).gate_time is None:
             raise ValueError(f"Contains gate with unknown gate_time: {gate}")
 
-    return _gate_weighted_depth(
-        circuit,
-        lambda gate: cast(TimeValue, device.gate_property(gate).gate_time).in_ns(),
+    return TimeValue(
+        value=_gate_weighted_depth(
+            circuit,
+            lambda gate: cast(TimeValue, device.gate_property(gate).gate_time).in_ns(),
+        ),
+        unit=TimeUnit.NANOSECOND,
     )
 
 
 def _estimate_gate_fidelity(
     circuit: NonParametricQuantumCircuit,
     device: DeviceProperty,
-    kinds: Collection[NonParametricGateNameType] = [],
+    kinds: Collection[GateNameType] = [],
 ) -> float:
     fidelity = 1.0
     for gate in circuit.gates:
@@ -95,7 +98,7 @@ def _estimate_background_fidelity(
 ) -> float:
     if device.background_error is None:
         return 1.0
-    circuit_latency = estimate_circuit_latency(circuit, device)
+    circuit_latency = estimate_circuit_latency(circuit, device).value
     error, latency = device.background_error
 
     return cast(
