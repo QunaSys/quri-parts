@@ -63,6 +63,19 @@ def test_sample_from_probibility_distribution() -> None:
     with pytest.raises(AssertionError, match="Probabilty does not sum to 1.0"):
         cnts = sample_from_probibility_distribution(1000, prob)
 
+    # Potentially dangerous case: large amount of small probabilities (p < 1e-12)
+    # When they are rounded away, sum of the rest of the probabilities slightly > 1.
+    n = 2**12
+    n_small = 2000
+    small_prob = -np.ones(n_small) * 1e-14
+    big_prob = np.ones(n - n_small) * (1 - np.sum(small_prob)) / (n - n_small)
+    prob = np.hstack([big_prob, small_prob])
+    with pytest.raises(ValueError):
+        rng = np.random.default_rng()
+        rng.multinomial(1000, prob.round(12))
+    cnts = sample_from_probibility_distribution(1000, prob)
+    assert sum(list(cnts.values())) == 1000
+
 
 def fake_sampler(circuit: NonParametricQuantumCircuit, shot: int) -> MeasurementCounts:
     cnt = 0.0
