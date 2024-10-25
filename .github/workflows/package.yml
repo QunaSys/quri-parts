@@ -5,6 +5,7 @@ on:
     branches: [main]
   release:
     types: [published]
+  pull_request:
 
 jobs:
   pre-check:
@@ -104,7 +105,7 @@ jobs:
       fail-fast: false
       matrix:
         system:
-          - os: "ubuntu-latest"
+          - os: "ubuntu-22.04"
             target: "x86_64-unknown-linux-gnu"
           - os: "macos-13"
             target: "x86_64-apple-darwin"
@@ -141,23 +142,16 @@ jobs:
           target: ${{matrix.system.target}}
 
       - run: |
-          poetry env use '${{ steps.setup-python.outputs.python-path }}'
           mkdir -p dist
           cp -f NOTICE quri_parts/
-          poetry run pip install maturin==1.7.1
-          source $VENV
-          cd packages
-          for pkg in *
-          do
-            cd $pkg
-            if [[ -e "Cargo.toml" ]]; then
-              cp -f NOTICE quri_parts/$pkg/
-              cd ../..
-              poetry run maturin build --strip -i python${{ matrix.python-version }} --release --out dist -m packages/$pkg/Cargo.toml
-              cd packages/$pkg
-            fi
-            cd ..
-          done
+
+      - uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          args: --release --strip -i python${{ matrix.python-version }} --out dist -m packages/rust/Cargo.toml
+          manylinux: 2014
+          rust-toolchain: ${{ matrix.toolchain }}
+          maturin-version: 1.7.1
 
       - name: Run test
         shell: bash
