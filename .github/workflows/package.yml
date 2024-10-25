@@ -153,7 +153,7 @@ jobs:
             if [[ -e "Cargo.toml" ]]; then
               cp -f NOTICE quri_parts/$pkg/
               cd ../..
-              poetry run maturin build --strip -i python${{ matrix.python-version }} --release --out dist -m packages/$pkg/Cargo.toml
+              poetry run maturin build --strip -i python${{ matrix.python-version }} --release --out dist -m packages/$pkg/Cargo.toml --compatibility manylinux_2_24
               cd packages/$pkg
             fi
             cd ..
