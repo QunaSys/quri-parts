@@ -56,7 +56,7 @@ def test_sample_from_probibility_distribution() -> None:
     prob = np.array([p1, norm - p1])
     cnts = sample_from_probibility_distribution(1000, prob)
     assert sum(list(cnts.values())) == 1000
-    with pytest.raises():
+    with pytest.raises(AssertionError, match="Probabilty does not sum to 1.0"):
         rng = np.random.default_rng()
         rng.multinomial(1000, prob)
 
