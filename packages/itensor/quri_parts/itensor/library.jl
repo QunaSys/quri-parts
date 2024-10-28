@@ -1,8 +1,8 @@
 import Pkg
 Pkg.add("ITensors")
-Pkg.add("ITensorsMPS")
+Pkg.add("ITensorMPS")
 using ITensors
-using ITensorsMPS
+using ITensorMPS
 
 ITensors.op(::OpName"I", ::SiteType"Qubit") = [
     1 0
