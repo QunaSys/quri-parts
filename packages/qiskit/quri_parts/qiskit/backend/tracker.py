@@ -1,3 +1,4 @@
+from __future__ import annotations   # isort: skip
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -10,7 +11,7 @@
 
 from typing import TYPE_CHECKING, Sequence
 
-from qiskit_ibm_runtime.runtime_job import JobStatus
+# from qiskit_ibm_runtime.runtime_job_v2 import JobStatus
 
 if TYPE_CHECKING:
     from .primitive import QiskitRuntimeSamplingJob
@@ -54,7 +55,7 @@ class Tracker:
         for job in self._running_jobs.values():
             job_id = job._qiskit_job.job_id()
             metrics = job._qiskit_job.metrics()
-            finished = job._qiskit_job.status() == JobStatus.DONE
+            finished = job._qiskit_job.status() == "DONE"
             if finished:
                 finished_id.append(job_id)
                 self._finished_jobs[job_id] = job
