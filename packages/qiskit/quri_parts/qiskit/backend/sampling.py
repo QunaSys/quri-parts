@@ -1,4 +1,3 @@
-from __future__ import annotations   # isort: skip
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -17,6 +16,7 @@ from qiskit import qasm3
 from qiskit.providers import Job
 from qiskit.providers.backend import Backend
 from qiskit.result import Result
+
 from quri_parts.backend import (
     BackendError,
     CompositeSamplingJob,
@@ -27,7 +27,6 @@ from quri_parts.backend import (
 )
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
-
 from quri_parts.qiskit.circuit import QiskitCircuitConverter, convert_circuit
 
 from .saved_sampling import (
