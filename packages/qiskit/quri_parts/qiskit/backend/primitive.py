@@ -1,4 +1,3 @@
-from __future__ import annotations   # isort: skip
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -24,6 +23,7 @@ from qiskit_ibm_runtime import RuntimeJobV2 as RuntimeJob
 from qiskit_ibm_runtime import SamplerOptions
 from qiskit_ibm_runtime import SamplerV2 as Sampler
 from qiskit_ibm_runtime import Session
+
 from quri_parts.backend import (
     BackendError,
     CompositeSamplingJob,
@@ -34,12 +34,11 @@ from quri_parts.backend import (
 )
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
-
 from quri_parts.qiskit.circuit import QiskitCircuitConverter, convert_circuit
 
 from .saved_sampling import (
-    QiskitRuntimeSavedDataSamplingResult,
     QiskitSavedDataSamplingJob,
+    QiskitSavedDataSamplingResult,
     encode_saved_data_job_sequence_to_json,
 )
 from .tracker import Tracker
@@ -404,14 +403,8 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         job_list = []
         for circuit_qasm_str, n_shots, qiskit_runtime_sampling_job in self._saved_data:
             result = qiskit_runtime_sampling_job._qiskit_job.result()
-            quasi_dists = result.quasi_dists
-            assert len(quasi_dists) == 1, ValueError(
-                "The Result must contain distribution for one circuit but"
-                f"found {len(quasi_dists)}"
-            )
-            quasi_dist = quasi_dists[0]
-            saved_sampling_result = QiskitRuntimeSavedDataSamplingResult(
-                quasi_dist=quasi_dist, n_shots=n_shots
+            saved_sampling_result = QiskitSavedDataSamplingResult(
+                result[0].data.meas.get_counts()
             )
             saved_sampling_job = QiskitSavedDataSamplingJob(
                 circuit_qasm=circuit_qasm_str,

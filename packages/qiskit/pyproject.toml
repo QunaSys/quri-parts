@@ -32,7 +32,7 @@ quri-parts-core = "*"
 pydantic = "^2.0"
 networkx = "*"
 qiskit = ">=1"
-qiskit-ibm-runtime = "^0.22.0"
+qiskit-ibm-runtime = "^0.29.0"
 
 [tool.poetry.group.dev.dependencies]
 quri-parts-circuit = {path = "../circuit", develop = true}
