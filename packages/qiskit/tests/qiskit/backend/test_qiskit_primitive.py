@@ -16,6 +16,8 @@ import warnings
 from collections import Counter
 from typing import Any
 from unittest.mock import MagicMock, patch
+from qiskit.primitives import PrimitiveResult, PubResult
+# from qiskit.primitives.pub_result import PubResult
 
 import pytest
 import qiskit
@@ -24,7 +26,7 @@ from qiskit import QuantumCircuit as QiskitQuantumCircuit
 from qiskit import qasm3
 from qiskit.primitives import SamplerResult
 from qiskit.result import QuasiDistribution
-from qiskit_ibm_runtime import Options, QiskitRuntimeService, RuntimeJob
+from qiskit_ibm_runtime import SamplerOptions, QiskitRuntimeService, RuntimeJob
 from qiskit_ibm_runtime.runtime_job import JobStatus
 
 from quri_parts.backend import BackendError, CompositeSamplingJob
@@ -60,10 +62,11 @@ def fake_run(*args, **kwargs) -> RuntimeJob:  # type: ignore
     def _job_id() -> str:
         return "aaa"
 
-    def result() -> SamplerResult:
-        return SamplerResult(
-            quasi_dists=[QuasiDistribution({1: 1.0})], metadata=[{"shots": 10}]
-        )
+    from unittest.mock import Mock
+    def result() -> PrimitiveResult:
+        pubres = Mock(spec=PubResult)
+        pubres.data.meas.get_counts.return_value = {"000001": 10}
+        return PrimitiveResult([pubres])
 
     jjob.status = _status
     jjob.running = _always_false
@@ -75,7 +78,7 @@ def fake_run(*args, **kwargs) -> RuntimeJob:  # type: ignore
 def fake_dynamic_run(*args, **kwargs) -> RuntimeJob:  # type: ignore
     jjob = MagicMock(spec=RuntimeJob)
 
-    jjob._status = JobStatus.RUNNING
+    jjob._status = "RUNNING"
     jjob._job_id = "".join([random.choice(string.ascii_lowercase) for _ in range(10)])
 
     def _status() -> JobStatus:
@@ -85,15 +88,15 @@ def fake_dynamic_run(*args, **kwargs) -> RuntimeJob:  # type: ignore
         return str(jjob._job_id)
 
     def _metrics() -> dict[str, Any]:
-        if jjob._status != JobStatus.DONE:
+        if jjob._status != "DONE":
             return {}
         return {"usage": {"seconds": 10}}
 
-    def _set_status(job_response: dict[Any, JobStatus]) -> None:
+    def _set_status(job_response: dict[Any, str]) -> None:
         jjob._status = list(job_response.values())[0]
 
     def _cancel() -> None:
-        jjob._status = JobStatus.CANCELLED
+        jjob._status = "CANCELLED"
 
     jjob.status = _status
     jjob.job_id = _job_id
@@ -112,7 +115,6 @@ def fake_qiskit_transpile(*args: Any, **kwargs: Any) -> QiskitQuantumCircuit:
 
 class TestQiskitPrimitive:
     @patch("qiskit.transpile", fake_qiskit_transpile)
-    @patch("qiskit_ibm_runtime.SamplerV1._validate_options", fake_validate)
     def test_sampler_call(self) -> None:
         runtime_service = mock_get_backend()
         service = runtime_service()
@@ -131,10 +133,8 @@ class TestQiskitPrimitive:
 
         result = job.result()
         assert isinstance(result, QiskitRuntimeSamplingResult)
-        assert len(result._qiskit_result.metadata) == 1
 
     @patch("qiskit_ibm_runtime.Session._create_session", return_value="aaa")
-    @patch("qiskit_ibm_runtime.SamplerV1._validate_options", fake_validate)
     @patch("qiskit.transpile", fake_qiskit_transpile)
     def test_sampler_session(self, _: str) -> None:
         runtime_service = mock_get_backend(False)
@@ -154,7 +154,6 @@ class TestQiskitPrimitive:
 
         result = job.result()
         assert isinstance(result, QiskitRuntimeSamplingResult)
-        assert len(result._qiskit_result.metadata) == 1
 
         # {1: 1.0} * 10
         assert result.counts == {1: 10.0}
@@ -270,7 +269,7 @@ class TestQiskitPrimitive:
         service = runtime_service()
         backend = service.backend()
 
-        options_dict = {"resilience_level": 1, "optimization_level": 2}
+        options_dict = {"default_shots": 2}
 
         sampler = QiskitRuntimeSamplingBackend(
             backend=backend, service=service, sampler_options=options_dict
@@ -278,9 +277,8 @@ class TestQiskitPrimitive:
 
         saved_options = sampler._qiskit_sampler_options
 
-        assert isinstance(saved_options, Options)
-        assert saved_options.resilience_level == 1
-        assert saved_options.optimization_level == 2
+        assert isinstance(saved_options, SamplerOptions)
+        assert saved_options.default_shots == 2
 
     @patch("qiskit.transpile", fake_qiskit_transpile)
     def test_sampler_options_qiskit_options(self) -> None:
@@ -288,9 +286,8 @@ class TestQiskitPrimitive:
         service = runtime_service()
         backend = service.backend()
 
-        qiskit_options = Options()
-        qiskit_options.resilience_level = 1
-        qiskit_options.optimization_level = 2
+        qiskit_options = SamplerOptions()
+        qiskit_options.environment.job_tags = ["tag"]
 
         sampler = QiskitRuntimeSamplingBackend(
             backend=backend, service=service, sampler_options=qiskit_options
@@ -298,9 +295,8 @@ class TestQiskitPrimitive:
 
         saved_options = sampler._qiskit_sampler_options
 
-        assert isinstance(saved_options, Options)
-        assert saved_options.resilience_level == 1
-        assert saved_options.optimization_level == 2
+        assert isinstance(saved_options, SamplerOptions)
+        assert saved_options.environment.job_tags == ["tag"]
 
     @patch("qiskit.transpile", fake_qiskit_transpile)
     def test_sampler_options_none(self) -> None:
@@ -592,7 +588,7 @@ class TestQiskitPrimitive:
         job2 = sampling_backend.sample(QuantumCircuit(2), 100)
         assert isinstance(job2, QiskitRuntimeSamplingJob)
 
-        job1._qiskit_job._set_status({"new_job_status": JobStatus.DONE})
+        job1._qiskit_job._set_status({"new_job_status": "DONE"})
 
         with pytest.raises(
             BackendError,
@@ -605,7 +601,7 @@ class TestQiskitPrimitive:
         ):
             sampling_backend.sample(QuantumCircuit(2), 100)
 
-        assert job2._qiskit_job.status() == JobStatus.CANCELLED
+        assert job2._qiskit_job.status() == "CANCELLED"
 
     @patch("qiskit.transpile", fake_qiskit_transpile)
     @patch("qiskit_ibm_runtime.SamplerV1._validate_options", fake_validate)

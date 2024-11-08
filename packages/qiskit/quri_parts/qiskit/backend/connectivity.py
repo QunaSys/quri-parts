@@ -1,3 +1,4 @@
+from __future__ import annotations   # isort: skip
 from typing import Union
 
 import networkx as nx
