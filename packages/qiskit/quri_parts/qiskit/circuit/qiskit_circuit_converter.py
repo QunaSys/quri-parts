@@ -1,3 +1,4 @@
+from __future__ import annotations   # isort: skip
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -15,7 +16,7 @@ from qiskit import transpile
 from qiskit.circuit import QuantumCircuit as QiskitQuantumCircuit
 
 from quri_parts.circuit import (
-    ImmutableQuantumCircuit,
+    NonParametricQuantumCircuit,
     QuantumCircuit,
     QuantumGate,
     UnitaryMatrix,

@@ -1,3 +1,4 @@
+from __future__ import annotations   # isort: skip
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -17,8 +18,6 @@ from pydantic.dataclasses import dataclass
 from pydantic.json import pydantic_encoder
 from qiskit import qasm3
 from qiskit.providers.backend import Backend
-from typing_extensions import TypeAlias
-
 from quri_parts.backend import (
     CompositeSamplingJob,
     SamplingBackend,
@@ -26,8 +25,10 @@ from quri_parts.backend import (
     SamplingJob,
     SamplingResult,
 )
-from quri_parts.circuit import ImmutableQuantumCircuit
+from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
+from typing_extensions import TypeAlias
+
 from quri_parts.qiskit.circuit import QiskitCircuitConverter, convert_circuit
 
 from .utils import (
@@ -165,7 +166,7 @@ class QiskitSavedDataSamplingBackend(SamplingBackend):
         saved_data: A json string output by the `.json_str` property of
             `:class:`~quri_parts.qiskit.backend.QiskitSamplingBackend`.
         circuit_converter: A function converting
-            :class:`~quri_parts.circuit.ImmutableQuantumCircuit` to
+            :class:`~quri_parts.circuit.NonParametricQuantumCircuit` to
             a Qiskit :class:`qiskit.circuit.QuantumCircuit`.
         circuit_transpiler: A transpiler applied to the circuit before running it.
         enable_shots_roundup: If True, when a number of shots specified to
@@ -216,7 +217,7 @@ class QiskitSavedDataSamplingBackend(SamplingBackend):
         self._saved_data = self._load_data(saved_data)
         self._replay_memory = {k: 0 for k in self._saved_data}
 
-    def sample(self, circuit: ImmutableQuantumCircuit, n_shots: int) -> SamplingJob:
+    def sample(self, circuit: NonParametricQuantumCircuit, n_shots: int) -> SamplingJob:
         if not n_shots >= 1:
             raise ValueError("n_shots should be a positive integer.")
 

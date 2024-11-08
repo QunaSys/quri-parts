@@ -1,3 +1,4 @@
+from __future__ import annotations   # isort: skip
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -14,7 +15,7 @@ from typing import Optional, Union
 from qiskit import transpile
 from qiskit.providers import Backend
 
-from quri_parts.circuit import ImmutableQuantumCircuit, gate_names
+from quri_parts.circuit import NonParametricQuantumCircuit, gate_names
 from quri_parts.circuit.gate_names import GateNameType
 from quri_parts.circuit.transpile import CircuitTranspilerProtocol
 from quri_parts.qiskit.circuit import circuit_from_qiskit, convert_circuit
@@ -50,7 +51,7 @@ class QiskitTranspiler(CircuitTranspilerProtocol):
     backend-compatible circuits, convert gate sets, perform circuit
     optimization, etc.
 
-    This transpiler converts ImmutableQuantumCircuit to ImmutableQuantumCircuit
+    This transpiler converts NonParametricQuantumCircuit to NonParametricQuantumCircuit
     just like other transpilers in QURI Parts though the conversion of the circuit to
     Qiskit and vice versa is performed internally.
 
@@ -76,7 +77,9 @@ class QiskitTranspiler(CircuitTranspilerProtocol):
         self._backend = backend
         self._optimization_level = optimization_level
 
-    def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
+    def __call__(
+        self, circuit: NonParametricQuantumCircuit
+    ) -> NonParametricQuantumCircuit:
         qiskit_circ = convert_circuit(circuit)
 
         optimized_qiskit_circ = transpile(

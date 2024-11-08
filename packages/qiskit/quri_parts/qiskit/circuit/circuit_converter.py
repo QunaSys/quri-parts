@@ -1,3 +1,4 @@
+from __future__ import annotations   # isort: skip
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -19,7 +20,7 @@ from qiskit.circuit.gate import Gate
 from qiskit.circuit.library import UnitaryGate
 from typing_extensions import TypeAlias
 
-from quri_parts.circuit import ImmutableQuantumCircuit, QuantumGate, gate_names
+from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate, gate_names
 from quri_parts.circuit.gate_names import (
     Measurement,
     MultiQubitGateNameType,
@@ -39,7 +40,7 @@ from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.qiskit.circuit.gate_names import ECR, QiskitTwoQubitGateNameType
 
 QiskitCircuitConverter: TypeAlias = Callable[
-    [ImmutableQuantumCircuit, Optional[CircuitTranspiler]], QuantumCircuit
+    [NonParametricQuantumCircuit, Optional[CircuitTranspiler]], QuantumCircuit
 ]
 
 _X = qi.SparsePauliOp("X")
@@ -157,10 +158,10 @@ def convert_gate(gate: QuantumGate) -> Gate:
 
 
 def convert_circuit(
-    circuit: ImmutableQuantumCircuit,
-    transpiler: Optional[CircuitTranspiler] = None,
+    circuit: NonParametricQuantumCircuit,
+    transpiler: Optional[CircuitTranspiler] = QiskitSetTranspiler(),
 ) -> QuantumCircuit:
-    """Converts a :class:`ImmutableQuantumCircuit` to
+    """Converts a :class:`NonParametricQuantumCircuit` to
     :class:`qiskit.QuantumCircuit`."""
     if transpiler is not None:
         circuit = transpiler(circuit)
