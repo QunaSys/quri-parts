@@ -3,18 +3,18 @@ from typing import Optional, Tuple
 
 import numpy as np
 
-from quri_parts.algo.ansatz.two_local import (
+from quri_parts.circuit import (
+    ImmutableLinearMappedParametricQuantumCircuit,
+    LinearMappedParametricQuantumCircuit,
+    PauliRotation,
+    QuantumGate,
+)
+
+from .two_local import (
     EntLayerMakerArg,
     RotLayerMakerArg,
     TwoLocal,
 )
-
-from quri_parts.circuit import (
-    ImmutableLinearMappedParametricQuantumCircuit,
-    LinearMappedParametricQuantumCircuit,
-    QuantumGate,
-)
-from quri_parts.circuit.gates import PauliRotation
 
 
 def Rxx_gate(target_indices: Sequence[int], angle: float) -> QuantumGate:
