@@ -8,6 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from .brickwork_structured_ansatz import BrickworkStructuredAnsatz
 from .hardware_efficient import HardwareEfficient, HardwareEfficientReal
 from .symmetry_preserving import SymmetryPreserving, SymmetryPreservingReal
 from .two_local import (
