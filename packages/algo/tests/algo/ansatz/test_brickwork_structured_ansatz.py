@@ -2,6 +2,7 @@ from typing import Callable, Sequence
 
 import numpy as np
 
+from quri_parts.algo.ansatz import BrickworkStructuredAnsatz
 from quri_parts.circuit import (
     RZ,
     ImmutableLinearMappedParametricQuantumCircuit,
@@ -73,3 +74,16 @@ def _test_circuit(
     circuit = ansatz.bind_parameters(params_list)
     test_circuit = test_circuit_builder(params_list)
     assert circuit.gates == test_circuit.gates
+
+
+def test_brickwork_structured_ansatz() -> None:
+    qubit_count = 4
+    depth = 3
+    ansatz = BrickworkStructuredAnsatz(
+        qubit_count=qubit_count, depth=depth
+    )
+    assert (
+        ansatz.parameter_count
+        == 3 * qubit_count * depth / 2
+    )
+    _test_circuit(ansatz, _build_circuit_qc4_d3)
