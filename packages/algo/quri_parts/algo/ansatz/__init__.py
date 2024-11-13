@@ -35,6 +35,7 @@ __all__ = [
     "EntLayerMakerArg",
     "TwoLocal",
     "build_entangler_map",
+    "BrickworkStructuredAnsatz",
     "HardwareEfficient",
     "HardwareEfficientReal",
     "SymmetryPreserving",
