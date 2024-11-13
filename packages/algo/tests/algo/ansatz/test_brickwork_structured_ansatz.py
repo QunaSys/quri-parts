@@ -3,12 +3,12 @@ from typing import Callable, Sequence
 import numpy as np
 
 from quri_parts.circuit import (
-    RZ,
     ImmutableLinearMappedParametricQuantumCircuit,
+    PauliRotation,
     QuantumCircuit,
     QuantumGate,
+    RZ,
 )
-from quri_parts.circuit.gates import PauliRotation
 
 
 def RXX(target_indices: Sequence[int], angle: float) -> QuantumGate:
