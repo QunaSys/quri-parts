@@ -1,24 +1,38 @@
+from collections.abc import Sequence
+from typing import Optional, Tuple
+
 import numpy as np
+
+from quri_parts.algo.ansatz.two_local import (
+    EntLayerMakerArg,
+    RotLayerMakerArg,
+    TwoLocal,
+)
+
+from quri_parts.circuit import (
+    ImmutableLinearMappedParametricQuantumCircuit,
+    LinearMappedParametricQuantumCircuit,
+    QuantumGate,
+)
 from quri_parts.circuit.gates import PauliRotation
-from typing import Optional, Sequence, Tuple
-
-from quri_parts.circuit import ImmutableLinearMappedParametricQuantumCircuit
-
-from quri_parts.algo.ansatz.two_local import TwoLocal
 
 
-def Rxx_gate(index, theta):
-    gate = PauliRotation(index, (1, 1), theta)  # X gate: pauli_ids=1
+def Rxx_gate(target_indices: Sequence[int], angle: float) -> QuantumGate:
+    gate = PauliRotation(target_indices, (1, 1), angle)
     return gate
 
 
-def _add_rz_gates(circuit, arg):
+def _add_rz_gates(
+    circuit: LinearMappedParametricQuantumCircuit, arg: RotLayerMakerArg
+) -> None:
     layer_index, qubit_index = arg
     theta = circuit.add_parameter(f"theta_{layer_index}_{qubit_index}")
     circuit.add_ParametricRZ_gate(qubit_index, theta)
 
 
-def _add_rxx_rz_gates(circuit, arg):
+def _add_rxx_rz_gates(
+    circuit: LinearMappedParametricQuantumCircuit, arg: EntLayerMakerArg
+) -> None:
     layer_index, (i, j) = arg
     circuit.add_gate(Rxx_gate((i, j), np.pi / 2))
     circuit.add_ParametricRZ_gate(i, circuit.add_parameter(f"theta_{layer_index}_{i}"))
@@ -71,7 +85,9 @@ class BrickworkStructuredAnsatz(ImmutableLinearMappedParametricQuantumCircuit):
         super().__init__(circuit)
         # self.depth = depth
 
-    def _build_entangler_map_seq(self, qubit_count, depth):
+    def _build_entangler_map_seq(
+        self, qubit_count: int, depth: int
+    ) -> Sequence[Sequence[tuple[int, int]]]:
         entangler_map_seq = []
 
         for i in range(2 * depth):
