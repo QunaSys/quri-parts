@@ -2,13 +2,9 @@ import numpy as np
 from quri_parts.circuit.gates import PauliRotation
 from typing import Optional, Sequence, Tuple
 
-from quri_parts.circuit import (
-    ImmutableLinearMappedParametricQuantumCircuit,
-)
+from quri_parts.circuit import ImmutableLinearMappedParametricQuantumCircuit
 
-from quri_parts.algo.ansatz.two_local import (
-    TwoLocal,
-)
+from quri_parts.algo.ansatz.two_local import TwoLocal
 
 
 def Rxx_gate(index, theta):
