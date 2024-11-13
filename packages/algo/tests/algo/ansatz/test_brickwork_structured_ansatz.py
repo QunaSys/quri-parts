@@ -6,12 +6,13 @@ from quri_parts.circuit import (
     RZ,
     ImmutableLinearMappedParametricQuantumCircuit,
     QuantumCircuit,
+    QuantumGate,
 )
 from quri_parts.circuit.gates import PauliRotation
 
 
-def RXX(index, theta):
-    gate = PauliRotation(index, (1, 1), theta)
+def RXX(target_indices: Sequence[int], angle: float) -> QuantumGate:
+    gate = PauliRotation(target_indices, (1, 1), angle)
     return gate
 
 
