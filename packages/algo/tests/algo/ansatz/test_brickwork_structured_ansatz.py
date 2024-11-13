@@ -79,11 +79,6 @@ def _test_circuit(
 def test_brickwork_structured_ansatz() -> None:
     qubit_count = 4
     depth = 3
-    ansatz = BrickworkStructuredAnsatz(
-        qubit_count=qubit_count, depth=depth
-    )
-    assert (
-        ansatz.parameter_count
-        == 3 * qubit_count * depth / 2
-    )
+    ansatz = BrickworkStructuredAnsatz(qubit_count=qubit_count, depth=depth)
+    assert ansatz.parameter_count == 3 * qubit_count * depth / 2
     _test_circuit(ansatz, _build_circuit_qc4_d3)
