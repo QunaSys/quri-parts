@@ -10,11 +10,7 @@ from quri_parts.circuit import (
     QuantumGate,
 )
 
-from .two_local import (
-    EntLayerMakerArg,
-    RotLayerMakerArg,
-    TwoLocal,
-)
+from .two_local import EntLayerMakerArg, RotLayerMakerArg, TwoLocal
 
 
 def Rxx_gate(target_indices: Sequence[int], angle: float) -> QuantumGate:
