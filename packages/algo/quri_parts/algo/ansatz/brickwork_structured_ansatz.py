@@ -1,19 +1,13 @@
 import numpy as np
 from quri_parts.circuit.gates import PauliRotation
-from collections.abc import Sequence
-from typing import Optional, Sequence, List, Tuple
+from typing import Optional, Sequence, Tuple
 
 from quri_parts.circuit import (
     ImmutableLinearMappedParametricQuantumCircuit,
-    LinearMappedParametricQuantumCircuit,
 )
 
 from quri_parts.algo.ansatz.two_local import (
-    EntanglementPatternType,
-    EntLayerMakerArg,
-    RotLayerMakerArg,
     TwoLocal,
-    build_entangler_map,
 )
 
 
