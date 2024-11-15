@@ -8,6 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from dataclasses import dataclass
 from typing import cast
 
 import numpy as np
@@ -24,6 +25,7 @@ from quri_algo.circuit.utils.transpile import apply_transpiler
 from quri_algo.problem.hamiltonian import QubitHamiltonianInput
 
 
+@dataclass
 class ExactUnitaryTimeEvolutionCircuitFactory(
     ProblemCircuitFactory[QubitHamiltonianInput]
 ):
@@ -49,6 +51,7 @@ class ExactUnitaryTimeEvolutionCircuitFactory(
         return circuit
 
 
+@dataclass
 class ExactUnitaryControlledTimeEvolutionCircuitFactory(
     ControlledTimeEvolutionCircuitFactory[QubitHamiltonianInput]
 ):
