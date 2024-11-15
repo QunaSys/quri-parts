@@ -18,14 +18,6 @@ def Rxx_gate(target_indices: Sequence[int], angle: float) -> QuantumGate:
     return gate
 
 
-def _add_rz_gates(
-    circuit: LinearMappedParametricQuantumCircuit, arg: RotLayerMakerArg
-) -> None:
-    layer_index, qubit_index = arg
-    theta = circuit.add_parameter(f"theta_{layer_index}_{qubit_index}")
-    circuit.add_ParametricRZ_gate(qubit_index, theta)
-
-
 def _add_rxx_rz_gates(
     circuit: LinearMappedParametricQuantumCircuit, arg: EntLayerMakerArg
 ) -> None:
