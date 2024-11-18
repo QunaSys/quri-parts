@@ -51,33 +51,30 @@ class Z2SymmetryPreserving(ImmutableLinearMappedParametricQuantumCircuit):
     def __init__(
         self,
         qubit_count: int,
-        depth: int,
-        rotation_indices: Optional[Sequence[int]] = None,
+        reps: int,
         entangler_map_seq: Optional[Sequence[Sequence[Tuple[int, int]]]] = None,
     ):
-        if rotation_indices is None:
-            rotation_indices = list(range(qubit_count))
 
         if entangler_map_seq is None:
-            entangler_map_seq = self._build_entangler_map_seq(qubit_count, depth)
+            entangler_map_seq = self._build_entangler_map_seq(qubit_count, reps)
 
         circuit = TwoLocal(
             qubit_count,
-            layer_pattern="e" * 2 * depth,
-            rot_layer_maker=self.__class__._add_rotation_gates,
+            layer_pattern="e" * reps,
+            rot_layer_maker=lambda c, a: None,
             ent_layer_maker=self.__class__._add_entanglement_gates,
-            rotation_indices=rotation_indices,
+            rotation_indices=[],
             entangler_map_seq=entangler_map_seq,
         )
         super().__init__(circuit)
-        # self.depth = depth
+        self.reps = reps
 
     def _build_entangler_map_seq(
-        self, qubit_count: int, depth: int
+        self, qubit_count: int, reps: int
     ) -> Sequence[Sequence[tuple[int, int]]]:
         entangler_map_seq = []
 
-        for i in range(2 * depth):
+        for i in range(2 * reps):
             if i % 2 == 0:
                 layer = [(j, j + 1) for j in range(0, qubit_count - 1, 2)]
             elif i % 2 == 1:
