@@ -8,6 +8,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .qaqc import QAQC
+from quri_algo.algo.compiler.qaqc import QAQC
 
 __all__ = ["QAQC"]
