@@ -28,7 +28,7 @@ def _add_rxx_rz_gates(
     circuit.add_gate(Rxx_gate((i, j), -np.pi / 2))
 
 
-class BrickworkStructuredAnsatz(ImmutableLinearMappedParametricQuantumCircuit):
+class Z2SymmetryPreserving(ImmutableLinearMappedParametricQuantumCircuit):
     """Brikwork-structured ansatz.
 
     Ref:
@@ -46,7 +46,6 @@ class BrickworkStructuredAnsatz(ImmutableLinearMappedParametricQuantumCircuit):
           entanglement layer acts.
     """
 
-    _add_rotation_gates = _add_rz_gates
     _add_entanglement_gates = _add_rxx_rz_gates
 
     def __init__(
