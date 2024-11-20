@@ -76,7 +76,7 @@ def _test_circuit(
     assert circuit.gates == test_circuit.gates
 
 
-def _test_Z2SymmetryPreserving() -> None:
+def test_Z2SymmetryPreserving() -> None:
     qubit_count = 4
     reps = 3
     ansatz = Z2SymmetryPreserving(qubit_count=qubit_count, reps=reps)
