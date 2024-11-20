@@ -11,8 +11,6 @@
 from typing import Callable, Sequence
 
 import numpy as np
-
-from quri_parts.algo.ansatz import SymmetryPreserving, SymmetryPreservingReal
 from quri_parts.circuit import (
     CNOT,
     RY,
@@ -20,6 +18,8 @@ from quri_parts.circuit import (
     ImmutableLinearMappedParametricQuantumCircuit,
     QuantumCircuit,
 )
+
+from quri_parts.algo.ansatz import SymmetryPreserving, SymmetryPreservingReal
 
 
 def _build_circuit_qc4_reps3(params_list: Sequence[float]) -> QuantumCircuit:
