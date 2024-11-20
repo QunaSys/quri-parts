@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .brickwork_structured_ansatz import BrickworkStructuredAnsatz
+from .brickwork_structured_ansatz import Z2SymmetryPreserving
 from .hardware_efficient import HardwareEfficient, HardwareEfficientReal
 from .symmetry_preserving import SymmetryPreserving, SymmetryPreservingReal
 from .two_local import (
@@ -35,9 +35,9 @@ __all__ = [
     "EntLayerMakerArg",
     "TwoLocal",
     "build_entangler_map",
-    "BrickworkStructuredAnsatz",
     "HardwareEfficient",
     "HardwareEfficientReal",
     "SymmetryPreserving",
     "SymmetryPreservingReal",
+    "Z2SymmetryPreserving",
 ]
