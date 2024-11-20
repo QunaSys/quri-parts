@@ -26,9 +26,12 @@ def _add_rxx_rz_gates(
     circuit: LinearMappedParametricQuantumCircuit, arg: EntLayerMakerArg
 ) -> None:
     layer_index, (i, j) = arg
+    theta_0, theta_1 = circuit.add_parameters(
+        f"theta_{layer_index}_{j}", f"phi_{layer_index}_{j}"
+    )
     circuit.add_gate(Rxx_gate((i, j), np.pi / 2))
-    circuit.add_ParametricRZ_gate(i, circuit.add_parameter(f"theta_{layer_index}_{i}"))
-    circuit.add_ParametricRZ_gate(j, circuit.add_parameter(f"theta_{layer_index}_{j}"))
+    circuit.add_ParametricRZ_gate(i, {theta_0: 1.0, theta_1: 1.0})
+    circuit.add_ParametricRZ_gate(j, {theta_0: -1.0, theta_1: 1.0})
     circuit.add_gate(Rxx_gate((i, j), -np.pi / 2))
 
 
