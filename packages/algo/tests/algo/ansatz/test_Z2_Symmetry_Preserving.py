@@ -21,41 +21,86 @@ def _build_circuit_qc4_d3(params_list: Sequence[float]) -> QuantumCircuit:
     gates = []
     tz1, tz2 = params_list[0:2]
     gates.extend(
-        [RXX((1, 2), np.pi / 2), RZ(1, tz1), RZ(2, tz2), RXX((1, 2), -np.pi / 2)]
+        [
+            RXX((1, 2), np.pi / 2),
+            RZ(1, tz1 + tz2),
+            RZ(2, -tz1 + tz2),
+            RXX((1, 2), -np.pi / 2),
+        ]
     )
     tz0, tz1 = params_list[2:4]
     gates.extend(
-        [RXX((0, 1), np.pi / 2), RZ(0, tz0), RZ(1, tz1), RXX((0, 1), -np.pi / 2)]
+        [
+            RXX((0, 1), np.pi / 2),
+            RZ(0, tz0 + tz1),
+            RZ(1, -tz0 + tz1),
+            RXX((0, 1), -np.pi / 2),
+        ]
     )
     tz2, tz3 = params_list[4:6]
     gates.extend(
-        [RXX((2, 3), np.pi / 2), RZ(2, tz2), RZ(3, tz3), RXX((2, 3), -np.pi / 2)]
+        [
+            RXX((2, 3), np.pi / 2),
+            RZ(2, tz2 + tz3),
+            RZ(3, -tz2 + tz3),
+            RXX((2, 3), -np.pi / 2),
+        ]
     )
 
     tz1, tz2 = params_list[6:8]
     gates.extend(
-        [RXX((1, 2), np.pi / 2), RZ(1, tz1), RZ(2, tz2), RXX((1, 2), -np.pi / 2)]
+        [
+            RXX((1, 2), np.pi / 2),
+            RZ(1, tz1 + tz2),
+            RZ(2, -tz1 + tz2),
+            RXX((1, 2), -np.pi / 2),
+        ]
     )
     tz0, tz1 = params_list[8:10]
     gates.extend(
-        [RXX((0, 1), np.pi / 2), RZ(0, tz0), RZ(1, tz1), RXX((0, 1), -np.pi / 2)]
+        [
+            RXX((0, 1), np.pi / 2),
+            RZ(0, tz0 + tz1),
+            RZ(1, -tz0 + tz1),
+            RXX((0, 1), -np.pi / 2),
+        ]
     )
     tz2, tz3 = params_list[10:12]
     gates.extend(
-        [RXX((2, 3), np.pi / 2), RZ(2, tz2), RZ(3, tz3), RXX((2, 3), -np.pi / 2)]
+        [
+            RXX((2, 3), np.pi / 2),
+            RZ(2, tz2 + tz3),
+            RZ(3, -tz2 + tz3),
+            RXX((2, 3), -np.pi / 2),
+        ]
     )
 
     tz1, tz2 = params_list[12:14]
     gates.extend(
-        [RXX((1, 2), np.pi / 2), RZ(1, tz1), RZ(2, tz2), RXX((1, 2), -np.pi / 2)]
+        [
+            RXX((1, 2), np.pi / 2),
+            RZ(1, tz1 + tz2),
+            RZ(2, -tz1 + tz2),
+            RXX((1, 2), -np.pi / 2),
+        ]
     )
     tz0, tz1 = params_list[14:16]
     gates.extend(
-        [RXX((0, 1), np.pi / 2), RZ(0, tz0), RZ(1, tz1), RXX((0, 1), -np.pi / 2)]
+        [
+            RXX((0, 1), np.pi / 2),
+            RZ(0, tz0 + tz1),
+            RZ(1, -tz0 + tz1),
+            RXX((0, 1), -np.pi / 2),
+        ]
     )
     tz2, tz3 = params_list[16:18]
     gates.extend(
-        [RXX((2, 3), np.pi / 2), RZ(2, tz2), RZ(3, tz3), RXX((2, 3), -np.pi / 2)]
+        [
+            RXX((2, 3), np.pi / 2),
+            RZ(2, tz2 + tz3),
+            RZ(3, -tz2 + tz3),
+            RXX((2, 3), -np.pi / 2),
+        ]
     )
 
     circuit = QuantumCircuit(4)
