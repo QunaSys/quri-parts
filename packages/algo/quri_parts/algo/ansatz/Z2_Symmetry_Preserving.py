@@ -9,7 +9,12 @@ from quri_parts.circuit import (
     QuantumGate,
 )
 
-from .two_local import EntLayerMakerArg, TwoLocal
+from .two_local import (
+    EntanglementPatternType,
+    EntLayerMakerArg,
+    TwoLocal,
+    build_entangler_map,
+)
 
 
 def Rxx_gate(target_indices: Sequence[int], angle: float) -> QuantumGate:
@@ -54,7 +59,9 @@ class Z2SymmetryPreserving(ImmutableLinearMappedParametricQuantumCircuit):
         entangler_map_seq: Optional[Sequence[Sequence[Tuple[int, int]]]] = None,
     ):
         if entangler_map_seq is None:
-            entangler_map_seq = self._build_entangler_map_seq(qubit_count, reps)
+            entangler_map_seq = build_entangler_map(
+                qubit_count, [EntanglementPatternType.LINEAR] * reps
+            )
 
         circuit = TwoLocal(
             qubit_count,
@@ -66,18 +73,3 @@ class Z2SymmetryPreserving(ImmutableLinearMappedParametricQuantumCircuit):
         )
         super().__init__(circuit)
         self.reps = reps
-
-    def _build_entangler_map_seq(
-        self, qubit_count: int, reps: int
-    ) -> Sequence[Sequence[tuple[int, int]]]:
-        entangler_map_seq = []
-
-        for i in range(2 * reps):
-            if i % 2 == 0:
-                layer = [(j, j + 1) for j in range(0, qubit_count - 1, 2)]
-            elif i % 2 == 1:
-                layer = [(j, j + 1) for j in range(1, qubit_count - 1, 2)]
-
-            entangler_map_seq.append(layer)
-
-        return entangler_map_seq
