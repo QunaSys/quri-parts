@@ -53,7 +53,6 @@ class Z2SymmetryPreserving(ImmutableLinearMappedParametricQuantumCircuit):
         reps: int,
         entangler_map_seq: Optional[Sequence[Sequence[Tuple[int, int]]]] = None,
     ):
-
         if entangler_map_seq is None:
             entangler_map_seq = self._build_entangler_map_seq(qubit_count, reps)
 
