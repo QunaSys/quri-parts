@@ -1,8 +1,6 @@
 from typing import Callable, Sequence
 
 import numpy as np
-
-from quri_parts.algo.ansatz import Z2SymmetryPreserving
 from quri_parts.circuit import (
     RZ,
     ImmutableLinearMappedParametricQuantumCircuit,
@@ -10,6 +8,8 @@ from quri_parts.circuit import (
     QuantumCircuit,
     QuantumGate,
 )
+
+from quri_parts.algo.ansatz import Z2SymmetryPreserving
 
 
 def RXX(target_indices: Sequence[int], angle: float) -> QuantumGate:
