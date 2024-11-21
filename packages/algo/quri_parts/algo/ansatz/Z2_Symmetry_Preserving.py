@@ -2,6 +2,7 @@ from collections.abc import Sequence
 from typing import Optional, Tuple
 
 import numpy as np
+
 from quri_parts.circuit import (
     ImmutableLinearMappedParametricQuantumCircuit,
     LinearMappedParametricQuantumCircuit,

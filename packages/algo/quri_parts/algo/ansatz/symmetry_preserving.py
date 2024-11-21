@@ -12,6 +12,7 @@ from collections.abc import Sequence
 from typing import Optional
 
 import numpy as np
+
 from quri_parts.circuit import (
     CONST,
     ImmutableLinearMappedParametricQuantumCircuit,
