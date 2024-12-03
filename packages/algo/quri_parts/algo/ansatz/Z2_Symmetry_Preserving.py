@@ -74,3 +74,4 @@ class Z2SymmetryPreserving(ImmutableLinearMappedParametricQuantumCircuit):
         )
         super().__init__(circuit)
         self.reps = reps
+        
