@@ -19,7 +19,7 @@ from .two_local import (
     TwoLocal,
     build_entangler_map,
 )
-from .Z2_Symmetry_Preserving import Z2SymmetryPreserving
+from .z2_symmetry_preserving import Z2SymmetryPreserving
 
 #: Function to rotate a qubit in a rotation layer.
 RotLayerMaker = RotLayerMaker
