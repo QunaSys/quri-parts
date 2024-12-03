@@ -40,7 +40,9 @@ class Z2SymmetryPreserving(ImmutableLinearMappedParametricQuantumCircuit):
     """z2_symmetry_preserving.
 
     Ref:
-    Garg, K., Ahmed, Z., & Thomasen, A. (2024). Qubit frugal entanglement determination with the deep multi-scale entanglement renormalization ansatz.
+    Garg, K., Ahmed, Z., & Thomasen, A. (2024).
+    Qubit frugal entanglement determination
+    with the deep multi-scale entanglement renormalization ansatz.
 
     Args:
         qubit_count: Number of qubits.
