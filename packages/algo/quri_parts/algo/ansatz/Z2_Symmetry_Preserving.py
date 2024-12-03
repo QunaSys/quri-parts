@@ -46,7 +46,7 @@ class Z2SymmetryPreserving(ImmutableLinearMappedParametricQuantumCircuit):
 
     Args:
         qubit_count: Number of qubits.
-        reps: Number of repetitions
+        reps: Number of repetitions of a single entanglement layer.
         entangler_map_seq: Qubit index pairs specifying on which qubit pairs each
           entanglement layer acts.
     """
