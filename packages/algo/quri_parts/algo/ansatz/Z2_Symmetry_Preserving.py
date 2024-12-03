@@ -37,19 +37,14 @@ def _add_rxx_rz_gates(
 
 
 class Z2SymmetryPreserving(ImmutableLinearMappedParametricQuantumCircuit):
-    """Brikwork-structured ansatz.
+    """z2_symmetry_preserving.
 
     Ref:
-    Mizuta, K., Nakagawa, Y. O., Mitarai, K., & Fujii, K. (2022).
-    Local Variational Quantum Compilation of Large-Scale Hamiltonian Dynamics. P
-    RX Quantum, 3(4). https://doi.org/10.1103/PRXQuantum.3.040302
-
+    Garg, K., Ahmed, Z., & Thomasen, A. (2024). Qubit frugal entanglement determination with the deep multi-scale entanglement renormalization ansatz.
 
     Args:
         qubit_count: Number of qubits.
-        depth: Number of depths.
-        rotation_indices: Qubit indices specifying on which qubits each rotation layer
-          acts.
+        reps: Number of repetitions
         entangler_map_seq: Qubit index pairs specifying on which qubit pairs each
           entanglement layer acts.
     """
