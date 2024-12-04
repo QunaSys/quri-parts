@@ -11,6 +11,7 @@ execute-in-place:
 		else \
 			echo "Executing $${f}" ; \
 			poetry run jupyter execute --inplace --JupyterApp.log_level=50 $${f} ; \
+		fi \
 	done
 
 
@@ -21,6 +22,7 @@ execute-in-place-all:
 		else \
 			echo "Executing $${f}" ; \
 			poetry run jupyter execute --inplace --JupyterApp.log_level=50 $${f} ; \
+		fi \
 	done
 
 
