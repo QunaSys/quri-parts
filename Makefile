@@ -20,9 +20,3 @@ clean-nb:
 		jq '$(FILTER_STRING)' "$${f}" > "$${f}.tmp" ; \
 		mv "$${f}.tmp" "$${f}" ; \
 	done
-
-
-test:
-	for f in $(TARGET_FILES); do \
-		echo $${f} ; \
-	done
