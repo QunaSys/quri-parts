@@ -36,3 +36,5 @@ Beware that this executes any notebooks you have added or modified in place and 
 ```
 poetry run jupyter execute quri_sdk_notebooks/path/to/notebook.ipynb
 ```
+
+At times we may stop maintaining certain notebooks. These will be excluded from CI and we do not guarantee that they can still run. The file `.exclude` keeps track of these.
