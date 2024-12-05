@@ -29,9 +29,11 @@ from quri_parts.circuit.noise import (
     KrausNoise,
     MeasurementNoise,
     NoiseModel,
+    PauliNoise,
     PhaseFlipNoise,
 )
 from quri_parts.qulacs.circuit.noise import convert_circuit_with_noise_model
+from quri_parts.qulacs.sampler import create_qulacs_density_matrix_sampler
 
 
 def gates_equal(g1: qulacs.QuantumGateBase, g2: qulacs.QuantumGateBase) -> bool:
@@ -288,3 +290,55 @@ def test_convert_empty_circuit() -> None:
     noise_model_readout = NoiseModel([MeasurementNoise([BitFlipNoise(1.0)])])
     converted_readout = convert_circuit_with_noise_model(circuit, noise_model_readout)
     assert converted_readout.get_gate_count() == 1
+
+
+def test_convert_complex_circuit() -> None:
+    circuit = QuantumCircuit(3)
+    circuit.add_H_gate(2)
+    circuit.add_X_gate(0)
+    circuit.add_CNOT_gate(2, 1)
+    circuit.add_Z_gate(2)
+
+    noises = [
+        # Single qubit noise
+        BitFlipNoise(
+            error_prob=0.004,
+            qubit_indices=[0, 2],  # Qubit 0 or 2
+            target_gates=[names.H, names.CNOT],  # H or CNOT gates
+        ),
+        DepolarizingNoise(
+            error_prob=0.003,
+            qubit_indices=[],  # All qubits
+            target_gates=[names.X, names.CNOT]  # X or CNOT gates
+        ),
+        PhaseFlipNoise(
+            error_prob=0.002,
+            qubit_indices=[1, 0],  # Qubit 0 or 1
+            target_gates=[]  # All kind of gates
+        ),
+        BitPhaseFlipNoise(
+            error_prob=0.001,
+            qubit_indices=[],  # All qubits
+            target_gates=[],  # All kind of gates
+        ),
+
+        # Multi qubit noise
+        PauliNoise(
+            pauli_list=[[1, 2], [2, 3]],
+            prob_list=[0.001, 0.002],
+            qubit_indices=[1, 2],  # 2 qubit gates applying to qubits (1, 2) or (2, 1)
+            target_gates=[names.CNOT]  # CNOT gates
+        ),
+
+        # Circuit noise
+        DepthIntervalNoise([PhaseFlipNoise(0.001)], depth_interval=5),
+        MeasurementNoise([BitFlipNoise(0.004), DepolarizingNoise(0.003)]),
+    ]
+    model = NoiseModel(noises)
+
+    qulacs_circuit = convert_circuit_with_noise_model(circuit, model)
+
+    density_matrix_sampler = create_qulacs_density_matrix_sampler(model)
+    counts = density_matrix_sampler(qulacs_circuit, shots=1000)
+
+    print(counts)
