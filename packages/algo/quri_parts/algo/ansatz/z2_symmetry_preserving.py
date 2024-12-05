@@ -39,6 +39,9 @@ def _add_rxx_rz_gates(
 class Z2SymmetryPreserving(ImmutableLinearMappedParametricQuantumCircuit):
     """z2_symmetry_preserving.
 
+    This class represents the unitary operator that is described
+    in eq.(5) in the reference.
+
     Ref:
     Garg, K., Ahmed, Z., & Thomasen, A. (2024).
     Qubit frugal entanglement determination
