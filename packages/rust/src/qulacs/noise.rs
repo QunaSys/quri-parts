@@ -24,7 +24,6 @@ fn convert_add_pauli_noise<'py>(
 ) -> PyResult<Bound<'py, PyAny>> {
     let module = py.import_bound("qulacs.gate")?;
     let mut probs = pauli_noise.prob_list.clone();
-    let paulies = pauli_noise.pauli_list.clone();
     let mut gates = vec![];
     for pauli in &pauli_noise.pauli_list {
         gates.push(
@@ -41,7 +40,7 @@ fn convert_add_pauli_noise<'py>(
     let prob_gate = py
         .import_bound("qulacs.gate")?
         .getattr("Probabilistic")?
-        .call1((probs, paulies))?;
+        .call1((probs, gates))?;
     qulacs_circuit.call_method1("add_gate", (prob_gate,))?;
     Ok(qulacs_circuit)
 }
