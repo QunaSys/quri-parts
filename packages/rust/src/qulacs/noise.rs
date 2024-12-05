@@ -29,7 +29,7 @@ fn convert_add_pauli_noise<'py>(
         gates.push(
             module
                 .getattr("Pauli")?
-                .call1((qubits.clone(), pauli.clone()))?,
+                .call1((pauli_noise.qubit_indices.clone(), pauli.clone()))?,
         );
     }
     let psum: f64 = probs.iter().sum();
