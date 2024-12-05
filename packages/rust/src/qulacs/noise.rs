@@ -18,7 +18,7 @@ fn make_dense_matrix<'py>(
 
 fn convert_add_pauli_noise<'py>(
     py: Python<'py>,
-    qubits: &Vec<usize>,
+    _qubits: &Vec<usize>,
     pauli_noise: &GateNoiseInstruction,
     qulacs_circuit: Bound<'py, PyAny>,
 ) -> PyResult<Bound<'py, PyAny>> {
@@ -34,7 +34,11 @@ fn convert_add_pauli_noise<'py>(
     }
     let psum: f64 = probs.iter().sum();
     if psum < 1.0 {
-        gates.push(module.getattr("Identity")?.call1((qubits.len(),))?);
+        gates.push(
+            module
+                .getattr("Identity")?
+                .call1((pauli_noise.qubit_indices[0],))?,
+        );
         probs.push(1.0 - psum);
     }
     let prob_gate = py

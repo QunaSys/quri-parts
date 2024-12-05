@@ -318,7 +318,7 @@ def test_convert_pauli_noise() -> None:
             [
                 qulacs.gate.Pauli([1, 2], [1, 2]),
                 qulacs.gate.Pauli([1, 2], [2, 3]),
-                qulacs.gate.Identity(2),
+                qulacs.gate.Identity(1),
             ],
         ),
         qulacs.gate.Z(2),
