@@ -338,3 +338,6 @@ def test_convert_complex_circuit() -> None:
 
     density_matrix_sampler = create_qulacs_density_matrix_sampler(model)
     counts = density_matrix_sampler(circuit, shots=1000)
+
+    print(qulacs_circuit)
+    print(counts)
