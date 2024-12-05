@@ -33,7 +33,6 @@ from quri_parts.circuit.noise import (
     PhaseFlipNoise,
 )
 from quri_parts.qulacs.circuit.noise import convert_circuit_with_noise_model
-from quri_parts.qulacs.sampler import create_qulacs_density_matrix_sampler
 
 
 def gates_equal(g1: qulacs.QuantumGateBase, g2: qulacs.QuantumGateBase) -> bool:
@@ -303,14 +302,33 @@ def test_convert_complex_circuit() -> None:
         PauliNoise(
             pauli_list=[[1, 2], [2, 3]],
             prob_list=[0.001, 0.002],
-            qubit_indices=[1, 2],  # 2 qubit gates applying to qubits (1, 2) or (2, 1)
-            target_gates=[names.CNOT],  # CNOT gates
+            qubit_indices=[1, 2],
+            target_gates=[names.CNOT],
         )
     ]
     model = NoiseModel(noises)
 
-    qulacs_circuit = convert_circuit_with_noise_model(circuit, model)
-    for i in range(qulacs_circuit.get_gate_count()):
-        print(qulacs_circuit.get_gate(i))
+    converted = convert_circuit_with_noise_model(circuit, model)
+    expected_gates = [
+        qulacs.gate.H(2),
+        qulacs.gate.X(0),
+        qulacs.gate.CNOT(2, 1),
+        qulacs.gate.Probabilistic(
+            [0.001, 0.002, 0.997],
+            [
+                qulacs.gate.Pauli([1, 2], [1, 2]),
+                qulacs.gate.Pauli([1, 2], [2, 3]),
+                qulacs.gate.Identity(2),
+            ],
+        ),
+        qulacs.gate.Z(1),
+    ]
 
-    assert False
+    assert converted.get_gate_count() == len(expected_gates)
+    for i, expected_gate in enumerate(expected_gates):
+        assert gates_equal(converted.get_gate(i), expected_gate)
+
+    expected = qulacs.QuantumCircuit(3)
+    for gate in expected_gates:
+        expected.add_gate(gate)
+    assert density_matrix_equal(converted, expected)
