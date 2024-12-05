@@ -37,7 +37,7 @@ def _add_rxx_rz_gates(
 
 
 class Z2SymmetryPreservingReal(ImmutableLinearMappedParametricQuantumCircuit):
-    """z2_symmetry_preserving.
+    """z2 symmetry preserving real ansatz.
 
     This class represents the unitary operator that is described
     in eq.(5) in the reference.
