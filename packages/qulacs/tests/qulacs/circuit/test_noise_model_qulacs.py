@@ -291,7 +291,7 @@ def test_convert_empty_circuit() -> None:
     assert converted_readout.get_gate_count() == 1
 
 
-def test_convert_complex_circuit() -> None:
+def test_convert_pauli_noise() -> None:
     circuit = QuantumCircuit(3)
     circuit.add_H_gate(2)
     circuit.add_X_gate(0)
