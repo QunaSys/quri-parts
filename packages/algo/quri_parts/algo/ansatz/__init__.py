@@ -39,5 +39,5 @@ __all__ = [
     "HardwareEfficientReal",
     "SymmetryPreserving",
     "SymmetryPreservingReal",
-    "Z2SymmetryPreserving",
+    "Z2SymmetryPreservingReal",
 ]
