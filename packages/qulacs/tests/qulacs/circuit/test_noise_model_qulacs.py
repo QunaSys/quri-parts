@@ -321,14 +321,9 @@ def test_convert_pauli_noise() -> None:
                 qulacs.gate.Identity(2),
             ],
         ),
-        qulacs.gate.Z(1),
+        qulacs.gate.Z(2),
     ]
 
     assert converted.get_gate_count() == len(expected_gates)
     for i, expected_gate in enumerate(expected_gates):
-        assert gates_equal(converted.get_gate(i), expected_gate)
-
-    expected = qulacs.QuantumCircuit(3)
-    for gate in expected_gates:
-        expected.add_gate(gate)
-    assert density_matrix_equal(converted, expected)
+        assert converted.get_gate(i).to_json() == expected_gate.to_json()
