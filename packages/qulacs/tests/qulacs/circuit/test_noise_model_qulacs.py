@@ -309,27 +309,25 @@ def test_convert_complex_circuit() -> None:
         DepolarizingNoise(
             error_prob=0.003,
             qubit_indices=[],  # All qubits
-            target_gates=[names.X, names.CNOT]  # X or CNOT gates
+            target_gates=[names.X, names.CNOT],  # X or CNOT gates
         ),
         PhaseFlipNoise(
             error_prob=0.002,
             qubit_indices=[1, 0],  # Qubit 0 or 1
-            target_gates=[]  # All kind of gates
+            target_gates=[],  # All kind of gates
         ),
         BitPhaseFlipNoise(
             error_prob=0.001,
             qubit_indices=[],  # All qubits
             target_gates=[],  # All kind of gates
         ),
-
         # Multi qubit noise
         PauliNoise(
             pauli_list=[[1, 2], [2, 3]],
             prob_list=[0.001, 0.002],
             qubit_indices=[1, 2],  # 2 qubit gates applying to qubits (1, 2) or (2, 1)
-            target_gates=[names.CNOT]  # CNOT gates
+            target_gates=[names.CNOT],  # CNOT gates
         ),
-
         # Circuit noise
         DepthIntervalNoise([PhaseFlipNoise(0.001)], depth_interval=5),
         MeasurementNoise([BitFlipNoise(0.004), DepolarizingNoise(0.003)]),
