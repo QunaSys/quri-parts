@@ -36,7 +36,7 @@ def _add_rxx_rz_gates(
     circuit.add_gate(Rxx_gate((i, j), -np.pi / 2))
 
 
-class Z2SymmetryPreserving(ImmutableLinearMappedParametricQuantumCircuit):
+class Z2SymmetryPreservingReal(ImmutableLinearMappedParametricQuantumCircuit):
     """z2_symmetry_preserving.
 
     This class represents the unitary operator that is described
