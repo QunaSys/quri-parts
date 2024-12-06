@@ -314,11 +314,10 @@ def test_convert_pauli_noise() -> None:
         qulacs.gate.X(0),
         qulacs.gate.CNOT(2, 1),
         qulacs.gate.Probabilistic(
-            [0.001, 0.002, 0.997],
+            [0.001, 0.002],
             [
                 qulacs.gate.Pauli([1, 2], [1, 2]),
                 qulacs.gate.Pauli([1, 2], [2, 3]),
-                qulacs.gate.Identity(1),
             ],
         ),
         qulacs.gate.Z(2),
