@@ -124,7 +124,7 @@ def _test_circuit(
 def test_Z2SymmetryPreservingReal() -> None:
     qubit_count = 4
     reps = 3
-    ansatz = Z2SymmetryPreserving(qubit_count=qubit_count, reps=reps)
+    ansatz = Z2SymmetryPreservingReal(qubit_count=qubit_count, reps=reps)
     parameters_per_block = 2
     blocks_per_layer = qubit_count // 2
     blocks_per_shifted_layer = (qubit_count - 1) // 2
