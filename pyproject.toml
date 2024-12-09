@@ -18,6 +18,8 @@ quri-parts-qsci = { git = "https://github.com/QunaSys/quri-parts-qsci.git",  bra
 quri-algo = "^0.1"
 quri-vm = "^0.1"
 quri-parts = { version=">=0.20.3", extras=["braket", "cirq", "qiskit", "qulacs", "tket"] }
+seaborn = "^0.13"
+tabulate = "^0.9"
 
 [build-system]
 requires = ["poetry-core"]
