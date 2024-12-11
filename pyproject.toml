@@ -8,7 +8,7 @@ package-mode = false
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.12"
-quri-parts-qsci = { git = "https://github.com/QunaSys/quri-parts-qsci.git",  branch = "relax_constraints"}
+quri-parts-qsci = { git = "https://github.com/QunaSys/quri-parts-qsci.git"}
 quri-algo = "^0.1"
 quri-vm = "^0.1"
 quri-parts = { version=">=0.20.3", extras=["braket", "cirq", "qiskit", "qulacs", "tket"] }
