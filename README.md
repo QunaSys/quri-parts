@@ -16,7 +16,15 @@ We have made slight changes to the notebooks to make them more comprehensible an
 
 ## Installation instructions
 
-The notebooks here use `quri-algo`, `quri-parts`, `quri-vm` and `quri-parts-qsci`. Make sure you have the latest versions of them installed. The easiest way is to use [poetry](https://python-poetry.org/docs/#installing-with-pipx).
+The notebooks here use `quri-algo`, `quri-parts`, `quri-vm` and `quri-parts-qsci`. Make sure you have the latest versions of them installed.
+
+The easiest way is to use a virtual environment with Python 3.10 or later. Then install the required packages using
+
+```
+pip install -r requirements.txt
+```
+
+Another way is to use [poetry](https://python-poetry.org/docs/#installing-with-pipx).
 
 ```
 poetry install
