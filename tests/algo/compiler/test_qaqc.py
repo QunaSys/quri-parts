@@ -41,4 +41,4 @@ def test_qaqc() -> None:
 
     assert optimizer.get_init_state.call_count == 1
     assert optimizer.step.call_count == 1
-    assert ansatz.bind_parameters.called_with(opt_params)
+    ansatz.bind_parameters.assert_called_with(opt_params.tolist())

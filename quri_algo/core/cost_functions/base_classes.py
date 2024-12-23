@@ -55,6 +55,8 @@ class LocalCostFunction(CostFunction, ABC):
         target_circuit: NonParametricQuantumCircuit,
         trial_circuit: NonParametricQuantumCircuit,
         index: int,
+        *args: Any,
+        **kwargs: Any,
     ) -> Estimate[complex]:
         pass
 
@@ -67,7 +69,7 @@ class LocalCostFunction(CostFunction, ABC):
     ) -> Estimate[complex]:
         qubit_count = target_circuit.qubit_count
         estimates = [
-            self._local_estimate(target_circuit, trial_circuit, i)
+            self._local_estimate(target_circuit, trial_circuit, i, *args, **kwargs)
             for i in range(qubit_count)
         ]
         cost = sum(e.value.real for e in estimates) / qubit_count

@@ -25,7 +25,11 @@ from quri_algo.circuit.interface import CircuitFactory
 class QAQC(QuantumCompilerGeneric):
     """Quantum-Assisted Quantum Compilation (QAQC)
 
-    This class provides an implementation of QAQC https://quantum-journal.org/papers/q-2019-05-13-140/. The optimize method returns a compiled circuit along with the converged state of the optimizer. It is also possible to use the __call__ method to return the compiled circuit only.
+    This class provides an implementation of QAQC https://quantum-
+    journal.org/papers/q-2019-05-13-140/. The optimize method returns a
+    compiled circuit along with the converged state of the optimizer. It
+    is also possible to use the __call__ method to return the compiled
+    circuit only.
     """
 
     def optimize(

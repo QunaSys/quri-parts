@@ -38,22 +38,24 @@ def prepare_circuit_hilbert_schmidt_test(
     return combined_circuit_state
 
 
+def get_local_hs_operator(index: int, lattice_size: int) -> Operator:
+    return Operator(
+        {
+            PAULI_IDENTITY: 1 / 4,
+            pauli_label(f"X {index} X {index + lattice_size}"): 1 / 4,
+            pauli_label(f"Y {index} Y {index + lattice_size}"): -1 / 4,
+            pauli_label(f"Z {index} Z {index + lattice_size}"): 1 / 4,
+        }
+    )
+
+
 def get_hs_operator(alpha: float, lattice_size: int) -> Operator:
     if not 0.0 <= alpha <= 1.0:
         raise ValueError("alpha must be in the interval (0.0, 1.0)")
 
     HSfactors = []
     for index in range(lattice_size):
-        HSfactors.append(
-            Operator(
-                {
-                    PAULI_IDENTITY: 1 / 4,
-                    pauli_label(f"X {index} X {index + lattice_size}"): 1 / 4,
-                    pauli_label(f"Y {index} Y {index + lattice_size}"): -1 / 4,
-                    pauli_label(f"Z {index} Z {index + lattice_size}"): 1 / 4,
-                }
-            )
-        )
+        HSfactors.append(get_local_hs_operator(index, lattice_size))
 
     combined_operator = Operator()
     if alpha:
