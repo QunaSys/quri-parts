@@ -131,17 +131,12 @@ quri-parts-chem==0.20.3
 quri-parts-circuit==0.20.3
 quri-parts-cirq==0.20.3
 quri-parts-core==0.20.3
--e git+https://github.com/QunaSys/quri-parts-internal.git@d2da19b497d6688ef0672dccb0c3225f0066a121#egg=quri_parts_ionq
--e git+https://github.com/QunaSys/quri-parts-internal.git@d2da19b497d6688ef0672dccb0c3225f0066a121#egg=quri_parts_itensor
 quri-parts-openfermion==0.20.3
--e git+https://github.com/QunaSys/quri-parts-internal.git@d2da19b497d6688ef0672dccb0c3225f0066a121#egg=quri_parts_openqasm
 quri-parts-pyscf==0.20.3
 quri-parts-qiskit==0.20.3
 quri-parts-qsci @ git+https://github.com/QunaSys/quri-parts-qsci.git@85929727f06592e5a45bbb4a4ce8a38fb8d49f1c
--e git+https://github.com/QunaSys/quri-parts-internal.git@d2da19b497d6688ef0672dccb0c3225f0066a121#egg=quri_parts_quantinuum
 quri-parts-qulacs==0.20.3
 quri-parts-rust==0.20.3
--e git+https://github.com/QunaSys/quri-parts-internal.git@d2da19b497d6688ef0672dccb0c3225f0066a121#egg=quri_parts_stim
 quri-parts-tket==0.20.3
 quri-vm==0.1.0
 qwasm==1.0.1
