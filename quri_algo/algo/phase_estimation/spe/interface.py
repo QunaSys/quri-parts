@@ -10,7 +10,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING, Protocol, Sequence
 
 from quri_algo.algo.phase_estimation.interface import (
     PhaseEstimationBase,

@@ -9,7 +9,6 @@
 # limitations under the License.
 
 from collections import Counter
-from dataclasses import dataclass
 from typing import Sequence, cast
 
 import numpy as np

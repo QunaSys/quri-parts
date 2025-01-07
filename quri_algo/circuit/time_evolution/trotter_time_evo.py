@@ -9,6 +9,7 @@
 # limitations under the License.
 
 from functools import lru_cache
+from typing import Union
 
 from quri_parts.circuit import (
     ImmutableLinearMappedUnboundParametricQuantumCircuit,

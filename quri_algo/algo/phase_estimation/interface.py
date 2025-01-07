@@ -8,9 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Any, Generic, Optional, Sequence, TypeVar
+from typing import Any, Generic, Optional, Protocol, Sequence, TypeVar
 
 import numpy as np
 from quri_parts.core.estimator import Estimate, Estimates
