@@ -191,6 +191,7 @@ def test_nisq_spcond_device_trans() -> None:
     circuit = QuantumCircuit(4)
     circuit.add_PauliRotation_gate((2, 0), (3, 3), 0.1)
 
+    assert device_prop.transpiler is not None
     tc1 = device_prop.transpiler(circuit)
     tc2 = device_prop.transpiler(tc1)
     assert tc1.gates == tc2.gates
