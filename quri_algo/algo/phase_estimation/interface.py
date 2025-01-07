@@ -10,7 +10,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Generic, Optional, Protocol, Sequence, TypeVar
+from typing import Any, Generic, Optional, Sequence, TypeVar
 
 import numpy as np
 from quri_parts.core.estimator import Estimate, Estimates
