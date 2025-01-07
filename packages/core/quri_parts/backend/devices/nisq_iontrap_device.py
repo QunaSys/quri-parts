@@ -7,7 +7,7 @@ from quri_parts.backend.device import DeviceProperty, GateProperty, QubitPropert
 from quri_parts.backend.units import TimeValue
 from quri_parts.circuit import gate_names
 from quri_parts.circuit.gate_names import GateNameType
-from quri_parts.circuit.transpile import GateSetConversionTranspiler
+from quri_parts.circuit.transpile import CircuitTranspiler, GateSetConversionTranspiler
 
 
 def generate_device_property(
@@ -21,6 +21,7 @@ def generate_device_property(
     gate_time_meas: TimeValue,
     t1: Optional[TimeValue] = None,
     t2: Optional[TimeValue] = None,
+    transpiler: Optional[CircuitTranspiler] = None,
 ) -> DeviceProperty:
     """Generate DeviceProperty object for a typical NISQ trapped ion device.
 
@@ -38,13 +39,16 @@ def generate_device_property(
         gate_time_meas: Latency of readout operations.
         t1: T1 coherence time.
         t2: T2 coherence time.
+        transpiler: CircuitTranspiler to adapt the circuit to the device. If not
+            specified, default transpiler is used.
     """
 
     native_gate_set = set(native_gates)
     gates_1q = native_gate_set & gate_names.SINGLE_QUBIT_GATE_NAMES
     gates_2q = native_gate_set & gate_names.TWO_QUBIT_GATE_NAMES
+    meas = native_gate_set & {gate_names.Measurement}
 
-    if gates_1q | gates_2q != native_gate_set:
+    if gates_1q | gates_2q | meas != native_gate_set:
         raise ValueError(
             "Only single and two qubit gates are supported as native gates"
         )
@@ -72,6 +76,12 @@ def generate_device_property(
         ]
     )
 
+    transpiler = (
+        transpiler
+        if transpiler is not None
+        else GateSetConversionTranspiler(native_gates)
+    )
+
     return DeviceProperty(
         qubit_count=qubit_count,
         qubits=qubits,
@@ -82,5 +92,5 @@ def generate_device_property(
         physical_qubit_count=qubit_count,
         # TODO Calculate backgraound error from t1 and t2
         background_error=None,
-        transpiler=GateSetConversionTranspiler(native_gates),
+        transpiler=transpiler,
     )
