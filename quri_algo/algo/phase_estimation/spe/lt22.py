@@ -55,8 +55,12 @@ class LT22PhaseEstimation(StatisticalPhaseEstimation[ProblemT, StateT]):
     def __init__(
         self, unitary_power_estimator: OperatorPowerEstimatorBase[ProblemT, StateT]
     ):
-        self.unitary_power_estimator = unitary_power_estimator
+        self._unitary_power_estimator = unitary_power_estimator
         self._logger = Logger(__name__)
+
+    @property
+    def unitary_power_estimator(self) -> OperatorPowerEstimatorBase[ProblemT, StateT]:
+        return self._unitary_power_estimator
 
     def __call__(
         self,
@@ -157,7 +161,11 @@ class SingleSignalLT22PhaseEstimation(StatisticalPhaseEstimation[ProblemT, State
     def __init__(
         self, unitary_power_estimator: OperatorPowerEstimatorBase[ProblemT, StateT]
     ):
-        self.unitary_power_estimator = unitary_power_estimator
+        self._unitary_power_estimator = unitary_power_estimator
+
+    @property
+    def unitary_power_estimator(self) -> OperatorPowerEstimatorBase[ProblemT, StateT]:
+        return self._unitary_power_estimator
 
     @staticmethod
     def invert_signal(signal_function: SPEDiscreteSignalFunction, eta: float) -> float:

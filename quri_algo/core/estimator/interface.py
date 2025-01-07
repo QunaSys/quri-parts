@@ -19,7 +19,7 @@ from typing_extensions import TypeAlias
 from quri_algo.problem import ProblemT
 
 State: TypeAlias = Union[CircuitQuantumState, QuantumStateVector]
-StateT = TypeVar("StateT", bound=State)
+StateT = TypeVar("StateT", bound=State, contravariant=True)
 
 
 @runtime_checkable

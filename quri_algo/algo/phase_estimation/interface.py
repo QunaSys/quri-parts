@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Generic, Optional, Protocol, Sequence, TypeVar
 
@@ -56,7 +56,7 @@ PhaseEstResT = TypeVar(
 )
 
 
-class PhaseEstimationBase(Generic[ProblemT, StateT, PhaseEstResT], Protocol):
+class PhaseEstimationBase(Generic[ProblemT, StateT, PhaseEstResT], ABC):
     """Base class for implementing phase estimation algorithm."""
 
     @abstractmethod

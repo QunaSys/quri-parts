@@ -8,6 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Protocol, Sequence
 
@@ -36,9 +37,7 @@ class SPEResult(PhaseEstimationResult):
     signal_functions: Sequence["SPEDiscreteSignalFunction"]
 
 
-class StatisticalPhaseEstimation(
-    PhaseEstimationBase[ProblemT, StateT, SPEResult], Protocol
-):
+class StatisticalPhaseEstimation(PhaseEstimationBase[ProblemT, StateT, SPEResult], ABC):
     r"""Base class for statistical phase estimations.
 
     Args:
@@ -47,4 +46,7 @@ class StatisticalPhaseEstimation(
             is the power.
     """
 
-    unitary_power_estimator: OperatorPowerEstimatorBase[ProblemT, StateT]
+    @property
+    @abstractmethod
+    def unitary_power_estimator(self) -> OperatorPowerEstimatorBase[ProblemT, StateT]:
+        ...
