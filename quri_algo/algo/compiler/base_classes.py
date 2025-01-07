@@ -9,7 +9,6 @@
 # limitations under the License.
 
 from abc import abstractmethod
-from dataclasses import dataclass
 from typing import Any, Optional, Protocol
 
 import numpy as np

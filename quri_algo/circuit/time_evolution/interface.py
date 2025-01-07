@@ -8,8 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from abc import abstractmethod
 from typing import Any, Protocol, runtime_checkable
 
 from quri_parts.circuit import (
