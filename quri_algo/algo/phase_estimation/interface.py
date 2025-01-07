@@ -8,9 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Any, Generic, Optional, Sequence, TypeVar
+from typing import Any, Generic, Optional, Protocol, Sequence, TypeVar
 
 import numpy as np
 from quri_parts.core.estimator import Estimate, Estimates
@@ -50,12 +50,13 @@ class MultiplePhaseEstimationResult(Estimates[float]):
 #: single phase or a :class:`~MultiplePhaseEstimationResult` that contains
 #: estimations of multiple phases.
 PhaseEstResT = TypeVar(
-    "PhaseEstResT", bound=PhaseEstimationResult | MultiplePhaseEstimationResult
+    "PhaseEstResT",
+    bound=PhaseEstimationResult | MultiplePhaseEstimationResult,
+    covariant=True,
 )
 
 
-@dataclass
-class PhaseEstimationBase(Generic[ProblemT, StateT, PhaseEstResT], ABC):
+class PhaseEstimationBase(Generic[ProblemT, StateT, PhaseEstResT], Protocol):
     """Base class for implementing phase estimation algorithm."""
 
     @abstractmethod

@@ -8,18 +8,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from abc import ABC
-from dataclasses import dataclass
-from typing import TypeVar
+
+from typing import Protocol, TypeVar
 
 
-@dataclass
-class Problem(ABC):
-    """Problem to be encoded into a circuit.
-
-    It can be a time evolution operator or the one in Proposition 2 of
-    https://arxiv.org/pdf/1802.00171.
-    """
+class Problem(Protocol):
+    """A problem of fixed qubit size to be encoded into a circuit."""
 
     n_state_qubit: int
 

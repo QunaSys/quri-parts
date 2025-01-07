@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import dataclass, field
+
 from functools import cached_property
 from typing import Callable, Generic, Sequence, cast, overload
 
@@ -32,7 +32,6 @@ from .fourier.step_func_coefficient import StepFunctionSampler
 ClassicalSampler: TypeAlias = Callable[[int], Sequence[SPEFourierCoefficient]]
 
 
-@dataclass(frozen=True)
 class SPEDiscreteSignalFunction:
     """Represents the signal Z_F(x) which is evaluated by discrete Fourier
     transform.
@@ -44,9 +43,15 @@ class SPEDiscreteSignalFunction:
             exponent :math:`e^{-i c k x}`.
     """
 
-    spe_samples: Sequence[SPESample]
-    norm_factor: float
-    exponent_factor: float = 1.0
+    def __init__(
+        self,
+        spe_samples: Sequence[SPESample],
+        norm_factor: float,
+        exponent_factor: float = 1.0,
+    ):
+        self.spe_samples = spe_samples
+        self.norm_factor = norm_factor
+        self.exponent_factor = exponent_factor
 
     @cached_property
     def ks(self) -> npt.NDArray[np.float64]:
@@ -98,18 +103,23 @@ class SPEDiscreteSignalFunction:
         )
 
 
-@dataclass
 class SPEDiscreteSignalGenerator(Generic[ProblemT, StateT]):
     """Base object that generates a :class:`SignalFunction` in a Monte-Carlo
     manner."""
 
-    power_estimator: OperatorPowerEstimatorBase[ProblemT, StateT]
-    state: StateT
-    classical_sampler: ClassicalSampler
-    norm_factor: float
-    exponent_factor: float = 1.0
-
-    def __post_init__(self) -> None:
+    def __init__(
+        self,
+        power_estimator: OperatorPowerEstimatorBase[ProblemT, StateT],
+        state: StateT,
+        classical_sampler: ClassicalSampler,
+        norm_factor: float,
+        exponent_factor: float = 1.0,
+    ):
+        self.power_estimator = power_estimator
+        self.state = state
+        self.classical_sampler = classical_sampler
+        self.norm_factor = norm_factor
+        self.exponent_factor = exponent_factor
         # _exp_val_collector: the object that generates the list of <e^{-ik_n x}>.
         self._exp_val_collector = ExpectationValueCollector(
             self.power_estimator, self.state
@@ -134,43 +144,58 @@ class SPEDiscreteSignalGenerator(Generic[ProblemT, StateT]):
         )
 
 
-@dataclass
 class StepFunctionSignalGenerator(SPEDiscreteSignalGenerator[ProblemT, StateT]):
     """A factory that generates Z_F(x) based on SPE, where F is the periodic
     step function."""
 
-    d: int
-    delta: float
-    exponent_factor: float = field(init=False, default=1.0)
-    norm_factor: float = field(init=False)
-    classical_sampler: ClassicalSampler = field(init=False)
-
-    def __post_init__(self) -> None:
+    def __init__(
+        self,
+        power_estimator: OperatorPowerEstimatorBase[ProblemT, StateT],
+        state: StateT,
+        d: int,
+        delta: float,
+    ):
+        self.d = d
+        self.delta = delta
         self.classical_sampler = StepFunctionSampler(self.d, self.delta)
-        super().__post_init__()
         self.norm_factor = cast(
             float, np.linalg.norm(self.classical_sampler.fourier_coefficients, 1)
         )
+        super().__init__(
+            power_estimator,
+            state,
+            self.classical_sampler,
+            self.norm_factor,
+            exponent_factor=1.0,
+        )
 
 
-@dataclass
 class GaussianSignalGenerator(SPEDiscreteSignalGenerator[ProblemT, StateT]):
     r"""A factory that generates Z_F(x) based on SPE, where F is the Gaussian
     distribition function."""
 
-    cutoff_T: float
-    n_discretize: int
-    sigma: float
-    exponent_factor: float = field(init=False, default=2 * np.pi)
-    norm_factor: float = field(init=False)
-    classical_sampler: ClassicalSampler = field(init=False)
-
-    def __post_init__(self) -> None:
+    def __init__(
+        self,
+        power_estimator: OperatorPowerEstimatorBase[ProblemT, StateT],
+        state: StateT,
+        cutoff_T: float,
+        n_discretize: int,
+        sigma: float,
+    ):
+        self.cutoff_T = cutoff_T
+        self.n_discretize = n_discretize
+        self.sigma = sigma
         self.classical_sampler = GaussianSampler(
             self.cutoff_T, self.n_discretize, self.sigma
         )
-        super().__post_init__()
         self.norm_factor = cast(
             float, np.linalg.norm(self.classical_sampler.fourier_coefficients, 1)
         )
         self.norm_factor *= 2 * self.cutoff_T / self.n_discretize
+        super().__init__(
+            power_estimator,
+            state,
+            self.classical_sampler,
+            self.norm_factor,
+            exponent_factor=2 * np.pi,
+        )

@@ -8,9 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, Optional, Protocol
 
 import numpy as np
 from numpy.random import default_rng
@@ -25,8 +25,7 @@ from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.core.cost_functions.base_classes import CostFunction
 
 
-@dataclass
-class QuantumCompiler(CircuitFactory, ABC):
+class QuantumCompiler(Protocol):
     cost_fn: CostFunction
     optimizer: Optimizer
 
@@ -43,8 +42,11 @@ class QuantumCompiler(CircuitFactory, ABC):
         pass
 
 
-@dataclass
-class QuantumCompilerGeneric(QuantumCompiler, ABC):
+class QuantumCompilerGeneric(QuantumCompiler):
+    def __init__(self, cost_fn: CostFunction, optimizer: Optimizer):
+        self.cost_fn = cost_fn
+        self.optimizer = optimizer
+
     def _optimize(
         self,
         circuit_factory: CircuitFactory,

@@ -9,12 +9,11 @@
 # limitations under the License.
 
 from collections import defaultdict
-from dataclasses import dataclass
 from typing import Any, NamedTuple, Union, cast
 
 import numpy as np
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
-from quri_parts.circuit.transpile import QubitRemappingTranspiler
+from quri_parts.circuit.transpile import CircuitTranspiler, QubitRemappingTranspiler
 from quri_parts.core.estimator import Estimate
 from quri_parts.core.sampling import MeasurementCounts, Sampler, StateSampler
 from quri_parts.core.state import (
@@ -55,15 +54,24 @@ def _general_sample_on_state(
     return sampler(state.circuit, n_shots)
 
 
-@dataclass
 class HadamardTest(ExpectationValueEstimator[ProblemT, StateT]):
     r"""Estimate a unitary operator U's expectation value :math:`\langle U.
 
     \rangle` with Hadamard test.
     """
 
-    controlled_circuit_factory: ProblemCircuitFactory[ProblemT]
-    sampler: Union[Sampler, StateSampler[StateT]]
+    def __init__(
+        self,
+        encoded_problem: ProblemT,
+        controlled_circuit_factory: ProblemCircuitFactory[ProblemT],
+        sampler: Union[Sampler, StateSampler[StateT]],
+        *,
+        transpiler: CircuitTranspiler | None = None
+    ):
+        self.encoded_problem = encoded_problem
+        self.controlled_circuit_factory = controlled_circuit_factory
+        self.sampler = sampler
+        self.transpiler = transpiler
 
     @property
     def real_circuit_factory(self) -> HadamardTestCircuitFactory[ProblemT]:

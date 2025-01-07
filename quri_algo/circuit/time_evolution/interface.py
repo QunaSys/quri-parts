@@ -10,7 +10,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Protocol, runtime_checkable
 
 from quri_parts.circuit import (
     ImmutableLinearMappedUnboundParametricQuantumCircuit,
@@ -20,15 +20,12 @@ from quri_parts.core.operator import Operator, pauli_label
 
 from quri_algo.circuit.interface import ProblemCircuitFactory
 from quri_algo.circuit.utils.transpile import apply_transpiler
-from quri_algo.problem import HamiltonianInput, HamiltonianT, QubitHamiltonianInput
+from quri_algo.problem import HamiltonianT, QubitHamiltonianInput
 
 
-@dataclass
-class TimeEvolutionCircuitFactory(ProblemCircuitFactory[HamiltonianT], ABC):
+@runtime_checkable
+class TimeEvolutionCircuitFactory(ProblemCircuitFactory[HamiltonianT], Protocol):
     """Encode a Hamiltonian to a time evolution circuit."""
-
-    def __post_init__(self) -> None:
-        assert isinstance(self.encoded_problem, HamiltonianInput)
 
     @apply_transpiler  # type: ignore
     @abstractmethod
@@ -38,12 +35,11 @@ class TimeEvolutionCircuitFactory(ProblemCircuitFactory[HamiltonianT], ABC):
         ...
 
 
-@dataclass
-class ControlledTimeEvolutionCircuitFactory(ProblemCircuitFactory[HamiltonianT], ABC):
+@runtime_checkable
+class ControlledTimeEvolutionCircuitFactory(
+    ProblemCircuitFactory[HamiltonianT], Protocol
+):
     """Encode a Hamiltonian to a controlled-time evolution circuit."""
-
-    def __post_init__(self) -> None:
-        assert isinstance(self.encoded_problem, HamiltonianInput)
 
     @apply_transpiler  # type: ignore
     @abstractmethod
@@ -51,9 +47,8 @@ class ControlledTimeEvolutionCircuitFactory(ProblemCircuitFactory[HamiltonianT],
         ...
 
 
-@dataclass
 class PartialTimeEvolutionCircuitFactory(
-    TimeEvolutionCircuitFactory[QubitHamiltonianInput], ABC
+    TimeEvolutionCircuitFactory[QubitHamiltonianInput], Protocol
 ):
     def get_local_hamiltonian_input(
         self, idx0: int, idx1: int

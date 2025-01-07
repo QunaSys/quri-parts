@@ -10,7 +10,7 @@
 
 from abc import ABC
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING, Protocol, Sequence
 
 from quri_algo.algo.phase_estimation.interface import (
     PhaseEstimationBase,
@@ -37,8 +37,9 @@ class SPEResult(PhaseEstimationResult):
     signal_functions: Sequence["SPEDiscreteSignalFunction"]
 
 
-@dataclass
-class StatisticalPhaseEstimation(PhaseEstimationBase[ProblemT, StateT, SPEResult], ABC):
+class StatisticalPhaseEstimation(
+    PhaseEstimationBase[ProblemT, StateT, SPEResult], Protocol
+):
     r"""Base class for statistical phase estimations.
 
     Args:

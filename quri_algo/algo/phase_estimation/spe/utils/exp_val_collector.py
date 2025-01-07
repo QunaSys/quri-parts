@@ -8,7 +8,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import dataclass
 from typing import Generic, NamedTuple, Sequence
 
 from quri_algo.core.estimator import OperatorPowerEstimatorBase, StateT
@@ -34,7 +33,6 @@ class SPESample(NamedTuple):
     op_exp_val: complex
 
 
-@dataclass
 class ExpectationValueCollector(Generic[ProblemT, StateT]):
     r"""Computes the expectation value :math:`\langle \psi|U^{k}|\psi\rangle`
     for a given sequence of :class:`SPEFourierCoefficient`. This sets up the
@@ -44,8 +42,13 @@ class ExpectationValueCollector(Generic[ProblemT, StateT]):
         \langle \psi|U^{k}|\psi\rangle \widetilde{F}(k)
     """
 
-    operator_power_estimator: OperatorPowerEstimatorBase[ProblemT, StateT]
-    state: StateT
+    def __init__(
+        self,
+        operator_power_estimator: OperatorPowerEstimatorBase[ProblemT, StateT],
+        state: StateT,
+    ):
+        self.operator_power_estimator = operator_power_estimator
+        self.state = state
 
     def __call__(
         self, classical_samples: Sequence[SPEFourierCoefficient]

@@ -8,7 +8,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Callable, Optional
 
 import numpy as np
@@ -29,18 +28,24 @@ if TYPE_CHECKING:
     from quri_algo.algo.phase_estimation.spe import GaussianParam
 
 
-@dataclass
 class GaussianFitter:
     """Object that performs least square fitting of a Gaussian distribution
     function."""
 
-    sigma: float
-    search_range: npt.NDArray[np.float64]
-    estimated_conv_value: npt.NDArray[np.float64]
-    bounds: tuple[tuple[float, float], tuple[float, float]] = (
-        (-np.pi / 3, np.pi / 3),
-        (0, 1),
-    )
+    def __init__(
+        self,
+        sigma: float,
+        search_range: npt.NDArray[np.float64],
+        estimated_conv_value: npt.NDArray[np.float64],
+        bounds: tuple[tuple[float, float], tuple[float, float]] = (
+            (-np.pi / 3, np.pi / 3),
+            (0, 1),
+        ),
+    ):
+        self.sigma = sigma
+        self.search_range = search_range
+        self.estimated_conv_value = estimated_conv_value
+        self.bounds = bounds
 
     def get_loss_function(self) -> Callable[[npt.NDArray[np.float64]], float]:
         def f(mu_and_p: npt.NDArray[np.float64]) -> float:
@@ -60,7 +65,6 @@ class GaussianFitter:
         return optimize.minimize(loss, [mu, p0], bounds=self.bounds)
 
 
-@dataclass
 class GaussianFittingPhaseEstimation(StatisticalPhaseEstimation[ProblemT, StateT]):
     """The Gaussian Fitting statistical phase estimation algorithm.
 
@@ -77,6 +81,11 @@ class GaussianFittingPhaseEstimation(StatisticalPhaseEstimation[ProblemT, StateT
         Eigensolver in the era of Early Fault Tolerant Quantum Computation
         arXiv:2409.07749
     """
+
+    def __init__(
+        self, unitary_power_estimator: OperatorPowerEstimatorBase[ProblemT, StateT]
+    ):
+        self.unitary_power_estimator = unitary_power_estimator
 
     def __call__(
         self,
@@ -147,18 +156,18 @@ class GaussianFittingPhaseEstimation(StatisticalPhaseEstimation[ProblemT, StateT
         )
 
 
-@dataclass
 class GaussianFittingGSEE(GaussianFittingPhaseEstimation[HamiltonianT, StateT]):
     """Performs ground state energy estimation with the Gaussian Fitting
     SPE."""
 
-    time_evo_estimator: TimeEvolutionExpectationValueEstimator[HamiltonianT, StateT]
-    tau: float
-    unitary_power_estimator: OperatorPowerEstimatorBase[HamiltonianT, StateT] = field(
-        init=False
-    )
-
-    def __post_init__(self) -> None:
-        self.unitary_power_estimator = TimeEvolutionPowerEstimator(
-            self.time_evo_estimator, 2 * np.pi * self.tau
+    def __init__(
+        self,
+        time_evo_estimator: TimeEvolutionExpectationValueEstimator[
+            HamiltonianT, StateT
+        ],
+        tau: float,
+    ):
+        unitary_power_estimator = TimeEvolutionPowerEstimator(
+            time_evo_estimator, 2 * np.pi * tau
         )
+        super().__init__(unitary_power_estimator)

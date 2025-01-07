@@ -8,10 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import dataclass
 from typing import Any, Optional
 
-from quri_parts.algo.optimizer import OptimizerState, Params
+from quri_parts.algo.optimizer import Optimizer, OptimizerState, Params
 from quri_parts.circuit import (
     LinearMappedUnboundParametricQuantumCircuit,
     NonParametricQuantumCircuit,
@@ -19,9 +18,9 @@ from quri_parts.circuit import (
 
 from quri_algo.algo.compiler.base_classes import QuantumCompilerGeneric
 from quri_algo.circuit.interface import CircuitFactory
+from quri_algo.core.cost_functions.base_classes import CostFunction
 
 
-@dataclass
 class QAQC(QuantumCompilerGeneric):
     """Quantum-Assisted Quantum Compilation (QAQC)
 
@@ -31,6 +30,10 @@ class QAQC(QuantumCompilerGeneric):
     is also possible to use the __call__ method to return the compiled
     circuit only.
     """
+
+    def __init__(self, cost_fn: CostFunction, optimizer: Optimizer):
+        self.cost_fn = cost_fn
+        self.optimizer = optimizer
 
     def optimize(
         self,

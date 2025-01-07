@@ -144,7 +144,6 @@ def sample_from_F_tilde(distribution: Sequence[complex], n_sample: int) -> Count
     return counter
 
 
-@dataclass
 class StepFunctionSampler(FouierCoefficientSampler):
     """The sampler that samples from the Fourier coefficients of the step
     function.
@@ -155,8 +154,9 @@ class StepFunctionSampler(FouierCoefficientSampler):
             Lemma 5 of PRX Quantum 3, 010318 for precise definition.
     """
 
-    d: int
-    delta: float
+    def __init__(self, d: int, delta: float):
+        self.d = d
+        self.delta = delta
 
     @property
     def fourier_coefficients(self) -> npt.NDArray[np.complex128]:

@@ -14,6 +14,7 @@ from typing import cast
 import numpy as np
 import numpy.typing as npt
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
+from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.core.operator import get_sparse_matrix
 from scipy.linalg import expm
 
@@ -57,7 +58,15 @@ class ExactUnitaryControlledTimeEvolutionCircuitFactory(
 ):
     """Controlled time evolution with exact unitary matrix."""
 
-    def __post_init__(self) -> None:
+    def __init__(
+        self,
+        encoded_problem: QubitHamiltonianInput,
+        *,
+        transpiler: CircuitTranspiler | None = None
+    ):
+        self.encoded_problem = encoded_problem
+        self.qubit_count = encoded_problem.n_state_qubit + 1
+        self.transpiler = transpiler
         assert isinstance(self.encoded_problem, QubitHamiltonianInput)
         self._hamiltonian_matrix = get_sparse_matrix(
             self.encoded_problem.qubit_hamiltonian

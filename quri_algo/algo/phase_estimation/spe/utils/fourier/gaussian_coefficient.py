@@ -9,7 +9,6 @@
 # limitations under the License.
 
 from collections import Counter
-from dataclasses import dataclass
 from typing import Sequence, cast
 
 import numpy as np
@@ -50,11 +49,16 @@ def get_classical_samples(distributions: list[float], n_samples: int) -> Counter
     return Counter({i: n for i, n in enumerate(samples) if n > 0})
 
 
-@dataclass
 class GaussianSampler(FouierCoefficientSampler):
-    cutoff_T: float
-    n_discretize: int
-    sigma: float
+    def __init__(
+        self,
+        cutoff_T: float,
+        n_discretize: int,
+        sigma: float,
+    ):
+        self.cutoff_T = cutoff_T
+        self.n_discretize = n_discretize
+        self.sigma = sigma
 
     @property
     def kn(self) -> npt.NDArray[np.float64]:

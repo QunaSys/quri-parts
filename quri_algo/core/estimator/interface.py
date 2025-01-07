@@ -8,9 +8,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from typing import Any, Generic, Optional, TypeVar, Union
+from abc import abstractmethod
+from typing import Any, Optional, Protocol, TypeVar, Union, runtime_checkable
 
 from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.core.estimator import Estimate
@@ -23,8 +22,8 @@ State: TypeAlias = Union[CircuitQuantumState, QuantumStateVector]
 StateT = TypeVar("StateT", bound=State)
 
 
-@dataclass
-class ExpectationValueEstimator(Generic[ProblemT, StateT], ABC):
+@runtime_checkable
+class ExpectationValueEstimator(Protocol[ProblemT, StateT]):
     r"""Interface for estimator that computes the expectaion value of a function
     of an operator with some parameter. It can be understood as an object that
     computes:
@@ -40,7 +39,7 @@ class ExpectationValueEstimator(Generic[ProblemT, StateT], ABC):
     """
 
     encoded_problem: ProblemT
-    transpiler: Optional[CircuitTranspiler] = field(default=None, kw_only=True)
+    transpiler: Optional[CircuitTranspiler]
 
     @abstractmethod
     def __call__(self, state: StateT, *args: Any, **kwargs: Any) -> Estimate[complex]:
@@ -48,8 +47,8 @@ class ExpectationValueEstimator(Generic[ProblemT, StateT], ABC):
         ...
 
 
-@dataclass
-class OperatorPowerEstimatorBase(ExpectationValueEstimator[ProblemT, StateT], ABC):
+@runtime_checkable
+class OperatorPowerEstimatorBase(ExpectationValueEstimator[ProblemT, StateT], Protocol):
     r"""Base class for Any estimator that estimates the expectation value
     :math:`\langle U^k \rangle`, where :math:`U` is a unitary operator and `k`
     is the power.
