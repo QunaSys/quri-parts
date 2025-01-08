@@ -21,7 +21,7 @@ def get_gaussian_integration_bound(
 ) -> float:
     """Compute the integration bound :math:`T` of the convolution integration region."""
     eps_tilde = 0.1 * target_eps * overlap / (np.sqrt(2 * np.pi) * sigma**3)
-    return (
+    return float(
         np.pi**-1
         * sigma**-1
         * np.sqrt(2 * np.log(8 * np.pi**-1 * eps_tilde**-1 * sigma**-2))
@@ -29,12 +29,16 @@ def get_gaussian_integration_bound(
 
 
 def get_gaussian_sigma(gap: float, target_eps: float, overlap: float) -> float:
-    """Compute the standard deviation :math:`\sigma`."""
-    return np.min(
-        [
-            0.9 * gap / np.sqrt(2 * np.log(9 * gap * target_eps**-1 * overlap**-1)),
-            0.2 * gap,
-        ]
+    r"""Compute the standard deviation :math:`\sigma`."""
+    return float(
+        np.min(
+            [
+                0.9
+                * gap
+                / np.sqrt(2 * np.log(9 * gap * target_eps**-1 * overlap**-1)),
+                0.2 * gap,
+            ]
+        )
     )
 
 
@@ -52,7 +56,7 @@ def get_fourier_coeff_1_norm(
     fourier_coeffs = GaussianSampler(
         integration_bound, n_discretize, sigma
     ).fourier_coefficients
-    return np.sum(np.abs(2 * integration_bound / n_discretize * fourier_coeffs))
+    return float(np.sum(np.abs(2 * integration_bound / n_discretize * fourier_coeffs)))
 
 
 def get_number_of_samples(
@@ -82,7 +86,7 @@ def get_recommended_gaussian_parameter(
     sample_const: float = 2 * np.pi,
     max_shot_limit: Optional[int] = None,
 ) -> tuple["GaussianParam", int]:
-    """The recommended parameters to execute the Gaussian SPE.
+    r"""The recommended parameters to execute the Gaussian SPE.
 
     Reference:
     Guoming Wang, Daniel Stilck França, Ruizhe Zhang, Shuchen Zhu, Peter D. Johnson
