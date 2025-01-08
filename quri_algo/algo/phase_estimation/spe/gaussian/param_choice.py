@@ -19,7 +19,8 @@ if TYPE_CHECKING:
 def get_gaussian_integration_bound(
     sigma: float, target_eps: float, overlap: float
 ) -> float:
-    """Compute the integration bound :math:`T` of the convolution integration region."""
+    """Compute the integration bound :math:`T` of the convolution integration
+    region."""
     eps_tilde = 0.1 * target_eps * overlap / (np.sqrt(2 * np.pi) * sigma**3)
     return float(
         np.pi**-1
