@@ -14,7 +14,7 @@ from typing import Sequence, cast
 import numpy as np
 import numpy.typing as npt
 
-from .coefficient import FouierCoefficientSampler, SPEFourierCoefficient
+from .coefficient import FourierCoefficientSampler, SPEFourierCoefficient
 
 
 @dataclass
@@ -49,7 +49,7 @@ def get_classical_samples(distributions: list[float], n_samples: int) -> Counter
     return Counter({i: n for i, n in enumerate(samples) if n > 0})
 
 
-class GaussianSampler(FouierCoefficientSampler):
+class GaussianSampler(FourierCoefficientSampler):
     def __init__(
         self,
         cutoff_T: float,

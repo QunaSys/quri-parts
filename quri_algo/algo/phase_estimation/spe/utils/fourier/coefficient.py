@@ -40,7 +40,7 @@ class SPEFourierCoefficient(NamedTuple):
         return cast(complex, magnitude * np.exp(1j * self.phase))
 
 
-class FouierCoefficientSampler(ABC):
+class FourierCoefficientSampler(ABC):
     """Sampler that samples from the discrete Fourier coefficients."""
 
     @property
