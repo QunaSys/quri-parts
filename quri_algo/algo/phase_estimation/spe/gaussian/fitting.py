@@ -22,8 +22,8 @@ from quri_algo.core.estimator.time_evolution_estimator import (
 )
 from quri_algo.problem import HamiltonianT, ProblemT
 
-from .interface import SPEResult, StatisticalPhaseEstimation
-from .utils.signal import GaussianSignalGenerator, SPEDiscreteSignalFunction
+from ..interface import SPEResult, StatisticalPhaseEstimation
+from ..utils.signal import GaussianSignalGenerator, SPEDiscreteSignalFunction
 
 if TYPE_CHECKING:
     from quri_algo.algo.phase_estimation.spe import GaussianParam

@@ -17,6 +17,9 @@ from quri_parts.core.operator import PAULI_IDENTITY, Operator
 from quri_parts.core.state import CircuitQuantumState, quantum_state
 
 import quri_algo.algo.phase_estimation.spe as spe
+from quri_algo.algo.phase_estimation.spe.gaussian import (
+    get_recommended_gaussian_parameter,
+)
 from quri_algo.core.estimator import OperatorPowerEstimatorBase
 from quri_algo.core.estimator.time_evolution_estimator import (
     TimeEvolutionExpectationValueEstimator,
@@ -102,3 +105,29 @@ class TestGaussianGSEE(unittest.TestCase):
         input_state = quantum_state(1)
         result = self.gaussian_algo(input_state, self.gaussian_param, search_range, 0.8)
         assert np.isclose(result.value, self.shift * self.tau, atol=1e-8)
+
+
+def test_get_recommended_param() -> None:
+    gap = 1.0085
+    target_eps = 1e-3
+    overlap = 0.96
+    delta = 1e-4
+    n_discretize = 1000
+    param, n_search_pts = get_recommended_gaussian_parameter(
+        gap, target_eps, overlap, delta, n_discretize
+    )
+
+    expected_sigma = 0.2 * gap
+    ft_norm = 1 / (np.sqrt(2 * np.pi) * expected_sigma)
+    expected_M = int(np.ceil(expected_sigma / target_eps) + 1)
+    expected_n_sample = int(
+        2
+        * np.pi
+        * expected_sigma**4
+        * ft_norm**2
+        * np.ceil(np.log(4 * expected_M / delta) / target_eps**2)
+    )
+    assert expected_sigma == param.sigma
+    assert np.isclose(expected_n_sample, param.n_sample)
+    assert np.isclose(param.N, n_discretize)
+    assert expected_M == n_search_pts

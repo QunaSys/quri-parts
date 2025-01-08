@@ -10,7 +10,7 @@
 
 from dataclasses import dataclass
 
-from .gaussian import GaussianFittingGSEE, GaussianFittingPhaseEstimation
+from .gaussian.fitting import GaussianFittingGSEE, GaussianFittingPhaseEstimation
 from .lt22 import (
     LT22GSEE,
     LT22PhaseEstimation,
