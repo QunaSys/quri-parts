@@ -48,7 +48,7 @@ class QuantumCompiler(ABC):
         pass
 
 
-class QuantumCompilerGeneric(QuantumCompiler):
+class QuantumCompilerGeneric(QuantumCompiler, ABC):
     def __init__(self, cost_fn: CostFunction, optimizer: Optimizer):
         self._cost_fn = cost_fn
         self._optimizer = optimizer
