@@ -32,8 +32,16 @@ class QAQC(QuantumCompilerGeneric):
     """
 
     def __init__(self, cost_fn: CostFunction, optimizer: Optimizer):
-        self.cost_fn = cost_fn
-        self.optimizer = optimizer
+        self._cost_fn = cost_fn
+        self._optimizer = optimizer
+
+    @property
+    def cost_function(self) -> CostFunction:
+        return self._cost_fn
+
+    @property
+    def optimizer(self) -> Optimizer:
+        return self._optimizer
 
     def optimize(
         self,

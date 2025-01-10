@@ -8,8 +8,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from abc import abstractmethod
-from typing import Any, Optional, Protocol
+from abc import ABC, abstractmethod
+from typing import Any, Optional
 
 import numpy as np
 from numpy.random import default_rng
@@ -24,9 +24,16 @@ from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.core.cost_functions.base_classes import CostFunction
 
 
-class QuantumCompiler(Protocol):
-    cost_fn: CostFunction
-    optimizer: Optimizer
+class QuantumCompiler(ABC):
+    @property
+    @abstractmethod
+    def cost_function(self) -> CostFunction:
+        ...
+
+    @property
+    @abstractmethod
+    def optimizer(self) -> Optimizer:
+        ...
 
     @abstractmethod
     def optimize(
@@ -43,8 +50,16 @@ class QuantumCompiler(Protocol):
 
 class QuantumCompilerGeneric(QuantumCompiler):
     def __init__(self, cost_fn: CostFunction, optimizer: Optimizer):
-        self.cost_fn = cost_fn
-        self.optimizer = optimizer
+        self._cost_fn = cost_fn
+        self._optimizer = optimizer
+
+    @property
+    def cost_function(self) -> CostFunction:
+        return self._cost_fn
+
+    @property
+    def optimizer(self) -> Optimizer:
+        return self._optimizer
 
     def _optimize(
         self,
@@ -62,7 +77,7 @@ class QuantumCompilerGeneric(QuantumCompiler):
 
         def cost(params: Params) -> float:
             trial_circuit = ansatz.bind_parameters(list(params.tolist()))
-            return self.cost_fn(target_circuit, trial_circuit).value.real
+            return self.cost_function(target_circuit, trial_circuit).value.real
 
         def gradient(params: Params) -> Params:
             """Parameter shift gradient function.
@@ -85,7 +100,7 @@ class QuantumCompilerGeneric(QuantumCompiler):
             gate_params_list = list(gate_params)
 
             estimates = [
-                self.cost_fn(target_circuit, raw_circuit.bind_parameters(list(p)))
+                self.cost_function(target_circuit, raw_circuit.bind_parameters(list(p)))
                 for p in gate_params_list
             ]
             estimates_dict = dict(zip(gate_params_list, estimates))
