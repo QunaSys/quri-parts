@@ -8,57 +8,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import dataclass
-
 from .gaussian.fitting import GaussianFittingGSEE, GaussianFittingPhaseEstimation
+from .gaussian.param_choice import get_recommended_gaussian_parameter
 from .lt22 import (
     LT22GSEE,
     LT22PhaseEstimation,
     SingleSignalLT22GSEE,
     SingleSignalLT22PhaseEstimation,
 )
-
-
-@dataclass
-class StepFunctionParam:
-    r"""The parameters for building the step function convolution function.
-
-    Args:
-        d: The maximal value of the Fourier mode k.
-        delta: The parameter that controls the precision:
-
-            .. math::
-                |F_{d, \delta}(x) - H(x)| \leq \epsilon \quad \forall x \in [-\pi + \delta, - \delta] \cup [\delta, \pi - \delta]
-
-        n_sample:
-            Number of samples to construct the step function.
-    """
-
-    d: int
-    delta: float
-    n_sample: int
-
-
-@dataclass
-class GaussianParam:
-    r"""Hyperparameters of the Gaussian distribution function.
-
-    .. math::
-        G_{\sigma}(x) = \int_{-T}^{T} e^{-\frac{1}{2}(\sigma^2 \pi^2 k^2)} e^{2\pi i k x} dk
-
-    Args:
-        T: The boundary of the Fourier integration region.
-        N: Number of points to disceretize the integration interval.
-        sigma: Standard deviation of the Gaussian distribution.
-        n_sample: Number of samples to sample the Fourier coefficient
-            :math:`e^{-\frac{1}{2}(\sigma^2 \pi^2 k^2)}`
-    """
-
-    T: float
-    N: int
-    sigma: float
-    n_sample: int
-
+from .utils.fourier.gaussian_coefficient import GaussianParam
+from .utils.fourier.step_func_coefficient import StepFunctionParam
 
 __all__ = [
     "LT22GSEE",
@@ -69,4 +28,5 @@ __all__ = [
     "SingleSignalLT22GSEE",
     "SingleSignalLT22PhaseEstimation",
     "StepFunctionParam",
+    "get_recommended_gaussian_parameter",
 ]

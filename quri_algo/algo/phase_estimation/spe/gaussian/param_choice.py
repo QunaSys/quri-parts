@@ -8,12 +8,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
 import numpy as np
 
-if TYPE_CHECKING:
-    from quri_algo.algo.phase_estimation.spe import GaussianParam
+from quri_algo.algo.phase_estimation.spe.utils.fourier.gaussian_coefficient import (
+    GaussianParam,
+)
 
 
 def get_gaussian_integration_bound(
@@ -84,9 +85,10 @@ def get_recommended_gaussian_parameter(
     overlap: float,
     delta: float,
     n_discretize: int,
+    tau: float = 1.0,
     sample_const: float = 2 * np.pi,
     max_shot_limit: Optional[int] = None,
-) -> tuple["GaussianParam", int]:
+) -> tuple[GaussianParam, int]:
     r"""The recommended parameters to execute the Gaussian SPE.
 
     Reference:
@@ -103,6 +105,7 @@ def get_recommended_gaussian_parameter(
         n_discretize: Number of discretization steps one wants to use to perform the
             convolution integration. This also corresponds to the number of evolution time
             steps one can sample from.
+        tau: normalization factor of the spectrum
         n_sample_const: An overall coefficient :math:`C` for determining the number of samples.
             :math:`C \sigma^4 ||\\tilde{f}_T||_1 / \epsion^2 \\times \log`
         max_shot_limit: the maximal number of shots.
@@ -111,7 +114,9 @@ def get_recommended_gaussian_parameter(
         GaussianParam: A :class:`GaussianParam` that specifies the Gaussian distribution function.
         int: The number of points to search for the eigenvalue.
     """
-    from quri_algo.algo.phase_estimation.spe import GaussianParam
+
+    gap = gap * tau
+    target_eps = target_eps * tau
 
     sigma = get_gaussian_sigma(gap, target_eps, overlap)
     M = get_number_of_search_points(sigma, target_eps)

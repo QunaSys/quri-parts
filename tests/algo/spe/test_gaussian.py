@@ -131,3 +131,22 @@ def test_get_recommended_param() -> None:
     assert np.isclose(expected_n_sample, param.n_sample)
     assert np.isclose(param.N, n_discretize)
     assert expected_M == n_search_pts
+
+
+def test_get_rescaled_recommended_param() -> None:
+    gap = 1.0085
+    target_eps = 1e-3
+    overlap = 0.96
+    delta = 1e-4
+    n_discretize = 1000
+    tau = 1 / 20
+    expected_param, expected_n_search_pts = get_recommended_gaussian_parameter(
+        tau * gap, tau * target_eps, overlap, delta, n_discretize
+    )
+
+    rescaled_param, rescaled_n_search_pts = get_recommended_gaussian_parameter(
+        gap, target_eps, overlap, delta, n_discretize, tau
+    )
+
+    assert expected_param == rescaled_param
+    assert expected_n_search_pts == rescaled_n_search_pts
