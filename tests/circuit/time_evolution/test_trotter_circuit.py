@@ -148,4 +148,4 @@ def test_fixed_interval_trotter() -> None:
         ValueError,
         match=f"Evolution time {evolution_time} is not an integer muliple of time step {time_step}."
     ):
-        circuit_factory(0.43)
+        circuit_factory(evolution_time)
