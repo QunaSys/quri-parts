@@ -1,3 +1,4 @@
+import warnings
 from collections.abc import Collection
 from typing import Optional, cast
 
@@ -48,6 +49,11 @@ def generate_device_property(
         t1: T1 coherence time.
         t2: T2 coherence time.
     """
+    if t1 is not None or t2 is not None:
+        warnings.warn(
+            "The t1 t2 error is not yet supported and is not reflected in the "
+            "fidelity estimation or noise model."
+        )
 
     native_gate_set = set(native_gates)
     gates_1q = native_gate_set & gate_names.SINGLE_QUBIT_GATE_NAMES
