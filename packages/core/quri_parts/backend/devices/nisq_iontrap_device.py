@@ -1,12 +1,12 @@
 from collections.abc import Collection
-from typing import Optional
+from typing import Optional, cast
 
 import networkx as nx
 
 from quri_parts.backend.device import DeviceProperty, GateProperty, QubitProperty
 from quri_parts.backend.units import TimeValue
-from quri_parts.circuit import gate_names
-from quri_parts.circuit.gate_names import GateNameType
+from quri_parts.circuit import gate_names, noise
+from quri_parts.circuit.gate_names import GateNameType, NonParametricGateNameType
 from quri_parts.circuit.transpile import GateSetConversionTranspiler
 
 
@@ -72,6 +72,20 @@ def generate_device_property(
         ]
     )
 
+    noise_model = noise.NoiseModel(
+        [
+            noise.DepolarizingNoise(
+                error_prob=gate_error_1q,
+                target_gates=list(cast(set[NonParametricGateNameType], gates_1q)),
+            ),
+            noise.DepolarizingNoise(
+                error_prob=gate_error_2q,
+                target_gates=list(cast(set[NonParametricGateNameType], gates_2q)),
+            ),
+            noise.MeasurementNoise([noise.BitFlipNoise(error_prob=gate_error_meas)]),
+        ]
+    )
+
     return DeviceProperty(
         qubit_count=qubit_count,
         qubits=qubits,
@@ -83,4 +97,5 @@ def generate_device_property(
         # TODO Calculate backgraound error from t1 and t2
         background_error=None,
         transpiler=GateSetConversionTranspiler(native_gates),
+        noise_model=noise_model,
     )
