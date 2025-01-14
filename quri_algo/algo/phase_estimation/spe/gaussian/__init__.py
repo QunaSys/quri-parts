@@ -8,25 +8,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .gaussian.fitting import GaussianFittingGSEE, GaussianFittingPhaseEstimation
-from .gaussian.param_choice import get_recommended_gaussian_parameter
-from .lt22 import (
-    LT22GSEE,
-    LT22PhaseEstimation,
-    SingleSignalLT22GSEE,
-    SingleSignalLT22PhaseEstimation,
-)
-from .utils.fourier.gaussian_coefficient import GaussianParam
-from .utils.fourier.step_func_coefficient import StepFunctionParam
+
+from .fitting import GaussianFitter, GaussianFittingGSEE, GaussianFittingPhaseEstimation
+from .param_choice import get_recommended_gaussian_parameter
 
 __all__ = [
-    "LT22GSEE",
-    "LT22PhaseEstimation",
+    "GaussianFitter",
     "GaussianFittingGSEE",
-    "GaussianParam",
     "GaussianFittingPhaseEstimation",
-    "SingleSignalLT22GSEE",
-    "SingleSignalLT22PhaseEstimation",
-    "StepFunctionParam",
     "get_recommended_gaussian_parameter",
 ]

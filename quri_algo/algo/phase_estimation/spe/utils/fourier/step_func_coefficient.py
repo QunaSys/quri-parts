@@ -21,6 +21,26 @@ from .coefficient import FouierCoefficientSampler, SPEFourierCoefficient
 NumpyInput = TypeVar("NumpyInput", float, np.float64, npt.NDArray[np.float64])
 
 
+@dataclass
+class StepFunctionParam:
+    r"""The parameters for building the step function convolution function.
+
+    Args:
+        d: The maximal value of the Fourier mode k.
+        delta: The parameter that controls the precision:
+
+            .. math::
+                |F_{d, \delta}(x) - H(x)| \leq \epsilon \quad \forall x \in [-\pi + \delta, - \delta] \cup [\delta, \pi - \delta]
+
+        n_sample:
+            Number of samples to construct the step function.
+    """
+
+    d: int
+    delta: float
+    n_sample: int
+
+
 def get_Tn(x: NumpyInput, n: int) -> NumpyInput:
     # x is defined in [-pi, pi]!!
     coef = np.zeros(n + 1)
