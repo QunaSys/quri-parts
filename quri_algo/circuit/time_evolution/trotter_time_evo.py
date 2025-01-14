@@ -9,6 +9,7 @@
 # limitations under the License.
 
 from functools import lru_cache
+from typing import Iterable
 from typing import Union
 
 import numpy as np
@@ -16,6 +17,7 @@ from quri_parts.circuit import (
     ImmutableLinearMappedUnboundParametricQuantumCircuit,
     LinearMappedUnboundParametricQuantumCircuit,
     NonParametricQuantumCircuit,
+    Parameter,
     QuantumCircuit,
     inverse_circuit,
 )
@@ -23,6 +25,7 @@ from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.core.operator import (
     PAULI_IDENTITY,
     Operator,
+    PauliLabel,
     pauli_label,
     trotter_suzuki_decomposition,
 )
@@ -51,6 +54,34 @@ def get_shifted_hamiltonian(hamiltonian: Operator, shift: int) -> Operator:
     return hamiltonian_shifted
 
 
+def _add_single_term_for_trotter_time_evolution(
+    circuit: LinearMappedUnboundParametricQuantumCircuit,
+    t: Parameter,
+    op: PauliLabel,
+    coeff: complex,
+    n_trotter: int,
+) -> None:
+    if op == PAULI_IDENTITY:
+        return
+    circuit.add_ParametricPauliRotation_gate(
+        *op.index_and_pauli_id_list, {t: 2 * coeff.real / n_trotter}
+    )
+
+
+def _get_trotter_pauli_coefficient_pairs(
+    hamiltonian: Operator,
+    trotter_order: int,
+) -> Iterable[tuple[PauliLabel, complex]]:
+    if trotter_order == 1:
+        return hamiltonian.items()
+    else:
+        assert trotter_order % 2 == 0, "Trotter order must be 1 or an even number."
+        decomposition = trotter_suzuki_decomposition(
+            hamiltonian, 1.0, trotter_order // 2
+        )
+        return [(op, coeff) for op, coeff in decomposition]
+
+
 def get_trotter_time_evolution_operator(
     hamiltonian: Operator,
     n_state_qubits: int,
@@ -59,28 +90,10 @@ def get_trotter_time_evolution_operator(
 ) -> ImmutableLinearMappedUnboundParametricQuantumCircuit:
     circuit = LinearMappedUnboundParametricQuantumCircuit(n_state_qubits)
     t = circuit.add_parameter("t")
-
-    if trotter_order == 1:
-        for _ in range(n_trotter):
-            for op, coef in hamiltonian.items():
-                if op == PAULI_IDENTITY:
-                    continue
-                circuit.add_ParametricPauliRotation_gate(
-                    *op.index_and_pauli_id_list, {t: 2 * coef.real / n_trotter}
-                )
-        return circuit.freeze()
-
-    assert trotter_order % 2 == 0, "Trotter order must be 1 or an even number."
-    decomposition = trotter_suzuki_decomposition(hamiltonian, 1.0, trotter_order // 2)
-
+    op_coeff_pair = _get_trotter_pauli_coefficient_pairs(hamiltonian, trotter_order)
     for _ in range(n_trotter):
-        for term in decomposition:
-            if term.pauli == PAULI_IDENTITY:
-                continue
-            circuit.add_ParametricPauliRotation_gate(
-                *term.pauli.index_and_pauli_id_list,
-                {t: 2 * term.coefficient.real / n_trotter},
-            )
+        for op, coef in op_coeff_pair:
+            _add_single_term_for_trotter_time_evolution(circuit, t, op, coef, n_trotter)
     return circuit.freeze()
 
 
@@ -113,10 +126,32 @@ class TrotterTimeEvolutionCircuitFactory(
         return self._param_evo_circuit.bind_parameters([evolution_time])
 
 
+def _add_single_term_for_controlled_time_evolution(
+    circuit: LinearMappedUnboundParametricQuantumCircuit,
+    t: Parameter,
+    op: PauliLabel,
+    coeff: complex,
+    n_trotter: int,
+) -> None:
+    if op == PAULI_IDENTITY:
+        circuit.add_ParametricRZ_gate(0, {t: -coeff.real / n_trotter})
+
+    else:
+        circuit.add_ParametricPauliRotation_gate(
+            *op.index_and_pauli_id_list, {t: coeff.real / n_trotter}
+        )
+        extended_op = pauli_label(str(op) + f" Z{0}")
+        circuit.add_ParametricPauliRotation_gate(
+            *extended_op.index_and_pauli_id_list,
+            {t: -coeff.real / n_trotter},
+        )
+
+
 def get_trotter_controlled_time_evolution_operator(
     hamiltonian: Operator,
     n_state_qubits: int,
     n_trotter: int = 1,
+    trotter_order: int = 1,
 ) -> ImmutableLinearMappedUnboundParametricQuantumCircuit:
     r"""This part uses the following formulae:
 
@@ -129,18 +164,14 @@ def get_trotter_controlled_time_evolution_operator(
     circuit = LinearMappedUnboundParametricQuantumCircuit(n_state_qubits + 1)
     t = circuit.add_parameter("t")
     hamiltonian_shifted = get_shifted_hamiltonian(hamiltonian, 1)
+    op_coeff_pair = _get_trotter_pauli_coefficient_pairs(
+        hamiltonian_shifted, trotter_order
+    )
+
     for _ in range(n_trotter):
-        for op, coef in hamiltonian_shifted.items():
-            if op == PAULI_IDENTITY:
-                circuit.add_ParametricRZ_gate(0, {t: -coef.real / n_trotter})
-                continue
-            circuit.add_ParametricPauliRotation_gate(
-                *op.index_and_pauli_id_list, {t: coef.real / n_trotter}
-            )
-            extended_op = pauli_label(str(op) + f" Z{0}")
-            circuit.add_ParametricPauliRotation_gate(
-                *extended_op.index_and_pauli_id_list,
-                {t: -coef.real / n_trotter},
+        for op, coef in op_coeff_pair:
+            _add_single_term_for_controlled_time_evolution(
+                circuit, t, op, coef, n_trotter
             )
     return circuit.freeze()
 
@@ -161,10 +192,12 @@ class TrotterControlledTimeEvolutionCircuitFactory(
         self.qubit_count = encoded_problem.n_state_qubit
         self.transpiler = transpiler
         assert isinstance(self.encoded_problem, QubitHamiltonianInput)
+        self.trotter_order = trotter_order
         self._param_evo_circuit = get_trotter_controlled_time_evolution_operator(
             self.encoded_problem.qubit_hamiltonian,
             self.encoded_problem.n_state_qubit,
             self.n_trotter,
+            self.trotter_order,
         )
 
     @apply_transpiler  # type: ignore

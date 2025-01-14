@@ -8,8 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import pytest
-from quri_parts.circuit import QuantumCircuit
+from quri_parts.circuit import QuantumCircuit, inverse_circuit
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, PauliLabel, pauli_label
 
 from quri_algo.circuit.time_evolution.trotter_time_evo import (
@@ -128,8 +129,6 @@ def test_fixed_interval_trotter() -> None:
     circuit_factory = FixedIntervalTrotterTimeEvolution(
         problem, time_step, trotter_order=2
     )
-    evolution_time = 0.5
-    circuit = circuit_factory(evolution_time)
 
     single_step_circuit = QuantumCircuit(2)
     single_step_circuit.add_PauliRotation_gate([0, 1], [1, 1], 2 * time_step)
@@ -137,15 +136,29 @@ def test_fixed_interval_trotter() -> None:
     single_step_circuit.add_PauliRotation_gate([0, 1], [2, 2], 2 * time_step)
     single_step_circuit.add_PauliRotation_gate([0, 1], [1, 1], 2 * time_step)
 
+    # Positive evolution time
+    evolution_time = 0.5
+    circuit = circuit_factory(evolution_time)
     expected = QuantumCircuit(2)
     for _ in range(int(evolution_time / time_step)):
         expected.extend(single_step_circuit)
 
     assert expected == circuit
 
+    # Negative evolution time
+    expected = QuantumCircuit(2)
+    evolution_time = -0.5
+    circuit = circuit_factory(evolution_time)
+    for _ in range(int(np.abs(evolution_time) / time_step)):
+        expected.extend(single_step_circuit)
+    expected = inverse_circuit(expected)
+
+    assert expected == circuit
+
+    # Erroneous evolution time
     evolution_time = 0.43
     with pytest.raises(
         ValueError,
-        match=f"Evolution time {evolution_time} is not an integer muliple of time step {time_step}."
+        match=f"Evolution time {evolution_time} is not an integer muliple of time step {time_step}.",
     ):
         circuit_factory(evolution_time)
