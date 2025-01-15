@@ -289,6 +289,7 @@ class FixedIntervalTrotterTimeEvolutionCircuitFactory(
         trotter_order: The Trotter order. Either 1 or an even number.
         transpiler: The transpiler used to transpile the generated circuit.
     """
+
     def __init__(
         self,
         encoded_problem: QubitHamiltonianInput,
@@ -330,6 +331,7 @@ class FixedIntervalTrotterControlledTimeEvolutionCircuitFactory(
         trotter_order: The Trotter order. Either 1 or an even number.
         transpiler: The transpiler used to transpile the generated circuit.
     """
+
     def __init__(
         self,
         encoded_problem: QubitHamiltonianInput,
@@ -376,6 +378,7 @@ class TrotterTimeEvolutionCircuitFactory(
         trotter_order: The Trotter order. Either 1 or an even number.
         transpiler: The transpiler used to transpile the generated circuit.
     """
+
     def __init__(
         self,
         encoded_problem: QubitHamiltonianInput,
