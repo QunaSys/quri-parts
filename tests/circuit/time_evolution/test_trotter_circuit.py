@@ -8,13 +8,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import unittest
+
 import numpy as np
 import pytest
 from quri_parts.circuit import QuantumCircuit, inverse_circuit
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, PauliLabel, pauli_label
 
 from quri_algo.circuit.time_evolution.trotter_time_evo import (
-    FixedIntervalTrotterTimeEvolution,
+    FixedIntervalTrotterControlledTimeEvolutionCircuitFactory,
+    FixedIntervalTrotterTimeEvolutionCircuitFactory,
+    FixedStepTrotterControlledTimeEvolutionCircuitFactory,
+    FixedStepTrotterTimeEvolutionCircuitFactory,
     TrotterControlledTimeEvolutionCircuitFactory,
     TrotterTimeEvolutionCircuitFactory,
     get_trotter_time_evolution_operator,
@@ -59,7 +64,7 @@ def test_trotter_factory() -> None:
         {pauli_label("X0 X1"): 2, pauli_label("Y0 Y1"): 2, PAULI_IDENTITY: 2}
     )
     problem = QubitHamiltonianInput(2, operator)
-    circuit_factory = TrotterTimeEvolutionCircuitFactory(problem, 1)
+    circuit_factory = FixedStepTrotterTimeEvolutionCircuitFactory(problem, 1)
     circuit = circuit_factory(1.0)
     expected_circuit = QuantumCircuit(2)
     expected_circuit.add_PauliRotation_gate([0, 1], [1, 1], 4.0)
@@ -67,7 +72,7 @@ def test_trotter_factory() -> None:
     assert circuit == expected_circuit
 
     n_trotter = 5
-    circuit_factory = TrotterTimeEvolutionCircuitFactory(problem, n_trotter)
+    circuit_factory = FixedStepTrotterTimeEvolutionCircuitFactory(problem, n_trotter)
     circuit = circuit_factory(1.0)
     expected_circuit = QuantumCircuit(2)
     for _ in range(n_trotter):
@@ -77,7 +82,7 @@ def test_trotter_factory() -> None:
 
     trotter_order = 2
     n_trotter = 3
-    circuit_factory = TrotterTimeEvolutionCircuitFactory(
+    circuit_factory = FixedStepTrotterTimeEvolutionCircuitFactory(
         problem, n_trotter, trotter_order
     )
     circuit = circuit_factory(1.0)
@@ -97,7 +102,7 @@ def test_controlled_trotter_factory() -> None:
         {pauli_label("X0 X1"): 2, pauli_label("Y0 Y1"): 2, PAULI_IDENTITY: 2}
     )
     problem = QubitHamiltonianInput(2, operator)
-    circuit_factory = TrotterControlledTimeEvolutionCircuitFactory(problem, 1)
+    circuit_factory = FixedStepTrotterControlledTimeEvolutionCircuitFactory(problem, 1)
     circuit = circuit_factory(1.0)
     expected_circuit = QuantumCircuit(3)
     expected_circuit.add_PauliRotation_gate([1, 2], [1, 1], 2.0)
@@ -107,8 +112,11 @@ def test_controlled_trotter_factory() -> None:
     expected_circuit.add_RZ_gate(0, -2.0)
     assert circuit == expected_circuit
 
+    # Trotter steps 5
     n_trotter = 5
-    circuit_factory = TrotterControlledTimeEvolutionCircuitFactory(problem, n_trotter)
+    circuit_factory = FixedStepTrotterControlledTimeEvolutionCircuitFactory(
+        problem, n_trotter
+    )
     circuit = circuit_factory(1.0)
     expected_circuit = QuantumCircuit(3)
     for _ in range(n_trotter):
@@ -119,6 +127,27 @@ def test_controlled_trotter_factory() -> None:
         expected_circuit.add_RZ_gate(0, -2.0 / n_trotter)
     assert circuit == expected_circuit
 
+    # trotter order 2
+    n_trotter = 5
+    circuit_factory = FixedStepTrotterControlledTimeEvolutionCircuitFactory(
+        problem, n_trotter, trotter_order=2
+    )
+    circuit = circuit_factory(1.0)
+    expected_circuit = QuantumCircuit(3)
+    for _ in range(n_trotter):
+        expected_circuit.add_PauliRotation_gate([1, 2], [1, 1], 1.0 / n_trotter)
+        expected_circuit.add_PauliRotation_gate([0, 1, 2], [3, 1, 1], -1.0 / n_trotter)
+        expected_circuit.add_PauliRotation_gate([1, 2], [2, 2], 1.0 / n_trotter)
+        expected_circuit.add_PauliRotation_gate([0, 1, 2], [3, 2, 2], -1.0 / n_trotter)
+        expected_circuit.add_RZ_gate(0, -1.0 / n_trotter)
+        expected_circuit.add_RZ_gate(0, -1.0 / n_trotter)
+        expected_circuit.add_PauliRotation_gate([1, 2], [2, 2], 1.0 / n_trotter)
+        expected_circuit.add_PauliRotation_gate([0, 1, 2], [3, 2, 2], -1.0 / n_trotter)
+        expected_circuit.add_PauliRotation_gate([1, 2], [1, 1], 1.0 / n_trotter)
+        expected_circuit.add_PauliRotation_gate([0, 1, 2], [3, 1, 1], -1.0 / n_trotter)
+
+    assert circuit == expected_circuit
+
 
 def test_fixed_interval_trotter() -> None:
     operator = Operator(
@@ -126,7 +155,7 @@ def test_fixed_interval_trotter() -> None:
     )
     problem = QubitHamiltonianInput(2, operator)
     time_step = 0.1
-    circuit_factory = FixedIntervalTrotterTimeEvolution(
+    circuit_factory = FixedIntervalTrotterTimeEvolutionCircuitFactory(
         problem, time_step, trotter_order=2
     )
 
@@ -162,3 +191,246 @@ def test_fixed_interval_trotter() -> None:
         match=f"Evolution time {evolution_time} is not an integer muliple of time step {time_step}.",
     ):
         circuit_factory(evolution_time)
+
+
+def test_fixed_interval_controlled_trotter() -> None:
+    operator = Operator(
+        {pauli_label("X0 X1"): 2, pauli_label("Y0 Y1"): 2, PAULI_IDENTITY: 2}
+    )
+    problem = QubitHamiltonianInput(2, operator)
+    time_step = 0.1
+    circuit_factory = FixedIntervalTrotterControlledTimeEvolutionCircuitFactory(
+        problem, time_step, trotter_order=2
+    )
+
+    single_step_circuit = QuantumCircuit(3)
+    single_step_circuit.add_PauliRotation_gate([1, 2], [1, 1], time_step)
+    single_step_circuit.add_PauliRotation_gate([0, 1, 2], [3, 1, 1], -time_step)
+    single_step_circuit.add_PauliRotation_gate([1, 2], [2, 2], time_step)
+    single_step_circuit.add_PauliRotation_gate([0, 1, 2], [3, 2, 2], -time_step)
+    single_step_circuit.add_RZ_gate(0, -time_step)
+    single_step_circuit.add_RZ_gate(0, -time_step)
+    single_step_circuit.add_PauliRotation_gate([1, 2], [2, 2], time_step)
+    single_step_circuit.add_PauliRotation_gate([0, 1, 2], [3, 2, 2], -time_step)
+    single_step_circuit.add_PauliRotation_gate([1, 2], [1, 1], time_step)
+    single_step_circuit.add_PauliRotation_gate([0, 1, 2], [3, 1, 1], -time_step)
+
+    # Positive evolution time
+    evolution_time = 0.5
+    circuit = circuit_factory(evolution_time)
+    expected = QuantumCircuit(3)
+    for _ in range(int(evolution_time / time_step)):
+        expected.extend(single_step_circuit)
+
+    assert expected == circuit
+
+    # Negative evolution time
+    expected = QuantumCircuit(3)
+    evolution_time = -0.5
+    circuit = circuit_factory(evolution_time)
+    for _ in range(int(np.abs(evolution_time) / time_step)):
+        expected.extend(single_step_circuit)
+    expected = inverse_circuit(expected)
+
+    assert expected == circuit
+
+    # Erroneous evolution time
+    evolution_time = 0.43
+    with pytest.raises(
+        ValueError,
+        match=f"Evolution time {evolution_time} is not an integer muliple of time step {time_step}.",
+    ):
+        circuit_factory(evolution_time)
+
+
+class TestTrotterTimeEvolutionCircuitFactory(unittest.TestCase):
+    operator: Operator
+    problem: QubitHamiltonianInput
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.operator = Operator(
+            {pauli_label("X0 X1"): 2, pauli_label("Y0 Y1"): 2, PAULI_IDENTITY: 2}
+        )
+        cls.problem = QubitHamiltonianInput(2, cls.operator)
+
+    def test_fixed_trotter_step(self) -> None:
+        evolution_time = 0.5
+        n_trotter = 3
+        factory = TrotterTimeEvolutionCircuitFactory(self.problem, n_trotter=n_trotter)
+
+        single_step_circuit = QuantumCircuit(2)
+        single_step_circuit.add_PauliRotation_gate([0, 1], [1, 1], 2 / n_trotter)
+        single_step_circuit.add_PauliRotation_gate([0, 1], [2, 2], 2 / n_trotter)
+
+        expected_circuit = QuantumCircuit(2)
+        for _ in range(n_trotter):
+            expected_circuit.extend(single_step_circuit)
+
+        assert expected_circuit == factory(evolution_time)
+
+    def test_fixed_time_step(self) -> None:
+        time_step = 0.1
+        evolution_time = 0.5
+
+        factory = TrotterTimeEvolutionCircuitFactory(self.problem, time_step=time_step)
+
+        single_step_circuit = QuantumCircuit(2)
+        single_step_circuit.add_PauliRotation_gate([0, 1], [1, 1], 4 * time_step)
+        single_step_circuit.add_PauliRotation_gate([0, 1], [2, 2], 4 * time_step)
+
+        expected_circuit = QuantumCircuit(2)
+        for _ in range(int(evolution_time / time_step)):
+            expected_circuit.extend(single_step_circuit)
+
+        assert expected_circuit == factory(evolution_time)
+
+    def test_fixed_trotter_step_2nd_order(self) -> None:
+        evolution_time = 0.5
+        n_trotter = 3
+        factory = TrotterTimeEvolutionCircuitFactory(
+            self.problem, n_trotter=n_trotter, trotter_order=2
+        )
+
+        single_step_circuit = QuantumCircuit(2)
+
+        single_step_circuit.add_PauliRotation_gate([0, 1], [1, 1], 1 / n_trotter)
+        single_step_circuit.add_PauliRotation_gate([0, 1], [2, 2], 1 / n_trotter)
+        single_step_circuit.add_PauliRotation_gate([0, 1], [2, 2], 1 / n_trotter)
+        single_step_circuit.add_PauliRotation_gate([0, 1], [1, 1], 1 / n_trotter)
+
+        expected_circuit = QuantumCircuit(2)
+        for _ in range(n_trotter):
+            expected_circuit.extend(single_step_circuit)
+
+        assert expected_circuit == factory(evolution_time)
+
+    def test_fixed_time_step_2nd_order(self) -> None:
+        time_step = 0.1
+        evolution_time = 0.5
+
+        factory = TrotterTimeEvolutionCircuitFactory(
+            self.problem, time_step=time_step, trotter_order=2
+        )
+
+        single_step_circuit = QuantumCircuit(2)
+        single_step_circuit.add_PauliRotation_gate([0, 1], [1, 1], 2 * time_step)
+        single_step_circuit.add_PauliRotation_gate([0, 1], [2, 2], 2 * time_step)
+        single_step_circuit.add_PauliRotation_gate([0, 1], [2, 2], 2 * time_step)
+        single_step_circuit.add_PauliRotation_gate([0, 1], [1, 1], 2 * time_step)
+
+        expected_circuit = QuantumCircuit(2)
+        for _ in range(int(evolution_time / time_step)):
+            expected_circuit.extend(single_step_circuit)
+
+        assert expected_circuit == factory(evolution_time)
+
+
+class TestTrotterControlledTimeEvolutionCircuitFactory(unittest.TestCase):
+    operator: Operator
+    problem: QubitHamiltonianInput
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.operator = Operator(
+            {pauli_label("X0 X1"): 2, pauli_label("Y0 Y1"): 2, PAULI_IDENTITY: 2}
+        )
+        cls.problem = QubitHamiltonianInput(2, cls.operator)
+
+    def test_fixed_trotter_step(self) -> None:
+        evolution_time = 0.5
+        n_trotter = 3
+        factory = TrotterControlledTimeEvolutionCircuitFactory(
+            self.problem, n_trotter=n_trotter
+        )
+
+        single_step_circuit = QuantumCircuit(3)
+        single_step_circuit.add_PauliRotation_gate([1, 2], [1, 1], 1 / n_trotter)
+        single_step_circuit.add_PauliRotation_gate([0, 1, 2], [3, 1, 1], -1 / n_trotter)
+        single_step_circuit.add_PauliRotation_gate([1, 2], [2, 2], 1 / n_trotter)
+        single_step_circuit.add_PauliRotation_gate([0, 1, 2], [3, 2, 2], -1 / n_trotter)
+        single_step_circuit.add_RZ_gate(0, -1 / n_trotter)
+
+        expected_circuit = QuantumCircuit(3)
+        for _ in range(n_trotter):
+            expected_circuit.extend(single_step_circuit)
+        assert expected_circuit == factory(evolution_time)
+
+    def test_fixed_time_step(self) -> None:
+        time_step = 0.1
+        evolution_time = 0.5
+
+        factory = TrotterControlledTimeEvolutionCircuitFactory(
+            self.problem, time_step=time_step
+        )
+
+        single_step_circuit = QuantumCircuit(3)
+        single_step_circuit.add_PauliRotation_gate([1, 2], [1, 1], 2 * time_step)
+        single_step_circuit.add_PauliRotation_gate([0, 1, 2], [3, 1, 1], -2 * time_step)
+        single_step_circuit.add_PauliRotation_gate([1, 2], [2, 2], 2 * time_step)
+        single_step_circuit.add_PauliRotation_gate([0, 1, 2], [3, 2, 2], -2 * time_step)
+        single_step_circuit.add_RZ_gate(0, -2 * time_step)
+
+        expected_circuit = QuantumCircuit(3)
+        for _ in range(int(evolution_time / time_step)):
+            expected_circuit.extend(single_step_circuit)
+
+        assert expected_circuit == factory(evolution_time)
+
+    def test_fixed_trotter_step_2nd_order(self) -> None:
+        evolution_time = 0.5
+        n_trotter = 3
+        factory = TrotterControlledTimeEvolutionCircuitFactory(
+            self.problem, n_trotter=n_trotter, trotter_order=2
+        )
+
+        single_step_circuit = QuantumCircuit(3)
+        single_step_circuit.add_PauliRotation_gate([1, 2], [1, 1], 0.5 / n_trotter)
+        single_step_circuit.add_PauliRotation_gate(
+            [0, 1, 2], [3, 1, 1], -0.5 / n_trotter
+        )
+        single_step_circuit.add_PauliRotation_gate([1, 2], [2, 2], 0.5 / n_trotter)
+        single_step_circuit.add_PauliRotation_gate(
+            [0, 1, 2], [3, 2, 2], -0.5 / n_trotter
+        )
+        single_step_circuit.add_RZ_gate(0, -0.5 / n_trotter)
+        single_step_circuit.add_RZ_gate(0, -0.5 / n_trotter)
+        single_step_circuit.add_PauliRotation_gate([1, 2], [2, 2], 0.5 / n_trotter)
+        single_step_circuit.add_PauliRotation_gate(
+            [0, 1, 2], [3, 2, 2], -0.5 / n_trotter
+        )
+        single_step_circuit.add_PauliRotation_gate([1, 2], [1, 1], 0.5 / n_trotter)
+        single_step_circuit.add_PauliRotation_gate(
+            [0, 1, 2], [3, 1, 1], -0.5 / n_trotter
+        )
+
+        expected_circuit = QuantumCircuit(3)
+        for _ in range(n_trotter):
+            expected_circuit.extend(single_step_circuit)
+        assert expected_circuit == factory(evolution_time)
+
+    def test_fixed_time_step_2nd_order(self) -> None:
+        time_step = 0.1
+        evolution_time = 0.5
+
+        factory = TrotterControlledTimeEvolutionCircuitFactory(
+            self.problem, time_step=time_step, trotter_order=2
+        )
+
+        single_step_circuit = QuantumCircuit(3)
+        single_step_circuit.add_PauliRotation_gate([1, 2], [1, 1], 1 * time_step)
+        single_step_circuit.add_PauliRotation_gate([0, 1, 2], [3, 1, 1], -1 * time_step)
+        single_step_circuit.add_PauliRotation_gate([1, 2], [2, 2], 1 * time_step)
+        single_step_circuit.add_PauliRotation_gate([0, 1, 2], [3, 2, 2], -1 * time_step)
+        single_step_circuit.add_RZ_gate(0, -1 * time_step)
+        single_step_circuit.add_RZ_gate(0, -1 * time_step)
+        single_step_circuit.add_PauliRotation_gate([1, 2], [2, 2], 1 * time_step)
+        single_step_circuit.add_PauliRotation_gate([0, 1, 2], [3, 2, 2], -1 * time_step)
+        single_step_circuit.add_PauliRotation_gate([1, 2], [1, 1], 1 * time_step)
+        single_step_circuit.add_PauliRotation_gate([0, 1, 2], [3, 1, 1], -1 * time_step)
+
+        expected_circuit = QuantumCircuit(3)
+        for _ in range(int(evolution_time / time_step)):
+            expected_circuit.extend(single_step_circuit)
+
+        assert expected_circuit == factory(evolution_time)

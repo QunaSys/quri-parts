@@ -33,14 +33,22 @@ class TrotterTimeEvolutionHadamardTest(
         self,
         encoded_problem: QubitHamiltonianInput,
         sampler: Union[Sampler, StateSampler[State]],
-        n_trotter: int,
         *,
+        time_step: float | None = None,
+        n_trotter: int | None = None,
+        trotter_order: int = 1,
         transpiler: CircuitTranspiler | None = None
     ):
+        self.time_step = time_step
         self.n_trotter = n_trotter
+        self.trotter_order = trotter_order
         controlled_time_evolution_factory = (
             TrotterControlledTimeEvolutionCircuitFactory(
-                encoded_problem, self.n_trotter, transpiler=transpiler
+                encoded_problem,
+                time_step=time_step,
+                n_trotter=n_trotter,
+                trotter_order=trotter_order,
+                transpiler=transpiler,
             )
         )
         super().__init__(
