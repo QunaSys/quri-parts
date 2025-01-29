@@ -15,7 +15,7 @@ from abc import ABC
 from tensornetwork import Node
 
 _I_LIST = [[1.0, 0.0], [0.0, 1.0]]
-_X_LIST = [[0.0, 0.0], [1.0, 0.0]]
+_X_LIST = [[0.0, 1.0], [1.0, 0.0]]
 _Y_LIST = [
     [0.0, 1.0j],
     [-1.0j, 0.0],

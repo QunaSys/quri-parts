@@ -28,7 +28,7 @@ style = "pep440"
 python = "^3.9.8"
 numpy = ">=1.22.0"
 quri-parts-circuit = "*"
-pytket = "^1.0.0"
+pytket = ">=1.31.0"
 
 [tool.poetry.group.dev.dependencies]
 quri-parts-circuit = {path = "../circuit", develop = true}
