@@ -71,7 +71,7 @@ _three_qubit_gate_tensornetwork: Mapping[ThreeQubitGateNameType, str] = {
     gate_names.TOFFOLI: gates.Toffoli,
 }
 
-#: CircuitTranspiler to convert a circit configuration suitable for ITensor.
+#: CircuitTranspiler to convert a circit configuration suitable for tensornetwork.
 TensorNetworkTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
     [PauliDecomposeTranspiler(), PauliRotationDecomposeTranspiler()]
 )
