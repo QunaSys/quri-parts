@@ -8,10 +8,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
-
+from abc import ABC, abstractmethod
 from typing import Sequence
-from abc import ABC
+
+import numpy as np
 from tensornetwork import Node
 
 _I_LIST = [[1.0, 0.0], [0.0, 1.0]]
@@ -32,13 +32,125 @@ _SQRTZ_LIST = [[1.0, 0.0], [0.0, 1.0j]]
 _SQRTZDAG_LIST = [[1.0, 0.0], [0.0, -1.0j]]
 _T_LIST = [[1.0, 0.0], [0.0, (1.0 + 1.0j) / np.sqrt(2)]]
 _TDAG_LIST = [[1.0, 0.0], [0.0, (1.0 - 1.0j) / np.sqrt(2)]]
+_CNOT_LIST = [
+    [
+        [[1.0, 0.0], [0.0, 0.0]],
+        [[0.0, 1.0], [0.0, 0.0]],
+    ],
+    [
+        [[0.0, 0.0], [0.0, 1.0]],
+        [[0.0, 0.0], [1.0, 0.0]],
+    ],
+]
+_CZ_LIST = [
+    [
+        [[1.0, 0.0], [0.0, 0.0]],
+        [[0.0, 1.0], [0.0, 0.0]],
+    ],
+    [
+        [[0.0, 0.0], [1.0, 0.0]],
+        [[0.0, 0.0], [0.0, -1.0]],
+    ],
+]
+_SWAP_LIST = [
+    [
+        [[1.0, 0.0], [0.0, 0.0]],
+        [[0.0, 0.0], [1.0, 0.0]],
+    ],
+    [
+        [[0.0, 1.0], [0.0, 0.0]],
+        [[0.0, 0.0], [0.0, 1.0]],
+    ],
+]
+_TOFFOLI_LIST = [
+    [
+        [
+            [[[1.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]]],
+            [[[0.0, 1.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]]],
+        ],
+        [
+            [[[0.0, 0.0], [1.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]]],
+            [[[0.0, 0.0], [0.0, 1.0]], [[0.0, 0.0], [0.0, 0.0]]],
+        ],
+    ],
+    [
+        [
+            [[[0.0, 0.0], [0.0, 0.0]], [[1.0, 0.0], [0.0, 0.0]]],
+            [[[0.0, 0.0], [0.0, 0.0]], [[0.0, 1.0], [0.0, 0.0]]],
+        ],
+        [
+            [[[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 1.0]]],
+            [[[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [1.0, 0.0]]],
+        ],
+    ],
+]
 
 
 class QuantumGate(Node, ABC):
     """:class:`~QuantumGate` class is a base class that wraps
     :class:`~Node`."""
 
-    def __init__(self, data: Sequence[complex], name, backend):
+    def __init__(
+        self, unitary_matrix: Sequence[Sequence[complex]], name: str, backend: str
+    ):
+        if backend == "numpy":
+            tensor = np.array(unitary_matrix)
+        else:
+            raise ValueError("Invalid backend selected for tensor network: ", backend)
+        super().__init__(tensor, name=name, backend=backend)
+
+
+class SingleQubitRotationGate(QuantumGate, ABC):
+    """:class:`~SingleQubitRotationGate` class is a base class that facilitates single qubit rotation gates."""
+
+    @abstractmethod
+    def rotation(self, angles) -> np.ndarray:
+        pass
+
+    def __init__(self, angles: Sequence[float], name: str, backend: str):
+        self.angles = angles
+        unitary_matrix = self.rotation(angles)
+        super().__init__(unitary_matrix, name=name, backend=backend)
+
+
+class SingleQubitPauliRotationGate(SingleQubitRotationGate, ABC):
+    """:class:`~SingleQubitPauliRotationGate` class is a base class that facilitates single qubit Pauli rotation gates."""
+
+    pauli: Sequence[Sequence[complex]]
+
+    def rotation(self, angles: Sequence[float]):
+        assert len(angles) == 1
+        return np.transpose(
+            np.cos(angles[0] / 2.0) * np.eye(2)
+            - 1j * np.sin(angles[0] / 2.0) * np.array(self.pauli)
+        )  # transpose is taken here to conform to tensor notation
+
+    def __init__(self, angle: float, name, backend):
+        super().__init__([angle], name=name, backend=backend)
+
+
+class TwoQubitGate(QuantumGate, ABC):
+    """:class:`~TwoQubitGate` class is a base class that facilitates two qubit gates."""
+
+    def __init__(
+        self, data: Sequence[Sequence[Sequence[Sequence[complex]]]], name, backend
+    ):
+        if backend == "numpy":
+            tensor = np.array(data)
+        else:
+            raise ValueError("Invalid backend selected for tensor network: ", backend)
+        super().__init__(tensor, name=name, backend=backend)
+
+
+class ThreeQubitGate(QuantumGate, ABC):
+    """:class:`~ThreeQubitGate` class is a base class that facilitates three qubit gates."""
+
+    def __init__(
+        self,
+        data: Sequence[Sequence[Sequence[Sequence[Sequence[Sequence[complex]]]]]],
+        name,
+        backend,
+    ):
         if backend == "numpy":
             tensor = np.array(data)
         else:
@@ -48,159 +160,227 @@ class QuantumGate(Node, ABC):
 
 class I(QuantumGate):
     def __init__(self, backend="numpy"):
-        data = _I_LIST
+        unitary_matrix = _I_LIST
         name = "I"
 
-        super().__init__(data, name, backend)
+        super().__init__(unitary_matrix, name, backend)
 
 
 class X(QuantumGate):
     def __init__(self, backend="numpy"):
-        data = _X_LIST
+        unitary_matrix = _X_LIST
         name = "X"
 
-        super().__init__(data, name, backend)
+        super().__init__(unitary_matrix, name, backend)
 
 
 class Y(QuantumGate):
     def __init__(self, backend="numpy"):
-        data = _Y_LIST
+        unitary_matrix = _Y_LIST
         name = "Y"
 
-        super().__init__(data, name, backend)
+        super().__init__(unitary_matrix, name, backend)
 
 
 class Z(QuantumGate):
     def __init__(self, backend="numpy"):
-        data = _Z_LIST
+        unitary_matrix = _Z_LIST
         name = "Z"
 
-        super().__init__(data, name, backend)
+        super().__init__(unitary_matrix, name, backend)
 
 
 class H(QuantumGate):
     def __init__(self, backend="numpy"):
-        data = _H_LIST
+        unitary_matrix = _H_LIST
         name = "H"
 
-        super().__init__(data, name, backend)
+        super().__init__(unitary_matrix, name, backend)
 
 
 class S(QuantumGate):
     def __init__(self, backend="numpy"):
-        data = _S_LIST
+        unitary_matrix = _S_LIST
         name = "S"
 
-        super().__init__(data, name, backend)
+        super().__init__(unitary_matrix, name, backend)
 
 
 class Sdag(QuantumGate):
     def __init__(self, backend="numpy"):
-        data = _SDAG_LIST
+        unitary_matrix = _SDAG_LIST
         name = "Sdag"
 
-        super().__init__(data, name, backend)
+        super().__init__(unitary_matrix, name, backend)
 
 
 class SqrtX(QuantumGate):
     def __init__(self, backend="numpy"):
-        data = _SQRTX_LIST
+        unitary_matrix = _SQRTX_LIST
         name = "SqrtX"
 
-        super().__init__(data, name, backend)
+        super().__init__(unitary_matrix, name, backend)
 
 
 class SqrtXdag(QuantumGate):
     def __init__(self, backend="numpy"):
-        data = _SQRTXDAG_LIST
+        unitary_matrix = _SQRTXDAG_LIST
         name = "SqrtXdag"
 
-        super().__init__(data, name, backend)
+        super().__init__(unitary_matrix, name, backend)
 
 
 class SqrtY(QuantumGate):
     def __init__(self, backend="numpy"):
-        data = _SQRTY_LIST
+        unitary_matrix = _SQRTY_LIST
         name = "SqrtY"
 
-        super().__init__(data, name, backend)
+        super().__init__(unitary_matrix, name, backend)
 
 
 class SqrtYdag(QuantumGate):
     def __init__(self, backend="numpy"):
-        data = _SQRTYDAG_LIST
+        unitary_matrix = _SQRTYDAG_LIST
         name = "SqrtYdag"
 
-        super().__init__(data, name, backend)
+        super().__init__(unitary_matrix, name, backend)
 
 
 class SqrtZ(QuantumGate):
     def __init__(self, backend="numpy"):
-        data = _SQRTZ_LIST
+        unitary_matrix = _SQRTZ_LIST
         name = "SqrtZ"
 
-        super().__init__(data, name, backend)
+        super().__init__(unitary_matrix, name, backend)
 
 
 class SqrtZdag(QuantumGate):
     def __init__(self, backend="numpy"):
-        data = _SQRTZDAG_LIST
+        unitary_matrix = _SQRTZDAG_LIST
         name = "SqrtZdag"
 
-        super().__init__(data, name, backend)
+        super().__init__(unitary_matrix, name, backend)
 
 
 class T(QuantumGate):
     def __init__(self, backend="numpy"):
-        data = _T_LIST
+        unitary_matrix = _T_LIST
         name = "T"
 
-        super().__init__(data, name, backend)
+        super().__init__(unitary_matrix, name, backend)
 
 
 class Tdag(QuantumGate):
     def __init__(self, backend="numpy"):
-        data = _TDAG_LIST
+        unitary_matrix = _TDAG_LIST
         name = "Tdag"
+
+        super().__init__(unitary_matrix, name, backend)
+
+
+class Rx(SingleQubitPauliRotationGate):
+    pauli = _X_LIST
+
+    def __init__(self, angle: float, backend="numpy"):
+        name = "RX"
+
+        super().__init__(angle, name, backend)
+
+
+class Ry(SingleQubitPauliRotationGate):
+    pauli = _Y_LIST
+
+    def __init__(self, angle: float, backend="numpy"):
+        name = "RY"
+
+        super().__init__(angle, name, backend)
+
+
+class Rz(SingleQubitPauliRotationGate):
+    pauli = _Z_LIST
+
+    def __init__(self, angle: float, backend="numpy"):
+        name = "RZ"
+
+        super().__init__(angle, name, backend)
+
+
+class U1(SingleQubitRotationGate):
+    def rotation(self, angles) -> np.ndarray:
+        assert len(angles) == 1
+        return np.array([[1.0, 0.0], [0.0, np.exp(1j * angles[0])]])
+
+    def __init__(self, angles: Sequence[float], backend="numpy"):
+        name = "U1"
+
+        super().__init__(angles, name, backend)
+
+
+class U2(SingleQubitRotationGate):
+    def rotation(self, angles) -> np.ndarray:
+        assert len(angles) == 2
+        return np.array(
+            [
+                [1.0, np.exp(1j * angles[0])],
+                [-np.exp(-1j * angles[1]), np.exp(1j * (angles[0] + angles[1]))],
+            ]
+        ) / np.sqrt(2)
+
+    def __init__(self, angles: Sequence[float], backend="numpy"):
+        name = "U2"
+
+        super().__init__(angles, name, backend)
+
+
+class U3(SingleQubitRotationGate):
+    def rotation(self, angles) -> np.ndarray:
+        assert len(angles) == 3
+        return np.array(
+            [
+                [
+                    np.cos(angles[0] / 2.0),
+                    np.exp(1j * angles[1]) * np.sin(angles[0] / 2.0),
+                ],
+                [
+                    -np.exp(1j * angles[2]) * np.sin(angles[0] / 2.0),
+                    np.exp(1j * (angles[1] + angles[2])) * np.cos(angles[0] / 2.0),
+                ],
+            ]
+        )
+
+    def __init__(self, angles: Sequence[float], backend="numpy"):
+        name = "U3"
+
+        super().__init__(angles, name, backend)
+
+
+class CNOT(TwoQubitGate):
+    def __init__(self, backend="numpy"):
+        data = _CNOT_LIST
+        name = "CNOT"
 
         super().__init__(data, name, backend)
 
 
-class Rx(Node):
-    ...
+class CZ(TwoQubitGate):
+    def __init__(self, backend="numpy"):
+        data = _CZ_LIST
+        name = "CZ"
+
+        super().__init__(data, name, backend)
 
 
-class Ry(Node):
-    ...
+class SWAP(TwoQubitGate):
+    def __init__(self, backend="numpy"):
+        data = _SWAP_LIST
+        name = "SWAP"
+
+        super().__init__(data, name, backend)
 
 
-class Rz(Node):
-    ...
+class Toffoli(ThreeQubitGate):
+    def __init__(self, backend="numpy"):
+        data = _TOFFOLI_LIST
+        name = "SWAP"
 
-
-class U1(Node):
-    ...
-
-
-class U2(Node):
-    ...
-
-
-class U3(Node):
-    ...
-
-
-class CNOT(Node):
-    ...
-
-
-class CZ(Node):
-    ...
-
-
-class SWAP(Node):
-    ...
-
-
-class Toffoli(Node):
-    ...
+        super().__init__(data, name, backend)

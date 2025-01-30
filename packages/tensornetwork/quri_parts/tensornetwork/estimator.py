@@ -8,41 +8,47 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensornetwork as tn
-
 from typing import NamedTuple
 
-from quri_parts.core.estimator import QuantumEstimator, Estimate
-from quri_parts.core.state import GeneralCircuitQuantumState
+import tensornetwork as tn
+
+from quri_parts.core.estimator import Estimate, QuantumEstimator
 from quri_parts.core.operator import Operator, PauliLabel
-from quri_parts.tensornetwork.operator import operator_to_tensor, mpo_from_node
+from quri_parts.core.state import GeneralCircuitQuantumState
 from quri_parts.tensornetwork.circuit import (
-    convert_state,
     TensorNetworkLayer,
+    TensorNetworkOperator,
     TensorNetworkState,
+    convert_state,
 )
+from quri_parts.tensornetwork.operator import operator_to_tensor, tensor_to_mpo
 
 
 class _Estimate(NamedTuple):
     value: complex
-    err: float = 0.0
+    error: float = 0.0
 
 
 def tensor_network_estimate(
-    operator: TensorNetworkLayer, state: TensorNetworkState
+    operator: TensorNetworkOperator, state: TensorNetworkState
 ) -> Estimate:
     copy_state = state.copy()
     conj_state = state.conjugate()
     copy_operator = operator.copy()
 
-    for e, f, g, h in zip(
-        copy_state.edges,
-        copy_operator.input_edges,
-        copy_operator.output_edges,
-        conj_state.edges,
+    for i, (e, f, g, h) in enumerate(
+        zip(
+            copy_state.edges,
+            copy_operator.input_edges,
+            copy_operator.output_edges,
+            conj_state.edges,
+        )
     ):
-        e ^ f
-        g ^ h
+        if i in operator.index_list:
+            e ^ f
+            g ^ h
+        else:
+            e ^ h
 
     contracted_node = tn.contractors.optimal(
         copy_state._container.union(
@@ -50,7 +56,9 @@ def tensor_network_estimate(
         )
     )
 
-    return _Estimate(value=contracted_node.tensor[0])
+    return _Estimate(
+        value=contracted_node.tensor.item(),
+    )  # Can we estimate the error based on the MPO truncation error?
 
 
 def create_tensornetwork_estimator(
@@ -68,7 +76,7 @@ def create_tensornetwork_estimator(
         operator: Operator | PauliLabel, state: GeneralCircuitQuantumState
     ) -> Estimate:
         tn_operator = operator_to_tensor(operator)
-        mpo = mpo_from_node(tn_operator, max_bond_dimension, max_truncation_error)
+        mpo = tensor_to_mpo(tn_operator, max_bond_dimension, max_truncation_error)
         tn_circuit = convert_state(state)
         return tensor_network_estimate(mpo, tn_circuit)
 

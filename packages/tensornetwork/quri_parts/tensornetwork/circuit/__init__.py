@@ -8,15 +8,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensornetwork as tn
-import numpy as np
-
 from collections.abc import Mapping
+from copy import copy
 from typing import Callable, Optional, Sequence
 
-from tensornetwork import NodeCollection, Edge, AbstractNode
+import numpy as np
+import tensornetwork as tn
+from tensornetwork import AbstractNode, Edge, NodeCollection
 
-from quri_parts.core.state import GeneralCircuitQuantumState
 from quri_parts.circuit import QuantumCircuit, gate_names
 from quri_parts.circuit.gate_names import (
     SingleQubitGateNameType,
@@ -33,7 +32,9 @@ from quri_parts.circuit.transpile import (
     PauliRotationDecomposeTranspiler,
     SequentialTranspiler,
 )
+from quri_parts.core.state import GeneralCircuitQuantumState
 from quri_parts.tensornetwork.circuit import gates
+from quri_parts.tensornetwork.circuit.gates import QuantumGate
 
 _single_qubit_gate_tensornetwork: Mapping[SingleQubitGateNameType, str] = {
     gate_names.Identity: gates.I,
@@ -96,13 +97,53 @@ class TensorNetworkLayer(NodeCollection):
 
     def copy(self) -> "TensorNetworkLayer":
         """Returns a copy of itself."""
-        circuit_node_mapping, circuit_edge_mapping = tn.copy(self._container, conjugate=False)
+        circuit_node_mapping, circuit_edge_mapping = tn.copy(
+            self._container, conjugate=False
+        )
         circuit_nodes = {circuit_node_mapping[n] for n in self._container}
         circuit_input_edges = [circuit_edge_mapping[e] for e in self.input_edges]
         circuit_output_edges = [circuit_edge_mapping[e] for e in self.output_edges]
 
         return TensorNetworkLayer(
             circuit_input_edges, circuit_output_edges, circuit_nodes
+        )
+
+
+class TensorNetworkOperator(TensorNetworkLayer):
+    """Tensor network representation of a operators.
+
+    This class subclasses :class:`~TensorNetworkLayer` and provides, in
+    addition to input and output edges for the operator, also a list of
+    indices that the operator acts on. These indices are defined with
+    respect to some quantum state that the operator is intended to act
+    on. The intent is to allow for certain optimizations with tensor
+    contraction.
+    """
+
+    def __init__(
+        self,
+        index_list: Sequence[int],
+        input_edges: Sequence[Edge],
+        output_edges: Sequence[Edge],
+        container: set[AbstractNode] | list[AbstractNode],
+    ):
+        self.index_list = index_list
+        super().__init__(input_edges, output_edges, container)
+
+    def copy(self) -> "TensorNetworkOperator":
+        """Returns a copy of itself."""
+        operator_node_mapping, operator_edge_mapping = tn.copy(
+            self._container, conjugate=False
+        )
+        operator_nodes = {operator_node_mapping[n] for n in self._container}
+        operator_input_edges = [operator_edge_mapping[e] for e in self.input_edges]
+        operator_output_edges = [operator_edge_mapping[e] for e in self.output_edges]
+
+        return TensorNetworkOperator(
+            copy(self.index_list),
+            operator_input_edges,
+            operator_output_edges,
+            operator_nodes,
         )
 
 
@@ -133,7 +174,9 @@ class TensorNetworkState(NodeCollection):
 
     def copy(self) -> "TensorNetworkState":
         """Returns a copy of itself."""
-        state_node_mapping, state_edge_mapping = tn.copy(self._container, conjugate=False)
+        state_node_mapping, state_edge_mapping = tn.copy(
+            self._container, conjugate=False
+        )
         state_nodes = {state_node_mapping[n] for n in self._container}
         state_edges = [state_edge_mapping[e] for e in self.edges]
 
@@ -141,7 +184,9 @@ class TensorNetworkState(NodeCollection):
 
     def conjugate(self) -> "TensorNetworkState":
         """Returns a conjugated copy of itself."""
-        state_node_mapping, state_edge_mapping = tn.copy(self._container, conjugate=True)
+        state_node_mapping, state_edge_mapping = tn.copy(
+            self._container, conjugate=True
+        )
         state_nodes = {state_node_mapping[n] for n in self._container}
         state_edges = [state_edge_mapping[e] for e in self.edges]
 
@@ -174,9 +219,19 @@ def convert_circuit(
         transpiler: optional transpiler to use
     """
     qubit_count = circuit.qubit_count
-    in_out_map: Sequence[dict[str,Optional[Edge]]] = [
+    in_out_map: Sequence[dict[str, Optional[Edge]]] = [
         {"in": None, "out": None} for _ in range(qubit_count)
     ]
+
+    def connect_gate(node: QuantumGate, qubits: Sequence[int], qubit_count: int):
+        for i, q in enumerate(qubits):
+            if in_out_map[q]["in"]:
+                in_out_map[q]["out"] ^ node[i]
+                in_out_map[q]["out"] = node[qubit_count + i]
+            else:
+                assert in_out_map[q]["out"] is None
+                in_out_map[q]["in"] = node[i]
+                in_out_map[q]["out"] = node[qubit_count + i]
 
     if transpiler is not None:
         circuit = transpiler(circuit)
@@ -190,74 +245,40 @@ def convert_circuit(
             if gate.name in _single_qubit_gate_tensornetwork:
                 node = _single_qubit_gate_tensornetwork[gate.name]()
                 node_collection.add(node)
-                if in_out_map[gate.target_indices[0]]["in"]:
-                    in_out_map[gate.target_indices[0]]["out"] ^ node[0]
-                    in_out_map[gate.target_indices[0]]["out"] = node[1]
+            elif gate.name in _single_qubit_rotation_gate_tensornetwork:
+                if len(gate.params) == 1:
+                    node = _single_qubit_rotation_gate_tensornetwork[gate.name](
+                        gate.params[0]
+                    )
                 else:
-                    assert in_out_map[gate.target_indices[0]]["out"] is None
-                    in_out_map[gate.target_indices[0]]["in"] = node[0]
-                    in_out_map[gate.target_indices[0]]["out"] = node[1]
-    
+                    raise ValueError("Invalid number of parameters.")
+                node_collection.add(node)
+            else:
+                raise ValueError(f"{gate.name} gate is not supported.")
+            connect_gate(node, gate.target_indices, 1)
+        if is_two_qubit_gate_name(gate.name):
+            if gate.name in _two_qubit_gate_tensornetwork:
+                node = _two_qubit_gate_tensornetwork[gate.name]()
+                node_collection.add(node)
+            else:
+                raise ValueError(f"{gate.name} gate is not supported.")
+            if gate.name == "SWAP":
+                connect_gate(node, gate.target_indices, 2)
+            else:
+                indices = gate.control_indices + gate.target_indices
+                connect_gate(node, indices, 2)
+        if is_three_qubit_gate_name(gate.name):
+            if gate.name in _three_qubit_gate_tensornetwork:
+                node = _three_qubit_gate_tensornetwork[gate.name]()
+                node_collection.add(node)
+            else:
+                raise ValueError(f"{gate.name} gate is not supported.")
+            indices = gate.control_indices + gate.target_indices
+            connect_gate(node, indices, 3)
+
     for m in in_out_map:
         assert m["in"] is not None and m["out"] is not None
-    
+
     input_edges = [m["in"] for m in in_out_map]
     output_edges = [m["out"] for m in in_out_map]
     return TensorNetworkLayer(input_edges, output_edges, node_collection)
-
-    #         elif gate.name in _single_qubit_rotation_gate_tensornetwork:
-    #             if len(gate.params) == 1:
-    #                 gate_list = jl.add_single_qubit_rotation_gate(
-    #                     gate_list,
-    #                     _single_qubit_rotation_gate_tensornetwork[gate.name],
-    #                     gate.target_indices[0] + 1,
-    #                     gate.params[0],
-    #                 )
-    #             elif len(gate.params) == 2:
-    #                 gate_list = jl.add_single_qubit_rotation_gate(
-    #                     gate_list,
-    #                     _single_qubit_rotation_gate_tensornetwork[gate.name],
-    #                     gate.target_indices[0] + 1,
-    #                     gate.params[0],
-    #                     gate.params[1],
-    #                 )
-    #             elif len(gate.params) == 3:
-    #                 gate_list = jl.add_single_qubit_rotation_gate(
-    #                     gate_list,
-    #                     _single_qubit_rotation_gate_tensornetwork[gate.name],
-    #                     gate.target_indices[0] + 1,
-    #                     gate.params[0],
-    #                     gate.params[1],
-    #                     gate.params[2],
-    #                 )
-    #             else:
-    #                 raise ValueError("Invalid number of parameters.")
-    #         else:
-    #             raise ValueError(f"{gate.name} gate is not supported.")
-    #     elif is_two_qubit_gate_name(gate.name):
-    #         if gate.name == "SWAP":
-    #             gate_list = jl.add_two_qubit_gate(
-    #                 gate_list,
-    #                 _two_qubit_gate_tensornetwork[gate.name],
-    #                 gate.target_indices[0] + 1,
-    #                 gate.target_indices[1] + 1,
-    #             )
-    #         else:
-    #             gate_list = jl.add_two_qubit_gate(
-    #                 gate_list,
-    #                 _two_qubit_gate_tensornetwork[gate.name],
-    #                 gate.control_indices[0] + 1,
-    #                 gate.target_indices[0] + 1,
-    #             )
-    #     elif is_three_qubit_gate_name(gate.name):
-    #         gate_list = jl.add_three_qubit_gate(
-    #             gate_list,
-    #             _three_qubit_gate_tensornetwork[gate.name],
-    #             gate.control_indices[0] + 1,
-    #             gate.control_indices[1] + 1,
-    #             gate.target_indices[0] + 1,
-    #         )
-    #     else:
-    #         raise ValueError(f"{gate.name} gate is not supported.")
-    # circuit = jl.ops(gate_list, qubit_sites)
-    # return circuit

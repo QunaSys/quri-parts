@@ -8,20 +8,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
-
 from collections.abc import Iterable, Sequence
-from typing import Union, Optional
+from typing import Optional, Union
 
+import numpy as np
 from tensornetwork import Node, NodeCollection, split_node, split_node_full_svd
 
 from quri_parts.core.operator import Operator, PauliLabel, pauli_label
-from quri_parts.tensornetwork.circuit import TensorNetworkLayer
+from quri_parts.tensornetwork.circuit import TensorNetworkLayer, TensorNetworkOperator
 
 _PAULI_OPERATOR_DATA_MAP = {
     0: [[1, 0], [0, 1]],
     1: [[0, 1], [1, 0]],
-    2: [[0, -1j], [1j, 0]],
+    2: [[0, 1j], [-1j, 0]],
     3: [[1, 0], [0, -1]],
 }
 
@@ -48,25 +47,35 @@ def get_observable_data(pauli_list: Sequence[Sequence[Sequence[int]]], dim=2, n=
     return obs_data
 
 
-def pauli_label_to_array(pauli: PauliLabel) -> Sequence[Sequence[Sequence[int]]]:
-    index_list, pauli_id_list = pauli.index_and_pauli_id_list
+def pauli_label_to_array(
+    pauli: PauliLabel, index_list: Optional[Sequence[int]]
+) -> Sequence[Sequence[Sequence[int]]]:
+    """Convert a :class:`~PauliLabel` to a numpy array.
+
+    If this function is used to convert a :class:`~PauliLabel` belonging
+    to an :class:`~Operator`, then an index_list, describing all of the
+    indices acted on by the :class:`~Operator`, should be passed as an
+    argument. The returned array will then be padded with identity
+    operators where needed.
+    """
+    if index_list is None:
+        index_list, pauli_id_list = pauli.index_and_pauli_id_list
+        this_index_list = index_list
+    else:
+        this_index_list, pauli_id_list = pauli.index_and_pauli_id_list
     data_list = list(map(_PAULI_OPERATOR_DATA_MAP.get, pauli_id_list))
-    lq = index_list[0]
-    rq = index_list[-1]
-    nq = rq - lq + 1
-    if not len(index_list) == nq:
-        for i in range(lq, rq + 1):
-            if i not in index_list:
-                data_list.insert(i - lq, _PAULI_OPERATOR_DATA_MAP[0])
+    nq = len(index_list)
+    if this_index_list != index_list:
+        for i, q in enumerate(index_list):
+            if q not in this_index_list:
+                data_list.insert(i, _PAULI_OPERATOR_DATA_MAP[0])
 
     array = get_observable_data(data_list, dim=2, n=nq)
 
     return array
 
 
-def operator_to_tensor(
-    operator: Union[Operator, PauliLabel], qubit_count: int
-) -> TensorNetworkLayer:
+def operator_to_tensor(operator: Union[Operator, PauliLabel]) -> TensorNetworkOperator:
     """Convert an :class:`~Operator` or a :class:`~PauliLabel` to a
     :class:`~TensorNetworkLayer`.
 
@@ -77,27 +86,37 @@ def operator_to_tensor(
         Operator as a :class:`~TensorNetworkLayer`
     """
     if isinstance(operator, PauliLabel):
+        qubit_count = len(operator.qubit_indices())
         data = pauli_label_to_array(operator)
-    assert isinstance(operator, Operator)
-
-    data = sum(
-        map(
-            lambda p, c: pauli_label_to_array(p) * c, operator.keys(), operator.values()
+    else:
+        assert isinstance(operator, Operator)
+        indices_list = [{i for i in p.qubit_indices()} for p in operator.keys()]
+        all_indices = set()
+        for i in indices_list:
+            all_indices.update(i)
+        qubit_count = len(all_indices)
+        data = sum(
+            map(
+                lambda p, c: pauli_label_to_array(p, all_indices) * c,
+                operator.keys(),
+                operator.values(),
+            )
         )
-    )
 
     op = Node(data)
-    tensor = TensorNetworkLayer(op[:qubit_count], op[qubit_count:], {op})
+    tensor = TensorNetworkOperator(
+        all_indices, op[:qubit_count], op[qubit_count:], {op}
+    )
 
     return tensor
 
 
-def mpo_from_tensor(
-    operator: TensorNetworkLayer,
+def tensor_to_mpo(
+    operator: TensorNetworkOperator,
     max_bond_dimension: Optional[int] = None,
     max_truncation_err: Optional[float] = None,
     qubits_per_node: int = 1,
-) -> TensorNetworkLayer:
+) -> TensorNetworkOperator:
     """Perform the singular value decomposition on an operator represented
     using :class:`~TensorNetworkLayer` and return the matrix product operator
     (MPO) as a :class:`~TensorNetworkLayer`
@@ -134,59 +153,9 @@ def mpo_from_tensor(
         nodes.add(left_node)
     nodes.add(right_node)
 
-    return TensorNetworkLayer(operator_copy.input_edges, operator_copy.output_edges, nodes)
-
-
-import tensornetwork as tn
-from quri_parts.core.operator import Operator, PauliLabel, pauli_label
-from quri_parts.circuit import QuantumCircuit
-from quri_parts.core.state import GeneralCircuitQuantumState
-from quri_parts.tensornetwork.circuit import convert_state, TensorNetworkState
-from quri_parts.core.estimator import Estimate
-
-
-def tensor_network_estimate(
-    operator: TensorNetworkLayer, state: TensorNetworkState
-) -> Estimate:
-    copy_state = state.copy()
-    conj_state = state.conjugate()
-    copy_operator = operator.copy()
-
-    for e, f, g, h in zip(
-        copy_state.edges,
-        copy_operator.input_edges,
-        copy_operator.output_edges,
-        conj_state.edges,
-    ):
-        e ^ f
-        g ^ h
-
-    contracted_node = tn.contractors.optimal(
-        copy_state._container.union(
-            conj_state._container.union(copy_operator._container)
-        )
+    return TensorNetworkOperator(
+        operator_copy.index_list,
+        operator_copy.input_edges,
+        operator_copy.output_edges,
+        nodes,
     )
-
-    return contracted_node.tensor
-
-
-def main():
-    operator = Operator(
-        {
-            pauli_label("Z0"): 1.0,
-            pauli_label("Z1"): 1.0,
-        }
-    )
-    tensor = operator_to_tensor(operator, 2)
-    mpo = mpo_from_tensor(tensor)
-    circuit = QuantumCircuit(2)
-    circuit.add_H_gate(0)
-    circuit.add_H_gate(1)
-    state = GeneralCircuitQuantumState(circuit.qubit_count, circuit)
-    tn_state = convert_state(state)
-    estimate = tensor_network_estimate(mpo, tn_state)
-    print(estimate)
-
-
-if __name__ == "__main__":
-    main()
