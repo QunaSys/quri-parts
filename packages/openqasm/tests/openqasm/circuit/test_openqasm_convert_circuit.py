@@ -11,7 +11,6 @@
 import io
 
 from quri_parts.circuit import QuantumCircuit, gates
-
 from quri_parts.openqasm.circuit import convert_gate_to_qasm_line, convert_to_qasm
 
 
