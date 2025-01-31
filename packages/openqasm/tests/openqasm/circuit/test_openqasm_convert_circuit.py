@@ -11,6 +11,7 @@
 import io
 
 from quri_parts.circuit import QuantumCircuit, gates
+
 from quri_parts.openqasm.circuit import convert_gate_to_qasm_line, convert_to_qasm
 
 
@@ -124,8 +125,10 @@ class TestConvertToQasm:
         expected = """OPENQASM 3;
 include "stdgates.inc";
 qubit[7] q;
+bit[7] c;
 
 x q[0];
-z q[6];"""
+z q[6];
+c = measure q;"""
 
         assert actual == expected
