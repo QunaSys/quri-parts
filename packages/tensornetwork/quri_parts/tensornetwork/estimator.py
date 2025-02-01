@@ -10,17 +10,19 @@
 
 from typing import NamedTuple
 
-import tensornetwork as tn
-
 from quri_parts.core.estimator import Estimate, QuantumEstimator
 from quri_parts.core.operator import Operator, PauliLabel
 from quri_parts.core.state import GeneralCircuitQuantumState
-from quri_parts.tensornetwork.circuit import (
-    TensorNetworkLayer,
-    TensorNetworkOperator,
+
+import tensornetwork as tn
+from quri_parts.tensornetwork.state import (
     TensorNetworkState,
     convert_state,
 )
+from quri_parts.tensornetwork.operator import (
+    TensorNetworkOperator,
+)
+
 from quri_parts.tensornetwork.operator import operator_to_tensor, tensor_to_mpo
 
 
@@ -69,7 +71,8 @@ def create_tensornetwork_estimator(
     Args:
         backend - the computational backend to use. Currently supports numpy.
         max_bond_dimension - the bond dimension of the MPO
-        max_truncation_error - the maximum allowed truncation error when performing the SVD on the MPO
+        max_truncation_error - the maximum allowed truncation error when
+            performing the SVD on the MPO
     """
 
     def estimate(

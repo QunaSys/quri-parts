@@ -8,14 +8,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Iterable, Sequence
+from collections.abc import Sequence
+from copy import copy
 from typing import Optional, Union
 
 import numpy as np
-from tensornetwork import Node, NodeCollection, split_node, split_node_full_svd
+from quri_parts.core.operator import Operator, PauliLabel
 
-from quri_parts.core.operator import Operator, PauliLabel, pauli_label
-from quri_parts.tensornetwork.circuit import TensorNetworkLayer, TensorNetworkOperator
+import tensornetwork as tn
+from quri_parts.tensornetwork.circuit import TensorNetworkLayer
+from tensornetwork import (
+    AbstractNode,
+    Edge,
+    Node,
+    split_node,
+)
 
 _PAULI_OPERATOR_DATA_MAP = {
     0: [[1, 0], [0, 1]],
@@ -23,6 +30,44 @@ _PAULI_OPERATOR_DATA_MAP = {
     2: [[0, 1j], [-1j, 0]],
     3: [[1, 0], [0, -1]],
 }
+
+
+class TensorNetworkOperator(TensorNetworkLayer):
+    """Tensor network representation of a operators.
+
+    This class subclasses :class:`~TensorNetworkLayer` and provides, in
+    addition to input and output edges for the operator, also a list of
+    indices that the operator acts on. These indices are defined with
+    respect to some quantum state that the operator is intended to act
+    on. The intent is to allow for certain optimizations with tensor
+    contraction.
+    """
+
+    def __init__(
+        self,
+        index_list: Sequence[int],
+        input_edges: Sequence[Edge],
+        output_edges: Sequence[Edge],
+        container: set[AbstractNode] | list[AbstractNode],
+    ):
+        self.index_list = index_list
+        super().__init__(input_edges, output_edges, container)
+
+    def copy(self) -> "TensorNetworkOperator":
+        """Returns a copy of itself."""
+        operator_node_mapping, operator_edge_mapping = tn.copy(
+            self._container, conjugate=False
+        )
+        operator_nodes = {operator_node_mapping[n] for n in self._container}
+        operator_input_edges = [operator_edge_mapping[e] for e in self.input_edges]
+        operator_output_edges = [operator_edge_mapping[e] for e in self.output_edges]
+
+        return TensorNetworkOperator(
+            copy(self.index_list),
+            operator_input_edges,
+            operator_output_edges,
+            operator_nodes,
+        )
 
 
 def _kron(pauli_list: Sequence[Sequence[Sequence[int]]]):
@@ -77,13 +122,13 @@ def pauli_label_to_array(
 
 def operator_to_tensor(operator: Union[Operator, PauliLabel]) -> TensorNetworkOperator:
     """Convert an :class:`~Operator` or a :class:`~PauliLabel` to a
-    :class:`~TensorNetworkLayer`.
+    :class:`~TensorNetworkOperator`.
 
     Args:
         operator: Input operator
         qubit_count: Number of qubits of that operator
     Outputs:
-        Operator as a :class:`~TensorNetworkLayer`
+        Operator as a :class:`~TensorNetworkOperator`
     """
     if isinstance(operator, PauliLabel):
         qubit_count = len(operator.qubit_indices())
@@ -127,7 +172,7 @@ def tensor_to_mpo(
         max_truncation_error: Optional specification of truncation error tolerance
         qubits_per_node: Number of physical qubits attached to each node, defaults to 1
     Outputs:
-        MPO as a :class:`~TensorNetworkLayer`
+        MPO as a :class:`~TensorNetworkOperator`
     """
     assert len(operator._container) == 1
 

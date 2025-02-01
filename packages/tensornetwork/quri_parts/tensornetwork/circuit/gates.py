@@ -12,6 +12,7 @@ from abc import ABC, abstractmethod
 from typing import Sequence
 
 import numpy as np
+
 from tensornetwork import Node
 
 _I_LIST = [[1.0, 0.0], [0.0, 1.0]]
@@ -101,7 +102,8 @@ class QuantumGate(Node, ABC):
 
 
 class SingleQubitRotationGate(QuantumGate, ABC):
-    """:class:`~SingleQubitRotationGate` class is a base class that facilitates single qubit rotation gates."""
+    """:class:`~SingleQubitRotationGate` class is a base class that facilitates
+    single qubit rotation gates."""
 
     @abstractmethod
     def rotation(self, angles) -> np.ndarray:
@@ -114,7 +116,8 @@ class SingleQubitRotationGate(QuantumGate, ABC):
 
 
 class SingleQubitPauliRotationGate(SingleQubitRotationGate, ABC):
-    """:class:`~SingleQubitPauliRotationGate` class is a base class that facilitates single qubit Pauli rotation gates."""
+    """:class:`~SingleQubitPauliRotationGate` class is a base class that
+    facilitates single qubit Pauli rotation gates."""
 
     pauli: Sequence[Sequence[complex]]
 
@@ -130,7 +133,8 @@ class SingleQubitPauliRotationGate(SingleQubitRotationGate, ABC):
 
 
 class TwoQubitGate(QuantumGate, ABC):
-    """:class:`~TwoQubitGate` class is a base class that facilitates two qubit gates."""
+    """:class:`~TwoQubitGate` class is a base class that facilitates two qubit
+    gates."""
 
     def __init__(
         self, data: Sequence[Sequence[Sequence[Sequence[complex]]]], name, backend
@@ -143,7 +147,8 @@ class TwoQubitGate(QuantumGate, ABC):
 
 
 class ThreeQubitGate(QuantumGate, ABC):
-    """:class:`~ThreeQubitGate` class is a base class that facilitates three qubit gates."""
+    """:class:`~ThreeQubitGate` class is a base class that facilitates three
+    qubit gates."""
 
     def __init__(
         self,
@@ -158,7 +163,7 @@ class ThreeQubitGate(QuantumGate, ABC):
         super().__init__(tensor, name=name, backend=backend)
 
 
-class I(QuantumGate):
+class I(QuantumGate):  # noqa: E742
     def __init__(self, backend="numpy"):
         unitary_matrix = _I_LIST
         name = "I"

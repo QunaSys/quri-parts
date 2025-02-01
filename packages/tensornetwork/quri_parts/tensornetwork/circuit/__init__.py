@@ -9,12 +9,7 @@
 # limitations under the License.
 
 from collections.abc import Mapping
-from copy import copy
 from typing import Callable, Optional, Sequence
-
-import numpy as np
-import tensornetwork as tn
-from tensornetwork import AbstractNode, Edge, NodeCollection
 
 from quri_parts.circuit import QuantumCircuit, gate_names
 from quri_parts.circuit.gate_names import (
@@ -32,9 +27,11 @@ from quri_parts.circuit.transpile import (
     PauliRotationDecomposeTranspiler,
     SequentialTranspiler,
 )
-from quri_parts.core.state import GeneralCircuitQuantumState
+
+import tensornetwork as tn
 from quri_parts.tensornetwork.circuit import gates
 from quri_parts.tensornetwork.circuit.gates import QuantumGate
+from tensornetwork import AbstractNode, Edge, NodeCollection
 
 _single_qubit_gate_tensornetwork: Mapping[SingleQubitGateNameType, str] = {
     gate_names.Identity: gates.I,
@@ -107,104 +104,6 @@ class TensorNetworkLayer(NodeCollection):
         return TensorNetworkLayer(
             circuit_input_edges, circuit_output_edges, circuit_nodes
         )
-
-
-class TensorNetworkOperator(TensorNetworkLayer):
-    """Tensor network representation of a operators.
-
-    This class subclasses :class:`~TensorNetworkLayer` and provides, in
-    addition to input and output edges for the operator, also a list of
-    indices that the operator acts on. These indices are defined with
-    respect to some quantum state that the operator is intended to act
-    on. The intent is to allow for certain optimizations with tensor
-    contraction.
-    """
-
-    def __init__(
-        self,
-        index_list: Sequence[int],
-        input_edges: Sequence[Edge],
-        output_edges: Sequence[Edge],
-        container: set[AbstractNode] | list[AbstractNode],
-    ):
-        self.index_list = index_list
-        super().__init__(input_edges, output_edges, container)
-
-    def copy(self) -> "TensorNetworkOperator":
-        """Returns a copy of itself."""
-        operator_node_mapping, operator_edge_mapping = tn.copy(
-            self._container, conjugate=False
-        )
-        operator_nodes = {operator_node_mapping[n] for n in self._container}
-        operator_input_edges = [operator_edge_mapping[e] for e in self.input_edges]
-        operator_output_edges = [operator_edge_mapping[e] for e in self.output_edges]
-
-        return TensorNetworkOperator(
-            copy(self.index_list),
-            operator_input_edges,
-            operator_output_edges,
-            operator_nodes,
-        )
-
-
-class TensorNetworkState(NodeCollection):
-    """Tensor network representation of a quantum state.
-
-    This class subclasses :class:`~NodeCollection` and provides output
-    edges for the state, each of which represents a qubit
-    """
-
-    def __init__(
-        self, edges: Sequence[Edge], container: set[AbstractNode] | list[AbstractNode]
-    ):
-        self.edges = edges
-        super().__init__(container)
-
-    def with_gates_applied(self, circuit: TensorNetworkLayer) -> "TensorNetworkState":
-        """Returns a new :class:`~TensorNetworkState` with the given
-        :class:`~TensorNetworkCircuit` applied."""
-        circuit = circuit.copy()
-        state = self.copy()
-
-        for e, f in zip(state.edges, circuit.input_edges):
-            e ^ f
-
-        node_set = state._container.union(circuit._container)
-        return TensorNetworkState(circuit.output_edges, node_set)
-
-    def copy(self) -> "TensorNetworkState":
-        """Returns a copy of itself."""
-        state_node_mapping, state_edge_mapping = tn.copy(
-            self._container, conjugate=False
-        )
-        state_nodes = {state_node_mapping[n] for n in self._container}
-        state_edges = [state_edge_mapping[e] for e in self.edges]
-
-        return TensorNetworkState(state_edges, state_nodes)
-
-    def conjugate(self) -> "TensorNetworkState":
-        """Returns a conjugated copy of itself."""
-        state_node_mapping, state_edge_mapping = tn.copy(
-            self._container, conjugate=True
-        )
-        state_nodes = {state_node_mapping[n] for n in self._container}
-        state_edges = [state_edge_mapping[e] for e in self.edges]
-
-        return TensorNetworkState(state_edges, state_nodes)
-
-
-def get_zero_state(qubit_count: int) -> TensorNetworkState:
-    """Returns the zero state for the given number of qubits."""
-    qubits = [tn.Node(np.array([1.0, 0.0])) for _ in range(qubit_count)]
-    zero_state_edges = [q[0] for q in qubits]
-    return TensorNetworkState(zero_state_edges, qubits)
-
-
-def convert_state(state: GeneralCircuitQuantumState) -> TensorNetworkState:
-    qubit_count = state.qubit_count
-    zero_state = get_zero_state(qubit_count)
-    state_circuit = convert_circuit(state.circuit)
-    return zero_state.with_gates_applied(state_circuit)
 
 
 def convert_circuit(
