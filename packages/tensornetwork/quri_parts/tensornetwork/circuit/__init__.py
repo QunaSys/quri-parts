@@ -49,10 +49,13 @@ _single_qubit_gate_tensornetwork: Mapping[SingleQubitGateNameType, str] = {
     gate_names.Tdag: gates.Tdag,
 }
 
-_single_qubit_rotation_gate_tensornetwork: Mapping[SingleQubitGateNameType, str] = {
+_single_qubit_pauli_rotation_gate_tensornetwork: Mapping[SingleQubitGateNameType, str] = {
     gate_names.RX: gates.Rx,
     gate_names.RY: gates.Ry,
     gate_names.RZ: gates.Rz,
+}
+
+_single_qubit_rotation_gate_tensornetwork: Mapping[SingleQubitGateNameType, str] = {
     gate_names.U1: gates.U1,
     gate_names.U2: gates.U2,
     gate_names.U3: gates.U3,
@@ -144,13 +147,17 @@ def convert_circuit(
             if gate.name in _single_qubit_gate_tensornetwork:
                 node = _single_qubit_gate_tensornetwork[gate.name]()
                 node_collection.add(node)
-            elif gate.name in _single_qubit_rotation_gate_tensornetwork:
+            elif gate.name in _single_qubit_pauli_rotation_gate_tensornetwork:
                 if len(gate.params) == 1:
-                    node = _single_qubit_rotation_gate_tensornetwork[gate.name](
+                    node = _single_qubit_pauli_rotation_gate_tensornetwork[gate.name](
                         gate.params[0]
                     )
                 else:
                     raise ValueError("Invalid number of parameters.")
+            elif gate.name in _single_qubit_rotation_gate_tensornetwork:
+                node = _single_qubit_pauli_rotation_gate_tensornetwork[gate.name](
+                    gate.params
+                )
                 node_collection.add(node)
             else:
                 raise ValueError(f"{gate.name} gate is not supported.")
