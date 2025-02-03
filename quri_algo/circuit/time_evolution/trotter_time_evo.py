@@ -100,8 +100,8 @@ def get_trotter_time_evolution_operator(
 class FixedStepTrotterTimeEvolutionCircuitFactory(
     TimeEvolutionCircuitFactory[QubitHamiltonianInput]
 ):
-    """Factory for generating a fixed Trotter step Trotter time evolution
-    circuit based on a qubit Hamiltonian.
+    """Factory for generating a Trotter time evolution circuit with a fixed
+    number Trotter steps. circuit based on a qubit Hamiltonian.
 
     Args:
         encoded_problem: A :class:`QubitHamiltonianInput`.
@@ -189,8 +189,8 @@ def get_trotter_controlled_time_evolution_operator(
 class FixedStepTrotterControlledTimeEvolutionCircuitFactory(
     ControlledTimeEvolutionCircuitFactory[QubitHamiltonianInput]
 ):
-    """Factory for generating a fixed Trotter step Trotter controlled time
-    evolution circuit based on a qubit Hamiltonian.
+    """Factory for generating a Trotter controlled time evolution circuit with
+    a fixed number Trotter steps. circuit based on a qubit Hamiltonian.
 
     Args:
         encoded_problem: A :class:`QubitHamiltonianInput`.
@@ -265,14 +265,14 @@ class TrotterPartialTimeEvolutionCircuitFactory(PartialTimeEvolutionCircuitFacto
 def get_evolution_trotter_step(
     time_step: float, evolution_time: float
 ) -> tuple[int, int]:
-    """Computes the number of repitiotions needed to implement a Trotter
+    """Computes the number of repititions needed to implement a Trotter
     (controlled) time evolution circuit."""
     assert time_step > 0, "time step must be greater than 0."
     step = np.abs(evolution_time) / time_step
     if not np.isclose(np.round(step, 12), int(step)):
         raise ValueError(
             f"Evolution time {evolution_time} is not an integer "
-            f"muliple of time step {time_step}."
+            f"multiple of time step {time_step}."
         )
     return int(np.round(step, 12)), int(np.sign(evolution_time))
 
