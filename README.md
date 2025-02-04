@@ -10,7 +10,9 @@ To get an overview of QURI Algo, we recommend checking out the tutorials.
 
 ## Getting started
 
-Presently QURI Algo requires Python 3.11.1 or later. We recommend installing QURI Algo in a virtual environment using poetry. First make sure to upgrade your pip and virtualenv package. Then create a virtual environment, activate it and within it install poetry
+Presently QURI Algo requires Python 3.11.1 or later. We recommend installing QURI Algo in a virtual environment using poetry or pip directly.
+
+For the poetry installation, first make sure to upgrade your pip and virtualenv package. Then create a virtual environment, activate it and within it install poetry
 
 ```
 $ python -m .venv
@@ -18,16 +20,16 @@ $ source .venv/bin/activate
 (.venv)$ python -m pip install poetry
 ```
 
-Then use poetry to install dependencies. If you want to use the circuit cost estimator use
-
-```
-(.venv)$ python -m poetry install --with cost-estimator
-```
-
-otherwise
+Then use poetry to install dependencies.
 
 ```
 (.venv)$ python -m poetry install
+```
+
+Otherwise you can install the requirements from the requirements.txt file as
+
+```
+(.venv)$ pip install -r requirements.txt
 ```
 
 ## Documentation
