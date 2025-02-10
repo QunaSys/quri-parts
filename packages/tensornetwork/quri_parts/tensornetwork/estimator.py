@@ -54,7 +54,7 @@ def tensor_network_estimate(
         else:
             e ^ h
 
-    contracted_node = tn.contractors.optimal(
+    contracted_node = tn.contractors.greedy(
         copy_state._container.union(
             conj_state._container.union(copy_operator._container)
         )
@@ -97,17 +97,29 @@ def create_tensornetwork_estimator(
 
 from quri_parts.core.operator import pauli_label
 from quri_parts.core.state import ComputationalBasisState
+from tqdm import trange
 
+def xxz_heisenberg_model(n: int, j_x: float, j_z: float) -> Operator:
+    operator = Operator()
+    for i in range(n - 1):
+        operator.add_term(pauli_label(f"X{i} X{(i + 1)}"), j_x)
+        operator.add_term(pauli_label(f"Y{i} Y{(i + 1)}"), j_x)
+        operator.add_term(pauli_label(f"Z{i} Z{(i + 1)}"), j_z)
+    return operator
 
 def main():
-    operator = pauli_label("Z0 Z1 Z2")
-    # operator = Operator({operator: 1.0})
-    state = ComputationalBasisState(6, bits=0b110011)
-    estimator = create_tensornetwork_estimator(max_bond_dimension=1)
+    N_ESTIMATES = 100
+    N_MAX_QUBITS = 12
+    MPO = True
 
-    estimate = estimator(operator, state)
+    for i in range(2,N_MAX_QUBITS+1):
+        for _ in trange(N_ESTIMATES):
 
-    print(estimate.value)
+            operator = xxz_heisenberg_model(i, 1.0, 0.65)
+            state = ComputationalBasisState(i, bits=0)
+            estimator = create_tensornetwork_estimator(matrix_product_operator=MPO)
+
+            _estimate = estimator(operator, state)
 
 
 if __name__ == "__main__":

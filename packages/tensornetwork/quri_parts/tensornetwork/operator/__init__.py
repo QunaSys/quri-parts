@@ -10,7 +10,7 @@
 
 from collections.abc import Sequence
 from copy import copy
-from typing import Optional, Union, TypeAlias, Any
+from typing import Optional, Union, TypeAlias, Any, Iterable
 
 import numpy as np
 from quri_parts.core.operator import Operator, PauliLabel
@@ -236,5 +236,7 @@ def operator_to_tensor(
 
     if convert_to_mpo:
         tensor = tensor_to_mpo(tensor, *args, **kwargs)
+    
+    cache[op_key] = tensor
 
     return tensor
