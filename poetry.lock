@@ -4117,7 +4117,7 @@ develop = true
 [package.dependencies]
 quri-parts-circuit = "*"
 quri-parts-core = "*"
-tensornetwork = "^0.4.6"
+tensornetwork-ng = "^0.5.1"
 
 [package.source]
 type = "directory"
@@ -4903,14 +4903,14 @@ mpmath = ">=1.1.0,<1.4"
 dev = ["hypothesis (>=6.70.0)", "pytest (>=7.1.0)"]
 
 [[package]]
-name = "tensornetwork"
-version = "0.4.6"
+name = "tensornetwork-ng"
+version = "0.5.1"
 description = "A high level tensor network API for accelerated tensor network calculations."
 optional = false
 python-versions = ">=3.7.0"
 files = [
-    {file = "tensornetwork-0.4.6-py3-none-any.whl", hash = "sha256:33f777ea6b9579d010806b3a1ef02f4f9ff5f0707f0ceb681591ee6eb7a01b03"},
-    {file = "tensornetwork-0.4.6.tar.gz", hash = "sha256:c5af810bf6c2480e1b1f3d98ccf262c5ffb5c3c513be6611f4fdd2258bbc7704"},
+    {file = "tensornetwork_ng-0.5.1-py3-none-any.whl", hash = "sha256:d9479a8fc35c14aac327b1aba345672fe1e303ae88ed8d5c896c79a429a59afd"},
+    {file = "tensornetwork_ng-0.5.1.tar.gz", hash = "sha256:b123073969c3a5440bc364f7a0c1e428b19d3b7c0c7b4c7e6aa2e936bd7dbaf3"},
 ]
 
 [package.dependencies]

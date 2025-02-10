@@ -49,7 +49,9 @@ _single_qubit_gate_tensornetwork: Mapping[SingleQubitGateNameType, str] = {
     gate_names.Tdag: gates.Tdag,
 }
 
-_single_qubit_pauli_rotation_gate_tensornetwork: Mapping[SingleQubitGateNameType, str] = {
+_single_qubit_pauli_rotation_gate_tensornetwork: Mapping[
+    SingleQubitGateNameType, str
+] = {
     gate_names.RX: gates.Rx,
     gate_names.RY: gates.Ry,
     gate_names.RZ: gates.Rz,
@@ -183,7 +185,12 @@ def convert_circuit(
             connect_gate(node, indices, 3)
 
     for m in in_out_map:
-        assert m["in"] is not None and m["out"] is not None
+        if m["in"] is None or m["out"] is None:
+            assert m["in"] is None and m["out"] is None
+            node = gates.I()
+            m["in"] = node[0]
+            m["out"] = node[1]
+            node_collection.add(node)
 
     input_edges = [m["in"] for m in in_out_map]
     output_edges = [m["out"] for m in in_out_map]

@@ -28,7 +28,7 @@ style = "pep440"
 python = "^3.9.8"
 quri-parts-circuit = "*"
 quri-parts-core = "*"
-tensornetwork = "^0.4.6"
+tensornetwork-ng = "^0.5.1"
 
 [tool.poetry.group.dev.dependencies]
 quri-parts-circuit = {path = "../circuit", develop = true}

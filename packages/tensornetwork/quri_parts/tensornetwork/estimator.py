@@ -37,16 +37,18 @@ def tensor_network_estimate(
     copy_state = state.copy()
     conj_state = state.conjugate()
     copy_operator = operator.copy()
+    operator_ordered_indices = sorted(list(operator.index_list))
 
-    for i, (e, f, g, h) in enumerate(
+    for i, (e, h) in enumerate(
         zip(
             copy_state.edges,
-            copy_operator.input_edges,
-            copy_operator.output_edges,
             conj_state.edges,
         )
     ):
         if i in operator.index_list:
+            indx = operator_ordered_indices.index(i)
+            f = copy_operator.input_edges[indx]
+            g = copy_operator.output_edges[indx]
             e ^ f
             g ^ h
         else:
@@ -64,7 +66,10 @@ def tensor_network_estimate(
 
 
 def create_tensornetwork_estimator(
-    backend="numpy", max_bond_dimension=None, max_truncation_error=None
+    backend="numpy",
+    matrix_product_operator=True,
+    max_bond_dimension=None,
+    max_truncation_err=None,
 ) -> QuantumEstimator:
     """This creates an estimator using the tensornetwork backend.
 
@@ -78,9 +83,32 @@ def create_tensornetwork_estimator(
     def estimate(
         operator: Operator | PauliLabel, state: GeneralCircuitQuantumState
     ) -> Estimate:
-        tn_operator = operator_to_tensor(operator)
-        mpo = tensor_to_mpo(tn_operator, max_bond_dimension, max_truncation_error)
+        tn_operator = operator_to_tensor(
+            operator,
+            convert_to_mpo=matrix_product_operator,
+            max_bond_dimension=max_bond_dimension,
+            max_truncation_err=max_truncation_err,
+        )
         tn_circuit = convert_state(state)
-        return tensor_network_estimate(mpo, tn_circuit)
+        return tensor_network_estimate(tn_operator, tn_circuit)
 
     return estimate
+
+
+from quri_parts.core.operator import pauli_label
+from quri_parts.core.state import ComputationalBasisState
+
+
+def main():
+    operator = pauli_label("Z0 Z1 Z2")
+    # operator = Operator({operator: 1.0})
+    state = ComputationalBasisState(6, bits=0b110011)
+    estimator = create_tensornetwork_estimator(max_bond_dimension=1)
+
+    estimate = estimator(operator, state)
+
+    print(estimate.value)
+
+
+if __name__ == "__main__":
+    main()
