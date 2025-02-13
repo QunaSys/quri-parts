@@ -13,17 +13,23 @@ import numpy as np
 from quri_parts.core.sampling import Sampler, MeasurementCounts
 from quri_parts.core.state import GeneralCircuitQuantumState
 from quri_parts.circuit import QuantumCircuit
-from quri_parts.tensornetwork.state import TensorNetworkState, convert_state
+from quri_parts.tensornetwork.state import convert_state
 
 
-def tensor_network_sample(circuit: QuantumCircuit, shots: int) -> MeasurementCounts:
-    """Returns the probabilities multiplied by the specific shot count."""
+def tensor_network_state_probabilities(circuit: QuantumCircuit) -> MeasurementCounts:
+    """Returns the probabilities of the state."""
     state = GeneralCircuitQuantumState(circuit.qubit_count, circuit)
     tensor_network_state = convert_state(state)
     tensor_network_state = tensor_network_state.contract()
 
     tensor = np.reshape(tensor_network_state._container.pop().tensor, (2**circuit.qubit_count))
     probabilities = np.abs(tensor)**2
+    return probabilities
+
+
+def tensor_network_sample(circuit: QuantumCircuit, shots: int) -> MeasurementCounts:
+    """Returns the probabilities multiplied by the specific shot count."""
+    probabilities = tensor_network_state_probabilities(circuit)
     samples = {b: shots*probabilities[b] for b in range(2**circuit.qubit_count)}
 
     return samples
