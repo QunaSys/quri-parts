@@ -67,7 +67,7 @@ class TensorNetworkState(NodeCollection):
         """Returns a copy of self after contracting internal tensor network."""
         copy = self.copy()
         node = tn.contractors.greedy(copy._container, output_edge_order=copy.edges)
-        
+
         return TensorNetworkState(copy.edges, {node})
 
 

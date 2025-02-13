@@ -144,7 +144,7 @@ def convert_circuit(
     for gate in circuit.gates:
         if not is_gate_name(gate.name):
             raise ValueError(f"Unknown gate name: {gate.name}")
-        
+
         if gate.name == "Identity":
             continue
 
@@ -187,7 +187,8 @@ def convert_circuit(
             indices = gate.control_indices + gate.target_indices
             connect_gate(node, indices, 3)
 
-    # This ensures that all qubits in the circuit are represented, but maybe we should change classes so that we don't need it.
+    # This ensures that all qubits in the circuit are represented, but maybe we should
+    # change some classes so that we don't need it.
     for m in in_out_map:
         if m["in"] is None or m["out"] is None:
             assert m["in"] is None and m["out"] is None

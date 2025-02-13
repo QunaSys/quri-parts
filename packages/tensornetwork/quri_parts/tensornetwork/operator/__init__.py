@@ -10,19 +10,14 @@
 
 from collections.abc import Sequence
 from copy import copy
-from typing import Optional, Union, TypeAlias, Any, Iterable
+from typing import Any, Optional, TypeAlias, Union
 
 import numpy as np
 from quri_parts.core.operator import Operator, PauliLabel
 
 import tensornetwork as tn
 from quri_parts.tensornetwork.circuit import TensorNetworkLayer
-from tensornetwork import (
-    AbstractNode,
-    Edge,
-    Node,
-    split_node,
-)
+from tensornetwork import AbstractNode, Edge, Node, split_node
 
 _PAULI_OPERATOR_DATA_MAP = {
     0: [[1, 0], [0, 1]],
@@ -119,9 +114,11 @@ def pauli_label_to_array(
             if q not in this_index_list:
                 this_index_list.append(q)
                 pauli_id_list.append(0)
-    
+
     index_pauli_id_map = {q: p for q, p in zip(this_index_list, pauli_id_list)}
-    sorted_index_list = sorted(this_index_list, reverse=True)  # Reverse qubit ordering needed
+    sorted_index_list = sorted(
+        this_index_list, reverse=True
+    )  # Reverse qubit ordering needed
     sorted_pauli_id_list = [index_pauli_id_map[q] for q in sorted_index_list]
     data_list = list(map(_PAULI_OPERATOR_DATA_MAP.get, sorted_pauli_id_list))
 
@@ -241,7 +238,7 @@ def operator_to_tensor(
 
     if convert_to_mpo:
         tensor = tensor_to_mpo(tensor, *args, **kwargs)
-    
+
     if op_key not in cache:
         cache[op_key] = tensor.copy()
 
