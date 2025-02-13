@@ -14,13 +14,17 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 from quri_parts.core.state import GeneralCircuitQuantumState, ComputationalBasisState
 from quri_parts.circuit import QuantumCircuit
-from quri_parts.circuit.gates import X, Y, Z, H, CNOT, CZ, SWAP, TOFFOLI
+from quri_parts.circuit.gates import X, Y, Z, H, CNOT, CZ, SWAP, TOFFOLI, S
 from quri_parts.tensornetwork.state import convert_state, convert_circuit
 
 circuit_tensor_pairs = [
     (
         QuantumCircuit(2, gates=[H(0), CNOT(0, 1)]),
         np.array([[1 / np.sqrt(2), 0.0], [0.0, 1 / np.sqrt(2)]]),
+    ),
+    (
+        QuantumCircuit(2, gates=[H(0), H(1), S(1)]),
+        np.array([[1 / 2, 1j / 2], [1 / 2, 1j / 2]]),
     ),
     (
         QuantumCircuit(2, gates=[H(0), CNOT(0, 1), Y(0)]),

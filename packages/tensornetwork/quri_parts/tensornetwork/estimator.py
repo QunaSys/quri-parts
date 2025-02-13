@@ -35,7 +35,7 @@ def tensor_network_estimate(
     operator: TensorNetworkOperator, state: TensorNetworkState
 ) -> Estimate:
     copy_state = state.copy()
-    conj_state = state.conjugate()
+    conj_state = copy_state.conjugate()
     copy_operator = operator.copy()
     operator_ordered_indices = sorted(list(operator.index_list))
 
@@ -89,14 +89,16 @@ def create_tensornetwork_estimator(
             max_bond_dimension=max_bond_dimension,
             max_truncation_err=max_truncation_err,
         )
-        tn_circuit = convert_state(state)
-        return tensor_network_estimate(tn_operator, tn_circuit)
+        tn_state = convert_state(state)
+        return tensor_network_estimate(tn_operator, tn_state)
 
     return estimate
 
 
 from quri_parts.core.operator import pauli_label
-from quri_parts.core.state import ComputationalBasisState
+from quri_parts.core.state import ComputationalBasisState, GeneralCircuitQuantumState
+from quri_parts.circuit.gates import H, S
+from quri_parts.circuit import QuantumCircuit
 from tqdm import trange
 
 def xxz_heisenberg_model(n: int, j_x: float, j_z: float) -> Operator:
@@ -107,20 +109,31 @@ def xxz_heisenberg_model(n: int, j_x: float, j_z: float) -> Operator:
         operator.add_term(pauli_label(f"Z{i} Z{(i + 1)}"), j_z)
     return operator
 
-def main():
+def main_heisenberg_benchmark():
     N_ESTIMATES = 100
     N_MAX_QUBITS = 12
-    MPO = True
+    MPO = False
 
     for i in range(2,N_MAX_QUBITS+1):
         for _ in trange(N_ESTIMATES):
 
             operator = xxz_heisenberg_model(i, 1.0, 0.65)
-            state = ComputationalBasisState(i, bits=0)
-            estimator = create_tensornetwork_estimator(matrix_product_operator=MPO)
+            circuit = QuantumCircuit(i, gates=[H(j) for j in range(i)])
+            state = GeneralCircuitQuantumState(i, circuit)
+            estimator = create_tensornetwork_estimator(matrix_product_operator=MPO, max_bond_dimension=4)
 
             _estimate = estimator(operator, state)
+        # print(_estimate)
+
+
+def main():
+    circuit = QuantumCircuit(3, gates=[H(0), H(2), S(2)])
+    state = GeneralCircuitQuantumState(3, circuit)
+    operator = pauli_label("X0 Z1 Y2")
+    estimator = create_tensornetwork_estimator(matrix_product_operator=False, max_bond_dimension=2)
+    estimate = estimator(operator, state)
+    print(estimate)
 
 
 if __name__ == "__main__":
-    main()
+    main_heisenberg_benchmark()

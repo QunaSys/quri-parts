@@ -113,12 +113,17 @@ def pauli_label_to_array(
         index_list = set(this_index_list)
     else:
         this_index_list, pauli_id_list = pauli.index_and_pauli_id_list
-    data_list = list(map(_PAULI_OPERATOR_DATA_MAP.get, pauli_id_list))
     nq = len(index_list)
     if this_index_list != index_list:
-        for i, q in enumerate(index_list):
+        for q in index_list:
             if q not in this_index_list:
-                data_list.insert(i, _PAULI_OPERATOR_DATA_MAP[0])
+                this_index_list.append(q)
+                pauli_id_list.append(0)
+    
+    index_pauli_id_map = {q: p for q, p in zip(this_index_list, pauli_id_list)}
+    sorted_index_list = sorted(this_index_list, reverse=True)  # Reverse qubit ordering needed
+    sorted_pauli_id_list = [index_pauli_id_map[q] for q in sorted_index_list]
+    data_list = list(map(_PAULI_OPERATOR_DATA_MAP.get, sorted_pauli_id_list))
 
     array = get_observable_data(data_list, dim=2, n=nq)
 
@@ -208,7 +213,7 @@ def operator_to_tensor(
     else:
         cache = _operator_cache
     if op_key in cache:
-        return cache[op_key]
+        return cache[op_key].copy()
 
     if isinstance(operator, PauliLabel):
         qubit_count = len(operator.qubit_indices())
@@ -237,6 +242,7 @@ def operator_to_tensor(
     if convert_to_mpo:
         tensor = tensor_to_mpo(tensor, *args, **kwargs)
     
-    cache[op_key] = tensor
+    if op_key not in cache:
+        cache[op_key] = tensor.copy()
 
     return tensor

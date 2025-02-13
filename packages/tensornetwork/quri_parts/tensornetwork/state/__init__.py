@@ -63,6 +63,13 @@ class TensorNetworkState(NodeCollection):
 
         return TensorNetworkState(state_edges, state_nodes)
 
+    def contract(self, method: str = "greedy") -> "TensorNetworkState":
+        """Returns a copy of self after contracting internal tensor network."""
+        copy = self.copy()
+        node = tn.contractors.greedy(copy._container, output_edge_order=copy.edges)
+        
+        return TensorNetworkState(copy.edges, {node})
+
 
 def get_zero_state(qubit_count: int) -> TensorNetworkState:
     """Returns the zero state for the given number of qubits."""
