@@ -10,12 +10,10 @@
 
 from numpy.testing import assert_almost_equal
 
-from quri_parts.core.operator import pauli_label, Operator
-from quri_parts.core.state import GeneralCircuitQuantumState, ComputationalBasisState
 from quri_parts.circuit import QuantumCircuit
-from quri_parts.tensornetwork.estimator import (
-    create_tensornetwork_estimator,
-)
+from quri_parts.core.operator import Operator, pauli_label
+from quri_parts.core.state import ComputationalBasisState, GeneralCircuitQuantumState
+from quri_parts.tensornetwork.estimator import create_tensornetwork_estimator
 
 
 class TestTensorNetworkEstimator:
@@ -64,7 +62,7 @@ class TestTensorNetworkEstimator:
                 pauli_label("Z0 Z2 Z4"): 0.25,
                 pauli_label(
                     "Z1 Z2 Z3"
-                ): 0.5j,  # tensor conversion may have reversed the order of the qubits (compare to qulacs)
+                ): 0.5j,
             }
         )
         estimator = create_tensornetwork_estimator(matrix_product_operator=True)

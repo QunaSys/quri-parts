@@ -11,11 +11,11 @@
 from typing import Sequence
 
 import numpy as np
-from quri_parts.core.state import GeneralCircuitQuantumState
-
 import tensornetwork as tn
-from quri_parts.tensornetwork.circuit import TensorNetworkLayer, convert_circuit
 from tensornetwork import AbstractNode, Edge, NodeCollection
+
+from quri_parts.core.state import GeneralCircuitQuantumState
+from quri_parts.tensornetwork.circuit import TensorNetworkLayer, convert_circuit
 
 
 class TensorNetworkState(NodeCollection):

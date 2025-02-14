@@ -13,11 +13,11 @@ from copy import copy
 from typing import Any, Optional, TypeAlias, Union
 
 import numpy as np
-from quri_parts.core.operator import Operator, PauliLabel
-
 import tensornetwork as tn
-from quri_parts.tensornetwork.circuit import TensorNetworkLayer
 from tensornetwork import AbstractNode, Edge, Node, split_node
+
+from quri_parts.core.operator import Operator, PauliLabel
+from quri_parts.tensornetwork.circuit import TensorNetworkLayer
 
 _PAULI_OPERATOR_DATA_MAP = {
     0: [[1, 0], [0, 1]],

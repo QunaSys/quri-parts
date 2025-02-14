@@ -11,6 +11,9 @@
 from collections.abc import Mapping
 from typing import Callable, Optional, Sequence
 
+import tensornetwork as tn
+from tensornetwork import AbstractNode, Edge, NodeCollection
+
 from quri_parts.circuit import QuantumCircuit, gate_names
 from quri_parts.circuit.gate_names import (
     SingleQubitGateNameType,
@@ -27,11 +30,8 @@ from quri_parts.circuit.transpile import (
     PauliRotationDecomposeTranspiler,
     SequentialTranspiler,
 )
-
-import tensornetwork as tn
 from quri_parts.tensornetwork.circuit import gates
 from quri_parts.tensornetwork.circuit.gates import QuantumGate
-from tensornetwork import AbstractNode, Edge, NodeCollection
 
 _single_qubit_gate_tensornetwork: Mapping[SingleQubitGateNameType, str] = {
     gate_names.Identity: gates.I,
@@ -114,7 +114,7 @@ class TensorNetworkLayer(NodeCollection):
 def convert_circuit(
     circuit: QuantumCircuit,
     transpiler: Optional[CircuitTranspiler] = TensorNetworkTranspiler(),
-) -> NodeCollection:
+) -> TensorNetworkLayer:
     """Convert an :class:`~ImmutableQuantumCircuit` to a tensornetwork
     NodeCollection.
 

@@ -8,19 +8,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensornetwork as tn
 import numpy as np
-
+import tensornetwork as tn
 from numpy.testing import assert_almost_equal
-from quri_parts.core.state import GeneralCircuitQuantumState, ComputationalBasisState
+
 from quri_parts.circuit import QuantumCircuit
-from quri_parts.circuit.gates import X, Y, Z, H, CNOT, CZ, SWAP, TOFFOLI, S
-from quri_parts.tensornetwork.state import convert_state, convert_circuit
+from quri_parts.circuit.gates import CNOT, TOFFOLI, H, S, Y
+from quri_parts.core.state import ComputationalBasisState, GeneralCircuitQuantumState
+from quri_parts.tensornetwork.state import convert_circuit, convert_state
 
 circuit_tensor_pairs = [
     (
         QuantumCircuit(2, gates=[H(0), CNOT(0, 1)]),
         np.array([[1 / np.sqrt(2), 0.0], [0.0, 1 / np.sqrt(2)]]),
+    ),
+    (
+        QuantumCircuit(2, gates=[H(0)]),
+        np.array([[1 / np.sqrt(2), 0.0], [1 / np.sqrt(2), 0.0]]),
     ),
     (
         QuantumCircuit(2, gates=[H(0), H(1), S(1)]),

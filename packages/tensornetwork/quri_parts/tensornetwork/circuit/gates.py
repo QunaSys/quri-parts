@@ -12,7 +12,6 @@ from abc import ABC, abstractmethod
 from typing import Sequence
 
 import numpy as np
-
 from tensornetwork import Node
 
 _I_LIST = [[1.0, 0.0], [0.0, 1.0]]
