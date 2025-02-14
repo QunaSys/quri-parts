@@ -60,9 +60,7 @@ class TestTensorNetworkEstimator:
         operator = Operator(
             {
                 pauli_label("Z0 Z2 Z4"): 0.25,
-                pauli_label(
-                    "Z1 Z2 Z3"
-                ): 0.5j,
+                pauli_label("Z1 Z2 Z3"): 0.5j,
             }
         )
         estimator = create_tensornetwork_estimator(matrix_product_operator=True)

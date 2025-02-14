@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from collections.abc import Mapping
-from typing import Callable, Optional, Sequence
+from typing import Callable, Optional, Sequence, Union
 
 import tensornetwork as tn
 from tensornetwork import AbstractNode, Edge, NodeCollection
@@ -91,7 +91,7 @@ class TensorNetworkLayer(NodeCollection):
         self,
         input_edges: Sequence[Edge],
         output_edges: Sequence[Edge],
-        container: set[AbstractNode] | list[AbstractNode],
+        container: Union[set[AbstractNode], list[AbstractNode]],
     ):
         self.input_edges = input_edges
         self.output_edges = output_edges

@@ -10,11 +10,12 @@
 
 from collections.abc import Sequence
 from copy import copy
-from typing import Any, Optional, TypeAlias, Union
+from typing import Any, Optional, Union
 
 import numpy as np
 import tensornetwork as tn
 from tensornetwork import AbstractNode, Edge, Node, split_node
+from typing_extensions import TypeAlias
 
 from quri_parts.core.operator import Operator, PauliLabel
 from quri_parts.tensornetwork.circuit import TensorNetworkLayer

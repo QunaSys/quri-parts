@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import NamedTuple
+from typing import NamedTuple, Union
 
 import tensornetwork as tn
 
@@ -74,7 +74,7 @@ def create_tensornetwork_estimator(
     """
 
     def estimate(
-        operator: Operator | PauliLabel, state: GeneralCircuitQuantumState
+        operator: Union[Operator, PauliLabel], state: GeneralCircuitQuantumState
     ) -> Estimate:
         tn_operator = operator_to_tensor(
             operator,
