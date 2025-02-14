@@ -1,6 +1,6 @@
 import sys
 
-collect_ignore = []
+collect_ignore: list[str] = []
 if sys.version_info < (3, 10):
     collect_ignore.extend([
         "packages/tket"
