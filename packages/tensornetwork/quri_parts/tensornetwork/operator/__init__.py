@@ -44,7 +44,7 @@ class TensorNetworkOperator(TensorNetworkLayer):
         index_list: Sequence[int],
         input_edges: Sequence[Edge],
         output_edges: Sequence[Edge],
-        container: set[AbstractNode] | list[AbstractNode],
+        container: Union[set[AbstractNode], list[AbstractNode]],
     ):
         self.index_list = index_list
         super().__init__(input_edges, output_edges, container)

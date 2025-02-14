@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence
+from typing import Sequence, Union
 
 import numpy as np
 import tensornetwork as tn
@@ -26,7 +26,7 @@ class TensorNetworkState(NodeCollection):
     """
 
     def __init__(
-        self, edges: Sequence[Edge], container: set[AbstractNode] | list[AbstractNode]
+        self, edges: Sequence[Edge], container: Union[set[AbstractNode], list[AbstractNode]]
     ):
         self.edges = edges
         super().__init__(container)
