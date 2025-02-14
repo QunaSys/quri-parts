@@ -4548,7 +4548,7 @@ name = "quri-parts-tket"
 version = "0.0.0"
 description = "A plugin to use tket with QURI Parts"
 optional = false
-python-versions = "^3.9.8"
+python-versions = "^3.10"
 groups = ["main", "dev"]
 markers = "python_version >= \"3.10\" and python_version <= \"3.11\" or python_version >= \"3.12\""
 files = []
