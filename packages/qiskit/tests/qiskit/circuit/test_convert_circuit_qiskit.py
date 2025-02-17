@@ -184,7 +184,7 @@ def test_convert_pauli() -> None:
     for gate in original_gates:
         circuit.add_gate(gate)
 
-    converted = convert_circuit(circuit)
+    converted = convert_circuit(circuit, transpiler=None)
     assert converted.num_qubits == 4
 
     X = qi.SparsePauliOp("X")

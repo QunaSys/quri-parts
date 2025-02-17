@@ -139,17 +139,16 @@ def convert_gate(gate: QuantumGate) -> Gate:
 
     elif is_multi_qubit_gate_name(gate.name) and gate.name in _multi_qubit_gate_qiskit:
         if gate.name == gate_names.Pauli:
-            q_gate = qgate.PauliGate(label=None)
             pauli_str = ""
             gate_map_str = {1: "X", 2: "Y", 3: "Z"}
             for p in reversed(gate.pauli_ids):
                 pauli_str += gate_map_str[p]
-            q_gate.params = [pauli_str]
+            q_gate = qgate.PauliGate(pauli_str)
             return q_gate
         elif gate.name == gate_names.PauliRotation:
-            operator = 1
             gate_map_op = {1: _X, 2: _Y, 3: _Z}
-            for p in reversed(gate.pauli_ids):
+            operator = gate_map_op[gate.pauli_ids[-1]]
+            for p in reversed(gate.pauli_ids[:-1]):
                 operator ^= gate_map_op[p]
             return qgate.PauliEvolutionGate(operator, time=float(gate.params[0] / 2))
 
