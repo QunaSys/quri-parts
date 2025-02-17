@@ -8,13 +8,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import NamedTuple, Union
+from typing import NamedTuple, Optional, Union
 
 import tensornetwork as tn
 
 from quri_parts.core.estimator import Estimate, QuantumEstimator
 from quri_parts.core.operator import Operator, PauliLabel
-from quri_parts.core.state import GeneralCircuitQuantumState
+from quri_parts.core.state import CircuitQuantumState
 from quri_parts.tensornetwork.operator import TensorNetworkOperator, operator_to_tensor
 from quri_parts.tensornetwork.state import TensorNetworkState, convert_state
 
@@ -26,7 +26,7 @@ class _Estimate(NamedTuple):
 
 def tensor_network_estimate(
     operator: TensorNetworkOperator, state: TensorNetworkState
-) -> Estimate:
+) -> Estimate[complex]:
     copy_state = state.copy()
     conj_state = copy_state.conjugate()
     copy_operator = operator.copy()
@@ -59,11 +59,11 @@ def tensor_network_estimate(
 
 
 def create_tensornetwork_estimator(
-    backend="numpy",
-    matrix_product_operator=True,
-    max_bond_dimension=None,
-    max_truncation_err=None,
-) -> QuantumEstimator:
+    backend: str = "numpy",
+    matrix_product_operator: bool = True,
+    max_bond_dimension: Optional[int] = None,
+    max_truncation_err: Optional[float] = None,
+) -> QuantumEstimator[CircuitQuantumState]:
     """This creates an estimator using the tensornetwork backend.
 
     Args:
@@ -74,8 +74,8 @@ def create_tensornetwork_estimator(
     """
 
     def estimate(
-        operator: Union[Operator, PauliLabel], state: GeneralCircuitQuantumState
-    ) -> Estimate:
+        operator: Union[Operator, PauliLabel], state: CircuitQuantumState
+    ) -> Estimate[complex]:
         tn_operator = operator_to_tensor(
             operator,
             convert_to_mpo=matrix_product_operator,

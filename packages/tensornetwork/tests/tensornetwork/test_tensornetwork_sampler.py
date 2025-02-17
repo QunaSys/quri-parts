@@ -39,7 +39,7 @@ circuit_probabilities_pairs = [
 ]
 
 
-def test_ideal_sampler():
+def test_ideal_sampler() -> None:
     sampler = create_tensornetwork_ideal_sampler()
     for c, p in circuit_probabilities_pairs:
         counts = sampler(c, NSHOTS)
@@ -47,7 +47,7 @@ def test_ideal_sampler():
         assert_almost_equal(count_list, p)
 
 
-def test_probabilistic_sampler():
+def test_probabilistic_sampler() -> None:
     sampler = create_tensornetwork_probabilistic_sampler(SEED)
     rng = default_rng(SEED)
     for c, p in circuit_probabilities_pairs:

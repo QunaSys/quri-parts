@@ -14,7 +14,7 @@ from numpy.testing import assert_almost_equal
 
 from quri_parts.circuit import QuantumCircuit
 from quri_parts.circuit.gates import CNOT, H, X, Y, Z
-from quri_parts.tensornetwork.state import convert_circuit
+from quri_parts.tensornetwork.circuit import convert_circuit
 
 circuit_tensor_pairs = [
     (
@@ -62,8 +62,8 @@ circuit_tensor_pairs = [
 def test_convert_circuit() -> None:
     for c, t in circuit_tensor_pairs:
         tensornetwork_circuit = convert_circuit(c)
-        all_edges = (
-            tensornetwork_circuit.input_edges + tensornetwork_circuit.output_edges
+        all_edges = list(tensornetwork_circuit.input_edges) + list(
+            tensornetwork_circuit.output_edges
         )
         contracted_state = tn.contractors.optimal(
             tensornetwork_circuit._container, output_edge_order=all_edges

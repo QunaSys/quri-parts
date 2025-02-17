@@ -11,15 +11,18 @@
 from typing import Optional
 
 import numpy as np
+import numpy.typing as npt
 from numpy.random import Generator, default_rng
 
-from quri_parts.circuit import QuantumCircuit
+from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.core.sampling import MeasurementCounts, Sampler
 from quri_parts.core.state import GeneralCircuitQuantumState
 from quri_parts.tensornetwork.state import convert_state
 
 
-def tensor_network_state_probabilities(circuit: QuantumCircuit) -> MeasurementCounts:
+def tensor_network_state_probabilities(
+    circuit: ImmutableQuantumCircuit,
+) -> npt.NDArray[np.float64]:
     """Returns the probabilities of the state."""
     state = GeneralCircuitQuantumState(circuit.qubit_count, circuit)
     tensor_network_state = convert_state(state)
@@ -30,12 +33,12 @@ def tensor_network_state_probabilities(circuit: QuantumCircuit) -> MeasurementCo
         (2**circuit.qubit_count),
         order="F",
     )
-    probabilities = np.abs(tensor) ** 2
+    probabilities: npt.NDArray[np.float64] = np.abs(tensor) ** 2
     return probabilities
 
 
 def tensor_network_ideal_sample(
-    circuit: QuantumCircuit, shots: int
+    circuit: ImmutableQuantumCircuit, shots: int
 ) -> MeasurementCounts:
     """Returns the probabilities multiplied by the specific shot count."""
     probabilities = tensor_network_state_probabilities(circuit)
@@ -45,7 +48,7 @@ def tensor_network_ideal_sample(
 
 
 def tensor_network_probabilistic_sample(
-    circuit: QuantumCircuit, shots: int, rng: Generator
+    circuit: ImmutableQuantumCircuit, shots: int, rng: Generator
 ) -> MeasurementCounts:
     """Returns the probabilities multiplied by the specific shot count."""
     probabilities = tensor_network_state_probabilities(circuit)
@@ -58,7 +61,7 @@ def create_tensornetwork_ideal_sampler() -> Sampler:
     """Returns a :class:`~Sampler` that uses TensorNetwork simulator for
     returning the probabilities multiplied by the specific shot count."""
 
-    def sample(circuit, shots):
+    def sample(circuit: ImmutableQuantumCircuit, shots: int) -> MeasurementCounts:
         return tensor_network_ideal_sample(circuit, shots)
 
     return sample
@@ -70,7 +73,7 @@ def create_tensornetwork_probabilistic_sampler(seed: Optional[int] = None) -> Sa
 
     rng = default_rng(seed)
 
-    def sample(circuit, shots):
+    def sample(circuit: ImmutableQuantumCircuit, shots: int) -> MeasurementCounts:
         return tensor_network_probabilistic_sample(circuit, shots, rng)
 
     return sample

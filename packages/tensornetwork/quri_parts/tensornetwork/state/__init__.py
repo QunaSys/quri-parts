@@ -14,11 +14,11 @@ import numpy as np
 import tensornetwork as tn
 from tensornetwork import AbstractNode, Edge, NodeCollection
 
-from quri_parts.core.state import GeneralCircuitQuantumState
+from quri_parts.core.state import CircuitQuantumState
 from quri_parts.tensornetwork.circuit import TensorNetworkLayer, convert_circuit
 
 
-class TensorNetworkState(NodeCollection):
+class TensorNetworkState(NodeCollection):  # type: ignore
     """Tensor network representation of a quantum state.
 
     This class subclasses :class:`~NodeCollection` and provides output
@@ -26,7 +26,9 @@ class TensorNetworkState(NodeCollection):
     """
 
     def __init__(
-        self, edges: Sequence[Edge], container: Union[set[AbstractNode], list[AbstractNode]]
+        self,
+        edges: Sequence[Edge],
+        container: Union[set[AbstractNode], list[AbstractNode]],
     ):
         self.edges = edges
         super().__init__(container)
@@ -78,7 +80,7 @@ def get_zero_state(qubit_count: int) -> TensorNetworkState:
     return TensorNetworkState(zero_state_edges, qubits)
 
 
-def convert_state(state: GeneralCircuitQuantumState) -> TensorNetworkState:
+def convert_state(state: CircuitQuantumState) -> TensorNetworkState:
     qubit_count = state.qubit_count
     zero_state = get_zero_state(qubit_count)
     state_circuit = convert_circuit(state.circuit)

@@ -9,12 +9,12 @@
 # limitations under the License.
 
 from collections.abc import Mapping
-from typing import Callable, Optional, Sequence, Union
+from typing import Any, Callable, Optional, Sequence, Union
 
 import tensornetwork as tn
 from tensornetwork import AbstractNode, Edge, NodeCollection
 
-from quri_parts.circuit import QuantumCircuit, gate_names
+from quri_parts.circuit import ImmutableQuantumCircuit, gate_names
 from quri_parts.circuit.gate_names import (
     SingleQubitGateNameType,
     ThreeQubitGateNameType,
@@ -33,7 +33,7 @@ from quri_parts.circuit.transpile import (
 from quri_parts.tensornetwork.circuit import gates
 from quri_parts.tensornetwork.circuit.gates import QuantumGate
 
-_single_qubit_gate_tensornetwork: Mapping[SingleQubitGateNameType, str] = {
+_single_qubit_gate_tensornetwork: Mapping[SingleQubitGateNameType, Any] = {
     gate_names.Identity: gates.I,
     gate_names.X: gates.X,
     gate_names.Y: gates.Y,
@@ -50,26 +50,26 @@ _single_qubit_gate_tensornetwork: Mapping[SingleQubitGateNameType, str] = {
 }
 
 _single_qubit_pauli_rotation_gate_tensornetwork: Mapping[
-    SingleQubitGateNameType, str
+    SingleQubitGateNameType, Any
 ] = {
     gate_names.RX: gates.Rx,
     gate_names.RY: gates.Ry,
     gate_names.RZ: gates.Rz,
 }
 
-_single_qubit_rotation_gate_tensornetwork: Mapping[SingleQubitGateNameType, str] = {
+_single_qubit_rotation_gate_tensornetwork: Mapping[SingleQubitGateNameType, Any] = {
     gate_names.U1: gates.U1,
     gate_names.U2: gates.U2,
     gate_names.U3: gates.U3,
 }
 
-_two_qubit_gate_tensornetwork: Mapping[TwoQubitGateNameType, str] = {
+_two_qubit_gate_tensornetwork: Mapping[TwoQubitGateNameType, Any] = {
     gate_names.CNOT: gates.CNOT,
     gate_names.CZ: gates.CZ,
     gate_names.SWAP: gates.SWAP,
 }
 
-_three_qubit_gate_tensornetwork: Mapping[ThreeQubitGateNameType, str] = {
+_three_qubit_gate_tensornetwork: Mapping[ThreeQubitGateNameType, Any] = {
     gate_names.TOFFOLI: gates.Toffoli,
 }
 
@@ -79,7 +79,7 @@ TensorNetworkTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTra
 )
 
 
-class TensorNetworkLayer(NodeCollection):
+class TensorNetworkLayer(NodeCollection):  # type: ignore
     """Tensor network representation of a quantum circuit and operators.
 
     This class subclasses :class:`~NodeCollection` and provides input
@@ -112,7 +112,7 @@ class TensorNetworkLayer(NodeCollection):
 
 
 def convert_circuit(
-    circuit: QuantumCircuit,
+    circuit: ImmutableQuantumCircuit,
     transpiler: Optional[CircuitTranspiler] = TensorNetworkTranspiler(),
 ) -> TensorNetworkLayer:
     """Convert an :class:`~ImmutableQuantumCircuit` to a tensornetwork
@@ -127,7 +127,9 @@ def convert_circuit(
         {"in": None, "out": None} for _ in range(qubit_count)
     ]
 
-    def connect_gate(node: QuantumGate, qubits: Sequence[int], qubit_count: int):
+    def connect_gate(
+        node: QuantumGate, qubits: Sequence[int], qubit_count: int
+    ) -> None:
         for i, q in enumerate(qubits):
             if in_out_map[q]["in"]:
                 in_out_map[q]["out"] ^ node[i]
@@ -176,7 +178,7 @@ def convert_circuit(
             if gate.name == "SWAP":
                 connect_gate(node, gate.target_indices, 2)
             else:
-                indices = gate.control_indices + gate.target_indices
+                indices = list(gate.control_indices) + list(gate.target_indices)
                 connect_gate(node, indices, 2)
         if is_three_qubit_gate_name(gate.name):
             if gate.name in _three_qubit_gate_tensornetwork:
@@ -184,7 +186,7 @@ def convert_circuit(
                 node_collection.add(node)
             else:
                 raise ValueError(f"{gate.name} gate is not supported.")
-            indices = gate.control_indices + gate.target_indices
+            indices = list(gate.control_indices) + list(gate.target_indices)
             connect_gate(node, indices, 3)
 
     # This ensures that all qubits in the circuit are represented, but maybe we should

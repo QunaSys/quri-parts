@@ -8,11 +8,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Sequence
+from collections.abc import Collection, Sequence
 from copy import copy
-from typing import Any, Optional, Union
+from typing import Any, Literal, Optional, Union
 
 import numpy as np
+import numpy.typing as npt
 import tensornetwork as tn
 from tensornetwork import AbstractNode, Edge, Node, split_node
 from typing_extensions import TypeAlias
@@ -20,12 +21,12 @@ from typing_extensions import TypeAlias
 from quri_parts.core.operator import Operator, PauliLabel
 from quri_parts.tensornetwork.circuit import TensorNetworkLayer
 
-_PAULI_OPERATOR_DATA_MAP = {
-    0: [[1, 0], [0, 1]],
-    1: [[0, 1], [1, 0]],
-    2: [[0, 1j], [-1j, 0]],
-    3: [[1, 0], [0, -1]],
-}
+_PAULI_OPERATOR_DATA_MAP: Sequence[Sequence[Sequence[complex]]] = (
+    [[1, 0], [0, 1]],
+    [[0, 1], [1, 0]],
+    [[0, 1j], [-1j, 0]],
+    [[1, 0], [0, -1]],
+)
 
 
 class TensorNetworkOperator(TensorNetworkLayer):
@@ -71,17 +72,23 @@ _operator_cache: dict[_OperatorKey, TensorNetworkOperator] = {}
 _mpo_cache: dict[_OperatorKey, TensorNetworkOperator] = {}
 
 
-def _kron(pauli_list: Sequence[Sequence[Sequence[int]]]):
+def _kron(
+    pauli_list: Sequence[Sequence[Sequence[complex]]],
+) -> npt.NDArray[np.complex128]:
     """Calculate the tensor product of a list of arrays."""
 
-    prod = np.array(pauli_list[0])
+    prod = np.array(pauli_list[0], dtype=np.complex128)
     for u in pauli_list[1:]:
-        prod = np.kron(np.array(u), prod)
+        prod = np.kron(np.array(u, dtype=np.complex128), prod)
 
     return prod
 
 
-def get_observable_data(pauli_list: Sequence[Sequence[Sequence[int]]], dim=2, n=None):
+def get_observable_data(
+    pauli_list: Sequence[Sequence[Sequence[complex]]],
+    dim: int = 2,
+    n: Optional[int] = None,
+) -> npt.NDArray[np.complex128]:
     """Take a list of matrices that represent pauli operators and calculate
     their tensor-product."""
 
@@ -94,8 +101,8 @@ def get_observable_data(pauli_list: Sequence[Sequence[Sequence[int]]], dim=2, n=
 
 
 def pauli_label_to_array(
-    pauli: PauliLabel, index_list: Optional[Sequence[int]] = None
-) -> Sequence[Sequence[Sequence[int]]]:
+    pauli: PauliLabel, index_list: Optional[Collection[int]] = None
+) -> npt.NDArray[np.complex128]:
     """Convert a :class:`~PauliLabel` to a numpy array.
 
     If this function is used to convert a :class:`~PauliLabel` belonging
@@ -109,6 +116,8 @@ def pauli_label_to_array(
         index_list = set(this_index_list)
     else:
         this_index_list, pauli_id_list = pauli.index_and_pauli_id_list
+    this_index_list = list(this_index_list)
+    pauli_id_list = list(pauli_id_list)
     nq = len(index_list)
     if this_index_list != index_list:
         for q in index_list:
@@ -121,7 +130,7 @@ def pauli_label_to_array(
         this_index_list, reverse=True
     )  # Reverse qubit ordering needed
     sorted_pauli_id_list = [index_pauli_id_map[q] for q in sorted_index_list]
-    data_list = list(map(_PAULI_OPERATOR_DATA_MAP.get, sorted_pauli_id_list))
+    data_list = [_PAULI_OPERATOR_DATA_MAP[i] for i in sorted_pauli_id_list]
 
     array = get_observable_data(data_list, dim=2, n=nq)
 
@@ -213,9 +222,10 @@ def operator_to_tensor(
     if op_key in cache:
         return cache[op_key].copy()
 
+    data: Union[npt.NDArray[np.complex128], Literal[0]]
     if isinstance(operator, PauliLabel):
         qubit_count = len(operator.qubit_indices())
-        data = pauli_label_to_array(operator) * 1.0
+        data = pauli_label_to_array(operator)
         all_indices = set(operator.qubit_indices())
     else:
         assert isinstance(operator, Operator)
@@ -232,9 +242,10 @@ def operator_to_tensor(
             )
         )
 
+    all_indices_list = list(all_indices)
     op = Node(data)
     tensor = TensorNetworkOperator(
-        all_indices, op[:qubit_count], op[qubit_count:], {op}
+        all_indices_list, op[:qubit_count], op[qubit_count:], {op}
     )
 
     if convert_to_mpo:
