@@ -81,8 +81,50 @@ def create_tensornetwork_estimator(
             convert_to_mpo=matrix_product_operator,
             max_bond_dimension=max_bond_dimension,
             max_truncation_err=max_truncation_err,
+            backend=backend,
         )
-        tn_state = convert_state(state)
+        tn_state = convert_state(state,
+            backend=backend,)
         return tensor_network_estimate(tn_operator, tn_state)
 
     return estimate
+
+from tqdm import tqdm
+from quri_parts.core.operator import pauli_label
+from quri_parts.core.state import GeneralCircuitQuantumState
+from quri_parts.circuit import QuantumCircuit
+
+def main():
+    op = Operator({
+        pauli_label("X0 X1"): 1.0,
+        pauli_label("X1 X2"): 1.0,
+        pauli_label("X2 X3"): 1.0,
+        pauli_label("X3 X4"): 1.0,
+        pauli_label("X4 X5"): 1.0,
+        pauli_label("X5 X6"): 1.0,
+        pauli_label("X6 X7"): 1.0,
+        pauli_label("X7 X8"): 1.0,
+        pauli_label("X8 X9"): 1.0,
+        pauli_label("X9 X0"): 1.0,
+    })
+    circuit = QuantumCircuit(10)
+    circuit.add_H_gate(0)
+    circuit.add_H_gate(1)
+    circuit.add_H_gate(2)
+    circuit.add_H_gate(3)
+    circuit.add_H_gate(4)
+    circuit.add_H_gate(5)
+    circuit.add_H_gate(6)
+    circuit.add_H_gate(7)
+    circuit.add_H_gate(8)
+    circuit.add_H_gate(9)
+    state = GeneralCircuitQuantumState(10, circuit)
+    estimator = create_tensornetwork_estimator(backend = "pytorch")
+
+    for _ in tqdm(range(100)):
+        e = estimator(op,state)
+    print(e)
+
+
+if __name__ == "__main__":
+    main()

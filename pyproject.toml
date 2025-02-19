@@ -45,6 +45,7 @@ quri-parts-itensor = { version = "*", optional = true }
 quri-parts-pyscf = { version = "*", optional = true }
 quri-parts-tket = { version = "*", optional = true }
 quri-parts-tensornetwork = { version = "*", optional = true}
+torch = "^2.6.0"
 
 [tool.poetry.extras]
 qulacs = ["quri-parts-qulacs"]

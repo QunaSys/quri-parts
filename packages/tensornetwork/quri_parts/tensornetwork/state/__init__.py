@@ -73,15 +73,15 @@ class TensorNetworkState(NodeCollection):  # type: ignore
         return TensorNetworkState(copy.edges, {node})
 
 
-def get_zero_state(qubit_count: int) -> TensorNetworkState:
+def get_zero_state(qubit_count: int, backend: str = "numpy") -> TensorNetworkState:
     """Returns the zero state for the given number of qubits."""
-    qubits = [tn.Node(np.array([1.0, 0.0])) for _ in range(qubit_count)]
+    qubits = [tn.Node(np.array([1.0, 0.0], dtype=np.complex128), backend=backend) for _ in range(qubit_count)]
     zero_state_edges = [q[0] for q in qubits]
     return TensorNetworkState(zero_state_edges, qubits)
 
 
-def convert_state(state: CircuitQuantumState) -> TensorNetworkState:
+def convert_state(state: CircuitQuantumState, backend: str = "numpy") -> TensorNetworkState:
     qubit_count = state.qubit_count
-    zero_state = get_zero_state(qubit_count)
-    state_circuit = convert_circuit(state.circuit)
+    zero_state = get_zero_state(qubit_count, backend = backend)
+    state_circuit = convert_circuit(state.circuit, backend = backend)
     return zero_state.with_gates_applied(state_circuit)

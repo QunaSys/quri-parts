@@ -114,6 +114,7 @@ class TensorNetworkLayer(NodeCollection):  # type: ignore
 def convert_circuit(
     circuit: ImmutableQuantumCircuit,
     transpiler: Optional[CircuitTranspiler] = TensorNetworkTranspiler(),
+    backend: str = "numpy",
 ) -> TensorNetworkLayer:
     """Convert an :class:`~ImmutableQuantumCircuit` to a tensornetwork
     NodeCollection.
@@ -152,18 +153,18 @@ def convert_circuit(
 
         if is_single_qubit_gate_name(gate.name):
             if gate.name in _single_qubit_gate_tensornetwork:
-                node = _single_qubit_gate_tensornetwork[gate.name]()
+                node = _single_qubit_gate_tensornetwork[gate.name](backend = backend)
                 node_collection.add(node)
             elif gate.name in _single_qubit_pauli_rotation_gate_tensornetwork:
                 if len(gate.params) == 1:
                     node = _single_qubit_pauli_rotation_gate_tensornetwork[gate.name](
-                        gate.params[0]
+                        gate.params[0], backend = backend
                     )
                 else:
                     raise ValueError("Invalid number of parameters.")
             elif gate.name in _single_qubit_rotation_gate_tensornetwork:
                 node = _single_qubit_pauli_rotation_gate_tensornetwork[gate.name](
-                    gate.params
+                    gate.params, backend = backend
                 )
                 node_collection.add(node)
             else:
@@ -171,7 +172,7 @@ def convert_circuit(
             connect_gate(node, gate.target_indices, 1)
         if is_two_qubit_gate_name(gate.name):
             if gate.name in _two_qubit_gate_tensornetwork:
-                node = _two_qubit_gate_tensornetwork[gate.name]()
+                node = _two_qubit_gate_tensornetwork[gate.name](backend = backend)
                 node_collection.add(node)
             else:
                 raise ValueError(f"{gate.name} gate is not supported.")
@@ -182,7 +183,7 @@ def convert_circuit(
                 connect_gate(node, indices, 2)
         if is_three_qubit_gate_name(gate.name):
             if gate.name in _three_qubit_gate_tensornetwork:
-                node = _three_qubit_gate_tensornetwork[gate.name]()
+                node = _three_qubit_gate_tensornetwork[gate.name](backend = backend)
                 node_collection.add(node)
             else:
                 raise ValueError(f"{gate.name} gate is not supported.")

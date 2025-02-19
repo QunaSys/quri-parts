@@ -109,10 +109,7 @@ class QuantumGate(Node, ABC):  # type: ignore
     def __init__(
         self, unitary_matrix: npt.NDArray[np.complex128], name: str, backend: str
     ) -> None:
-        if backend == "numpy":
-            tensor = unitary_matrix
-        else:
-            raise ValueError("Invalid backend selected for tensor network: ", backend)
+        tensor = unitary_matrix
         super().__init__(tensor, name=name, backend=backend)
 
 
@@ -123,10 +120,7 @@ class SingleQubitGate(QuantumGate, ABC):
     def __init__(
         self, data: Sequence[Sequence[complex]], name: str, backend: str
     ) -> None:
-        if backend == "numpy":
-            tensor = np.array(data, dtype=np.complex128)
-        else:
-            raise ValueError("Invalid backend selected for tensor network: ", backend)
+        tensor = np.array(data, dtype=np.complex128)
         super().__init__(tensor, name=name, backend=backend)
 
 

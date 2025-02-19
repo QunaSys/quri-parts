@@ -198,6 +198,7 @@ def tensor_to_mpo(
 def operator_to_tensor(
     operator: Union[Operator, PauliLabel],
     convert_to_mpo: bool = True,
+    backend: str = "numpy",
     *args: Any,
     **kwargs: Any
 ) -> TensorNetworkOperator:
@@ -243,7 +244,7 @@ def operator_to_tensor(
         )
 
     all_indices_list = list(all_indices)
-    op = Node(data)
+    op = Node(data, backend=backend)
     tensor = TensorNetworkOperator(
         all_indices_list, op[:qubit_count], op[qubit_count:], {op}
     )
