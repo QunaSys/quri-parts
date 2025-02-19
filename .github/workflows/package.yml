@@ -1,7 +1,6 @@
 name: Package and release
 
 on:
-  workflow_dispatch:
   push:
     branches: [main]
   release:
@@ -182,7 +181,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: quri-parts-packages-rust-whl
+          name: quri-parts-packages-rust-whl-${{matrix.system.target}}-${{matrix.python-version}}
           path: dist/*
           if-no-files-found: error
 
