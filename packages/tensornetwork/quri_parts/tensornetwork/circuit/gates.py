@@ -9,11 +9,12 @@
 # limitations under the License.
 
 from abc import ABC, abstractmethod
-from typing import Sequence
+from copy import copy
+from typing import Mapping, Sequence, Union
 
 import numpy as np
 import numpy.typing as npt
-from tensornetwork import Node
+from tensornetwork import Edge, Node
 
 _I_LIST: Sequence[Sequence[complex]] = [[1.0, 0.0], [0.0, 1.0]]
 _X_LIST: Sequence[Sequence[complex]] = [[0.0, 1.0], [1.0, 0.0]]
@@ -106,11 +107,20 @@ class QuantumGate(Node, ABC):  # type: ignore
     """:class:`~QuantumGate` class is a base class that wraps
     :class:`~Node`."""
 
+    input_qubit_edge_mapping: Mapping[int, Edge]
+    output_qubit_edge_mapping: Mapping[int, Edge]
+    qubit_indices: Sequence[int]
+
     def __init__(
-        self, unitary_matrix: npt.NDArray[np.complex128], name: str, backend: str
+        self, unitary_matrix: npt.NDArray[np.complex128], qubit_indices: Sequence[int], name: str, backend: str
     ) -> None:
         tensor = unitary_matrix
+        self.qubit_indices = qubit_indices
         super().__init__(tensor, name=name, backend=backend)
+
+    @abstractmethod
+    def copy(self, conjugate: bool = False) -> "QuantumGate":
+        pass
 
 
 class SingleQubitGate(QuantumGate, ABC):
@@ -118,10 +128,23 @@ class SingleQubitGate(QuantumGate, ABC):
     gates."""
 
     def __init__(
-        self, data: Sequence[Sequence[complex]], name: str, backend: str
+        self,
+        data: Sequence[Sequence[complex]],
+        qubit_indices: Sequence[int],
+        name: str,
+        backend: str,
     ) -> None:
+        assert len(qubit_indices) == 1
         tensor = np.array(data, dtype=np.complex128)
-        super().__init__(tensor, name=name, backend=backend)
+        super().__init__(tensor, qubit_indices, name=name, backend=backend)
+        
+    @property
+    def input_qubit_edge_mapping(self) -> Mapping[int, Edge]:
+        return {self.qubit_indices[0]: self[0]}
+
+    @property
+    def output_qubit_edge_mapping(self) -> Mapping[int, Edge]:
+        return {self.qubit_indices[0]: self[1]}
 
 
 class SingleQubitRotationGate(QuantumGate, ABC):
@@ -132,7 +155,14 @@ class SingleQubitRotationGate(QuantumGate, ABC):
     def rotation(self, angles: Sequence[float]) -> npt.NDArray[np.complex128]:
         pass
 
-    def __init__(self, angles: Sequence[float], name: str, backend: str) -> None:
+    def __init__(
+        self,
+        angles: Sequence[float],
+        qubit_indices: Sequence[int],
+        name: str,
+        backend: str,
+    ) -> None:
+        assert len(qubit_indices) == 1
         self.angles = angles
         unitary_matrix = self.rotation(angles)
         super().__init__(unitary_matrix, name=name, backend=backend)
@@ -151,8 +181,10 @@ class SingleQubitPauliRotationGate(SingleQubitRotationGate, ABC):
             - 1j * np.sin(angles[0] / 2.0) * np.array(self.pauli, dtype=np.complex128)
         )  # transpose is taken here to conform to tensor notation
 
-    def __init__(self, angle: float, name: str, backend: str) -> None:
-        super().__init__([angle], name=name, backend=backend)
+    def __init__(
+        self, angle: float, qubit_indices: Sequence[int], name: str, backend: str
+    ) -> None:
+        super().__init__([angle], qubit_indices, name=name, backend=backend)
 
 
 class TwoQubitGate(QuantumGate, ABC):
@@ -162,14 +194,25 @@ class TwoQubitGate(QuantumGate, ABC):
     def __init__(
         self,
         data: Sequence[Sequence[Sequence[Sequence[complex]]]],
+        qubit_indices: Sequence[int],
         name: str,
         backend: str,
     ) -> None:
-        if backend == "numpy":
-            tensor = np.array(data, dtype=np.complex128)
-        else:
-            raise ValueError("Invalid backend selected for tensor network: ", backend)
-        super().__init__(tensor, name=name, backend=backend)
+        assert len(qubit_indices) == 2
+        tensor = np.array(data, dtype=np.complex128)
+        super().__init__(tensor, qubit_indices, name=name, backend=backend)
+        
+    @property
+    def input_qubit_edge_mapping(self) -> Mapping[int, Edge]:
+        return {
+            qi: self[i] for i, qi in enumerate(self.qubit_indices)
+        }
+
+    @property
+    def output_qubit_edge_mapping(self) -> Mapping[int, Edge]:
+        return {
+            qi: self[i + 2] for i, qi in enumerate(self.qubit_indices)
+        }
 
 
 class ThreeQubitGate(QuantumGate, ABC):
@@ -179,161 +222,320 @@ class ThreeQubitGate(QuantumGate, ABC):
     def __init__(
         self,
         data: Sequence[Sequence[Sequence[Sequence[Sequence[Sequence[complex]]]]]],
+        qubit_indices: Sequence[int],
         name: str,
         backend: str,
     ) -> None:
-        if backend == "numpy":
-            tensor = np.array(data, dtype=np.complex128)
-        else:
-            raise ValueError("Invalid backend selected for tensor network: ", backend)
-        super().__init__(tensor, name=name, backend=backend)
+        assert len(qubit_indices) == 3
+        tensor = np.array(data, dtype=np.complex128)
+        super().__init__(tensor, qubit_indices, name=name, backend=backend)
+        
+    @property
+    def input_qubit_edge_mapping(self) -> Mapping[int, Edge]:
+        return {
+            qi: self[i] for i, qi in enumerate(self.qubit_indices)
+        }
+
+    @property
+    def output_qubit_edge_mapping(self) -> Mapping[int, Edge]:
+        return {
+            qi: self[i + 3] for i, qi in enumerate(self.qubit_indices)
+        }
 
 
 class I(SingleQubitGate):  # noqa: E742
-    def __init__(self, backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
         unitary_matrix = _I_LIST
         name = "I"
 
-        super().__init__(unitary_matrix, name, backend)
+        super().__init__(unitary_matrix, qubit_indices, name, backend)
+
+    def copy(self, _: bool = False) -> "I":
+        quantum_gate_copy = I(
+            copy(list(self.input_qubit_edge_mapping.keys())),
+            self.backend,
+        )
+        return quantum_gate_copy
 
 
 class X(SingleQubitGate):
-    def __init__(self, backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
         unitary_matrix = _X_LIST
         name = "X"
 
-        super().__init__(unitary_matrix, name, backend)
+        super().__init__(unitary_matrix, qubit_indices, name, backend)
+
+    def copy(self, _: bool = False) -> "X":
+        quantum_gate_copy = X(
+            copy(list(self.input_qubit_edge_mapping.keys())),
+            self.backend,
+        )
+        return quantum_gate_copy
 
 
 class Y(SingleQubitGate):
-    def __init__(self, backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
         unitary_matrix = _Y_LIST
         name = "Y"
 
-        super().__init__(unitary_matrix, name, backend)
+        super().__init__(unitary_matrix, qubit_indices, name, backend)
+
+    def copy(self, _: bool = False) -> "Y":
+        quantum_gate_copy = Y(
+            copy(list(self.input_qubit_edge_mapping.keys())),
+            self.backend,
+        )
+        return quantum_gate_copy
 
 
 class Z(SingleQubitGate):
-    def __init__(self, backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
         unitary_matrix = _Z_LIST
         name = "Z"
 
-        super().__init__(unitary_matrix, name, backend)
+        super().__init__(unitary_matrix, qubit_indices, name, backend)
+
+    def copy(self, _: bool = False) -> "Z":
+        quantum_gate_copy = Z(
+            copy(list(self.input_qubit_edge_mapping.keys())),
+            self.backend,
+        )
+        return quantum_gate_copy
 
 
 class H(SingleQubitGate):
-    def __init__(self, backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
         unitary_matrix = _H_LIST
         name = "H"
 
-        super().__init__(unitary_matrix, name, backend)
+        super().__init__(unitary_matrix, qubit_indices, name, backend)
+
+    def copy(self, _: bool = False) -> "H":
+        quantum_gate_copy = H(
+            copy(list(self.input_qubit_edge_mapping.keys())),
+            self.backend,
+        )
+        return quantum_gate_copy
 
 
 class S(SingleQubitGate):
-    def __init__(self, backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
         unitary_matrix = _S_LIST
         name = "S"
 
-        super().__init__(unitary_matrix, name, backend)
+        super().__init__(unitary_matrix, qubit_indices, name, backend)
+
+    def copy(self, conjugate: bool = False) -> Union["S", "Sdag"]:
+        Gate = S if not conjugate else Sdag
+        quantum_gate_copy = Gate(
+            copy(list(self.input_qubit_edge_mapping.keys())),
+            self.backend,
+        )
+        return quantum_gate_copy
 
 
 class Sdag(SingleQubitGate):
-    def __init__(self, backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
         unitary_matrix = _SDAG_LIST
         name = "Sdag"
 
-        super().__init__(unitary_matrix, name, backend)
+        super().__init__(unitary_matrix, qubit_indices, name, backend)
+
+    def copy(self, conjugate: bool = False) -> Union["S", "Sdag"]:
+        Gate = Sdag if not conjugate else S
+        quantum_gate_copy = Gate(
+            copy(list(self.input_qubit_edge_mapping.keys())),
+            self.backend,
+        )
+        return quantum_gate_copy
 
 
 class SqrtX(SingleQubitGate):
-    def __init__(self, backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
         unitary_matrix = _SQRTX_LIST
         name = "SqrtX"
 
-        super().__init__(unitary_matrix, name, backend)
+        super().__init__(unitary_matrix, qubit_indices, name, backend)
+
+    def copy(self, conjugate: bool = False) -> Union["SqrtX", "SqrtXdag"]:
+        Gate = SqrtX if not conjugate else SqrtXdag
+        quantum_gate_copy = Gate(
+            copy(list(self.input_qubit_edge_mapping.keys())),
+            self.backend,
+        )
+        return quantum_gate_copy
 
 
 class SqrtXdag(SingleQubitGate):
-    def __init__(self, backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
         unitary_matrix = _SQRTXDAG_LIST
         name = "SqrtXdag"
 
-        super().__init__(unitary_matrix, name, backend)
+        super().__init__(unitary_matrix, qubit_indices, name, backend)
+
+    def copy(self, conjugate: bool = False) -> Union["SqrtX", "SqrtXdag"]:
+        Gate = SqrtXdag if not conjugate else SqrtX
+        quantum_gate_copy = Gate(
+            copy(list(self.input_qubit_edge_mapping.keys())),
+            self.backend,
+        )
+        return quantum_gate_copy
 
 
 class SqrtY(SingleQubitGate):
-    def __init__(self, backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
         unitary_matrix = _SQRTY_LIST
         name = "SqrtY"
 
-        super().__init__(unitary_matrix, name, backend)
+        super().__init__(unitary_matrix, qubit_indices, name, backend)
+
+    def copy(self, conjugate: bool = False) -> Union["SqrtY", "SqrtYdag"]:
+        Gate = SqrtY if not conjugate else SqrtYdag
+        quantum_gate_copy = Gate(
+            copy(list(self.input_qubit_edge_mapping.keys())),
+            self.backend,
+        )
+        return quantum_gate_copy
 
 
 class SqrtYdag(SingleQubitGate):
-    def __init__(self, backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
         unitary_matrix = _SQRTYDAG_LIST
         name = "SqrtYdag"
 
-        super().__init__(unitary_matrix, name, backend)
+        super().__init__(unitary_matrix, qubit_indices, name, backend)
+
+    def copy(self, conjugate: bool = False) -> Union["SqrtY", "SqrtYdag"]:
+        Gate = SqrtYdag if not conjugate else SqrtY
+        quantum_gate_copy = Gate(
+            copy(list(self.input_qubit_edge_mapping.keys())),
+            self.backend,
+        )
+        return quantum_gate_copy
 
 
 class SqrtZ(SingleQubitGate):
-    def __init__(self, backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
         unitary_matrix = _SQRTZ_LIST
         name = "SqrtZ"
 
-        super().__init__(unitary_matrix, name, backend)
+        super().__init__(unitary_matrix, qubit_indices, name, backend)
+
+    def copy(self, conjugate: bool = False) -> Union["SqrtZ", "SqrtZdag"]:
+        Gate = SqrtZ if not conjugate else SqrtZdag
+        quantum_gate_copy = Gate(
+            copy(list(self.input_qubit_edge_mapping.keys())),
+            self.backend,
+        )
+        return quantum_gate_copy
 
 
 class SqrtZdag(SingleQubitGate):
-    def __init__(self, backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
         unitary_matrix = _SQRTZDAG_LIST
         name = "SqrtZdag"
 
-        super().__init__(unitary_matrix, name, backend)
+        super().__init__(unitary_matrix, qubit_indices, name, backend)
+
+    def copy(self, conjugate: bool = False) -> Union["SqrtZ", "SqrtZdag"]:
+        Gate = SqrtZdag if not conjugate else SqrtZ
+        quantum_gate_copy = Gate(
+            copy(list(self.input_qubit_edge_mapping.keys())),
+            self.backend,
+        )
+        return quantum_gate_copy
 
 
 class T(SingleQubitGate):
-    def __init__(self, backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
         unitary_matrix = _T_LIST
         name = "T"
 
-        super().__init__(unitary_matrix, name, backend)
+        super().__init__(unitary_matrix, qubit_indices, name, backend)
+
+    def copy(self, conjugate: bool = False) -> Union["T", "Tdag"]:
+        Gate = T if not conjugate else Tdag
+        quantum_gate_copy = Gate(
+            copy(list(self.input_qubit_edge_mapping.keys())),
+            self.backend,
+        )
+        return quantum_gate_copy
 
 
 class Tdag(SingleQubitGate):
-    def __init__(self, backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
         unitary_matrix = _TDAG_LIST
         name = "Tdag"
 
-        super().__init__(unitary_matrix, name, backend)
+        super().__init__(unitary_matrix, qubit_indices, name, backend)
+
+    def copy(self, conjugate: bool = False) -> Union["T", "Tdag"]:
+        Gate = Tdag if not conjugate else T
+        quantum_gate_copy = Gate(
+            copy(list(self.input_qubit_edge_mapping.keys())),
+            self.backend,
+        )
+        return quantum_gate_copy
 
 
 class Rx(SingleQubitPauliRotationGate):
     pauli = _X_LIST
 
-    def __init__(self, angle: float, backend: str = "numpy") -> None:
+    def __init__(
+        self, angle: float, qubit_indices: Sequence[int], backend: str = "numpy"
+    ) -> None:
         name = "RX"
 
-        super().__init__(angle, name, backend)
+        super().__init__(angle, qubit_indices, name, backend)
+
+    def copy(self, conjugate: bool = False) -> "Rx":
+        angle = -self.angles[0] if conjugate else self.angles[0]
+        quantum_gate_copy = Rx(
+            angle,
+            copy(list(self.input_qubit_edge_mapping.keys())),
+            self.backend,
+        )
+        return quantum_gate_copy
 
 
 class Ry(SingleQubitPauliRotationGate):
     pauli = _Y_LIST
 
-    def __init__(self, angle: float, backend: str = "numpy") -> None:
+    def __init__(
+        self, angle: float, qubit_indices: Sequence[int], backend: str = "numpy"
+    ) -> None:
         name = "RY"
 
-        super().__init__(angle, name, backend)
+        super().__init__(angle, qubit_indices, name, backend)
+
+    def copy(self, conjugate: bool = False) -> "Ry":
+        angle = -self.angles[0] if conjugate else self.angles[0]
+        quantum_gate_copy = Ry(
+            angle,
+            copy(list(self.input_qubit_edge_mapping.keys())),
+            self.backend,
+        )
+        return quantum_gate_copy
 
 
 class Rz(SingleQubitPauliRotationGate):
     pauli = _Z_LIST
 
-    def __init__(self, angle: float, backend: str = "numpy") -> None:
+    def __init__(
+        self, angle: float, qubit_indices: Sequence[int], backend: str = "numpy"
+    ) -> None:
         name = "RZ"
 
-        super().__init__(angle, name, backend)
+        super().__init__(angle, qubit_indices, name, backend)
+
+    def copy(self, conjugate: bool = False) -> "Rz":
+        angle = -self.angles[0] if conjugate else self.angles[0]
+        quantum_gate_copy = Rz(
+            angle,
+            copy(list(self.input_qubit_edge_mapping.keys())),
+            self.backend,
+        )
+        return quantum_gate_copy
 
 
 class U1(SingleQubitRotationGate):
@@ -343,10 +545,24 @@ class U1(SingleQubitRotationGate):
             [[1.0, 0.0], [0.0, np.exp(1j * angles[0])]], dtype=np.complex128
         )
 
-    def __init__(self, angles: Sequence[float], backend: str = "numpy") -> None:
+    def __init__(
+        self,
+        angles: Sequence[float],
+        qubit_indices: Sequence[int],
+        backend: str = "numpy",
+    ) -> None:
         name = "U1"
 
-        super().__init__(angles, name, backend)
+        super().__init__(angles, qubit_indices, name, backend)
+
+    def copy(self, conjugate: bool = False) -> "U1":
+        angles = [-a for a in self.angles] if conjugate else [a for a in self.angles]
+        quantum_gate_copy = U1(
+            angles,
+            copy(list(self.input_qubit_edge_mapping.keys())),
+            self.backend,
+        )
+        return quantum_gate_copy
 
 
 class U2(SingleQubitRotationGate):
@@ -363,10 +579,24 @@ class U2(SingleQubitRotationGate):
             dtype=np.complex128,
         )
 
-    def __init__(self, angles: Sequence[float], backend: str = "numpy") -> None:
+    def __init__(
+        self,
+        angles: Sequence[float],
+        qubit_indices: Sequence[int],
+        backend: str = "numpy",
+    ) -> None:
         name = "U2"
 
-        super().__init__(angles, name, backend)
+        super().__init__(angles, qubit_indices, name, backend)
+
+    def copy(self, conjugate: bool = False) -> "U2":
+        angles = [-a for a in self.angles] if conjugate else [a for a in self.angles]
+        quantum_gate_copy = U2(
+            angles,
+            copy(list(self.input_qubit_edge_mapping.keys())),
+            self.backend,
+        )
+        return quantum_gate_copy
 
 
 class U3(SingleQubitRotationGate):
@@ -386,39 +616,81 @@ class U3(SingleQubitRotationGate):
             dtype=np.complex128,
         )
 
-    def __init__(self, angles: Sequence[float], backend: str = "numpy") -> None:
+    def __init__(
+        self,
+        angles: Sequence[float],
+        qubit_indices: Sequence[int],
+        backend: str = "numpy",
+    ) -> None:
         name = "U3"
 
-        super().__init__(angles, name, backend)
+        super().__init__(angles, qubit_indices, name, backend)
+
+    def copy(self, conjugate: bool = False) -> "U3":
+        angles = [-a for a in self.angles] if conjugate else [a for a in self.angles]
+        quantum_gate_copy = U3(
+            angles,
+            copy(list(self.input_qubit_edge_mapping.keys())),
+            self.backend,
+        )
+        return quantum_gate_copy
 
 
 class CNOT(TwoQubitGate):
-    def __init__(self, backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
         data = _CNOT_LIST
         name = "CNOT"
 
-        super().__init__(data, name, backend)
+        super().__init__(data, qubit_indices, name, backend)
+
+    def copy(self, _: bool = False) -> "CNOT":
+        quantum_gate_copy = CNOT(
+            copy(list(self.input_qubit_edge_mapping.keys())),
+            self.backend,
+        )
+        return quantum_gate_copy
 
 
 class CZ(TwoQubitGate):
-    def __init__(self, backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
         data = _CZ_LIST
         name = "CZ"
 
-        super().__init__(data, name, backend)
+        super().__init__(data, qubit_indices, name, backend)
+
+    def copy(self, _: bool = False) -> "CZ":
+        quantum_gate_copy = CZ(
+            copy(list(self.input_qubit_edge_mapping.keys())),
+            self.backend,
+        )
+        return quantum_gate_copy
 
 
 class SWAP(TwoQubitGate):
-    def __init__(self, backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
         data = _SWAP_LIST
         name = "SWAP"
 
-        super().__init__(data, name, backend)
+        super().__init__(data, qubit_indices, name, backend)
+
+    def copy(self, _: bool = False) -> "SWAP":
+        quantum_gate_copy = SWAP(
+            copy(list(self.input_qubit_edge_mapping.keys())),
+            self.backend,
+        )
+        return quantum_gate_copy
 
 
 class Toffoli(ThreeQubitGate):
-    def __init__(self, backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
         data = _TOFFOLI_LIST
-        name = "SWAP"
+        name = "Toffoli"
 
-        super().__init__(data, name, backend)
+        super().__init__(data, qubit_indices, name, backend)
+
+    def copy(self, _: bool = False) -> "Toffoli":
+        quantum_gate_copy = Toffoli(
+            copy(list(self.input_qubit_edge_mapping.keys())),
+            self.backend,
+        )
+        return quantum_gate_copy

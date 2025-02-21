@@ -10,7 +10,7 @@
 
 from collections.abc import Collection, Sequence
 from copy import copy
-from typing import Any, Literal, Optional, Union
+from typing import Any, Literal, Mapping, Optional, Union
 
 import numpy as np
 import numpy.typing as npt
@@ -46,9 +46,10 @@ class TensorNetworkOperator(TensorNetworkLayer):
         input_edges: Sequence[Edge],
         output_edges: Sequence[Edge],
         container: Union[set[AbstractNode], list[AbstractNode]],
+        tensor_map: Sequence[Mapping[int, AbstractNode]],
     ):
         self.index_list = index_list
-        super().__init__(input_edges, output_edges, container)
+        super().__init__(input_edges, output_edges, container, tensor_map)
 
     def copy(self) -> "TensorNetworkOperator":
         """Returns a copy of itself."""
@@ -58,12 +59,17 @@ class TensorNetworkOperator(TensorNetworkLayer):
         operator_nodes = {operator_node_mapping[n] for n in self._container}
         operator_input_edges = [operator_edge_mapping[e] for e in self.input_edges]
         operator_output_edges = [operator_edge_mapping[e] for e in self.output_edges]
+        tensor_map = [
+            {q: operator_node_mapping[n] for q, n in tm.items()}
+            for tm in self.tensor_map
+        ]
 
         return TensorNetworkOperator(
             copy(self.index_list),
             operator_input_edges,
             operator_output_edges,
             operator_nodes,
+            tensor_map,
         )
 
 
@@ -168,9 +174,10 @@ def tensor_to_mpo(
         for e in contiguous_edges
     ]
 
+    tensor_map = {}
     nodes = set()
     right_node = operator_copy._container.pop()  # Assumes only one node in the operator
-    for eg in edge_groups[:-1]:
+    for q, eg in zip(operator_copy.index_list, edge_groups[:-1]):
         left_edges = [e for e in eg]
         right_edges = [e for e in right_edges if e not in left_edges]
         all_edges = left_edges + right_edges
@@ -185,6 +192,8 @@ def tensor_to_mpo(
             max_truncation_err=max_truncation_err,
         )
         nodes.add(left_node)
+        tensor_map[q] = left_node
+    tensor_map[operator_copy.index_list[-1]] = right_node
     nodes.add(right_node)
 
     return TensorNetworkOperator(
@@ -192,6 +201,7 @@ def tensor_to_mpo(
         operator_copy.input_edges,
         operator_copy.output_edges,
         nodes,
+        [tensor_map],
     )
 
 
@@ -245,8 +255,9 @@ def operator_to_tensor(
 
     all_indices_list = list(all_indices)
     op = Node(data, backend=backend)
+    tensor_map = {q: op for q in all_indices_list}
     tensor = TensorNetworkOperator(
-        all_indices_list, op[:qubit_count], op[qubit_count:], {op}
+        all_indices_list, op[:qubit_count], op[qubit_count:], {op}, [tensor_map]
     )
 
     if convert_to_mpo:
