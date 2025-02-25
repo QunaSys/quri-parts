@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Mapping, Optional, Sequence, Union
+from typing import Mapping, Optional, Sequence, Union, List, Text
 
 import numpy as np
 import numpy.typing as npt
@@ -20,7 +20,7 @@ from quri_parts.tensornetwork.circuit import TensorNetworkLayer, convert_circuit
 from quri_parts.tensornetwork.circuit.gates import QuantumGate
 
 
-class MappedNode(Node):  # type: ignore
+class MappedNode(AbstractNode):  # type: ignore
     """This is a convenience class for single-qubits."""
 
     def __init__(
@@ -28,12 +28,16 @@ class MappedNode(Node):  # type: ignore
         node: Node,
         qubit_index: int,
         qubit_edge_index: int,
-        backend: str = "numpy",
     ) -> None:
-        super().__init__(node, backend=backend)
+        self.node = node
+        self.backend = node.backend
         self.qubit_index = qubit_index
         self.qubit_edge_index = qubit_edge_index  # This may not be 0 in an MPS
-    
+
+    @property
+    def dtype(self):
+        return self.node.dtype
+
     @property
     def qubit_edge(self) -> Edge:
         return self[self.qubit_edge_index]
@@ -48,6 +52,56 @@ class MappedNode(Node):  # type: ignore
             self.backend,
         )
         return mapped_node
+
+    @property
+    def edges(self) -> List["Edge"]:
+        if self.node.is_disabled:
+            raise ValueError(
+                "Node {} has been disabled. "
+                "Accessing its edges is no longer possible".format(self.node.name)
+            )
+        return self.node._edges
+
+    @edges.setter
+    def edges(self, edges: List) -> None:
+        if self.node.is_disabled:
+            raise ValueError(
+                "Node {} has been disabled."
+                "Assigning edges is no longer possible".format(self.node.name)
+            )
+        self.node._edges = edges
+
+    @property
+    def name(self) -> Text:
+        return self.node._name
+
+    @name.setter
+    def name(self, name) -> None:
+        if not isinstance(name, str):
+            raise TypeError("Node name should be str type")
+        self.node._name = name
+
+    @property
+    def axis_names(self) -> List[Text]:
+        return self.node._axis_names
+
+    @axis_names.setter
+    def axis_names(self, axis_names: List[Text]) -> None:
+        if len(axis_names) != len(self.node.shape):
+            raise ValueError(
+                "Expected {} names, only got {}.".format(
+                    len(self.node.shape), len(axis_names)
+                )
+            )
+        for axis_name in axis_names:
+            if not isinstance(axis_name, str):
+                raise TypeError("axis_names should be str type")
+        self.node._axis_names = axis_names
+
+    def disable(self) -> None:
+        if self.node.is_disabled:
+            raise ValueError("Node {} is already disabled".format(self.name))
+        self.node.is_disabled = True
 
 
 class TensorNetworkState(NodeCollection):  # type: ignore
@@ -141,7 +195,7 @@ def svd(
         for e in right_node:
             if e not in all_edges:
                 left_edges.append(e)
-    
+
     qubit_node_mapping[qubit_list[-1]] = right_node
 
     return qubit_node_mapping, output_edge_mapping
@@ -260,16 +314,13 @@ class TensorNetworkStateMPS(TensorNetworkState):
                         for i in range(len(node.edges))
                         if node[i] == mps_edge_mapping[qb]
                     ][0]
-                    tensor_map[qb] = MappedNode(
-                        node, qb, index, backend=node.backend
-                    )
+                    tensor_map[qb] = MappedNode(node, qb, index, backend=node.backend)
                     connected_nodes = edge.get_nodes()
                     for m in connected_nodes:
                         if m and m != node:
                             edge.disconnect()
                             assert isinstance(m, QuantumGate)
                             tensor_map[qb].qubit_edge ^ m.input_qubit_edge_mapping[qb]
-                    
 
         return TensorNetworkStateMPS(
             [tensor_map[i].qubit_edge for i in sorted(tensor_map)],

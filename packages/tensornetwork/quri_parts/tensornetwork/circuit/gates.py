@@ -112,7 +112,11 @@ class QuantumGate(Node, ABC):  # type: ignore
     qubit_indices: Sequence[int]
 
     def __init__(
-        self, unitary_matrix: npt.NDArray[np.complex128], qubit_indices: Sequence[int], name: str, backend: str
+        self,
+        unitary_matrix: npt.NDArray[np.complex128],
+        qubit_indices: Sequence[int],
+        name: str,
+        backend: str,
     ) -> None:
         tensor = unitary_matrix
         self.qubit_indices = qubit_indices
@@ -137,7 +141,7 @@ class SingleQubitGate(QuantumGate, ABC):
         assert len(qubit_indices) == 1
         tensor = np.array(data, dtype=np.complex128)
         super().__init__(tensor, qubit_indices, name=name, backend=backend)
-        
+
     @property
     def input_qubit_edge_mapping(self) -> Mapping[int, Edge]:
         return {self.qubit_indices[0]: self[0]}
@@ -201,18 +205,14 @@ class TwoQubitGate(QuantumGate, ABC):
         assert len(qubit_indices) == 2
         tensor = np.array(data, dtype=np.complex128)
         super().__init__(tensor, qubit_indices, name=name, backend=backend)
-        
+
     @property
     def input_qubit_edge_mapping(self) -> Mapping[int, Edge]:
-        return {
-            qi: self[i] for i, qi in enumerate(self.qubit_indices)
-        }
+        return {qi: self[i] for i, qi in enumerate(self.qubit_indices)}
 
     @property
     def output_qubit_edge_mapping(self) -> Mapping[int, Edge]:
-        return {
-            qi: self[i + 2] for i, qi in enumerate(self.qubit_indices)
-        }
+        return {qi: self[i + 2] for i, qi in enumerate(self.qubit_indices)}
 
 
 class ThreeQubitGate(QuantumGate, ABC):
@@ -229,18 +229,14 @@ class ThreeQubitGate(QuantumGate, ABC):
         assert len(qubit_indices) == 3
         tensor = np.array(data, dtype=np.complex128)
         super().__init__(tensor, qubit_indices, name=name, backend=backend)
-        
+
     @property
     def input_qubit_edge_mapping(self) -> Mapping[int, Edge]:
-        return {
-            qi: self[i] for i, qi in enumerate(self.qubit_indices)
-        }
+        return {qi: self[i] for i, qi in enumerate(self.qubit_indices)}
 
     @property
     def output_qubit_edge_mapping(self) -> Mapping[int, Edge]:
-        return {
-            qi: self[i + 3] for i, qi in enumerate(self.qubit_indices)
-        }
+        return {qi: self[i + 3] for i, qi in enumerate(self.qubit_indices)}
 
 
 class I(SingleQubitGate):  # noqa: E742
