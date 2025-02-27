@@ -8,12 +8,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Mapping, Optional, Sequence, Union, List, Text
+from typing import List, Mapping, Optional, Sequence, Text, Union, Dict, Tuple
 
 import numpy as np
 import numpy.typing as npt
 import tensornetwork as tn
-from tensornetwork import AbstractNode, Edge, Node, NodeCollection
+from tensornetwork import AbstractNode, Edge, Node, NodeCollection, Tensor
+from h5py import Group
 
 from quri_parts.core.state import CircuitQuantumState
 from quri_parts.tensornetwork.circuit import TensorNetworkLayer, convert_circuit
@@ -33,9 +34,14 @@ class MappedNode(AbstractNode):  # type: ignore
         self.backend = node.backend
         self.qubit_index = qubit_index
         self.qubit_edge_index = qubit_edge_index  # This may not be 0 in an MPS
+        for e in self:
+            if e.node1 == self.node:
+                e.node1 = self
+            if e.node2 == self.node:
+                e.node2 = self
 
     @property
-    def dtype(self):
+    def dtype(self) -> Tensor:
         return self.node.dtype
 
     @property
@@ -44,12 +50,11 @@ class MappedNode(AbstractNode):  # type: ignore
 
     def copy(self, conjugate: bool = False) -> "MappedNode":
         """Returns a copy of itself."""
-        node_copy = Node(np.copy(self.tensor), backend=self.backend).copy(conjugate)
+        node_copy = self.node.copy(conjugate)
         mapped_node = MappedNode(
             node_copy,
             self.qubit_index,
             self.qubit_edge_index,
-            self.backend,
         )
         return mapped_node
 
@@ -63,7 +68,7 @@ class MappedNode(AbstractNode):  # type: ignore
         return self.node._edges
 
     @edges.setter
-    def edges(self, edges: List) -> None:
+    def edges(self, edges: List["Edge"]) -> None:
         if self.node.is_disabled:
             raise ValueError(
                 "Node {} has been disabled."
@@ -102,6 +107,66 @@ class MappedNode(AbstractNode):  # type: ignore
         if self.node.is_disabled:
             raise ValueError("Node {} is already disabled".format(self.name))
         self.node.is_disabled = True
+
+    def get_tensor(self) -> Tensor:
+        return self.node.get_tensor()
+
+    def set_tensor(self, tensor) -> None:
+        return self.node.set_tensor(tensor)
+
+    @property
+    def shape(self) -> Tuple[Optional[int], ...]:
+        if self.node._shape is None:
+            raise ValueError("Please ensure this Node has a well-defined shape")
+        return self.node._shape
+
+    @property
+    def tensor(self) -> Tensor:
+        return self.node.tensor
+
+    @tensor.setter
+    def tensor(self, tensor: Tensor) -> None:
+        self.node.tensor = tensor
+
+    @classmethod
+    def _load_node(cls, _: Group) -> "AbstractNode":
+        """load a node based on hdf5 data.
+
+        Args:
+          node_data: h5py group that contains the serialized node data
+
+        Returns:
+          The loaded node.
+        """
+        raise NotImplementedError("Loading nodes is not supported for MappedNode")
+
+    def _save_node(self, _: Group) -> None:
+        """Abstract method to enable saving nodes to hdf5. Only serializing common
+        properties is implemented. Should be overwritten by subclasses.
+
+        Args:
+          node_group: h5py group where data is saved
+        """
+        raise NotImplementedError("Saving nodes is not supported for MappedNode")
+
+    def to_serial_dict(self) -> Dict:
+        """Return a serializable dict representing the node.
+
+        Returns: A dict object.
+        """
+        raise NotImplementedError("Serializing nodes is not supported for MappedNode")
+
+    @classmethod
+    def from_serial_dict(cls, _: Dict) -> "AbstractNode":
+        """Return a node given a serialized dict representing it.
+
+        Args:
+          serial_dict: A python dict representing a serialized node.
+
+        Returns:
+          A node.
+        """
+        raise NotImplementedError("Serializing nodes is not supported for MappedNode")
 
 
 class TensorNetworkState(NodeCollection):  # type: ignore
@@ -170,6 +235,8 @@ class TensorNetworkState(NodeCollection):  # type: ignore
 def svd(
     node: AbstractNode,
     output_edge_mapping: Mapping[int, Edge],
+    left_mps_edges: Optional[List[Edge]] = None,
+    right_mps_edges: Optional[List[Edge]] = None,
     max_bond_dimension: Optional[int] = None,
     max_truncation_err: Optional[float] = None,
 ) -> tuple[Mapping[int, AbstractNode], Mapping[int, Edge]]:
@@ -178,7 +245,11 @@ def svd(
     qubit_node_mapping = {}
     right_node = node
     left_edges = [list(output_edge_mapping.values())[0]]
+    if left_mps_edges is not None:
+        left_edges.extend(left_mps_edges)
     right_edges = list(output_edge_mapping.values())[1:]
+    if right_mps_edges is not None:
+        right_edges.extend(right_mps_edges)
 
     qubit_list = list(output_edge_mapping.keys())
     for q in qubit_list[:-1]:
@@ -295,32 +366,46 @@ class TensorNetworkStateMPS(TensorNetworkState):
                     node_set.add(tensor_map[qb])
                     node_set.add(n)
                     output_edges[qb] = n.output_qubit_edge_mapping[qb]
+                left_mps_edges = [
+                    e
+                    for e in tensor_map[all_qubits[0]].edges
+                    if (e.node1 not in node_set) or (e.node2 not in node_set) and not e.is_dangling()
+                ]
+                right_mps_edges = [
+                    e
+                    for e in tensor_map[all_qubits[-1]].edges
+                    if (e.node1 not in node_set) or (e.node2 not in node_set) and not e.is_dangling()
+                ]
+                all_non_contracted_edges = (
+                    list(output_edges.values()) + left_mps_edges + right_mps_edges
+                )
                 contracted_node = tn.contractors.greedy(
-                    node_set, output_edge_order=list(output_edges.values())
+                    node_set, all_non_contracted_edges
                 )
 
                 # Perform SVD and update tensor map
                 mps_node_mapping, mps_edge_mapping = svd(
                     contracted_node,
                     output_edges,
+                    left_mps_edges=left_mps_edges,
+                    right_mps_edges=right_mps_edges,
                     max_bond_dimension=self.max_bond_dimension,
                     max_truncation_err=self.max_truncation_err,
                 )
                 for qb in all_qubits:
                     node = mps_node_mapping[qb]
-                    edge = mps_edge_mapping[qb]
                     index = [
                         i
                         for i in range(len(node.edges))
                         if node[i] == mps_edge_mapping[qb]
                     ][0]
-                    tensor_map[qb] = MappedNode(node, qb, index, backend=node.backend)
-                    connected_nodes = edge.get_nodes()
-                    for m in connected_nodes:
-                        if m and m != node:
-                            edge.disconnect()
-                            assert isinstance(m, QuantumGate)
-                            tensor_map[qb].qubit_edge ^ m.input_qubit_edge_mapping[qb]
+                    tensor_map[qb] = MappedNode(node, qb, index)
+                    # connected_nodes = edge.get_nodes()
+                    # for m in connected_nodes:
+                    #     if m and m != node:
+                    #         edge.disconnect()
+                    #         assert isinstance(m, QuantumGate)
+                    #         tensor_map[qb].qubit_edge ^ m.input_qubit_edge_mapping[qb]
 
         return TensorNetworkStateMPS(
             [tensor_map[i].qubit_edge for i in sorted(tensor_map)],
@@ -338,7 +423,7 @@ def get_zero_state(qubit_count: int, backend: str = "numpy") -> TensorNetworkSta
     tensor_map: dict[int, MappedNode] = {}
     for q in range(qubit_count):
         node = Node(np.array([1.0, 0.0], dtype=np.complex128), backend=backend)
-        mapped_node = MappedNode(node, q, 0, backend=backend)
+        mapped_node = MappedNode(node, q, 0)
         qubits.append(mapped_node)
         zero_state_edges.append(mapped_node[0])
         tensor_map[q] = mapped_node

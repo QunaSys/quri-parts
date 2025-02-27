@@ -145,29 +145,37 @@ def main():
         {
             pauli_label("X0 X1"): 1.0,
             pauli_label("X1 X2"): 1.0,
-            pauli_label("X2 X3"): 1.0,
-            pauli_label("X3 X4"): 1.0,
-            pauli_label("X4 X5"): 1.0,
-            pauli_label("X5 X6"): 1.0,
-            pauli_label("X6 X7"): 1.0,
-            pauli_label("X7 X8"): 1.0,
-            pauli_label("X8 X9"): 1.0,
-            pauli_label("X9 X0"): 1.0,
+            # pauli_label("X2 X3"): 1.0,
+            # pauli_label("X3 X4"): 1.0,
+            # pauli_label("X4 X5"): 1.0,
+            # pauli_label("X5 X6"): 1.0,
+            # pauli_label("X6 X7"): 0.4,
+            # pauli_label("X7 X8"): 1.0,
+            # pauli_label("X8 X9"): 1.0,
+            # pauli_label("X9 X0"): 1.0,
         }
     )
-    circuit = QuantumCircuit(10)
+    circuit = QuantumCircuit(4)
     circuit.add_H_gate(0)
     circuit.add_H_gate(1)
     circuit.add_H_gate(2)
-    circuit.add_H_gate(3)
-    circuit.add_H_gate(4)
-    circuit.add_H_gate(5)
-    circuit.add_H_gate(6)
-    circuit.add_H_gate(7)
-    circuit.add_H_gate(8)
-    circuit.add_H_gate(9)
+    # circuit.add_H_gate(3)
+    # circuit.add_H_gate(4)
+    # circuit.add_H_gate(5)
+    # circuit.add_H_gate(6)
+    # circuit.add_H_gate(7)
+    # circuit.add_H_gate(8)
+    # circuit.add_H_gate(9)
     circuit.add_CNOT_gate(0, 1)
-    state = GeneralCircuitQuantumState(10, circuit)
+    # circuit.add_CNOT_gate(1, 2)
+    circuit.add_CNOT_gate(2, 3)
+    # circuit.add_CNOT_gate(3, 4)
+    # circuit.add_CNOT_gate(4, 5)
+    # circuit.add_CNOT_gate(5, 6)
+    # circuit.add_CNOT_gate(6, 7)
+    # circuit.add_CNOT_gate(7, 8)
+    # circuit.add_CNOT_gate(8, 9)
+    state = GeneralCircuitQuantumState(4, circuit)
     estimator = create_tensornetwork_mps_estimator(backend="numpy")
 
     for _ in tqdm(range(100)):
