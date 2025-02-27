@@ -58,6 +58,7 @@ class MappedNode(AbstractNode):  # type: ignore
             node_copy,
             self.qubit_index,
             self.qubit_edge_index,
+            self.name,
         )
         return mapped_node
 

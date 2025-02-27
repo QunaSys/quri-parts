@@ -110,6 +110,7 @@ class QuantumGate(Node, ABC):  # type: ignore
     input_qubit_edge_mapping: Mapping[int, Edge]
     output_qubit_edge_mapping: Mapping[int, Edge]
     qubit_indices: Sequence[int]
+    conjugate: bool
 
     def __init__(
         self,
@@ -117,8 +118,13 @@ class QuantumGate(Node, ABC):  # type: ignore
         qubit_indices: Sequence[int],
         name: str,
         backend: str,
+        conjugate: bool = False,
     ) -> None:
-        tensor = unitary_matrix
+        self.conjugate = conjugate
+        if conjugate:
+            tensor = np.conj(unitary_matrix, dtype=np.complex128)
+        else:
+            tensor = unitary_matrix
         self.qubit_indices = qubit_indices
         super().__init__(tensor, name=name, backend=backend)
 
@@ -137,10 +143,11 @@ class SingleQubitGate(QuantumGate, ABC):
         qubit_indices: Sequence[int],
         name: str,
         backend: str,
+        conjugate: bool = False,
     ) -> None:
         assert len(qubit_indices) == 1
         tensor = np.array(data, dtype=np.complex128)
-        super().__init__(tensor, qubit_indices, name=name, backend=backend)
+        super().__init__(tensor, qubit_indices, name=name, backend=backend, conjugate=conjugate)
 
     @property
     def input_qubit_edge_mapping(self) -> Mapping[int, Edge]:
@@ -201,10 +208,11 @@ class TwoQubitGate(QuantumGate, ABC):
         qubit_indices: Sequence[int],
         name: str,
         backend: str,
+        conjugate: bool = False,
     ) -> None:
         assert len(qubit_indices) == 2
         tensor = np.array(data, dtype=np.complex128)
-        super().__init__(tensor, qubit_indices, name=name, backend=backend)
+        super().__init__(tensor, qubit_indices, name=name, backend=backend, conjugate=conjugate)
 
     @property
     def input_qubit_edge_mapping(self) -> Mapping[int, Edge]:
@@ -225,10 +233,11 @@ class ThreeQubitGate(QuantumGate, ABC):
         qubit_indices: Sequence[int],
         name: str,
         backend: str,
+        conjugate: bool = False,
     ) -> None:
         assert len(qubit_indices) == 3
         tensor = np.array(data, dtype=np.complex128)
-        super().__init__(tensor, qubit_indices, name=name, backend=backend)
+        super().__init__(tensor, qubit_indices, name=name, backend=backend, conjugate=conjugate)
 
     @property
     def input_qubit_edge_mapping(self) -> Mapping[int, Edge]:
@@ -270,16 +279,17 @@ class X(SingleQubitGate):
 
 
 class Y(SingleQubitGate):
-    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy", conjugate: bool = False) -> None:
         unitary_matrix = _Y_LIST
         name = "Y"
 
-        super().__init__(unitary_matrix, qubit_indices, name, backend)
+        super().__init__(unitary_matrix, qubit_indices, name, backend, conjugate=conjugate)
 
-    def copy(self, _: bool = False) -> "Y":
+    def copy(self, conjugate: bool = False) -> "Y":
         quantum_gate_copy = Y(
             copy(list(self.input_qubit_edge_mapping.keys())),
             self.backend,
+            conjugate=conjugate,
         )
         return quantum_gate_copy
 
@@ -315,161 +325,161 @@ class H(SingleQubitGate):
 
 
 class S(SingleQubitGate):
-    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy", conjugate: bool = False) -> None:
         unitary_matrix = _S_LIST
         name = "S"
 
-        super().__init__(unitary_matrix, qubit_indices, name, backend)
+        super().__init__(unitary_matrix, qubit_indices, name, backend, conjugate=conjugate)
 
-    def copy(self, conjugate: bool = False) -> Union["S", "Sdag"]:
-        Gate = S if not conjugate else Sdag
-        quantum_gate_copy = Gate(
+    def copy(self, conjugate: bool = False) -> "S":
+        quantum_gate_copy = S(
             copy(list(self.input_qubit_edge_mapping.keys())),
             self.backend,
+            conjugate=conjugate,
         )
         return quantum_gate_copy
 
 
 class Sdag(SingleQubitGate):
-    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy", conjugate: bool = False) -> None:
         unitary_matrix = _SDAG_LIST
         name = "Sdag"
 
-        super().__init__(unitary_matrix, qubit_indices, name, backend)
+        super().__init__(unitary_matrix, qubit_indices, name, backend, conjugate=conjugate)
 
-    def copy(self, conjugate: bool = False) -> Union["S", "Sdag"]:
-        Gate = Sdag if not conjugate else S
-        quantum_gate_copy = Gate(
+    def copy(self, conjugate: bool = False) -> "Sdag":
+        quantum_gate_copy = Sdag(
             copy(list(self.input_qubit_edge_mapping.keys())),
             self.backend,
+            conjugate=conjugate,
         )
         return quantum_gate_copy
 
 
 class SqrtX(SingleQubitGate):
-    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy", conjugate: bool = False) -> None:
         unitary_matrix = _SQRTX_LIST
         name = "SqrtX"
 
-        super().__init__(unitary_matrix, qubit_indices, name, backend)
+        super().__init__(unitary_matrix, qubit_indices, name, backend, conjugate=conjugate)
 
-    def copy(self, conjugate: bool = False) -> Union["SqrtX", "SqrtXdag"]:
-        Gate = SqrtX if not conjugate else SqrtXdag
-        quantum_gate_copy = Gate(
+    def copy(self, conjugate: bool = False) -> "SqrtX":
+        quantum_gate_copy = SqrtX(
             copy(list(self.input_qubit_edge_mapping.keys())),
             self.backend,
+            conjugate=conjugate,
         )
         return quantum_gate_copy
 
 
 class SqrtXdag(SingleQubitGate):
-    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy", conjugate: bool = False) -> None:
         unitary_matrix = _SQRTXDAG_LIST
         name = "SqrtXdag"
 
-        super().__init__(unitary_matrix, qubit_indices, name, backend)
+        super().__init__(unitary_matrix, qubit_indices, name, backend, conjugate=conjugate)
 
-    def copy(self, conjugate: bool = False) -> Union["SqrtX", "SqrtXdag"]:
-        Gate = SqrtXdag if not conjugate else SqrtX
-        quantum_gate_copy = Gate(
+    def copy(self, conjugate: bool = False) -> "SqrtXdag":
+        quantum_gate_copy = SqrtXdag(
             copy(list(self.input_qubit_edge_mapping.keys())),
             self.backend,
+            conjugate=conjugate,
         )
         return quantum_gate_copy
 
 
 class SqrtY(SingleQubitGate):
-    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy", conjugate: bool = False) -> None:
         unitary_matrix = _SQRTY_LIST
         name = "SqrtY"
 
-        super().__init__(unitary_matrix, qubit_indices, name, backend)
+        super().__init__(unitary_matrix, qubit_indices, name, backend, conjugate=conjugate)
 
-    def copy(self, conjugate: bool = False) -> Union["SqrtY", "SqrtYdag"]:
-        Gate = SqrtY if not conjugate else SqrtYdag
-        quantum_gate_copy = Gate(
+    def copy(self, conjugate: bool = False) -> "SqrtY":
+        quantum_gate_copy = SqrtY(
             copy(list(self.input_qubit_edge_mapping.keys())),
             self.backend,
+            conjugate=conjugate,
         )
         return quantum_gate_copy
 
 
 class SqrtYdag(SingleQubitGate):
-    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy", conjugate: bool = False) -> None:
         unitary_matrix = _SQRTYDAG_LIST
         name = "SqrtYdag"
 
-        super().__init__(unitary_matrix, qubit_indices, name, backend)
+        super().__init__(unitary_matrix, qubit_indices, name, backend, conjugate=conjugate)
 
-    def copy(self, conjugate: bool = False) -> Union["SqrtY", "SqrtYdag"]:
-        Gate = SqrtYdag if not conjugate else SqrtY
-        quantum_gate_copy = Gate(
+    def copy(self, conjugate: bool = False) -> "SqrtYdag":
+        quantum_gate_copy = SqrtYdag(
             copy(list(self.input_qubit_edge_mapping.keys())),
             self.backend,
+            conjugate=conjugate,
         )
         return quantum_gate_copy
 
 
 class SqrtZ(SingleQubitGate):
-    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy", conjugate: bool = False) -> None:
         unitary_matrix = _SQRTZ_LIST
         name = "SqrtZ"
 
-        super().__init__(unitary_matrix, qubit_indices, name, backend)
+        super().__init__(unitary_matrix, qubit_indices, name, backend, conjugate=conjugate)
 
-    def copy(self, conjugate: bool = False) -> Union["SqrtZ", "SqrtZdag"]:
-        Gate = SqrtZ if not conjugate else SqrtZdag
-        quantum_gate_copy = Gate(
+    def copy(self, conjugate: bool = False) -> "SqrtZ":
+        quantum_gate_copy = SqrtZ(
             copy(list(self.input_qubit_edge_mapping.keys())),
             self.backend,
+            conjugate=conjugate,
         )
         return quantum_gate_copy
 
 
 class SqrtZdag(SingleQubitGate):
-    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy", conjugate: bool = False) -> None:
         unitary_matrix = _SQRTZDAG_LIST
         name = "SqrtZdag"
 
-        super().__init__(unitary_matrix, qubit_indices, name, backend)
+        super().__init__(unitary_matrix, qubit_indices, name, backend, conjugate=conjugate)
 
-    def copy(self, conjugate: bool = False) -> Union["SqrtZ", "SqrtZdag"]:
-        Gate = SqrtZdag if not conjugate else SqrtZ
-        quantum_gate_copy = Gate(
+    def copy(self, conjugate: bool = False) -> "SqrtZdag":
+        quantum_gate_copy = SqrtZdag(
             copy(list(self.input_qubit_edge_mapping.keys())),
             self.backend,
+            conjugate=conjugate,
         )
         return quantum_gate_copy
 
 
 class T(SingleQubitGate):
-    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy", conjugate: bool = False) -> None:
         unitary_matrix = _T_LIST
         name = "T"
 
-        super().__init__(unitary_matrix, qubit_indices, name, backend)
+        super().__init__(unitary_matrix, qubit_indices, name, backend, conjugate=conjugate)
 
-    def copy(self, conjugate: bool = False) -> Union["T", "Tdag"]:
-        Gate = T if not conjugate else Tdag
-        quantum_gate_copy = Gate(
+    def copy(self, conjugate: bool = False) -> "T":
+        quantum_gate_copy = T(
             copy(list(self.input_qubit_edge_mapping.keys())),
             self.backend,
+            conjugate=conjugate,
         )
         return quantum_gate_copy
 
 
 class Tdag(SingleQubitGate):
-    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy") -> None:
+    def __init__(self, qubit_indices: Sequence[int], backend: str = "numpy", conjugate: bool = False) -> None:
         unitary_matrix = _TDAG_LIST
         name = "Tdag"
 
-        super().__init__(unitary_matrix, qubit_indices, name, backend)
+        super().__init__(unitary_matrix, qubit_indices, name, backend, conjugate=conjugate)
 
-    def copy(self, conjugate: bool = False) -> Union["T", "Tdag"]:
-        Gate = Tdag if not conjugate else T
-        quantum_gate_copy = Gate(
+    def copy(self, conjugate: bool = False) -> "Tdag":
+        quantum_gate_copy = Tdag(
             copy(list(self.input_qubit_edge_mapping.keys())),
             self.backend,
+            conjugate=conjugate,
         )
         return quantum_gate_copy
 

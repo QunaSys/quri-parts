@@ -13,7 +13,7 @@ from numpy.testing import assert_almost_equal
 from quri_parts.circuit import QuantumCircuit
 from quri_parts.core.operator import Operator, pauli_label
 from quri_parts.core.state import ComputationalBasisState, GeneralCircuitQuantumState
-from quri_parts.tensornetwork.estimator import create_tensornetwork_estimator
+from quri_parts.tensornetwork.estimator import create_tensornetwork_estimator, create_tensornetwork_mps_estimator
 
 
 class TestTensorNetworkEstimator:
@@ -79,6 +79,21 @@ class TestTensorNetworkEstimator:
         state = ComputationalBasisState(6, bits=0b110010)
         estimators = [
             create_tensornetwork_estimator(
+                matrix_product_operator=True, max_bond_dimension=d
+            )
+            for d in range(1, 4)
+        ]  # For a single pauli-string the bond dimension need only be 1 or greater
+        for estimator in estimators:
+            estimate = estimator(pauli, state)
+            assert_almost_equal(estimate.value, -1)
+            assert estimate.error == 0
+
+
+    def test_mpo_and_mps_with_bond_dimension(self) -> None:
+        pauli = pauli_label("Z0 Z2 Z5")
+        state = ComputationalBasisState(6, bits=0b110010)
+        estimators = [
+            create_tensornetwork_mps_estimator(
                 matrix_product_operator=True, max_bond_dimension=d
             )
             for d in range(1, 4)
