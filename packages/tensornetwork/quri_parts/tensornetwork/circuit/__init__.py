@@ -138,6 +138,9 @@ def convert_circuit(
     def connect_gate(
         node: QuantumGate, qubits: Sequence[int], qubit_count: int
     ) -> None:
+        max_depth = max(depth[q] for q in qubits)
+        for q in qubits:
+            depth[q] = max_depth
         for i, q in enumerate(qubits):
             if in_out_map[q]["in"]:
                 in_out_map[q]["out"] ^ node[i]

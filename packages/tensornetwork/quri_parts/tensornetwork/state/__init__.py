@@ -29,6 +29,7 @@ class MappedNode(AbstractNode):  # type: ignore
         node: Node,
         qubit_index: int,
         qubit_edge_index: int,
+        name: Optional[Text] = None,
     ) -> None:
         self.node = node
         self.backend = node.backend
@@ -39,6 +40,8 @@ class MappedNode(AbstractNode):  # type: ignore
                 e.node1 = self
             if e.node2 == self.node:
                 e.node2 = self
+        if name is not None:
+            self.name = name
 
     @property
     def dtype(self) -> Tensor:
@@ -60,48 +63,29 @@ class MappedNode(AbstractNode):  # type: ignore
 
     @property
     def edges(self) -> List["Edge"]:
-        if self.node.is_disabled:
-            raise ValueError(
-                "Node {} has been disabled. "
-                "Accessing its edges is no longer possible".format(self.node.name)
-            )
-        return self.node._edges
+        return self.node.edges
 
     @edges.setter
     def edges(self, edges: List["Edge"]) -> None:
-        if self.node.is_disabled:
-            raise ValueError(
-                "Node {} has been disabled."
-                "Assigning edges is no longer possible".format(self.node.name)
-            )
-        self.node._edges = edges
+        self.node.edges = edges
 
     @property
     def name(self) -> Text:
-        return self.node._name
+        return self.node.name
 
     @name.setter
     def name(self, name) -> None:
         if not isinstance(name, str):
             raise TypeError("Node name should be str type")
-        self.node._name = name
+        self.node.name = name
 
     @property
     def axis_names(self) -> List[Text]:
-        return self.node._axis_names
+        return self.node.axis_names
 
     @axis_names.setter
     def axis_names(self, axis_names: List[Text]) -> None:
-        if len(axis_names) != len(self.node.shape):
-            raise ValueError(
-                "Expected {} names, only got {}.".format(
-                    len(self.node.shape), len(axis_names)
-                )
-            )
-        for axis_name in axis_names:
-            if not isinstance(axis_name, str):
-                raise TypeError("axis_names should be str type")
-        self.node._axis_names = axis_names
+        self.node.axis_names = axis_names
 
     def disable(self) -> None:
         if self.node.is_disabled:
@@ -116,9 +100,7 @@ class MappedNode(AbstractNode):  # type: ignore
 
     @property
     def shape(self) -> Tuple[Optional[int], ...]:
-        if self.node._shape is None:
-            raise ValueError("Please ensure this Node has a well-defined shape")
-        return self.node._shape
+        return self.node.shape
 
     @property
     def tensor(self) -> Tensor:
@@ -399,7 +381,7 @@ class TensorNetworkStateMPS(TensorNetworkState):
                         for i in range(len(node.edges))
                         if node[i] == mps_edge_mapping[qb]
                     ][0]
-                    tensor_map[qb] = MappedNode(node, qb, index)
+                    tensor_map[qb] = MappedNode(node, qb, index, name=f"MPS q={qb}")
                     # connected_nodes = edge.get_nodes()
                     # for m in connected_nodes:
                     #     if m and m != node:
@@ -423,7 +405,7 @@ def get_zero_state(qubit_count: int, backend: str = "numpy") -> TensorNetworkSta
     tensor_map: dict[int, MappedNode] = {}
     for q in range(qubit_count):
         node = Node(np.array([1.0, 0.0], dtype=np.complex128), backend=backend)
-        mapped_node = MappedNode(node, q, 0)
+        mapped_node = MappedNode(node, q, 0, name=f"|0> q={q}")
         qubits.append(mapped_node)
         zero_state_edges.append(mapped_node[0])
         tensor_map[q] = mapped_node
@@ -436,7 +418,8 @@ def convert_state(
     qubit_count = state.qubit_count
     zero_state = get_zero_state(qubit_count, backend=backend)
     state_circuit = convert_circuit(state.circuit, backend=backend)
-    return zero_state.with_gates_applied(state_circuit)
+    tn_state = zero_state.with_gates_applied(state_circuit)
+    return tn_state
 
 
 def convert_state_mps(
