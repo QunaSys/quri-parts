@@ -189,7 +189,7 @@ class CliffordRZSetTranspiler(SequentialTranspiler):
                 FuseRotationTranspiler(),
                 RX2NamedTranspiler(epsilon),
                 RY2NamedTranspiler(epsilon),
-                RZ2NamedTranspiler(epsilon),
+                RZ2NamedTranspiler(epsilon, allow_t_tdag=False),
                 IdentityEliminationTranspiler(),
             ]
         )
