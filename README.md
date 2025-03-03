@@ -1,8 +1,8 @@
 # quri-sdk-notebooks
 Example and tutorial notebooks used in QURI SDK documentation
 
-## About the quri_sdk_workshop branch
-This custom branch is for use in workshops to present QURI SDK. We emphasize the following notebooks to give a comprehensive overview of the capabilities of QURI SDK:
+## Getting started
+To get a general overview of the capabilities and workflow of QURI SDK, please see these notebooks to start with
 
 - `quri_sdk_notebooks/tutorials/0_general/hadamard_tutorial.ipynb`
 - `quri_sdk_notebooks/tutorials/2_quri-vm/0_vm-introduction/0_vm-introduction.ipynb`
@@ -12,7 +12,6 @@ This custom branch is for use in workshops to present QURI SDK. We emphasize the
 - `quri_sdk_notebooks/examples/0_quri-algo-vm/1_spe/1_spe.ipynb`
 - `quri_sdk_notebooks/examples/0_quri-algo-vm/2_qaqc/2_qaqc.ipynb`
 
-We have made slight changes to the notebooks to make them more comprehensible and give users a way to use the provided code in their own work. We have also reduced the run-time of QSCI and added some additional estimates to QAQC.
 
 ## Installation instructions
 
