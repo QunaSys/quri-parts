@@ -29,7 +29,7 @@ jobs:
         poetry env use 3.10
         poetry build
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: QURI VM packages
         path: dist/*
