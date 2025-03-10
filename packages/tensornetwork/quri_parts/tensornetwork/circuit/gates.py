@@ -176,7 +176,7 @@ class SingleQubitRotationGate(QuantumGate, ABC):
         assert len(qubit_indices) == 1
         self.angles = angles
         unitary_matrix = self.rotation(angles)
-        super().__init__(unitary_matrix, name=name, backend=backend)
+        super().__init__(unitary_matrix, qubit_indices, name=name, backend=backend)
 
 
 class SingleQubitPauliRotationGate(SingleQubitRotationGate, ABC):
