@@ -21,7 +21,6 @@ from .utils.transpile import apply_transpiler
 
 @runtime_checkable
 class CircuitFactory(Protocol):
-
     transpiler: Optional[CircuitTranspiler]
 
     @apply_transpiler  # type: ignore
