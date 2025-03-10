@@ -8,10 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Mapping, Optional, Sequence, Text, Union, Dict, Tuple, Any
+from typing import List, Mapping, Optional, Sequence, Text, Union, Any
 
 import numpy as np
-import numpy.typing as npt
 import tensornetwork as tn
 from tensornetwork import AbstractNode, Edge, Node, NodeCollection, Tensor
 from h5py import Group
@@ -352,12 +351,16 @@ class TensorNetworkStateMPS(TensorNetworkState):
                 left_mps_edges = [
                     e
                     for e in tensor_map[all_qubits[0]].edges
-                    if (e.node1 not in node_set) or (e.node2 not in node_set) and not e.is_dangling()
+                    if (e.node1 not in node_set)
+                    or (e.node2 not in node_set)
+                    and not e.is_dangling()
                 ]
                 right_mps_edges = [
                     e
                     for e in tensor_map[all_qubits[-1]].edges
-                    if (e.node1 not in node_set) or (e.node2 not in node_set) and not e.is_dangling()
+                    if (e.node1 not in node_set)
+                    or (e.node2 not in node_set)
+                    and not e.is_dangling()
                 ]
                 all_non_contracted_edges = (
                     list(output_edges.values()) + left_mps_edges + right_mps_edges

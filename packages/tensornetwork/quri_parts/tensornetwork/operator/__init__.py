@@ -120,8 +120,9 @@ def pauli_label_to_array(
     if pauli == PAULI_IDENTITY:
         if index_list is None:
             raise ValueError("Cannot convert empty Pauli string to array")
-        return get_observable_data([_PAULI_OPERATOR_DATA_MAP[0] for _ in range(len(index_list))])
-
+        return get_observable_data(
+            [_PAULI_OPERATOR_DATA_MAP[0] for _ in range(len(index_list))]
+        )
 
     if index_list is None:
         this_index_list, pauli_id_list = pauli.index_and_pauli_id_list
