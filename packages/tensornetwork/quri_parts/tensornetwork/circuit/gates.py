@@ -107,8 +107,6 @@ class QuantumGate(Node, ABC):  # type: ignore
     """:class:`~QuantumGate` class is a base class that wraps
     :class:`~Node`."""
 
-    input_qubit_edge_mapping: Mapping[int, Edge]
-    output_qubit_edge_mapping: Mapping[int, Edge]
     qubit_indices: Sequence[int]
     conjugate: bool
 
@@ -132,6 +130,17 @@ class QuantumGate(Node, ABC):  # type: ignore
     def copy(self, conjugate: bool = False) -> "QuantumGate":
         pass
 
+
+    @property
+    @abstractmethod
+    def input_qubit_edge_mapping(self) -> Mapping[int, Edge]:
+        pass
+
+    @property
+    @abstractmethod
+    def output_qubit_edge_mapping(self) -> Mapping[int, Edge]:
+        pass
+    
 
 class SingleQubitGate(QuantumGate, ABC):
     """:class:`~SingleQubitGate` class is a base class that facilitates one qubit

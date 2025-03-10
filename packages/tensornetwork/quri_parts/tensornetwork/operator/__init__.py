@@ -273,10 +273,3 @@ def operator_to_tensor(
         cache[op_key] = tensor.copy()
 
     return tensor
-
-def main():
-    array = pauli_label_to_array(PAULI_IDENTITY, {0, 2, 3})
-    print(array)
-
-if __name__ == "__main__":
-    main()
