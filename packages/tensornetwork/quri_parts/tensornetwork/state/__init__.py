@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Mapping, Optional, Sequence, Text, Union, Dict, Tuple
+from typing import List, Mapping, Optional, Sequence, Text, Union, Dict, Tuple, Any
 
 import numpy as np
 import numpy.typing as npt
@@ -63,7 +63,7 @@ class MappedNode(AbstractNode):  # type: ignore
         return mapped_node
 
     @property
-    def edges(self) -> List["Edge"]:
+    def edges(self) -> Any:
         return self.node.edges
 
     @edges.setter
@@ -71,17 +71,17 @@ class MappedNode(AbstractNode):  # type: ignore
         self.node.edges = edges
 
     @property
-    def name(self) -> Text:
+    def name(self) -> Any:
         return self.node.name
 
     @name.setter
-    def name(self, name) -> None:
+    def name(self, name: str) -> None:
         if not isinstance(name, str):
             raise TypeError("Node name should be str type")
         self.node.name = name
 
     @property
-    def axis_names(self) -> List[Text]:
+    def axis_names(self) -> Any:
         return self.node.axis_names
 
     @axis_names.setter
@@ -96,11 +96,11 @@ class MappedNode(AbstractNode):  # type: ignore
     def get_tensor(self) -> Tensor:
         return self.node.get_tensor()
 
-    def set_tensor(self, tensor) -> None:
-        return self.node.set_tensor(tensor)
+    def set_tensor(self, tensor: Tensor) -> None:
+        self.node.set_tensor(tensor)
 
     @property
-    def shape(self) -> Tuple[Optional[int], ...]:
+    def shape(self) -> Any:
         return self.node.shape
 
     @property
@@ -132,7 +132,7 @@ class MappedNode(AbstractNode):  # type: ignore
         """
         raise NotImplementedError("Saving nodes is not supported for MappedNode")
 
-    def to_serial_dict(self) -> Dict:
+    def to_serial_dict(self) -> None:
         """Return a serializable dict representing the node.
 
         Returns: A dict object.
@@ -140,7 +140,7 @@ class MappedNode(AbstractNode):  # type: ignore
         raise NotImplementedError("Serializing nodes is not supported for MappedNode")
 
     @classmethod
-    def from_serial_dict(cls, _: Dict) -> "AbstractNode":
+    def from_serial_dict(cls, _: Any) -> None:
         """Return a node given a serialized dict representing it.
 
         Args:
