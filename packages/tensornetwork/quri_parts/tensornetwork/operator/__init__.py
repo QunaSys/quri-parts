@@ -18,7 +18,7 @@ import tensornetwork as tn
 from tensornetwork import AbstractNode, Edge, Node, split_node
 from typing_extensions import TypeAlias
 
-from quri_parts.core.operator import Operator, PauliLabel
+from quri_parts.core.operator import Operator, PauliLabel, PAULI_IDENTITY
 from quri_parts.tensornetwork.circuit import TensorNetworkLayer
 
 _PAULI_OPERATOR_DATA_MAP: Sequence[Sequence[Sequence[complex]]] = (
@@ -117,6 +117,12 @@ def pauli_label_to_array(
     argument. The returned array will then be padded with identity
     operators where needed.
     """
+    if pauli == PAULI_IDENTITY:
+        if index_list is None:
+            raise ValueError("Cannot convert empty Pauli string to array")
+        return get_observable_data([_PAULI_OPERATOR_DATA_MAP[0] for _ in range(len(index_list))])
+
+
     if index_list is None:
         this_index_list, pauli_id_list = pauli.index_and_pauli_id_list
         index_list = set(this_index_list)
@@ -267,3 +273,10 @@ def operator_to_tensor(
         cache[op_key] = tensor.copy()
 
     return tensor
+
+def main():
+    array = pauli_label_to_array(PAULI_IDENTITY, {0, 2, 3})
+    print(array)
+
+if __name__ == "__main__":
+    main()
