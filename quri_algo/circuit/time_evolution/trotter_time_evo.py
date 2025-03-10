@@ -10,7 +10,6 @@
 
 from functools import lru_cache
 from typing import Iterable
-from typing import Union
 
 import numpy as np
 from quri_parts.circuit import (
