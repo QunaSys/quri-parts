@@ -132,18 +132,23 @@ def create_tensornetwork_mps_estimator(
 
     return estimate
 
+
 from quri_parts.core.operator import pauli_label
 from quri_parts.algo.ansatz import HardwareEfficient
 from quri_parts.tensornetwork.estimator import create_tensornetwork_mps_estimator
 from quri_parts.algo.optimizer import LBFGS
-from quri_parts.algo.ansatz.two_local import EntanglementPatternType, build_entangler_map
+from quri_parts.algo.ansatz.two_local import (
+    EntanglementPatternType,
+    build_entangler_map,
+)
 from quri_parts.core.state import GeneralCircuitQuantumState
+
 
 def main():
     REPS = 4
     d = 4
     j = 1.0
-    s = 1/2
+    s = 1 / 2
     heisenberg = Operator(
         {
             pauli_label("X0 X1"): j * s**2,
@@ -163,24 +168,23 @@ def main():
     # heisenberg_input = QubitHamiltonianInput(4, heisenberg)
     # circuit_factory = TrotterTimeEvolutionCircuitFactory(heisenberg_input, 1)
     # estimator = create_qulacs_vector_estimator()
-    mps_estimator = create_tensornetwork_mps_estimator(matrix_product_operator=True, max_bond_dimension=d)
+    mps_estimator = create_tensornetwork_mps_estimator(
+        matrix_product_operator=True, max_bond_dimension=d
+    )
     # local_cost_fn = LocalHilbertSchmidtTestRestrictedPBC(
     #     mps_estimator, restriction_size=2
     # )
     # optimizer = LBFGS()
 
-
     # lvqc = LVQC(local_cost_fn, optimizer)
-    entangler_map = build_entangler_map(
-        4, [EntanglementPatternType.LINEAR] * REPS
-    )  
-    ansatz = HardwareEfficient(
-        4, REPS, entangler_map_seq=entangler_map
-    )
+    entangler_map = build_entangler_map(4, [EntanglementPatternType.LINEAR] * REPS)
+    ansatz = HardwareEfficient(4, REPS, entangler_map_seq=entangler_map)
 
-    angles = [0.0,] * ansatz.parameter_count
+    angles = [
+        0.0,
+    ] * ansatz.parameter_count
     circuit = ansatz.bind_parameters(angles)
-    state = GeneralCircuitQuantumState(4,circuit)
+    state = GeneralCircuitQuantumState(4, circuit)
     result = mps_estimator(heisenberg, state)
     print(result.value)
 

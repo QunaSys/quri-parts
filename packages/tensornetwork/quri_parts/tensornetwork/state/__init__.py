@@ -348,19 +348,27 @@ class TensorNetworkStateMPS(TensorNetworkState):
                     node_set.add(tensor_map[qb])
                     node_set.add(n)
                     output_edges[qb] = n.output_qubit_edge_mapping[qb]
+                left_mps_nodes = {
+                    tensor_map[all_qubits[0]],
+                    tensor_map.get(all_qubits[0] - 1),
+                }
+                right_mps_nodes = {
+                    tensor_map[all_qubits[-1]],
+                    tensor_map.get(all_qubits[-1] + 1),
+                }
                 left_mps_edges = [
                     e
                     for e in tensor_map[all_qubits[0]].edges
-                    if (e.node1 not in node_set)
-                    or (e.node2 not in node_set)
+                    if ((e.node1 not in node_set) or (e.node2 not in node_set))
                     and not e.is_dangling()
+                    and {e.node1, e.node2} == left_mps_nodes
                 ]
                 right_mps_edges = [
                     e
                     for e in tensor_map[all_qubits[-1]].edges
-                    if (e.node1 not in node_set)
-                    or (e.node2 not in node_set)
+                    if ((e.node1 not in node_set) or (e.node2 not in node_set))
                     and not e.is_dangling()
+                    and {e.node1, e.node2} == right_mps_nodes
                 ]
                 all_non_contracted_edges = (
                     list(output_edges.values()) + left_mps_edges + right_mps_edges
