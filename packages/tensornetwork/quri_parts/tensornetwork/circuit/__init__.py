@@ -149,6 +149,8 @@ def convert_circuit(
                 assert in_out_map[q]["out"] is None
                 in_out_map[q]["in"] = node[i]
                 in_out_map[q]["out"] = node[qubit_count + i]
+            if depth[q] >= len(tensor_map):
+                tensor_map.append({})
             if tensor_map[depth[q]].get(q) is None:
                 tensor_map[depth[q]][q] = node
             depth[q] += 1
