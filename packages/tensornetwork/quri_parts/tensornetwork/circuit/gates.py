@@ -188,6 +188,14 @@ class SingleQubitRotationGate(QuantumGate, ABC):
         unitary_matrix = self.rotation(angles)
         super().__init__(unitary_matrix, qubit_indices, name=name, backend=backend)
 
+    @property
+    def input_qubit_edge_mapping(self) -> Mapping[int, Edge]:
+        return {self.qubit_indices[0]: self[0]}
+
+    @property
+    def output_qubit_edge_mapping(self) -> Mapping[int, Edge]:
+        return {self.qubit_indices[0]: self[1]}
+
 
 class SingleQubitPauliRotationGate(SingleQubitRotationGate, ABC):
     """:class:`~SingleQubitPauliRotationGate` class is a base class that

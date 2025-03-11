@@ -217,3 +217,23 @@ def convert_circuit(
     output_edges = [m["out"] for m in in_out_map]
 
     return TensorNetworkLayer(input_edges, output_edges, node_collection, tensor_map)
+
+
+def main():
+    for Gate in _single_qubit_gate_tensornetwork.values():
+        Gate([0], backend="numpy")
+    for Gate in _single_qubit_pauli_rotation_gate_tensornetwork.values():
+        Gate(0.0, [0], backend="numpy")
+    for Gate in _two_qubit_gate_tensornetwork.values():
+        Gate([0, 1], backend="numpy")
+    for Gate in _three_qubit_gate_tensornetwork.values():
+        Gate([0, 1, 2], backend="numpy")
+    for Gate, angles in zip(
+        _single_qubit_rotation_gate_tensornetwork.values(),
+        [[0.0], [0.0, 0.0], [0.0, 0.0, 0.0]],
+    ):
+        Gate(angles, [0], backend="numpy")
+
+
+if __name__ == "__main__":
+    main()
