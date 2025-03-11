@@ -12,13 +12,14 @@ on:
   schedule:
     - cron: '0 0 * * MON-FRI'
   workflow_dispatch:
+    branches: [main]
 
 jobs:
   check-licenses:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v3
 
     - uses: actions/setup-python@v4
       with:
@@ -31,13 +32,9 @@ jobs:
         . venv/bin/activate
         pip install -e packages/*
 
-    - uses: ruby/setup-ruby@v1
+    - uses: jonabc/setup-licensed@v1.1.2
       with:
-        ruby-version: ruby
-
-    - uses: licensee/setup-licensed@v1.3.2
-      with:
-        version: '5.x'
+        version: '3.x'
         github_token: ${{ secrets.GITHUB_TOKEN }}
 
     - run: licensed cache

@@ -6,7 +6,6 @@ python:
 
 allowed:
   - mit
-  - mit-cmu
   - apache-2.0
   - bsd-2-clause
   - bsd-3-clause
@@ -15,7 +14,6 @@ allowed:
   - hpnd
   - mpl-2.0
   - psf-2.0
-  - unlicense
 
 ignored:
   pip:
