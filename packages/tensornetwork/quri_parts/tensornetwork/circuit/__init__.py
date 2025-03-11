@@ -175,6 +175,7 @@ def convert_circuit(
                     node = _single_qubit_pauli_rotation_gate_tensornetwork[gate.name](
                         gate.params[0], gate.target_indices, backend=backend
                     )
+                    node_collection.add(node)
                 else:
                     raise ValueError("Invalid number of parameters.")
             elif gate.name in _single_qubit_rotation_gate_tensornetwork:
@@ -185,7 +186,7 @@ def convert_circuit(
             else:
                 raise ValueError(f"{gate.name} gate is not supported.")
             connect_gate(node, gate.target_indices, 1)
-        if is_two_qubit_gate_name(gate.name):
+        elif is_two_qubit_gate_name(gate.name):
             if gate.name not in _two_qubit_gate_tensornetwork:
                 raise ValueError(f"{gate.name} gate is not supported.")
             if gate.name == "SWAP":
@@ -193,15 +194,17 @@ def convert_circuit(
             else:
                 indices = list(gate.control_indices) + list(gate.target_indices)
             node = _two_qubit_gate_tensornetwork[gate.name](indices, backend=backend)
-            connect_gate(node, indices, 2)
             node_collection.add(node)
-        if is_three_qubit_gate_name(gate.name):
+            connect_gate(node, indices, 2)
+        elif is_three_qubit_gate_name(gate.name):
             if gate.name not in _three_qubit_gate_tensornetwork:
                 raise ValueError(f"{gate.name} gate is not supported.")
             indices = list(gate.control_indices) + list(gate.target_indices)
             node = _three_qubit_gate_tensornetwork[gate.name](indices, backend=backend)
             node_collection.add(node)
             connect_gate(node, indices, 3)
+        else:
+            raise ValueError(f"Unknown gate name: {gate.name}")
 
     # This ensures that all qubits in the circuit are represented, but maybe we should
     # change some classes so that we don't need it.
