@@ -4,7 +4,7 @@ version: 1.15.2
 type: pip
 summary: Fundamental algorithms for scientific computing in Python
 homepage: https://scipy.org/
-license: bsd-3-clause-attribution
+license: bsd-3-clause
 licenses:
 - sources: LICENSE.txt
   text: "Copyright (c) 2001-2002 Enthought, Inc. 2003-2024, SciPy Developers.\nAll
