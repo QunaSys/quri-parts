@@ -16,7 +16,8 @@ from tensornetwork import AbstractNode, Edge, Node, NodeCollection, Tensor
 from h5py import Group
 
 from quri_parts.core.state import CircuitQuantumState
-from quri_parts.tensornetwork.circuit import TensorNetworkLayer, convert_circuit
+from quri_parts.circuit.transpile import CircuitTranspiler
+from quri_parts.tensornetwork.circuit import TensorNetworkLayer, convert_circuit, TensorNetworkTranspiler, TensorNetworkMPSTranspiler
 from quri_parts.tensornetwork.circuit.gates import QuantumGate
 
 
@@ -339,6 +340,7 @@ class TensorNetworkStateMPS(TensorNetworkState):
                     raise ValueError("State qubits and circuit qubits do not match")
                 assert isinstance(n, QuantumGate)
                 all_qubits = list(n.input_qubit_edge_mapping.keys())
+                all_qubits.sort()
                 mapped_qubits.extend(all_qubits)
 
                 # Contract nodes
@@ -425,11 +427,11 @@ def get_zero_state(qubit_count: int, backend: str = "numpy") -> TensorNetworkSta
 
 
 def convert_state(
-    state: CircuitQuantumState, backend: str = "numpy"
+    state: CircuitQuantumState, transpiler: Optional[CircuitTranspiler] = TensorNetworkTranspiler(), backend: str = "numpy"
 ) -> TensorNetworkState:
     qubit_count = state.qubit_count
     zero_state = get_zero_state(qubit_count, backend=backend)
-    state_circuit = convert_circuit(state.circuit, backend=backend)
+    state_circuit = convert_circuit(state.circuit, transpiler=transpiler, backend=backend)
     tn_state = zero_state.with_gates_applied(state_circuit)
     return tn_state
 
@@ -440,7 +442,7 @@ def convert_state_mps(
     max_bond_dimension: Optional[int] = None,
     max_truncation_err: Optional[float] = None,
 ) -> TensorNetworkStateMPS:
-    tensornetwork_state = convert_state(state, backend=backend)
+    tensornetwork_state = convert_state(state, transpiler=TensorNetworkMPSTranspiler(), backend=backend)
     return TensorNetworkStateMPS(
         tensornetwork_state.edges,
         tensornetwork_state._container,
