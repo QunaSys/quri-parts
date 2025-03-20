@@ -16,7 +16,7 @@ from quri_parts.qulacs.sampler import create_qulacs_vector_ideal_sampler
 from quri_algo.core.estimator.time_evolution_estimator.exact_unitary import (
     ExactUnitaryTimeEvolutionHadamardTest,
 )
-from quri_algo.problem.hamiltonian import QubitHamiltonianInput
+from quri_algo.problem.operators.hamiltonian import QubitHamiltonianInput
 
 
 def test_exact_unitary_hadamard_test() -> None:

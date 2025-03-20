@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import dataclass
+
 from typing import cast
 
 import numpy as np
@@ -21,22 +21,26 @@ from scipy.linalg import expm
 from quri_algo.circuit.interface import ProblemCircuitFactory
 from quri_algo.circuit.time_evolution.interface import (
     ControlledTimeEvolutionCircuitFactory,
+    TimeEvolutionCircuitFactory,
 )
 from quri_algo.circuit.utils.transpile import apply_transpiler
-from quri_algo.problem.hamiltonian import QubitHamiltonianInput
+from quri_algo.problem.operators.hamiltonian import QubitHamiltonianInput
 
 
-@dataclass
-class ExactUnitaryTimeEvolutionCircuitFactory(
-    ProblemCircuitFactory[QubitHamiltonianInput]
-):
+class ExactUnitaryTimeEvolutionCircuitFactory(TimeEvolutionCircuitFactory):
     """Time evolution with exact unitary matrix."""
 
-    def __post_init__(self) -> None:
-        assert isinstance(self.encoded_problem, QubitHamiltonianInput)
+    def __init__(
+        self,
+        encoded_problem: QubitHamiltonianInput,
+        *,
+        transpiler: CircuitTranspiler | None = None
+    ):
+        self.encoded_problem = encoded_problem
         self._hamiltonian_matrix = get_sparse_matrix(
             self.encoded_problem.qubit_hamiltonian
         ).toarray()
+        self.transpiler = transpiler
 
     def get_time_evo_matrix(self, evolution_time: float) -> npt.NDArray[np.complex128]:
         time_evo = expm(-1j * evolution_time * self._hamiltonian_matrix)
@@ -52,9 +56,8 @@ class ExactUnitaryTimeEvolutionCircuitFactory(
         return circuit
 
 
-@dataclass
 class ExactUnitaryControlledTimeEvolutionCircuitFactory(
-    ControlledTimeEvolutionCircuitFactory[QubitHamiltonianInput]
+    ControlledTimeEvolutionCircuitFactory
 ):
     """Controlled time evolution with exact unitary matrix."""
 

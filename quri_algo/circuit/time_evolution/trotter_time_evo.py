@@ -29,13 +29,13 @@ from quri_parts.core.operator import (
     trotter_suzuki_decomposition,
 )
 
-from quri_algo.circuit.time_evolution.interface import TimeEvolutionCircuitFactory
 from quri_algo.circuit.utils.transpile import apply_transpiler
 from quri_algo.problem import QubitHamiltonianInput
 
 from .interface import (
     ControlledTimeEvolutionCircuitFactory,
     PartialTimeEvolutionCircuitFactory,
+    TimeEvolutionCircuitFactory,
 )
 
 
@@ -96,9 +96,7 @@ def get_trotter_time_evolution_operator(
     return circuit.freeze()
 
 
-class FixedStepTrotterTimeEvolutionCircuitFactory(
-    TimeEvolutionCircuitFactory[QubitHamiltonianInput]
-):
+class FixedStepTrotterTimeEvolutionCircuitFactory(TimeEvolutionCircuitFactory):
     """Factory for generating a Trotter time evolution circuit with a fixed
     number Trotter steps. circuit based on a qubit Hamiltonian.
 
@@ -122,7 +120,6 @@ class FixedStepTrotterTimeEvolutionCircuitFactory(
         self.qubit_count = self.encoded_problem.n_state_qubit
         self.trotter_order = trotter_order
         self.transpiler = transpiler
-        assert isinstance(self.encoded_problem, QubitHamiltonianInput)
         self._param_evo_circuit = get_trotter_time_evolution_operator(
             self.encoded_problem.qubit_hamiltonian,
             self.encoded_problem.n_state_qubit,
@@ -186,7 +183,7 @@ def get_trotter_controlled_time_evolution_operator(
 
 
 class FixedStepTrotterControlledTimeEvolutionCircuitFactory(
-    ControlledTimeEvolutionCircuitFactory[QubitHamiltonianInput]
+    ControlledTimeEvolutionCircuitFactory
 ):
     """Factory for generating a Trotter controlled time evolution circuit with
     a fixed number Trotter steps. circuit based on a qubit Hamiltonian.
@@ -276,9 +273,7 @@ def get_evolution_trotter_step(
     return int(np.round(step, 12)), int(np.sign(evolution_time))
 
 
-class FixedIntervalTrotterTimeEvolutionCircuitFactory(
-    TimeEvolutionCircuitFactory[QubitHamiltonianInput]
-):
+class FixedIntervalTrotterTimeEvolutionCircuitFactory(TimeEvolutionCircuitFactory):
     """Factory for generating a fixed time step Trotter time evolution circuit
     based on a qubit Hamiltonian.
 
@@ -319,7 +314,7 @@ class FixedIntervalTrotterTimeEvolutionCircuitFactory(
 
 
 class FixedIntervalTrotterControlledTimeEvolutionCircuitFactory(
-    ControlledTimeEvolutionCircuitFactory[QubitHamiltonianInput]
+    ControlledTimeEvolutionCircuitFactory
 ):
     """Factory for generating a fixed time step Trotter controlled time
     evolution circuit based on a qubit Hamiltonian.
@@ -361,9 +356,7 @@ class FixedIntervalTrotterControlledTimeEvolutionCircuitFactory(
         return circuit if sgn > 0 else inverse_circuit(circuit)
 
 
-class TrotterTimeEvolutionCircuitFactory(
-    TimeEvolutionCircuitFactory[QubitHamiltonianInput]
-):
+class TrotterTimeEvolutionCircuitFactory(TimeEvolutionCircuitFactory):
     """Factory for generating Trotter time evolution circuit based on a qubit
     Hamiltonian.
 
@@ -398,7 +391,7 @@ class TrotterTimeEvolutionCircuitFactory(
             n_trotter is not None
         ), "One and only one of time_step and n_trotter is allowed to be specified."
 
-        self._factory: TimeEvolutionCircuitFactory[QubitHamiltonianInput]
+        self._factory: TimeEvolutionCircuitFactory
 
         if time_step is not None:
             self._factory = FixedIntervalTrotterTimeEvolutionCircuitFactory(
@@ -415,7 +408,7 @@ class TrotterTimeEvolutionCircuitFactory(
 
 
 class TrotterControlledTimeEvolutionCircuitFactory(
-    ControlledTimeEvolutionCircuitFactory[QubitHamiltonianInput]
+    ControlledTimeEvolutionCircuitFactory
 ):
     def __init__(
         self,
@@ -450,7 +443,7 @@ class TrotterControlledTimeEvolutionCircuitFactory(
             n_trotter is not None
         ), "One and only one of time_step and n_trotter is allowed to be specified."
 
-        self._factory: ControlledTimeEvolutionCircuitFactory[QubitHamiltonianInput]
+        self._factory: ControlledTimeEvolutionCircuitFactory
 
         if time_step is not None:
             self._factory = FixedIntervalTrotterControlledTimeEvolutionCircuitFactory(

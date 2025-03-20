@@ -239,7 +239,7 @@ def test_hadamard_test_circuit_compiler() -> None:
         circuit_expected.add_H_gate(0)
 
         hadamard_test_circuit_generator = HadamardTestCircuitFactory(
-            h_input, test_real, time_evo_generator
+            test_real, time_evo_generator
         )
         hadamard_test_circuit = hadamard_test_circuit_generator(evo_time)
 

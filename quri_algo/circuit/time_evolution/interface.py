@@ -17,27 +17,23 @@ from quri_parts.circuit import (
 )
 from quri_parts.core.operator import Operator, pauli_label
 
-from quri_algo.circuit.interface import ProblemCircuitFactory
+from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.circuit.utils.transpile import apply_transpiler
 from quri_algo.problem import HamiltonianT, QubitHamiltonianInput
 
 
 @runtime_checkable
-class TimeEvolutionCircuitFactory(ProblemCircuitFactory[HamiltonianT], Protocol):
+class TimeEvolutionCircuitFactory(CircuitFactory, Protocol):
     """Encode a Hamiltonian to a time evolution circuit."""
 
     @apply_transpiler  # type: ignore
     @abstractmethod
-    def __call__(
-        self, evolution_time: float, *args: Any, **kwds: Any
-    ) -> NonParametricQuantumCircuit:
+    def __call__(self, evolution_time: float) -> NonParametricQuantumCircuit:
         ...
 
 
 @runtime_checkable
-class ControlledTimeEvolutionCircuitFactory(
-    ProblemCircuitFactory[HamiltonianT], Protocol
-):
+class ControlledTimeEvolutionCircuitFactory(CircuitFactory, Protocol):
     """Encode a Hamiltonian to a controlled-time evolution circuit."""
 
     @apply_transpiler  # type: ignore
@@ -46,9 +42,7 @@ class ControlledTimeEvolutionCircuitFactory(
         ...
 
 
-class PartialTimeEvolutionCircuitFactory(
-    TimeEvolutionCircuitFactory[QubitHamiltonianInput], Protocol
-):
+class PartialTimeEvolutionCircuitFactory(CircuitFactory, Protocol):
     def get_local_hamiltonian_input(
         self, idx0: int, idx1: int
     ) -> QubitHamiltonianInput:

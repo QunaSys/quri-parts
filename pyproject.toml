@@ -29,6 +29,7 @@ quri-parts-chem = ">=0.20.2"
 quri-parts-qulacs = ">=0.20.2"
 quri-parts-pyscf = ">=0.20.2"
 quri-parts-openfermion = ">=0.20.2"
+qsub = {git = "https://github.com/QunaSys/ftqc-tools.git", rev = "main"}
 pytest = "^8.3.3"
 
 [tool.poetry.group.ipykernel.dependencies]

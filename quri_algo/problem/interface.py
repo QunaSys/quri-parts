@@ -13,9 +13,7 @@ from typing import Protocol, TypeVar
 
 
 class Problem(Protocol):
-    """A problem of fixed qubit size to be encoded into a circuit."""
-
-    n_state_qubit: int
+    """Defines a problem."""
 
 
 ProblemT = TypeVar("ProblemT", bound="Problem")

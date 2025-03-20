@@ -31,7 +31,7 @@ class FakeCircuitFactory(ProblemCircuitFactory[ProblemT]):
     def __init__(
         self, encoded_problem: ProblemT, *, transpiler: CircuitTranspiler | None = None
     ):
-        self.qubit_count = encoded_problem.n_state_qubit
+        self.qubit_count = 2
         self.encoded_problem = encoded_problem
         self.transpiler = transpiler
 

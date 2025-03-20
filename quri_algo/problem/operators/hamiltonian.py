@@ -9,15 +9,15 @@
 # limitations under the License.
 
 
-from typing import Protocol, TypeVar, runtime_checkable
+from typing import Protocol, TypeVar
 
+from openfermion import FermionOperator
 from quri_parts.core.operator import Operator
 
-from .interface import Problem
+from .interface import OperatorProtocol
 
 
-@runtime_checkable
-class HamiltonianInput(Problem, Protocol):
+class HamiltonianInput(OperatorProtocol, Protocol):
     """Represents an encoded Hamiltonian."""
 
     ...
@@ -27,8 +27,23 @@ HamiltonianT = TypeVar("HamiltonianT", bound="HamiltonianInput")
 
 
 class QubitHamiltonianInput(HamiltonianInput):
-    """Represents the Hamiltonian in its qubit Hamiltonian form."""
+    """Represents the Hamiltonian of a fixed qubit size in its qubit
+    Hamiltonian form."""
 
     def __init__(self, n_state_qubit: int, qubit_hamiltonian: Operator):
         self.n_state_qubit = n_state_qubit
-        self.qubit_hamiltonian = qubit_hamiltonian
+        self._qubit_hamiltonian = qubit_hamiltonian
+
+    @property
+    def qubit_hamiltonian(self) -> Operator:
+        return self._qubit_hamiltonian.copy()
+
+
+class FermionicHamiltonianInput(HamiltonianInput):
+    def __init__(self, n_spin_orbital: int, fermionic_hamiltonian: FermionOperator):
+        self.n_spin_orbital = n_spin_orbital
+        self._fermionic_hamiltonian = fermionic_hamiltonian
+
+    @property
+    def fermionic_hamiltonian(self) -> FermionOperator:
+        return self._fermionic_hamiltonian

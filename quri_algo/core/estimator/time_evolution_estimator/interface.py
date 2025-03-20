@@ -53,9 +53,7 @@ class TimeEvolutionHadamardTest(
     def __init__(
         self,
         encoded_problem: HamiltonianT,
-        controlled_time_evolution_factory: ControlledTimeEvolutionCircuitFactory[
-            HamiltonianT
-        ],
+        controlled_time_evolution_factory: ControlledTimeEvolutionCircuitFactory,
         sampler: Union[Sampler, StateSampler[StateT]],
         *,
         transpiler: CircuitTranspiler | None = None
@@ -66,18 +64,17 @@ class TimeEvolutionHadamardTest(
         self.transpiler = transpiler
 
         self._hadamard_test = HadamardTest(
-            self.encoded_problem,
             self.controlled_time_evolution_factory,
             self.sampler,
             transpiler=self.transpiler,
         )
 
     @property
-    def real_circuit_factory(self) -> HadamardTestCircuitFactory[HamiltonianT]:
+    def real_circuit_factory(self) -> HadamardTestCircuitFactory:
         return self._hadamard_test.real_circuit_factory
 
     @property
-    def imag_circuit_factory(self) -> HadamardTestCircuitFactory[HamiltonianT]:
+    def imag_circuit_factory(self) -> HadamardTestCircuitFactory:
         return self._hadamard_test.imag_circuit_factory
 
     def __call__(
@@ -105,7 +102,7 @@ class TimeEvolutionPowerEstimator(OperatorPowerEstimatorBase[HamiltonianT, State
         self.time_evo_estimator = time_evo_estimator
         self.tau = tau
 
-        self.encoded_problem = self.time_evo_estimator.encoded_problem
+        self.encoded_operator = self.time_evo_estimator.encoded_operator
         self.transpiler = transpiler
 
     def __call__(

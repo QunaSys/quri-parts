@@ -15,7 +15,7 @@ from quri_parts.core.state import quantum_state
 from quri_algo.core.estimator.time_evolution_estimator.exact_spectrum import (
     ExactTimeEvolutionExpectationValueEstimator,
 )
-from quri_algo.problem.hamiltonian import QubitHamiltonianInput
+from quri_algo.problem.operators.hamiltonian import QubitHamiltonianInput
 
 
 def test_exact_time_evolution() -> None:

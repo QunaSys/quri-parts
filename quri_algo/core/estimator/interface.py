@@ -9,21 +9,20 @@
 # limitations under the License.
 
 from abc import abstractmethod
-from typing import Any, Optional, Protocol, TypeVar, Union, runtime_checkable
+from typing import Any, Optional, Protocol, TypeVar, Union
 
 from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.core.estimator import Estimate
 from quri_parts.core.state import CircuitQuantumState, QuantumStateVector
 from typing_extensions import TypeAlias
 
-from quri_algo.problem import ProblemT
+from quri_algo.problem.operators.interface import OperatorT
 
 State: TypeAlias = Union[CircuitQuantumState, QuantumStateVector]
 StateT = TypeVar("StateT", bound=State, contravariant=True)
 
 
-@runtime_checkable
-class ExpectationValueEstimator(Protocol[ProblemT, StateT]):
+class ExpectationValueEstimator(Protocol[OperatorT, StateT]):
     r"""Interface for estimator that computes the expectaion value of a function
     of an operator with some parameter. It can be understood as an object that
     computes:
@@ -34,11 +33,9 @@ class ExpectationValueEstimator(Protocol[ProblemT, StateT]):
     For example:
         An estimator that computes :math:`\langle e^{-iHt} \rangle` for specified t.
             - encoded_problem
-            - setting: evolution time t and other parameter the estimator
-                might need, e.g. sampler, shots, etc.
     """
 
-    encoded_problem: ProblemT
+    encoded_operator: OperatorT
     transpiler: Optional[CircuitTranspiler]
 
     @abstractmethod
@@ -47,9 +44,10 @@ class ExpectationValueEstimator(Protocol[ProblemT, StateT]):
         ...
 
 
-@runtime_checkable
-class OperatorPowerEstimatorBase(ExpectationValueEstimator[ProblemT, StateT], Protocol):
-    r"""Base class for Any estimator that estimates the expectation value
+class OperatorPowerEstimatorBase(
+    ExpectationValueEstimator[OperatorT, StateT], Protocol
+):
+    r"""Base class for any estimator that estimates the expectation value
     :math:`\langle U^k \rangle`, where :math:`U` is a unitary operator and `k`
     is the power.
     """

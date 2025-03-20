@@ -37,15 +37,18 @@ class FakeProblem(Problem):
         self.n_state_qubit = n_state_qubit
 
 
-class ControlledRYFactory(ProblemCircuitFactory[ProblemT]):
+class ControlledRYFactory(ProblemCircuitFactory[FakeProblem]):
     def __init__(
-        self, encoded_problem: ProblemT, *, transpiler: CircuitTranspiler | None = None
+        self,
+        encoded_problem: FakeProblem,
+        *,
+        transpiler: CircuitTranspiler | None = None
     ):
-        self.qubit_count = encoded_problem.n_state_qubit + 1
         self.encoded_problem = encoded_problem
+        self.qubit_count = self.encoded_problem.n_state_qubit + 1
         self.transpiler = transpiler
         self._param_circuit = LinearMappedUnboundParametricQuantumCircuit(
-            self.encoded_problem.n_state_qubit + 1
+            self.qubit_count
         )
         p = self._param_circuit.add_parameter("p")
         add_controlled_RY_gate(self._param_circuit, 0, 1, {p: -2})
@@ -59,7 +62,7 @@ def test_hadamard_test() -> None:
     sampler = create_qulacs_vector_ideal_sampler()
     circuit_generator = ControlledRYFactory(problem)
     hadamard_test: HadamardTest[FakeProblem, CircuitQuantumState] = HadamardTest(
-        problem, circuit_generator, sampler
+        circuit_generator, sampler
     )
     circuit = QuantumCircuit(1, gates=[H(0)])
     state = quantum_state(1, circuit=circuit)

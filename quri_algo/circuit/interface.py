@@ -15,6 +15,7 @@ from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
 
 from quri_algo.problem import ProblemT
+from quri_algo.problem.operators.interface import OperatorT
 
 from .utils.transpile import apply_transpiler
 
@@ -22,6 +23,7 @@ from .utils.transpile import apply_transpiler
 @runtime_checkable
 class CircuitFactory(Protocol):
     transpiler: Optional[CircuitTranspiler]
+    qubit_count: int
 
     @apply_transpiler  # type: ignore
     @abstractmethod
