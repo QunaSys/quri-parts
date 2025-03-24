@@ -20,6 +20,8 @@ jobs:
     - uses: ./.github/actions/setup
 
     - run: |
+        python -m pip install --upgrade pip
+        python -m pip install setuptools
         poetry self add "poetry-dynamic-versioning[plugin]"
 
     - uses: actions/setup-python@v4
@@ -27,8 +29,6 @@ jobs:
         python-version: '3.11'
 
     - run: |
-        python -m pip install --upgrade pip
-        python -m pip install setuptools  # Add this line to install setuptools
         poetry env use 3.11
         poetry build
 
