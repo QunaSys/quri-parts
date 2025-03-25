@@ -8,4 +8,3 @@ class OperatorFunctionEstimation(Protocol[OperatorT]):
     an operator function with respect to a state."""
 
     operator: OperatorT
-    

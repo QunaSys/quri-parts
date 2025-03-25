@@ -10,7 +10,7 @@
 
 from typing import Generic, NamedTuple, Sequence
 
-from quri_algo.core.estimator import OperatorPowerEstimatorBase, StateT
+from quri_algo.algo.estimator import OperatorPowerEstimatorBase, StateT
 from quri_algo.problem.interface import ProblemT
 
 from .fourier.coefficient import SPEFourierCoefficient

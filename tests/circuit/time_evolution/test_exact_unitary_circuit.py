@@ -16,10 +16,10 @@ from quri_parts.qulacs.simulator import evaluate_state_to_vector
 from scipy.linalg import expm
 from scipy.stats import unitary_group
 
+from quri_algo.algo.estimator.hadamard_test import remap_state_for_hadamard_test
 from quri_algo.circuit.time_evolution.exact_unitary import (
     ExactUnitaryControlledTimeEvolutionCircuitFactory,
 )
-from quri_algo.core.estimator.hadamard_test import remap_state_for_hadamard_test
 from quri_algo.problem import QubitHamiltonianInput
 
 

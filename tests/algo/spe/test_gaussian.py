@@ -17,12 +17,12 @@ from quri_parts.core.operator import PAULI_IDENTITY, Operator
 from quri_parts.core.state import CircuitQuantumState, quantum_state
 
 import quri_algo.algo.phase_estimation.spe as spe
+from quri_algo.algo.estimator import OperatorPowerEstimatorBase
+from quri_algo.algo.estimator.time_evolution import (
+    TimeEvolutionExpectationValueEstimator,
+)
 from quri_algo.algo.phase_estimation.spe.gaussian import (
     get_recommended_gaussian_parameter,
-)
-from quri_algo.core.estimator import OperatorPowerEstimatorBase
-from quri_algo.core.estimator.time_evolution_estimator import (
-    TimeEvolutionExpectationValueEstimator,
 )
 from quri_algo.problem import Problem, QubitHamiltonianInput
 
@@ -91,7 +91,7 @@ class TestGaussianGSEE(unittest.TestCase):
                 value=np.exp(-1j * evolution_time * cls.shift)
             ),
         )
-        time_evo_estimator.encoded_problem = QubitHamiltonianInput(
+        time_evo_estimator.encoded_operator = QubitHamiltonianInput(
             1, Operator({PAULI_IDENTITY: 1})
         )
 

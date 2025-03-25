@@ -12,11 +12,11 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Sequence
 
+from quri_algo.algo.estimator import OperatorPowerEstimatorBase, StateT
 from quri_algo.algo.phase_estimation.interface import (
     PhaseEstimationBase,
     PhaseEstimationResult,
 )
-from quri_algo.core.estimator import OperatorPowerEstimatorBase, StateT
 from quri_algo.problem import ProblemT
 
 if TYPE_CHECKING:

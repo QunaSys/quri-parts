@@ -22,9 +22,9 @@ from quri_parts.core.state import (
     QuantumStateVector,
 )
 
+from quri_algo.algo.estimator import ExpectationValueEstimator, State, StateT
 from quri_algo.circuit.hadamard_test import HadamardTestCircuitFactory
-from quri_algo.circuit.interface import CircuitFactory, ProblemCircuitFactory
-from quri_algo.core.estimator import ExpectationValueEstimator, State, StateT
+from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.problem.interface import ProblemT
 
 

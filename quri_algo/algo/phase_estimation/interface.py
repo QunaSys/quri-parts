@@ -15,7 +15,7 @@ from typing import Any, Generic, Optional, Sequence, TypeVar
 import numpy as np
 from quri_parts.core.estimator import Estimate, Estimates
 
-from quri_algo.core.estimator import StateT
+from quri_algo.algo.estimator import StateT
 from quri_algo.problem.interface import ProblemT
 
 

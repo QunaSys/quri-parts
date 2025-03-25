@@ -17,11 +17,11 @@ from quri_parts.core.operator import PAULI_IDENTITY, Operator
 from quri_parts.core.state import CircuitQuantumState, quantum_state
 
 import quri_algo.algo.phase_estimation.spe as spe
-from quri_algo.algo.phase_estimation.spe import SingleSignalLT22PhaseEstimation
-from quri_algo.core.estimator import OperatorPowerEstimatorBase
-from quri_algo.core.estimator.time_evolution_estimator import (
+from quri_algo.algo.estimator import OperatorPowerEstimatorBase
+from quri_algo.algo.estimator.time_evolution import (
     TimeEvolutionExpectationValueEstimator,
 )
+from quri_algo.algo.phase_estimation.spe import SingleSignalLT22PhaseEstimation
 from quri_algo.problem import Problem, QubitHamiltonianInput
 
 
@@ -67,7 +67,7 @@ class TestLT22GSEE(unittest.TestCase):
             ],
             return_value=_Estimate(value=1.0),
         )
-        time_evo_estimator.encoded_problem = QubitHamiltonianInput(
+        time_evo_estimator.encoded_operator = QubitHamiltonianInput(
             1, Operator({PAULI_IDENTITY: 1})
         )
         tau = 20

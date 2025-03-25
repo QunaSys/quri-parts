@@ -32,10 +32,8 @@ class ExpectationValueEstimator(Protocol[OperatorT, StateT]):
 
     For example:
         An estimator that computes :math:`\langle e^{-iHt} \rangle` for specified t.
-            - encoded_problem
+            - encoded_operator: H
     """
-
-    encoded_operator: OperatorT
     transpiler: Optional[CircuitTranspiler]
 
     @abstractmethod

@@ -16,6 +16,7 @@ import numpy as np
 import numpy.typing as npt
 from typing_extensions import TypeAlias
 
+from quri_algo.algo.estimator import OperatorPowerEstimatorBase, StateT
 from quri_algo.algo.phase_estimation.spe.utils.exp_val_collector import (
     ExpectationValueCollector,
     SPESample,
@@ -23,7 +24,6 @@ from quri_algo.algo.phase_estimation.spe.utils.exp_val_collector import (
 from quri_algo.algo.phase_estimation.spe.utils.fourier.coefficient import (
     SPEFourierCoefficient,
 )
-from quri_algo.core.estimator import OperatorPowerEstimatorBase, StateT
 from quri_algo.problem.interface import ProblemT
 
 from .fourier.gaussian_coefficient import GaussianSampler
