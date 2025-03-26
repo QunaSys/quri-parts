@@ -11,6 +11,12 @@ runs:
       shell: bash
       run: |
         git config --global url."https://x-access-token:${{ github.token }}@github.com/".insteadOf https://github.com/
+    
+    - name: Install jq
+      uses: dcarbone/install-jq-action@v3
+      with:
+        version: '1.6'
+        force: true
 
     - name: Install Poetry
       shell: bash
