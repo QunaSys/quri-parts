@@ -12,12 +12,10 @@ runs:
       run: |
         git config --global url."https://x-access-token:${{ github.token }}@github.com/".insteadOf https://github.com/
     
-    - name: Install jq tool
-      shell: bash
-      run: |
-        sudo apt-get update
-        sudo apt-get install jq
-        jq --version
+    - uses: actions/install-jq-action
+      with:
+        version: 1.6
+        force: true
 
     - name: Install Poetry
       shell: bash
