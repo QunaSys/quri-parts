@@ -2,7 +2,7 @@
 
 QURI Parts TensorNetwork is a support library for using TensorNetwork with QURI Parts.
 
-This library uses Google's [TensorNetwork](https://tensornetwork.readthedocs.io/en/latest/) package as a computational backend.
+This library uses the [TensorNetwork-NG](https://github.com/refraction-ray/TensorNetwork-NG) package as a computational backend (based on the original Tensornetwork package by Google which is no longer maintained).
 
 ## Documentation
 
