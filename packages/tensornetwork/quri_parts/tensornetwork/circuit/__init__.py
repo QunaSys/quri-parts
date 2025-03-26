@@ -28,8 +28,6 @@ from quri_parts.circuit.transpile import (
     PauliDecomposeTranspiler,
     PauliRotationDecomposeTranspiler,
     SequentialTranspiler,
-    TOFFOLI2HTTdagCNOTTranspiler,
-    SWAPInsertionTranspiler,
 )
 from quri_parts.tensornetwork.circuit import gates
 from quri_parts.tensornetwork.circuit.gates import QuantumGate
@@ -77,11 +75,6 @@ _three_qubit_gate_tensornetwork: Mapping[ThreeQubitGateNameType, Any] = {
 #: CircuitTranspiler to convert a circit configuration suitable for tensornetwork.
 TensorNetworkTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
     [PauliDecomposeTranspiler(), PauliRotationDecomposeTranspiler()]
-)
-
-#: CircuitTranspiler to convert a circit configuration suitable for tensornetwork.
-TensorNetworkMPSTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
-    [PauliDecomposeTranspiler(), PauliRotationDecomposeTranspiler(), TOFFOLI2HTTdagCNOTTranspiler(), SWAPInsertionTranspiler()]
 )
 
 
@@ -138,13 +131,13 @@ def convert_circuit(
 
     if transpiler is not None:
         circuit = transpiler(circuit)
-    
+
     qubit_count = circuit.qubit_count
     in_out_map: Sequence[dict[str, Optional[Edge]]] = [
         {"in": None, "out": None} for _ in range(qubit_count)
     ]
     depth: list[int] = [0 for _ in range(qubit_count)]
-    tensor_map: Sequence[dict[int, QuantumGate]] = [{} for _ in range(circuit.depth)]
+    tensor_map: list[dict[int, QuantumGate]] = [{} for _ in range(circuit.depth)]
 
     def connect_gate(
         node: QuantumGate, qubits: Sequence[int], qubit_count: int

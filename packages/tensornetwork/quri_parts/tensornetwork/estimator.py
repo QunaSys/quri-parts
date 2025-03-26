@@ -16,11 +16,7 @@ from quri_parts.core.estimator import Estimate, QuantumEstimator
 from quri_parts.core.operator import Operator, PauliLabel
 from quri_parts.core.state import CircuitQuantumState
 from quri_parts.tensornetwork.operator import TensorNetworkOperator, operator_to_tensor
-from quri_parts.tensornetwork.state import (
-    TensorNetworkState,
-    convert_state,
-    convert_state_mps,
-)
+from quri_parts.tensornetwork.state import TensorNetworkState, convert_state
 
 
 class _Estimate(NamedTuple):
@@ -91,43 +87,6 @@ def create_tensornetwork_estimator(
             state,
             backend=backend,
         )
-        return tensor_network_estimate(tn_operator, tn_state)
-
-    return estimate
-
-
-def create_tensornetwork_mps_estimator(
-    backend: str = "numpy",
-    matrix_product_operator: bool = True,
-    max_bond_dimension: Optional[int] = None,
-    max_truncation_err: Optional[float] = None,
-) -> QuantumEstimator[CircuitQuantumState]:
-    """This creates an estimator using the tensornetwork backend. Quantum
-    states are represented using matrix product states with time-evolving block
-    decimation.
-
-    Args:
-        backend - the computational backend to use. Currently supports numpy.
-        max_bond_dimension - the bond dimension of the MPO and MPS
-        max_truncation_error - the maximum allowed truncation error when
-            performing the SVD on the MPO and MPS
-    """
-
-    def estimate(
-        operator: Union[Operator, PauliLabel], state: CircuitQuantumState
-    ) -> Estimate[complex]:
-        tn_operator = operator_to_tensor(
-            operator,
-            convert_to_mpo=matrix_product_operator,
-            max_bond_dimension=max_bond_dimension,
-            max_truncation_err=max_truncation_err,
-            backend=backend,
-        )
-        tn_state = convert_state_mps(
-            state,
-            backend=backend,
-        )
-        tn_state = tn_state.contract()
         return tensor_network_estimate(tn_operator, tn_state)
 
     return estimate

@@ -18,7 +18,7 @@ import tensornetwork as tn
 from tensornetwork import AbstractNode, Edge, Node, split_node
 from typing_extensions import TypeAlias
 
-from quri_parts.core.operator import Operator, PauliLabel, PAULI_IDENTITY
+from quri_parts.core.operator import PAULI_IDENTITY, Operator, PauliLabel
 from quri_parts.tensornetwork.circuit import TensorNetworkLayer
 
 _PAULI_OPERATOR_DATA_MAP: Sequence[Sequence[Sequence[complex]]] = (
