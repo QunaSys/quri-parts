@@ -14,6 +14,7 @@ allowed:
   - hpnd
   - mpl-2.0
   - psf-2.0
+  - unlicense
 
 ignored:
   pip:

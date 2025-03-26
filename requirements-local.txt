@@ -18,3 +18,4 @@
 # -e ./packages/itensor
 # -e ./packages/tket
 # -e ./packages/tensornetwork
+# -e ./packages/qsub
