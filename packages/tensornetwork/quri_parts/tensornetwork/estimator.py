@@ -81,8 +81,12 @@ def create_tensornetwork_estimator(
             convert_to_mpo=matrix_product_operator,
             max_bond_dimension=max_bond_dimension,
             max_truncation_err=max_truncation_err,
+            backend=backend,
         )
-        tn_state = convert_state(state)
+        tn_state = convert_state(
+            state,
+            backend=backend,
+        )
         return tensor_network_estimate(tn_operator, tn_state)
 
     return estimate

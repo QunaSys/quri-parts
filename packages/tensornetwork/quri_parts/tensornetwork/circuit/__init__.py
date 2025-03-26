@@ -8,8 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Mapping
-from typing import Any, Callable, Optional, Sequence, Union
+from typing import Any, Callable, Mapping, Optional, Sequence, Union
 
 import tensornetwork as tn
 from tensornetwork import AbstractNode, Edge, NodeCollection
@@ -92,9 +91,11 @@ class TensorNetworkLayer(NodeCollection):  # type: ignore
         input_edges: Sequence[Edge],
         output_edges: Sequence[Edge],
         container: Union[set[AbstractNode], list[AbstractNode]],
+        tensor_map: Sequence[Mapping[int, QuantumGate]],
     ):
         self.input_edges = input_edges
         self.output_edges = output_edges
+        self.tensor_map = tensor_map
         super().__init__(container)
 
     def copy(self) -> "TensorNetworkLayer":
@@ -103,17 +104,22 @@ class TensorNetworkLayer(NodeCollection):  # type: ignore
             self._container, conjugate=False
         )
         circuit_nodes = {circuit_node_mapping[n] for n in self._container}
+        tensor_map = [
+            {q: circuit_node_mapping[n] for q, n in mapping.items()}
+            for mapping in self.tensor_map
+        ]
         circuit_input_edges = [circuit_edge_mapping[e] for e in self.input_edges]
         circuit_output_edges = [circuit_edge_mapping[e] for e in self.output_edges]
 
         return TensorNetworkLayer(
-            circuit_input_edges, circuit_output_edges, circuit_nodes
+            circuit_input_edges, circuit_output_edges, circuit_nodes, tensor_map
         )
 
 
 def convert_circuit(
     circuit: ImmutableQuantumCircuit,
     transpiler: Optional[CircuitTranspiler] = TensorNetworkTranspiler(),
+    backend: str = "numpy",
 ) -> TensorNetworkLayer:
     """Convert an :class:`~ImmutableQuantumCircuit` to a tensornetwork
     NodeCollection.
@@ -122,14 +128,23 @@ def convert_circuit(
         circuit: the quantum circuit to convert to a node collection
         transpiler: optional transpiler to use
     """
+
+    if transpiler is not None:
+        circuit = transpiler(circuit)
+
     qubit_count = circuit.qubit_count
     in_out_map: Sequence[dict[str, Optional[Edge]]] = [
         {"in": None, "out": None} for _ in range(qubit_count)
     ]
+    depth: list[int] = [0 for _ in range(qubit_count)]
+    tensor_map: list[dict[int, QuantumGate]] = [{} for _ in range(circuit.depth)]
 
     def connect_gate(
         node: QuantumGate, qubits: Sequence[int], qubit_count: int
     ) -> None:
+        max_depth = max(depth[q] for q in qubits)
+        for q in qubits:
+            depth[q] = max_depth
         for i, q in enumerate(qubits):
             if in_out_map[q]["in"]:
                 in_out_map[q]["out"] ^ node[i]
@@ -138,9 +153,11 @@ def convert_circuit(
                 assert in_out_map[q]["out"] is None
                 in_out_map[q]["in"] = node[i]
                 in_out_map[q]["out"] = node[qubit_count + i]
-
-    if transpiler is not None:
-        circuit = transpiler(circuit)
+            if depth[q] >= len(tensor_map):
+                tensor_map.append({})
+            if tensor_map[depth[q]].get(q) is None:
+                tensor_map[depth[q]][q] = node
+            depth[q] += 1
 
     node_collection = set()
     for gate in circuit.gates:
@@ -152,53 +169,57 @@ def convert_circuit(
 
         if is_single_qubit_gate_name(gate.name):
             if gate.name in _single_qubit_gate_tensornetwork:
-                node = _single_qubit_gate_tensornetwork[gate.name]()
+                node = _single_qubit_gate_tensornetwork[gate.name](
+                    gate.target_indices, backend=backend
+                )
                 node_collection.add(node)
             elif gate.name in _single_qubit_pauli_rotation_gate_tensornetwork:
                 if len(gate.params) == 1:
                     node = _single_qubit_pauli_rotation_gate_tensornetwork[gate.name](
-                        gate.params[0]
+                        gate.params[0], gate.target_indices, backend=backend
                     )
+                    node_collection.add(node)
                 else:
                     raise ValueError("Invalid number of parameters.")
             elif gate.name in _single_qubit_rotation_gate_tensornetwork:
                 node = _single_qubit_pauli_rotation_gate_tensornetwork[gate.name](
-                    gate.params
+                    gate.params, gate.target_indices, backend=backend
                 )
                 node_collection.add(node)
             else:
                 raise ValueError(f"{gate.name} gate is not supported.")
             connect_gate(node, gate.target_indices, 1)
-        if is_two_qubit_gate_name(gate.name):
-            if gate.name in _two_qubit_gate_tensornetwork:
-                node = _two_qubit_gate_tensornetwork[gate.name]()
-                node_collection.add(node)
-            else:
+        elif is_two_qubit_gate_name(gate.name):
+            if gate.name not in _two_qubit_gate_tensornetwork:
                 raise ValueError(f"{gate.name} gate is not supported.")
             if gate.name == "SWAP":
-                connect_gate(node, gate.target_indices, 2)
+                indices = gate.target_indices
             else:
                 indices = list(gate.control_indices) + list(gate.target_indices)
-                connect_gate(node, indices, 2)
-        if is_three_qubit_gate_name(gate.name):
-            if gate.name in _three_qubit_gate_tensornetwork:
-                node = _three_qubit_gate_tensornetwork[gate.name]()
-                node_collection.add(node)
-            else:
+            node = _two_qubit_gate_tensornetwork[gate.name](indices, backend=backend)
+            node_collection.add(node)
+            connect_gate(node, indices, 2)
+        elif is_three_qubit_gate_name(gate.name):
+            if gate.name not in _three_qubit_gate_tensornetwork:
                 raise ValueError(f"{gate.name} gate is not supported.")
             indices = list(gate.control_indices) + list(gate.target_indices)
+            node = _three_qubit_gate_tensornetwork[gate.name](indices, backend=backend)
+            node_collection.add(node)
             connect_gate(node, indices, 3)
+        else:
+            raise ValueError(f"Unknown gate name: {gate.name}")
 
     # This ensures that all qubits in the circuit are represented, but maybe we should
     # change some classes so that we don't need it.
-    for m in in_out_map:
+    for q, m in enumerate(in_out_map):
         if m["in"] is None or m["out"] is None:
             assert m["in"] is None and m["out"] is None
-            node = gates.I()
+            node = gates.I([q])
             m["in"] = node[0]
             m["out"] = node[1]
             node_collection.add(node)
 
     input_edges = [m["in"] for m in in_out_map]
     output_edges = [m["out"] for m in in_out_map]
-    return TensorNetworkLayer(input_edges, output_edges, node_collection)
+
+    return TensorNetworkLayer(input_edges, output_edges, node_collection, tensor_map)
