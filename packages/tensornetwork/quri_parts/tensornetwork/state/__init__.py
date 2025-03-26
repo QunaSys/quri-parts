@@ -127,8 +127,8 @@ class MappedNode(AbstractNode):  # type: ignore
         raise NotImplementedError("Loading nodes is not supported for MappedNode")
 
     def _save_node(self, _: Group) -> None:
-        """Abstract method to enable saving nodes to hdf5. Only serializing common
-        properties is implemented. Should be overwritten by subclasses.
+        """Abstract method to enable saving nodes to hdf5. Only serializing
+        common properties is implemented. Should be overwritten by subclasses.
 
         Args:
           node_group: h5py group where data is saved
