@@ -8,22 +8,41 @@ from sympy import Expr
 
 
 @dataclass
+class AlgorithmResult:
+    """Algorithm result"""
+
+    result: Mapping[
+        str, Any
+    ]  # instead of Any: Estimate | HamiltonianEigensystem | OptimizerState | QuantumCircuit
+
+
+@dataclass
 class Analysis:
     latency: TimeValue
     circuit_execution_count: int
     circuit_fidelities: Mapping[ImmutableQuantumCircuit, float]
+    circuit_footprint: int
 
 
 @dataclass
-class AlgorithmResult:
+class QuantumAlgorithmResult(AlgorithmResult):
     """Algorithm result with a resource analysis"""
-    estimate: Estimate[Any]
+
     analysis: Analysis
 
 
 class Algorithm(ABC):
     name: str
     """The name of the algorithm"""
+
+    @abstractmethod
+    def estimate(
+        self, *args: Any, **kwargs: Any
+    ) -> Mapping[
+        str, Any
+    ]:  # instead of Any: Estimate | HamiltonianEigensystem | OptimizerState | QuantumCircuit
+        """The estimate returned by the algorithm"""
+        pass
 
     @property
     @abstractmethod
@@ -32,7 +51,9 @@ class Algorithm(ABC):
         pass
 
     @abstractmethod
-    def __call__(self, *args: Any, **kwargs: Any) -> AlgorithmResult:
+    def __call__(
+        self, *args: Any, **kwargs: Any
+    ) -> AlgorithmResult | QuantumAlgorithmResult:
         """The call method which runs the algorithm and returns a result"""
         pass
 
@@ -43,14 +64,13 @@ class Algorithm(ABC):
 
 class QuantumMixin(Protocol):
     @abstractmethod
-    def estimate(self, *args: Any, **kwargs: Any) -> Estimate[Any]:
+    def analyze(self, *args: Any, **kwargs: Any) -> Analysis:
+        """The resource analysis of the algorithm"""
         pass
 
-    @abstractmethod
-    def analyze(self, *args: Any, **kwargs: Any) -> Analysis:
-        pass
 
 class QuantumAlgorithm(Algorithm, QuantumMixin):
-     def __call__(self, *args: Any, **kwargs: Any) -> AlgorithmResult:
-        return AlgorithmResult(self.estimate(*args, **kwargs), self.analyze(*args, **kwargs))
-    
+    def __call__(self, *args: Any, **kwargs: Any) -> QuantumAlgorithmResult:
+        return QuantumAlgorithmResult(
+            self.estimate(*args, **kwargs), self.analyze(*args, **kwargs)
+        )
