@@ -9,8 +9,7 @@
 # limitations under the License.
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Any, NamedTuple
+from typing import Any, NamedTuple, Protocol
 
 import numpy as np
 from quri_parts.circuit import NonParametricQuantumCircuit
@@ -23,8 +22,7 @@ class _Estimate(NamedTuple):
     error: float = 0.0
 
 
-@dataclass
-class CostFunction(ABC):
+class CostFunction(Protocol):
     estimator: QuantumEstimator[CircuitQuantumState]
 
     @abstractmethod

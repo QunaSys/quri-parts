@@ -8,7 +8,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import dataclass
 from functools import lru_cache
 
 from quri_parts.circuit import (
@@ -16,9 +15,10 @@ from quri_parts.circuit import (
     LinearMappedUnboundParametricQuantumCircuit,
     NonParametricQuantumCircuit,
 )
+from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
 
-from quri_algo.circuit.interface import ProblemCircuitFactory
+from quri_algo.circuit.time_evolution.interface import TimeEvolutionCircuitFactory
 from quri_algo.circuit.utils.transpile import apply_transpiler
 from quri_algo.problem import QubitHamiltonianInput
 
@@ -60,11 +60,20 @@ def get_trotter_time_evolution_operator(
     return circuit.freeze()
 
 
-@dataclass
-class TrotterTimeEvolutionCircuitFactory(ProblemCircuitFactory[QubitHamiltonianInput]):
-    n_trotter: int
-
-    def __post_init__(self) -> None:
+class TrotterTimeEvolutionCircuitFactory(
+    TimeEvolutionCircuitFactory[QubitHamiltonianInput]
+):
+    def __init__(
+        self,
+        encoded_problem: QubitHamiltonianInput,
+        n_trotter: int,
+        *,
+        transpiler: CircuitTranspiler | None = None,
+    ):
+        self.n_trotter = n_trotter
+        self.encoded_problem = encoded_problem
+        self.qubit_count = self.encoded_problem.n_state_qubit
+        self.transpiler = transpiler
         assert isinstance(self.encoded_problem, QubitHamiltonianInput)
         self._param_evo_circuit = get_trotter_time_evolution_operator(
             self.encoded_problem.qubit_hamiltonian,
@@ -109,13 +118,20 @@ def get_trotter_controlled_time_evolution_operator(
     return circuit.freeze()
 
 
-@dataclass
 class TrotterControlledTimeEvolutionCircuitFactory(
     ControlledTimeEvolutionCircuitFactory[QubitHamiltonianInput]
 ):
-    n_trotter: int
-
-    def __post_init__(self) -> None:
+    def __init__(
+        self,
+        encoded_problem: QubitHamiltonianInput,
+        n_trotter: int,
+        *,
+        transpiler: CircuitTranspiler | None = None,
+    ):
+        self.n_trotter = n_trotter
+        self.encoded_problem = encoded_problem
+        self.qubit_count = encoded_problem.n_state_qubit
+        self.transpiler = transpiler
         assert isinstance(self.encoded_problem, QubitHamiltonianInput)
         self._param_evo_circuit = get_trotter_controlled_time_evolution_operator(
             self.encoded_problem.qubit_hamiltonian,
@@ -128,9 +144,17 @@ class TrotterControlledTimeEvolutionCircuitFactory(
         return self._param_evo_circuit.bind_parameters([evolution_time])
 
 
-@dataclass
 class TrotterPartialTimeEvolutionCircuitFactory(PartialTimeEvolutionCircuitFactory):
-    n_trotter: int
+    def __init__(
+        self,
+        encoded_problem: QubitHamiltonianInput,
+        n_trotter: int,
+        *,
+        transpiler: CircuitTranspiler | None = None,
+    ):
+        self.encoded_problem = encoded_problem
+        self.n_trotter = n_trotter
+        self.transpiler = transpiler
 
     @lru_cache(maxsize=None)
     def get_partial_time_evolution_circuit(

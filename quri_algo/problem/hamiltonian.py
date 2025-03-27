@@ -8,16 +8,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import dataclass
-from typing import TypeVar
+
+from typing import Protocol, TypeVar, runtime_checkable
 
 from quri_parts.core.operator import Operator
 
 from .interface import Problem
 
 
-@dataclass
-class HamiltonianInput(Problem):
+@runtime_checkable
+class HamiltonianInput(Problem, Protocol):
     """Represents an encoded Hamiltonian."""
 
     ...
@@ -26,8 +26,9 @@ class HamiltonianInput(Problem):
 HamiltonianT = TypeVar("HamiltonianT", bound="HamiltonianInput")
 
 
-@dataclass
 class QubitHamiltonianInput(HamiltonianInput):
     """Represents the Hamiltonian in its qubit Hamiltonian form."""
 
-    qubit_hamiltonian: Operator
+    def __init__(self, n_state_qubit: int, qubit_hamiltonian: Operator):
+        self.n_state_qubit = n_state_qubit
+        self.qubit_hamiltonian = qubit_hamiltonian

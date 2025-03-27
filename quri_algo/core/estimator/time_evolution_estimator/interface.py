@@ -8,10 +8,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from typing import Optional, Union
+from abc import abstractmethod
+from typing import Optional, Protocol, Union
 
+from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.core.estimator import Estimate
 from quri_parts.core.sampling import Sampler, StateSampler
 
@@ -28,9 +28,8 @@ from quri_algo.core.estimator.hadamard_test import HadamardTest
 from quri_algo.problem import HamiltonianT
 
 
-@dataclass
 class TimeEvolutionExpectationValueEstimator(
-    ExpectationValueEstimator[HamiltonianT, StateT], ABC
+    ExpectationValueEstimator[HamiltonianT, StateT], Protocol
 ):
     r"""Estimator that computes :math:`\langle e^{-iHt} \rangle`"""
 
@@ -41,7 +40,6 @@ class TimeEvolutionExpectationValueEstimator(
         ...
 
 
-@dataclass
 class TimeEvolutionHadamardTest(
     TimeEvolutionExpectationValueEstimator[HamiltonianT, StateT],
 ):
@@ -52,12 +50,21 @@ class TimeEvolutionHadamardTest(
     time evolution operator.
     """
 
-    controlled_time_evolution_factory: ControlledTimeEvolutionCircuitFactory[
-        HamiltonianT
-    ]
-    sampler: Union[Sampler, StateSampler[StateT]]
+    def __init__(
+        self,
+        encoded_problem: HamiltonianT,
+        controlled_time_evolution_factory: ControlledTimeEvolutionCircuitFactory[
+            HamiltonianT
+        ],
+        sampler: Union[Sampler, StateSampler[StateT]],
+        *,
+        transpiler: CircuitTranspiler | None = None
+    ):
+        self.encoded_problem = encoded_problem
+        self.controlled_time_evolution_factory = controlled_time_evolution_factory
+        self.sampler = sampler
+        self.transpiler = transpiler
 
-    def __post_init__(self) -> None:
         self._hadamard_test = HadamardTest(
             self.encoded_problem,
             self.controlled_time_evolution_factory,
@@ -80,19 +87,26 @@ class TimeEvolutionHadamardTest(
         return self._hadamard_test(state, n_shots, evolution_time)
 
 
-@dataclass
 class TimeEvolutionPowerEstimator(OperatorPowerEstimatorBase[HamiltonianT, StateT]):
     r"""Turns a :class:`TimeEvolutionExpectationValueEstimator` for evaluating
     :math:`e^{-iH k \tau}` into a  :class:`OperatorPowerEstimatorBase` so that
     :math:`e^{-iH\tau}` is treated as the unitary operator and :math:`k` as the power.
     """
 
-    encoded_problem: HamiltonianT = field(init=False)
-    time_evo_estimator: TimeEvolutionExpectationValueEstimator[HamiltonianT, StateT]
-    tau: float
+    def __init__(
+        self,
+        time_evo_estimator: TimeEvolutionExpectationValueEstimator[
+            HamiltonianT, StateT
+        ],
+        tau: float,
+        *,
+        transpiler: CircuitTranspiler | None = None
+    ):
+        self.time_evo_estimator = time_evo_estimator
+        self.tau = tau
 
-    def __post_init__(self) -> None:
         self.encoded_problem = self.time_evo_estimator.encoded_problem
+        self.transpiler = transpiler
 
     def __call__(
         self, state: StateT, operator_power: int | float, n_shots: Optional[int] = None

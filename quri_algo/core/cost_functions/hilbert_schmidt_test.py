@@ -8,11 +8,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import dataclass
 from typing import Optional
 
 from quri_parts.circuit import NonParametricQuantumCircuit
-from quri_parts.core.estimator import Estimate
+from quri_parts.core.estimator import Estimate, QuantumEstimator
+from quri_parts.core.state import CircuitQuantumState
 
 from quri_algo.core.cost_functions.base_classes import NonLocalCostFunction
 from quri_algo.core.cost_functions.utils import (
@@ -21,7 +21,6 @@ from quri_algo.core.cost_functions.utils import (
 )
 
 
-@dataclass
 class HilbertSchmidtTest(NonLocalCostFunction):
     """This class implements the Hilber-Schmidt test as described in
     https://quantum-journal.org/papers/q-2019-05-13-140/.
@@ -31,7 +30,11 @@ class HilbertSchmidtTest(NonLocalCostFunction):
     global and local cost functions.
     """
 
-    alpha: float = 1.0
+    def __init__(
+        self, estimator: QuantumEstimator[CircuitQuantumState], alpha: float = 1.0
+    ):
+        self.estimator = estimator
+        self.alpha = alpha
 
     def __call__(
         self,

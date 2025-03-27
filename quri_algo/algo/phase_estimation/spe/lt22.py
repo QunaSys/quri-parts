@@ -8,7 +8,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import dataclass, field
 from logging import Logger
 from typing import TYPE_CHECKING, NamedTuple, Optional
 
@@ -38,7 +37,6 @@ class LT22PostProcessParam(NamedTuple):
     n_batch: int
 
 
-@dataclass
 class LT22PhaseEstimation(StatisticalPhaseEstimation[ProblemT, StateT]):
     r"""The LT22 statistical phase estimation algorithm.
 
@@ -54,8 +52,15 @@ class LT22PhaseEstimation(StatisticalPhaseEstimation[ProblemT, StateT]):
             is the power.
     """
 
-    def __post_init__(self) -> None:
+    def __init__(
+        self, unitary_power_estimator: OperatorPowerEstimatorBase[ProblemT, StateT]
+    ):
+        self._unitary_power_estimator = unitary_power_estimator
         self._logger = Logger(__name__)
+
+    @property
+    def unitary_power_estimator(self) -> OperatorPowerEstimatorBase[ProblemT, StateT]:
+        return self._unitary_power_estimator
 
     def __call__(
         self,
@@ -126,22 +131,18 @@ class LT22PhaseEstimation(StatisticalPhaseEstimation[ProblemT, StateT]):
         return bool(b)
 
 
-@dataclass
 class LT22GSEE(LT22PhaseEstimation[HamiltonianT, StateT]):
-    time_evo_estimator: TimeEvolutionExpectationValueEstimator[HamiltonianT, StateT]
-    tau: float
-    unitary_power_estimator: OperatorPowerEstimatorBase[HamiltonianT, StateT] = field(
-        init=False
-    )
-
-    def __post_init__(self) -> None:
-        self.unitary_power_estimator = TimeEvolutionPowerEstimator(
-            self.time_evo_estimator, self.tau
-        )
-        super().__post_init__()
+    def __init__(
+        self,
+        time_evo_estimator: TimeEvolutionExpectationValueEstimator[
+            HamiltonianT, StateT
+        ],
+        tau: float,
+    ):
+        unitary_power_estimator = TimeEvolutionPowerEstimator(time_evo_estimator, tau)
+        super().__init__(unitary_power_estimator)
 
 
-@dataclass
 class SingleSignalLT22PhaseEstimation(StatisticalPhaseEstimation[ProblemT, StateT]):
     r"""The LT22 statistical phase estimation algorithm.
 
@@ -156,6 +157,15 @@ class SingleSignalLT22PhaseEstimation(StatisticalPhaseEstimation[ProblemT, State
             :math:`\langle U^k \rangle`, where :math:`U` is a unitary operator and `k`
             is the power.
     """
+
+    def __init__(
+        self, unitary_power_estimator: OperatorPowerEstimatorBase[ProblemT, StateT]
+    ):
+        self._unitary_power_estimator = unitary_power_estimator
+
+    @property
+    def unitary_power_estimator(self) -> OperatorPowerEstimatorBase[ProblemT, StateT]:
+        return self._unitary_power_estimator
 
     @staticmethod
     def invert_signal(signal_function: SPEDiscreteSignalFunction, eta: float) -> float:
@@ -210,7 +220,6 @@ class SingleSignalLT22PhaseEstimation(StatisticalPhaseEstimation[ProblemT, State
         return SPEResult(phase=phase, signal_functions=[signal_function])
 
 
-@dataclass
 class SingleSignalLT22GSEE(SingleSignalLT22PhaseEstimation[HamiltonianT, StateT]):
     r"""Solves ground state energy estimation problem with
     :class:`SingleSignalLT22PhaseEstimation`.
@@ -223,13 +232,12 @@ class SingleSignalLT22GSEE(SingleSignalLT22PhaseEstimation[HamiltonianT, StateT]
             :math:`\langle e^{-ik\tau H}\rangle`.
     """
 
-    time_evo_estimator: TimeEvolutionExpectationValueEstimator[HamiltonianT, StateT]
-    tau: float
-    unitary_power_estimator: OperatorPowerEstimatorBase[HamiltonianT, StateT] = field(
-        init=False
-    )
-
-    def __post_init__(self) -> None:
-        self.unitary_power_estimator = TimeEvolutionPowerEstimator(
-            self.time_evo_estimator, self.tau
-        )
+    def __init__(
+        self,
+        time_evo_estimator: TimeEvolutionExpectationValueEstimator[
+            HamiltonianT, StateT
+        ],
+        tau: float,
+    ):
+        unitary_power_estimator = TimeEvolutionPowerEstimator(time_evo_estimator, tau)
+        super().__init__(unitary_power_estimator)

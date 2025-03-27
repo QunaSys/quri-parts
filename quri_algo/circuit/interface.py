@@ -8,9 +8,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from typing import Any, Generic, Optional
+from abc import abstractmethod
+from typing import Any, Generic, Optional, Protocol, runtime_checkable
 
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
@@ -20,10 +19,9 @@ from quri_algo.problem import ProblemT
 from .utils.transpile import apply_transpiler
 
 
-@dataclass
-class CircuitFactory(ABC):
-    qubit_count: int = field(init=False)
-    transpiler: Optional[CircuitTranspiler] = field(default=None, kw_only=True)
+@runtime_checkable
+class CircuitFactory(Protocol):
+    transpiler: Optional[CircuitTranspiler]
 
     @apply_transpiler  # type: ignore
     @abstractmethod
@@ -31,8 +29,8 @@ class CircuitFactory(ABC):
         ...
 
 
-@dataclass
-class PartialCircuitFactory(CircuitFactory, ABC):
+@runtime_checkable
+class PartialCircuitFactory(CircuitFactory, Protocol):
     @apply_transpiler  # type: ignore
     @abstractmethod
     def __call__(
@@ -41,8 +39,8 @@ class PartialCircuitFactory(CircuitFactory, ABC):
         ...
 
 
-@dataclass
-class ProblemCircuitFactory(Generic[ProblemT], CircuitFactory, ABC):
+@runtime_checkable
+class ProblemCircuitFactory(Generic[ProblemT], CircuitFactory, Protocol):
     """Represents a circuit that encodes a unitary operator into a circuit."""
 
     encoded_problem: ProblemT

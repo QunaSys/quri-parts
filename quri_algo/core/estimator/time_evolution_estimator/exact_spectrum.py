@@ -8,11 +8,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import dataclass
 from typing import NamedTuple, Optional, cast
 
 import numpy as np
 import numpy.typing as npt
+from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.core.estimator import Estimate
 from quri_parts.qulacs.simulator import evaluate_state_to_vector
 
@@ -27,14 +27,23 @@ class _Estimate(NamedTuple):
     error: float = np.nan
 
 
-@dataclass
 class ExactTimeEvolutionExpectationValueEstimator(
     TimeEvolutionExpectationValueEstimator[HamiltonianInput, State]
 ):
     """Estimate with matrix multiplication."""
 
-    eigenvalues: npt.NDArray[np.complex128]
-    eigenvectors: npt.NDArray[np.complex128]
+    def __init__(
+        self,
+        encoded_problem: HamiltonianInput,
+        eigenvalues: npt.NDArray[np.complex128],
+        eigenvectors: npt.NDArray[np.complex128],
+        *,
+        transpiler: CircuitTranspiler | None = None
+    ):
+        self.encoded_problem = encoded_problem
+        self.eigenvalues = eigenvalues
+        self.eigenvectors = eigenvectors
+        self.transpiler = transpiler
 
     def __call__(
         self, state: State, evolution_time: float, n_shots: Optional[int] = None

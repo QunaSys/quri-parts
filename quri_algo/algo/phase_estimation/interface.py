@@ -50,11 +50,12 @@ class MultiplePhaseEstimationResult(Estimates[float]):
 #: single phase or a :class:`~MultiplePhaseEstimationResult` that contains
 #: estimations of multiple phases.
 PhaseEstResT = TypeVar(
-    "PhaseEstResT", bound=PhaseEstimationResult | MultiplePhaseEstimationResult
+    "PhaseEstResT",
+    bound=PhaseEstimationResult | MultiplePhaseEstimationResult,
+    covariant=True,
 )
 
 
-@dataclass
 class PhaseEstimationBase(Generic[ProblemT, StateT, PhaseEstResT], ABC):
     """Base class for implementing phase estimation algorithm."""
 

@@ -16,7 +16,7 @@ import numpy as np
 import numpy.typing as npt
 from scipy import integrate
 
-from .coefficient import FouierCoefficientSampler, SPEFourierCoefficient
+from .coefficient import FourierCoefficientSampler, SPEFourierCoefficient
 
 NumpyInput = TypeVar("NumpyInput", float, np.float64, npt.NDArray[np.float64])
 
@@ -144,8 +144,7 @@ def sample_from_F_tilde(distribution: Sequence[complex], n_sample: int) -> Count
     return counter
 
 
-@dataclass
-class StepFunctionSampler(FouierCoefficientSampler):
+class StepFunctionSampler(FourierCoefficientSampler):
     """The sampler that samples from the Fourier coefficients of the step
     function.
 
@@ -155,8 +154,9 @@ class StepFunctionSampler(FouierCoefficientSampler):
             Lemma 5 of PRX Quantum 3, 010318 for precise definition.
     """
 
-    d: int
-    delta: float
+    def __init__(self, d: int, delta: float):
+        self.d = d
+        self.delta = delta
 
     @property
     def fourier_coefficients(self) -> npt.NDArray[np.complex128]:

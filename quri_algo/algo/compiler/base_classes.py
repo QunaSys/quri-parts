@@ -9,7 +9,6 @@
 # limitations under the License.
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from typing import Any, Optional
 
 import numpy as np
@@ -25,10 +24,16 @@ from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.core.cost_functions.base_classes import CostFunction
 
 
-@dataclass
-class QuantumCompiler(CircuitFactory, ABC):
-    cost_fn: CostFunction
-    optimizer: Optimizer
+class QuantumCompiler(ABC):
+    @property
+    @abstractmethod
+    def cost_function(self) -> CostFunction:
+        ...
+
+    @property
+    @abstractmethod
+    def optimizer(self) -> Optimizer:
+        ...
 
     @abstractmethod
     def optimize(
@@ -43,8 +48,19 @@ class QuantumCompiler(CircuitFactory, ABC):
         pass
 
 
-@dataclass
 class QuantumCompilerGeneric(QuantumCompiler, ABC):
+    def __init__(self, cost_fn: CostFunction, optimizer: Optimizer):
+        self._cost_fn = cost_fn
+        self._optimizer = optimizer
+
+    @property
+    def cost_function(self) -> CostFunction:
+        return self._cost_fn
+
+    @property
+    def optimizer(self) -> Optimizer:
+        return self._optimizer
+
     def _optimize(
         self,
         circuit_factory: CircuitFactory,
@@ -61,7 +77,7 @@ class QuantumCompilerGeneric(QuantumCompiler, ABC):
 
         def cost(params: Params) -> float:
             trial_circuit = ansatz.bind_parameters(list(params.tolist()))
-            return self.cost_fn(target_circuit, trial_circuit).value.real
+            return self.cost_function(target_circuit, trial_circuit).value.real
 
         def gradient(params: Params) -> Params:
             """Parameter shift gradient function.
@@ -84,7 +100,7 @@ class QuantumCompilerGeneric(QuantumCompiler, ABC):
             gate_params_list = list(gate_params)
 
             estimates = [
-                self.cost_fn(target_circuit, raw_circuit.bind_parameters(list(p)))
+                self.cost_function(target_circuit, raw_circuit.bind_parameters(list(p)))
                 for p in gate_params_list
             ]
             estimates_dict = dict(zip(gate_params_list, estimates))

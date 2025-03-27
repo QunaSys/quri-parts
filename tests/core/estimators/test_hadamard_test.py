@@ -8,8 +8,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import dataclass, field
-
 import numpy as np
 from quri_parts.circuit import (
     H,
@@ -18,6 +16,7 @@ from quri_parts.circuit import (
     QuantumCircuit,
     X,
 )
+from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.circuit.utils.controlled_rotations import add_controlled_RY_gate
 from quri_parts.core.state import CircuitQuantumState, quantum_state
 from quri_parts.qulacs.sampler import create_qulacs_vector_ideal_sampler
@@ -33,11 +32,18 @@ from quri_algo.core.estimator.hadamard_test import (
 from quri_algo.problem import Problem, ProblemT
 
 
-@dataclass
-class ControlledRYFactory(ProblemCircuitFactory[ProblemT]):
-    _param_circuit: LinearMappedUnboundParametricQuantumCircuit = field(init=False)
+class FakeProblem(Problem):
+    def __init__(self, n_state_qubit: int):
+        self.n_state_qubit = n_state_qubit
 
-    def __post_init__(self) -> None:
+
+class ControlledRYFactory(ProblemCircuitFactory[ProblemT]):
+    def __init__(
+        self, encoded_problem: ProblemT, *, transpiler: CircuitTranspiler | None = None
+    ):
+        self.qubit_count = encoded_problem.n_state_qubit + 1
+        self.encoded_problem = encoded_problem
+        self.transpiler = transpiler
         self._param_circuit = LinearMappedUnboundParametricQuantumCircuit(
             self.encoded_problem.n_state_qubit + 1
         )
@@ -49,10 +55,10 @@ class ControlledRYFactory(ProblemCircuitFactory[ProblemT]):
 
 
 def test_hadamard_test() -> None:
-    problem = Problem(1)
+    problem = FakeProblem(1)
     sampler = create_qulacs_vector_ideal_sampler()
     circuit_generator = ControlledRYFactory(problem)
-    hadamard_test: HadamardTest[Problem, CircuitQuantumState] = HadamardTest(
+    hadamard_test: HadamardTest[FakeProblem, CircuitQuantumState] = HadamardTest(
         problem, circuit_generator, sampler
     )
     circuit = QuantumCircuit(1, gates=[H(0)])

@@ -9,6 +9,7 @@
 # limitations under the License.
 
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
+from quri_parts.circuit.transpile import CircuitTranspiler
 
 from quri_algo.circuit.interface import ProblemCircuitFactory
 from quri_algo.circuit.utils.transpile import apply_transpiler
@@ -22,10 +23,18 @@ def fake_transpiler(
 
 
 class FakeProblem(Problem):
-    ...
+    def __init__(self, n_state_qubit: int):
+        self.n_state_qubit = n_state_qubit
 
 
 class FakeCircuitFactory(ProblemCircuitFactory[ProblemT]):
+    def __init__(
+        self, encoded_problem: ProblemT, *, transpiler: CircuitTranspiler | None = None
+    ):
+        self.qubit_count = encoded_problem.n_state_qubit
+        self.encoded_problem = encoded_problem
+        self.transpiler = transpiler
+
     @apply_transpiler  # type: ignore
     def __call__(self) -> NonParametricQuantumCircuit:
         circuit = QuantumCircuit(2)
