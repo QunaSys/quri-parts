@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from typing import Protocol, Mapping, Any
 from quri_parts.backend.units import TimeValue
-from quri_parts.core.estimator import Estimate
 from quri_parts.circuit import ImmutableQuantumCircuit
 from sympy import Expr
 
@@ -11,9 +10,13 @@ from sympy import Expr
 class AlgorithmResult:
     """Algorithm result"""
 
-    result: Mapping[
-        str, Any
-    ]  # instead of Any: Estimate | HamiltonianEigensystem | OptimizerState | QuantumCircuit
+    algorithm: "Algorithm"
+    runtime: float
+    
+    @property
+    def name(self) -> str:
+        """The name of the algorithm"""
+        return self.algorithm.name
 
 
 @dataclass
@@ -36,7 +39,7 @@ class Algorithm(ABC):
     """The name of the algorithm"""
 
     @abstractmethod
-    def estimate(
+    def run(
         self, *args: Any, **kwargs: Any
     ) -> Mapping[
         str, Any
@@ -72,5 +75,7 @@ class QuantumMixin(Protocol):
 class QuantumAlgorithm(Algorithm, QuantumMixin):
     def __call__(self, *args: Any, **kwargs: Any) -> QuantumAlgorithmResult:
         return QuantumAlgorithmResult(
-            self.estimate(*args, **kwargs), self.analyze(*args, **kwargs)
+            self.run(*args, **kwargs), self.analyze(*args, **kwargs)
         )
+
+
