@@ -18,7 +18,6 @@ from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.core.operator import get_sparse_matrix
 from scipy.linalg import expm
 
-from quri_algo.circuit.interface import ProblemCircuitFactory
 from quri_algo.circuit.time_evolution.interface import (
     ControlledTimeEvolutionCircuitFactory,
     TimeEvolutionCircuitFactory,

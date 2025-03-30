@@ -9,17 +9,12 @@
 # limitations under the License.
 
 from abc import abstractmethod
-from typing import Any, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
-from quri_parts.circuit import (
-    ImmutableLinearMappedUnboundParametricQuantumCircuit,
-    NonParametricQuantumCircuit,
-)
-from quri_parts.core.operator import Operator, pauli_label
+from quri_parts.circuit import NonParametricQuantumCircuit
 
 from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.circuit.utils.transpile import apply_transpiler
-from quri_algo.problem import HamiltonianT, QubitHamiltonianInput
 
 
 @runtime_checkable

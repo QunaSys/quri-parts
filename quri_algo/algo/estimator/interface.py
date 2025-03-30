@@ -9,14 +9,11 @@
 # limitations under the License.
 
 from abc import abstractmethod
-from typing import Any, Optional, Protocol, TypeVar, Union
+from typing import Any, Protocol, TypeVar, Union
 
-from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.core.estimator import Estimate
 from quri_parts.core.state import CircuitQuantumState, QuantumStateVector
 from typing_extensions import TypeAlias
-
-from quri_algo.problem.operators.interface import OperatorT
 
 State: TypeAlias = Union[CircuitQuantumState, QuantumStateVector]
 StateT = TypeVar("StateT", bound=State, contravariant=True)
