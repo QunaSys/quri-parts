@@ -28,7 +28,7 @@ from quri_algo.algo.estimator.hadamard_test import (
     remap_state_for_hadamard_test,
     shift_state_circuit,
 )
-from quri_algo.circuit.interface import ProblemCircuitFactory
+from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.problem import Problem
 
 
@@ -37,7 +37,7 @@ class FakeProblem(Problem):
         self.n_state_qubit = n_state_qubit
 
 
-class ControlledRYFactory(ProblemCircuitFactory[FakeProblem]):
+class ControlledRYFactory(CircuitFactory):
     def __init__(
         self,
         encoded_problem: FakeProblem,

@@ -11,7 +11,7 @@
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
 
-from quri_algo.circuit.interface import ProblemCircuitFactory
+from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.circuit.utils.transpile import apply_transpiler
 from quri_algo.problem import Problem, ProblemT
 
@@ -27,7 +27,7 @@ class FakeProblem(Problem):
         self.n_state_qubit = n_state_qubit
 
 
-class FakeCircuitFactory(ProblemCircuitFactory[ProblemT]):
+class FakeCircuitFactory(CircuitFactory):
     def __init__(
         self, encoded_problem: ProblemT, *, transpiler: CircuitTranspiler | None = None
     ):
