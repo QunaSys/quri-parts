@@ -26,7 +26,7 @@ class MolecularSystem(HamiltonianMixin):
     ] = "pyscf_mem_efficient"
 
     def get_qubit_hamiltonian(self) -> QubitHamiltonianInput:
-        return super().get_qubit_hamiltonian()
+        raise NotImplementedError("Not supported")
 
     def get_fermionic_hamiltonian(self) -> FermionicHamiltonianInput:
-        return super().get_fermionic_hamiltonian()
+        raise NotImplementedError("Not supported")

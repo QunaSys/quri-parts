@@ -26,7 +26,7 @@ from quri_algo.problem import HamiltonianT, QubitHamiltonianInput
 class TimeEvolutionCircuitFactory(CircuitFactory, Protocol):
     """Encode a Hamiltonian to a time evolution circuit."""
 
-    @apply_transpiler  # type: ignore
+    @apply_transpiler
     @abstractmethod
     def __call__(self, evolution_time: float) -> NonParametricQuantumCircuit:
         ...
@@ -36,7 +36,7 @@ class TimeEvolutionCircuitFactory(CircuitFactory, Protocol):
 class ControlledTimeEvolutionCircuitFactory(CircuitFactory, Protocol):
     """Encode a Hamiltonian to a controlled-time evolution circuit."""
 
-    @apply_transpiler  # type: ignore
+    @apply_transpiler
     @abstractmethod
     def __call__(self, evolution_time: float) -> NonParametricQuantumCircuit:
         ...
