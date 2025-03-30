@@ -29,7 +29,7 @@ from quri_algo.problem import HamiltonianT
 
 
 class TimeEvolutionExpectationValueEstimator(
-    ExpectationValueEstimator[HamiltonianT, StateT], Protocol
+    ExpectationValueEstimator[StateT], Protocol
 ):
     r"""Estimator that computes :math:`\langle e^{-iHt} \rangle`"""
 
@@ -40,9 +40,7 @@ class TimeEvolutionExpectationValueEstimator(
         ...
 
 
-class TimeEvolutionHadamardTest(
-    TimeEvolutionExpectationValueEstimator[HamiltonianT, StateT],
-):
+class TimeEvolutionHadamardTest(TimeEvolutionExpectationValueEstimator[StateT]):
     r"""Computes :math:`\langle e^{-iHt} \rangle` with Hadamard test.
 
     This object can be instantiated or inherited for performing the
@@ -84,7 +82,7 @@ class TimeEvolutionHadamardTest(
         return self._hadamard_test(state, n_shots, evolution_time)
 
 
-class TimeEvolutionPowerEstimator(OperatorPowerEstimatorBase[HamiltonianT, StateT]):
+class TimeEvolutionPowerEstimator(OperatorPowerEstimatorBase[StateT]):
     r"""Turns a :class:`TimeEvolutionExpectationValueEstimator` for evaluating
     :math:`e^{-iH k \tau}` into a  :class:`OperatorPowerEstimatorBase` so that
     :math:`e^{-iH\tau}` is treated as the unitary operator and :math:`k` as the power.
@@ -92,9 +90,7 @@ class TimeEvolutionPowerEstimator(OperatorPowerEstimatorBase[HamiltonianT, State
 
     def __init__(
         self,
-        time_evo_estimator: TimeEvolutionExpectationValueEstimator[
-            HamiltonianT, StateT
-        ],
+        time_evo_estimator: TimeEvolutionExpectationValueEstimator[StateT],
         tau: float,
         *,
         transpiler: CircuitTranspiler | None = None

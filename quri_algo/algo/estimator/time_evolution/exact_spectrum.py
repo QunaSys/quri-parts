@@ -28,7 +28,7 @@ class _Estimate(NamedTuple):
 
 
 class ExactTimeEvolutionExpectationValueEstimator(
-    TimeEvolutionExpectationValueEstimator[HamiltonianInput, State]
+    TimeEvolutionExpectationValueEstimator[State]
 ):
     """Estimate with matrix multiplication."""
 

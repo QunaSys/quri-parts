@@ -50,7 +50,7 @@ class TestGaussianPhaseEstimation(unittest.TestCase):
         cls.a = np.pi / 4
 
         estimator = unittest.mock.Mock(
-            spec=OperatorPowerEstimatorBase[Problem, CircuitQuantumState],
+            spec=OperatorPowerEstimatorBase,
             side_effect=lambda state, operator_power, n_shots: _Estimate(
                 value=np.exp(-1j * operator_power * 2 * np.pi * cls.a)
             ),
@@ -84,9 +84,7 @@ class TestGaussianGSEE(unittest.TestCase):
         cls.shift = np.pi / 4
 
         time_evo_estimator = unittest.mock.Mock(
-            spec=TimeEvolutionExpectationValueEstimator[
-                QubitHamiltonianInput, CircuitQuantumState
-            ],
+            spec=TimeEvolutionExpectationValueEstimator,
             side_effect=lambda state, evolution_time, n_shots: _Estimate(
                 value=np.exp(-1j * evolution_time * cls.shift)
             ),

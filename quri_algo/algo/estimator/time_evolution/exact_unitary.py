@@ -22,9 +22,7 @@ from quri_algo.problem import QubitHamiltonianInput
 from .interface import TimeEvolutionHadamardTest
 
 
-class ExactUnitaryTimeEvolutionHadamardTest(
-    TimeEvolutionHadamardTest[QubitHamiltonianInput, State]
-):
+class ExactUnitaryTimeEvolutionHadamardTest(TimeEvolutionHadamardTest[State]):
     r"""Performs :math:`\langle e^{-iHt} \rangle` base on exact unitary matrix
     implementation of the time evolution operator :math:`e^{-iHt}`."""
 

@@ -14,6 +14,7 @@ from typing import Union
 from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.core.sampling import Sampler, StateSampler
 
+from quri_algo.algo.estimator import StateT
 from quri_algo.algo.estimator.interface import State
 from quri_algo.circuit.time_evolution.trotter_time_evo import (
     TrotterControlledTimeEvolutionCircuitFactory,
@@ -23,9 +24,7 @@ from quri_algo.problem import QubitHamiltonianInput
 from .interface import TimeEvolutionHadamardTest
 
 
-class TrotterTimeEvolutionHadamardTest(
-    TimeEvolutionHadamardTest[QubitHamiltonianInput, State]
-):
+class TrotterTimeEvolutionHadamardTest(TimeEvolutionHadamardTest[StateT]):
     r"""Performs :math:`\langle e^{-iHt} \rangle` base on Trotterized
     implementation of the time evolution operator :math:`e^{-iHt}`."""
 

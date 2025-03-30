@@ -61,7 +61,7 @@ def test_hadamard_test() -> None:
     problem = FakeProblem(1)
     sampler = create_qulacs_vector_ideal_sampler()
     circuit_generator = ControlledRYFactory(problem)
-    hadamard_test: HadamardTest[FakeProblem, CircuitQuantumState] = HadamardTest(
+    hadamard_test: HadamardTest[CircuitQuantumState] = HadamardTest(
         circuit_generator, sampler
     )
     circuit = QuantumCircuit(1, gates=[H(0)])

@@ -36,7 +36,7 @@ class TestLT22PhaseEstimation(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         estimator = unittest.mock.Mock(
-            spec=OperatorPowerEstimatorBase[Problem, CircuitQuantumState],
+            spec=OperatorPowerEstimatorBase,
             return_value=_Estimate(value=1.0),
         )
         cls.lt22_algo = SingleSignalLT22PhaseEstimation(estimator)
@@ -62,9 +62,7 @@ class TestLT22GSEE(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         time_evo_estimator = unittest.mock.Mock(
-            spec=TimeEvolutionExpectationValueEstimator[
-                QubitHamiltonianInput, CircuitQuantumState
-            ],
+            spec=TimeEvolutionExpectationValueEstimator,
             return_value=_Estimate(value=1.0),
         )
         time_evo_estimator.encoded_operator = QubitHamiltonianInput(

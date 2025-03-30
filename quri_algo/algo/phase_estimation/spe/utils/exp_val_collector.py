@@ -8,12 +8,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Generic, NamedTuple, Sequence
+from typing import Callable, Generic, NamedTuple, Optional, Sequence
 
-from quri_algo.algo.estimator import OperatorPowerEstimatorBase, StateT
-from quri_algo.problem.interface import ProblemT
+from quri_parts.core.estimator import Estimate
+from typing_extensions import TypeAlias
+
+from quri_algo.algo.estimator import StateT
 
 from .fourier.coefficient import SPEFourierCoefficient
+
+UnitaryOpPowerSamplingEstimator: TypeAlias = Callable[
+    [StateT, int | float, Optional[int]], Estimate[complex]
+]
 
 
 class SPESample(NamedTuple):
@@ -33,7 +39,7 @@ class SPESample(NamedTuple):
     op_exp_val: complex
 
 
-class ExpectationValueCollector(Generic[ProblemT, StateT]):
+class ExpectationValueCollector(Generic[StateT]):
     r"""Computes the expectation value :math:`\langle \psi|U^{k}|\psi\rangle`
     for a given sequence of :class:`SPEFourierCoefficient`. This sets up the
     convolution function's Fourier coefficient.
@@ -44,7 +50,7 @@ class ExpectationValueCollector(Generic[ProblemT, StateT]):
 
     def __init__(
         self,
-        operator_power_estimator: OperatorPowerEstimatorBase[ProblemT, StateT],
+        operator_power_estimator: UnitaryOpPowerSamplingEstimator[StateT],
         state: StateT,
     ):
         self.operator_power_estimator = operator_power_estimator
@@ -54,7 +60,7 @@ class ExpectationValueCollector(Generic[ProblemT, StateT]):
         self, classical_samples: Sequence[SPEFourierCoefficient]
     ) -> Sequence[SPESample]:
         """
-        classical_samples: list of \tilde{F}(k)
+        classical_samples: list of :math:`\\tilde{F}(k)`
         """
         sample: list[SPESample] = []
         for c_sample in classical_samples:

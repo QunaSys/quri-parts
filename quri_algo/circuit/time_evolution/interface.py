@@ -42,32 +42,32 @@ class ControlledTimeEvolutionCircuitFactory(CircuitFactory, Protocol):
         ...
 
 
-class PartialTimeEvolutionCircuitFactory(CircuitFactory, Protocol):
-    def get_local_hamiltonian_input(
-        self, idx0: int, idx1: int
-    ) -> QubitHamiltonianInput:
-        def within_range(j: int) -> bool:
-            return j >= idx0 and j <= idx1
+# class PartialTimeEvolutionCircuitFactory(CircuitFactory, Protocol):
+#     def get_local_hamiltonian_input(
+#         self, idx0: int, idx1: int
+#     ) -> QubitHamiltonianInput:
+#         def within_range(j: int) -> bool:
+#             return j >= idx0 and j <= idx1
 
-        local_hamiltonian = Operator()
-        for op, coef in self.encoded_problem.qubit_hamiltonian.items():
-            if all(map(within_range, op.index_and_pauli_id_list[0])):
-                idx_id_iterable = [
-                    (idx - idx0, id) for idx, id in zip(*op.index_and_pauli_id_list)
-                ]
-                local_hamiltonian.add_term(pauli_label(idx_id_iterable), coef)
+#         local_hamiltonian = Operator()
+#         for op, coef in self.encoded_problem.qubit_hamiltonian.items():
+#             if all(map(within_range, op.index_and_pauli_id_list[0])):
+#                 idx_id_iterable = [
+#                     (idx - idx0, id) for idx, id in zip(*op.index_and_pauli_id_list)
+#                 ]
+#                 local_hamiltonian.add_term(pauli_label(idx_id_iterable), coef)
 
-        return QubitHamiltonianInput(idx1 - idx0 + 1, local_hamiltonian)
+#         return QubitHamiltonianInput(idx1 - idx0 + 1, local_hamiltonian)
 
-    @abstractmethod
-    def get_partial_time_evolution_circuit(
-        self, idx0: int, idx1: int
-    ) -> ImmutableLinearMappedUnboundParametricQuantumCircuit:
-        pass
+#     @abstractmethod
+#     def get_partial_time_evolution_circuit(
+#         self, idx0: int, idx1: int
+#     ) -> ImmutableLinearMappedUnboundParametricQuantumCircuit:
+#         pass
 
-    @apply_transpiler  # type: ignore
-    @abstractmethod
-    def __call__(
-        self, evolution_time: float, idx0: int, idx1: int
-    ) -> NonParametricQuantumCircuit:
-        ...
+#     @apply_transpiler  # type: ignore
+#     @abstractmethod
+#     def __call__(
+#         self, evolution_time: float, idx0: int, idx1: int
+#     ) -> NonParametricQuantumCircuit:
+#         ...

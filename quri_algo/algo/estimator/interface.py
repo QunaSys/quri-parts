@@ -22,19 +22,14 @@ State: TypeAlias = Union[CircuitQuantumState, QuantumStateVector]
 StateT = TypeVar("StateT", bound=State, contravariant=True)
 
 
-class ExpectationValueEstimator(Protocol[OperatorT, StateT]):
+class ExpectationValueEstimator(Protocol[StateT]):
     r"""Interface for estimator that computes the expectaion value of a function
     of an operator with some parameter. It can be understood as an object that
     computes:
 
     .. math::
         \langle f(O; \vec{\theta}) \rangle
-
-    For example:
-        An estimator that computes :math:`\langle e^{-iHt} \rangle` for specified t.
-            - encoded_operator: H
     """
-    transpiler: Optional[CircuitTranspiler]
 
     @abstractmethod
     def __call__(self, state: StateT, *args: Any, **kwargs: Any) -> Estimate[complex]:
@@ -42,9 +37,7 @@ class ExpectationValueEstimator(Protocol[OperatorT, StateT]):
         ...
 
 
-class OperatorPowerEstimatorBase(
-    ExpectationValueEstimator[OperatorT, StateT], Protocol
-):
+class OperatorPowerEstimatorBase(ExpectationValueEstimator[StateT], Protocol):
     r"""Base class for any estimator that estimates the expectation value
     :math:`\langle U^k \rangle`, where :math:`U` is a unitary operator and `k`
     is the power.
@@ -52,6 +45,6 @@ class OperatorPowerEstimatorBase(
 
     @abstractmethod
     def __call__(
-        self, state: StateT, operator_power: int | float, n_shots: Optional[int] = None
+        self, state: StateT, operator_power: int | float, *args: Any, **kwargs: Any
     ) -> Estimate[complex]:
         ...

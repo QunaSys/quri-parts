@@ -22,10 +22,10 @@ from quri_parts.core.state import (
     QuantumStateVector,
 )
 
-from quri_algo.algo.estimator import ExpectationValueEstimator, State, StateT
 from quri_algo.circuit.hadamard_test import HadamardTestCircuitFactory
 from quri_algo.circuit.interface import CircuitFactory
-from quri_algo.problem.interface import ProblemT
+
+from .interface import ExpectationValueEstimator, State, StateT
 
 
 class _Estimate(NamedTuple):
@@ -54,7 +54,7 @@ def _general_sample_on_state(
     return sampler(state.circuit, n_shots)
 
 
-class HadamardTest(ExpectationValueEstimator[ProblemT, StateT]):
+class HadamardTest(ExpectationValueEstimator[StateT]):
     r"""Estimate a unitary operator U's expectation value :math:`\langle U.
 
     \rangle` with Hadamard test.
