@@ -10,10 +10,18 @@
 
 from typing import Literal
 
-from typing_extensions import TypeAlias
+from typing_extensions import TypeAlias, TypeGuard
 
 QiskitGateNameType: TypeAlias = Literal["ECR"]
 
 QiskitTwoQubitGateNameType: TypeAlias = Literal["ECR"]
 
 ECR: Literal["ECR"] = "ECR"
+
+QISKIT_TWO_QUBIT_GATE_NAMES: set[QiskitTwoQubitGateNameType] = {ECR}
+
+
+def is_qiskit_two_qubit_gate_name(
+    gate_name: str,
+) -> TypeGuard[QiskitTwoQubitGateNameType]:
+    return gate_name in QISKIT_TWO_QUBIT_GATE_NAMES

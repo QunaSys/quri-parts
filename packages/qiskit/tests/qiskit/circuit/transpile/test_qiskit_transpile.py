@@ -13,7 +13,7 @@ from quri_parts.circuit.transpile import (
     PauliRotationDecomposeTranspiler,
     SequentialTranspiler,
 )
-from quri_parts.qiskit.circuit import QiskitSetTranspiler
+from quri_parts.qiskit.circuit.transpile import CNOT2ECRTranspiler, QiskitSetTranspiler
 
 
 def test_qiskit_transpiler() -> None:
@@ -22,4 +22,5 @@ def test_qiskit_transpiler() -> None:
     assert [type(x) for x in transpiler._transpilers] == [
         PauliDecomposeTranspiler,
         PauliRotationDecomposeTranspiler,
+        CNOT2ECRTranspiler,
     ]

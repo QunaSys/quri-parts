@@ -23,7 +23,7 @@ from qiskit.opflow import X, Y, Z
 
 from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
 from quri_parts.circuit.transpile import TwoQubitUnitaryMatrixKAKTranspiler
-from quri_parts.qiskit.circuit import convert_circuit, convert_gate
+from quri_parts.qiskit.circuit.transpile import convert_circuit, convert_gate
 
 
 def gate_equal(i1: QiskitGate, i2: QiskitGate) -> bool:
@@ -170,7 +170,10 @@ def test_convert_circuit() -> None:
     expected = QiskitQuantumCircuit(3)
     expected.x(1)
     expected.h(2)
-    expected.cnot(0, 2)
+    expected.x(0)
+    expected.rz(-np.pi / 2.0, 0)
+    expected.sx(2)
+    expected.ecr(0, 2)
     expected.rx(0.125, 0)
 
     assert circuit_equal(converted, expected)
@@ -262,7 +265,10 @@ def test_convert_circuit_with_measurement() -> None:
     expected = QiskitQuantumCircuit(3, 2)
     expected.x(1)
     expected.h(2)
-    expected.cnot(0, 2)
+    expected.x(0)
+    expected.rz(-np.pi / 2.0, 0)
+    expected.sx(2)
+    expected.ecr(0, 2)
     expected.rx(0.125, 0)
     expected.measure(0, 1)
     expected.x(1)

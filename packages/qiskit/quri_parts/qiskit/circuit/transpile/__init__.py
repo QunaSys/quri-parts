@@ -17,8 +17,16 @@ from qiskit.providers import Backend
 from quri_parts.circuit import NonParametricQuantumCircuit, gate_names
 from quri_parts.circuit.gate_names import GateNameType
 from quri_parts.circuit.transpile import CircuitTranspilerProtocol
-from quri_parts.qiskit.circuit import circuit_from_qiskit, convert_circuit
+from quri_parts.qiskit.circuit import circuit_from_qiskit
 from quri_parts.qiskit.circuit.gate_names import ECR, QiskitGateNameType
+
+from .circuit_converter import (
+    QiskitCircuitConverter,
+    QiskitSetTranspiler,
+    convert_circuit,
+    convert_gate,
+)
+from .qiskit_native_transpiler import CNOT2ECRTranspiler
 
 _qp_qiskit_gate_name_map: Mapping[Union[GateNameType, QiskitGateNameType], str] = {
     gate_names.Identity: "id",
@@ -90,5 +98,10 @@ class QiskitTranspiler(CircuitTranspilerProtocol):
 
 
 __all__ = [
+    "CNOT2ECRTranspiler",
     "QiskitTranspiler",
+    "QiskitCircuitConverter",
+    "QiskitSetTranspiler",
+    "convert_circuit",
+    "convert_gate",
 ]

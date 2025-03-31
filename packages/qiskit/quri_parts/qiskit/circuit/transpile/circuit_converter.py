@@ -27,8 +27,6 @@ from quri_parts.circuit.gate_names import (
     SingleQubitGateNameType,
     ThreeQubitGateNameType,
     TwoQubitGateNameType,
-    is_gate_name,
-    is_multi_qubit_gate_name,
     is_parametric_gate_name,
     is_single_qubit_gate_name,
     is_three_qubit_gate_name,
@@ -41,7 +39,13 @@ from quri_parts.circuit.transpile import (
     PauliRotationDecomposeTranspiler,
     SequentialTranspiler,
 )
-from quri_parts.qiskit.circuit.gate_names import ECR, QiskitTwoQubitGateNameType
+from quri_parts.qiskit.circuit.gate_names import (
+    ECR,
+    QiskitTwoQubitGateNameType,
+    is_qiskit_two_qubit_gate_name,
+)
+
+from .qiskit_native_transpiler import CNOT2ECRTranspiler
 
 QiskitCircuitConverter: TypeAlias = Callable[
     [NonParametricQuantumCircuit, Optional[CircuitTranspiler]], QuantumCircuit
@@ -49,7 +53,11 @@ QiskitCircuitConverter: TypeAlias = Callable[
 
 #: CircuitTranspiler to convert a circuit configuration suitable for Qiskit.
 QiskitSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
-    [PauliDecomposeTranspiler(), PauliRotationDecomposeTranspiler()]
+    [
+        PauliDecomposeTranspiler(),
+        PauliRotationDecomposeTranspiler(),
+        CNOT2ECRTranspiler(),
+    ]
 )
 
 
@@ -109,8 +117,6 @@ _special_named_gate_matrix: Mapping[
 def convert_gate(gate: QuantumGate) -> Gate:
     """Converts a :class:`QuantumGate` to
     :class:`qiskit.Gate`."""
-    if not is_gate_name(gate.name):
-        raise ValueError(f"Unknown gate name: {gate.name}")
 
     if is_single_qubit_gate_name(gate.name):
         if gate.name in _single_qubit_gate_qiskit:
@@ -127,9 +133,11 @@ def convert_gate(gate: QuantumGate) -> Gate:
             s_matrix = _special_named_gate_matrix[gate.name]
             return UnitaryGate(np.array(s_matrix))
         else:
-            assert False, "Unreachable"
+            raise ValueError(f"Unknown gate name: {gate.name}")
 
-    elif is_two_qubit_gate_name(gate.name) and gate.name in _two_qubit_gate_qiskit:
+    elif (
+        is_two_qubit_gate_name(gate.name) or is_qiskit_two_qubit_gate_name(gate.name)
+    ) and gate.name in _two_qubit_gate_qiskit:
         return _two_qubit_gate_qiskit[gate.name]()
 
     elif is_three_qubit_gate_name(gate.name) and gate.name in _three_qubits_gate_qiskit:
@@ -138,7 +146,7 @@ def convert_gate(gate: QuantumGate) -> Gate:
     elif is_unitary_matrix_gate_name(gate.name):
         return UnitaryGate(gate.unitary_matrix)
 
-    elif is_multi_qubit_gate_name(gate.name) and gate.name in _multi_qubit_gate_qiskit:
+    elif gate.name in _multi_qubit_gate_qiskit:
         if gate.name == gate_names.Pauli:
             q_gate = qgate.PauliGate(label=None)
             pauli_str = ""
@@ -157,7 +165,7 @@ def convert_gate(gate: QuantumGate) -> Gate:
     elif is_parametric_gate_name(gate.name):
         raise ValueError("Parametric gates are not supported.")
     else:
-        assert False, "Unreachable"
+        raise ValueError(f"Unknown gate name: {gate.name}")
 
     raise NotImplementedError(
         f"Conversion of {gate.name} to qiskit has not been implemented."

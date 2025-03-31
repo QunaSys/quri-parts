@@ -26,7 +26,7 @@ from quri_parts.qiskit.backend import (
     QiskitSavedDataSamplingJob,
     QiskitSavedDataSamplingResult,
 )
-from quri_parts.qiskit.circuit import convert_circuit
+from quri_parts.qiskit.circuit.transpile import convert_circuit
 
 
 def circuit_converter(
