@@ -39,7 +39,7 @@ from quri_parts.qiskit.backend.primitive import (
     QiskitRuntimeSamplingJob,
     QiskitRuntimeSamplingResult,
 )
-from quri_parts.qiskit.circuit import convert_circuit
+from quri_parts.qiskit.circuit.transpile import convert_circuit
 
 from .mock.ibm_runtime_service_mock import mock_get_backend
 

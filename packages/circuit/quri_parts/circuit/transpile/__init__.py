@@ -10,6 +10,8 @@
 
 from typing import Callable
 
+from quri_parts.circuit import gate_names
+
 from .analyze import (
     coupled_qubit_graphs,
     coupled_qubit_indices,
@@ -18,8 +20,6 @@ from .analyze import (
     gate_weighted_depth,
     qubit_couplings,
 )
-from quri_parts.circuit import gate_names
-
 from .clifford_approximation import CliffordApproximationTranspiler
 from .fuse import (
     CNOTHCNOTFusingTranspiler,
