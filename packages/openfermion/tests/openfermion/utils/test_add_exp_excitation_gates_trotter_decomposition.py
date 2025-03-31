@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from quri_parts.circuit import LinearMappedUnboundParametricQuantumCircuit
+from quri_parts.circuit import LinearMappedParametricQuantumCircuit
 from quri_parts.core.circuit import add_parametric_commuting_paulis_exp_gate
 from quri_parts.core.operator import Operator, pauli_label
 from quri_parts.openfermion.transforms import (
@@ -24,7 +24,7 @@ from quri_parts.openfermion.utils.add_exp_excitation_gates_trotter_decomposition
 
 class TestCreateAntiHermitianSdExcitationOperator:
     def test_single_excitation_jw(self) -> None:
-        jw_mapper = jordan_wigner.get_of_operator_mapper()
+        jw_mapper = jordan_wigner.get_of_operator_mapper(n_spin_orbitals=4)
 
         s_exc = (0, 2)
         op = create_anti_hermitian_sd_excitation_operator(s_exc, jw_mapper)
@@ -41,7 +41,7 @@ class TestCreateAntiHermitianSdExcitationOperator:
         assert op == expected_op
 
     def test_single_excitation_bk(self) -> None:
-        bk_mapper = bravyi_kitaev.get_of_operator_mapper()
+        bk_mapper = bravyi_kitaev.get_of_operator_mapper(n_spin_orbitals=4)
 
         s_exc = (0, 2)
         op = create_anti_hermitian_sd_excitation_operator(s_exc, bk_mapper)
@@ -61,7 +61,7 @@ class TestCreateAntiHermitianSdExcitationOperator:
         n_sorbs = 4
         n_elecs = 2
         scbk_mapper = symmetry_conserving_bravyi_kitaev.get_of_operator_mapper(
-            n_sorbs, n_elecs
+            n_sorbs, n_elecs, 0.0
         )
 
         s_exc = (0, 2)
@@ -75,7 +75,7 @@ class TestCreateAntiHermitianSdExcitationOperator:
         assert op == expected_op
 
     def test_double_excitation_jw(self) -> None:
-        jw_mapper = jordan_wigner.get_of_operator_mapper()
+        jw_mapper = jordan_wigner.get_of_operator_mapper(n_spin_orbitals=4)
 
         d_exc = (0, 1, 2, 3)
         op = create_anti_hermitian_sd_excitation_operator(d_exc, jw_mapper)
@@ -110,7 +110,7 @@ class TestCreateAntiHermitianSdExcitationOperator:
         assert op == expected_op
 
     def test_double_excitation_bk(self) -> None:
-        bk_mapper = bravyi_kitaev.get_of_operator_mapper()
+        bk_mapper = bravyi_kitaev.get_of_operator_mapper(n_spin_orbitals=8)
 
         d_exc = (0, 1, 2, 3)
         op = create_anti_hermitian_sd_excitation_operator(d_exc, bk_mapper)
@@ -145,7 +145,9 @@ class TestCreateAntiHermitianSdExcitationOperator:
         assert op == expected_op
 
     def test_double_excitation_scbk(self) -> None:
-        scbk_mapper = symmetry_conserving_bravyi_kitaev.get_of_operator_mapper(4, 2)
+        scbk_mapper = symmetry_conserving_bravyi_kitaev.get_of_operator_mapper(
+            4, 2, 0.0
+        )
 
         d_exc = (0, 1, 2, 3)
         op = create_anti_hermitian_sd_excitation_operator(d_exc, scbk_mapper)
@@ -157,7 +159,9 @@ class TestCreateAntiHermitianSdExcitationOperator:
         )
         assert op == expected_op
 
-        scbk_mapper = symmetry_conserving_bravyi_kitaev.get_of_operator_mapper(8, 2)
+        scbk_mapper = symmetry_conserving_bravyi_kitaev.get_of_operator_mapper(
+            8, 2, 0.0
+        )
         d_exc = (0, 3, 4, 7)
         op = create_anti_hermitian_sd_excitation_operator(d_exc, scbk_mapper)
         expected_op = Operator(
@@ -179,15 +183,15 @@ class TestAddExpExcitationGatesTrotterDecomposition:
     def test_trotter1_jw(self) -> None:
         n_spin_orbitals = 4
         excitation_indices = [(0, 2)]
-        jw_mapper = jordan_wigner.get_of_operator_mapper()
+        jw_mapper = jordan_wigner.get_of_operator_mapper(n_spin_orbitals)
         trotter_number = 1
 
-        circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
+        circuit = LinearMappedParametricQuantumCircuit(n_spin_orbitals)
         param = circuit.add_parameter("param")
         add_exp_excitation_gates_trotter_decomposition(
             circuit, excitation_indices, [param], jw_mapper, coef=1 / trotter_number
         )
-        expected_circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
+        expected_circuit = LinearMappedParametricQuantumCircuit(n_spin_orbitals)
         param = expected_circuit.add_parameter("param")
         expected_circuit.add_ParametricPauliRotation_gate(
             (0, 1, 2), (2, 3, 1), {param: -1.0}
@@ -205,15 +209,15 @@ class TestAddExpExcitationGatesTrotterDecomposition:
     def test_trotter2_jw(self) -> None:
         n_spin_orbitals = 4
         excitation_indices = [(0, 2)]
-        jw_mapper = jordan_wigner.get_of_operator_mapper()
+        jw_mapper = jordan_wigner.get_of_operator_mapper(n_spin_orbitals)
         trotter_number = 2
 
-        circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
+        circuit = LinearMappedParametricQuantumCircuit(n_spin_orbitals)
         param = circuit.add_parameter("param")
         add_exp_excitation_gates_trotter_decomposition(
             circuit, excitation_indices, [param], jw_mapper, coef=1 / trotter_number
         )
-        expected_circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
+        expected_circuit = LinearMappedParametricQuantumCircuit(n_spin_orbitals)
         param = expected_circuit.add_parameter("param")
         expected_circuit.add_ParametricPauliRotation_gate(
             (0, 1, 2), (2, 3, 1), {param: -0.5}
@@ -231,15 +235,15 @@ class TestAddExpExcitationGatesTrotterDecomposition:
     def test_trotter1_bk(self) -> None:
         n_spin_orbitals = 4
         excitation_indices = [(0, 2)]
-        bk_mapper = bravyi_kitaev.get_of_operator_mapper()
+        bk_mapper = bravyi_kitaev.get_of_operator_mapper(n_spin_orbitals)
         trotter_number = 1
 
-        circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
+        circuit = LinearMappedParametricQuantumCircuit(n_spin_orbitals)
         param = circuit.add_parameter("param")
         add_exp_excitation_gates_trotter_decomposition(
             circuit, excitation_indices, [param], bk_mapper, coef=1 / trotter_number
         )
-        expected_circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
+        expected_circuit = LinearMappedParametricQuantumCircuit(n_spin_orbitals)
         param = expected_circuit.add_parameter("param")
         expected_circuit.add_ParametricPauliRotation_gate(
             (0, 1, 2), (1, 2, 1), {param: -1.0}
@@ -258,17 +262,17 @@ class TestAddExpExcitationGatesTrotterDecomposition:
         n_spin_orbitals = 4
         excitation_indices = [(0, 2)]
         scbk_mapper = symmetry_conserving_bravyi_kitaev.get_of_operator_mapper(
-            n_spin_orbitals, 2
+            n_spin_orbitals, 2, 0.0
         )
         trotter_number = 1
 
         n_qubits = symmetry_conserving_bravyi_kitaev.n_qubits_required(n_spin_orbitals)
-        circuit = LinearMappedUnboundParametricQuantumCircuit(n_qubits)
+        circuit = LinearMappedParametricQuantumCircuit(n_qubits)
         param = circuit.add_parameter("param")
         add_exp_excitation_gates_trotter_decomposition(
             circuit, excitation_indices, [param], scbk_mapper, coef=1 / trotter_number
         )
-        expected_circuit = LinearMappedUnboundParametricQuantumCircuit(n_qubits)
+        expected_circuit = LinearMappedParametricQuantumCircuit(n_qubits)
         param = expected_circuit.add_parameter("param")
         expected_circuit.add_ParametricPauliRotation_gate((0,), (2,), {param: -2.0})
         assert circuit.parameter_count == expected_circuit.parameter_count
@@ -281,15 +285,15 @@ class TestAddExpExcitationGatesTrotterDecomposition:
     def test_doubles(self) -> None:
         n_spin_orbitals = 6
         excitation_indices = [(0, 1, 4, 5)]
-        jw_mapper = jordan_wigner.get_of_operator_mapper()
+        jw_mapper = jordan_wigner.get_of_operator_mapper(n_spin_orbitals)
         trotter_number = 1
 
-        circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
+        circuit = LinearMappedParametricQuantumCircuit(n_spin_orbitals)
         param = circuit.add_parameter("param")
         add_exp_excitation_gates_trotter_decomposition(
             circuit, excitation_indices, [param], jw_mapper, coef=1 / trotter_number
         )
-        expected_circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
+        expected_circuit = LinearMappedParametricQuantumCircuit(n_spin_orbitals)
         param = expected_circuit.add_parameter("param")
         expected_circuit.add_ParametricPauliRotation_gate(
             (0, 1, 5, 4), (1, 1, 1, 2), {param: -0.25}
@@ -330,9 +334,9 @@ class TestAddExpPauliGatesFromLinearMappedFunctions:
 
     def test_jw(self) -> None:
         n_spin_orbitals = 6
-        jw_mapper = jordan_wigner.get_of_operator_mapper()
+        jw_mapper = jordan_wigner.get_of_operator_mapper(n_spin_orbitals)
 
-        circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
+        circuit = LinearMappedParametricQuantumCircuit(n_spin_orbitals)
         param1 = circuit.add_parameter("param1")
         param2 = circuit.add_parameter("param2")
 
@@ -355,7 +359,7 @@ class TestAddExpPauliGatesFromLinearMappedFunctions:
             circuit, {param1: 1, param2: -3}, operator_3, coeff=-2.0
         )
 
-        expected_circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
+        expected_circuit = LinearMappedParametricQuantumCircuit(n_spin_orbitals)
         param1 = expected_circuit.add_parameter("param1")
         param2 = expected_circuit.add_parameter("param2")
 

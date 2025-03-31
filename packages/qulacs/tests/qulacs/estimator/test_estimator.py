@@ -15,8 +15,9 @@ from typing import Union
 import numpy as np
 import pytest
 
-from quri_parts.circuit import QuantumCircuit, UnboundParametricQuantumCircuit
+from quri_parts.circuit import ParametricQuantumCircuit, QuantumCircuit
 from quri_parts.circuit.noise import BitFlipNoise, NoiseModel
+from quri_parts.core.estimator import GeneralQuantumEstimator
 from quri_parts.core.operator import Operator, PauliLabel, pauli_label
 from quri_parts.core.state import (
     ComputationalBasisState,
@@ -26,6 +27,7 @@ from quri_parts.core.state import (
     QuantumStateVector,
     StateVectorType,
 )
+from quri_parts.qulacs import QulacsParametricStateT, QulacsStateT
 from quri_parts.qulacs.circuit.compiled_circuit import (
     _QulacsCircuit,
     compile_circuit,
@@ -37,6 +39,8 @@ from quri_parts.qulacs.estimator import (
     create_qulacs_density_matrix_concurrent_parametric_estimator,
     create_qulacs_density_matrix_estimator,
     create_qulacs_density_matrix_parametric_estimator,
+    create_qulacs_general_density_matrix_estimator,
+    create_qulacs_general_vector_estimator,
     create_qulacs_vector_concurrent_estimator,
     create_qulacs_vector_concurrent_parametric_estimator,
     create_qulacs_vector_estimator,
@@ -45,7 +49,7 @@ from quri_parts.qulacs.estimator import (
 
 
 def create_vector(qubit_count: int, bits: int) -> StateVectorType:
-    vector: StateVectorType = np.zeros(2**qubit_count, dtype=np.cfloat)
+    vector: StateVectorType = np.zeros(2**qubit_count, dtype=np.complex128)
     vector[bits] = 1.0
     return vector
 
@@ -289,8 +293,8 @@ class TestVectorConcurrentEstimator:
         ]
 
 
-def parametric_circuit() -> UnboundParametricQuantumCircuit:
-    circuit = UnboundParametricQuantumCircuit(6)
+def parametric_circuit() -> ParametricQuantumCircuit:
+    circuit = ParametricQuantumCircuit(6)
 
     circuit.add_RX_gate(0, -math.pi / 4)
     circuit.add_ParametricRX_gate(0)
@@ -308,7 +312,7 @@ def parametric_circuit() -> UnboundParametricQuantumCircuit:
 
 def create_parametric_vector_state(
     qubit_count: int,
-    circuit: UnboundParametricQuantumCircuit,
+    circuit: ParametricQuantumCircuit,
     bits: int,
 ) -> ParametricQuantumStateVector:
     return ParametricQuantumStateVector(
@@ -548,6 +552,89 @@ class TestVectorConcurrentParametricEstimator:
         assert result[4].value == pytest.approx(0 + 0.5j * (-0.5))
 
 
+class TestGeneralVectorEstimator:
+    @staticmethod
+    def execute_test(
+        general_estimator: GeneralQuantumEstimator[QulacsStateT, QulacsParametricStateT]
+    ) -> None:
+        pauli = pauli_label("Z0 Z2 Z5")
+        operator = Operator(
+            {
+                pauli_label("Z0 Z2 Z5"): 0.25,
+                pauli_label("Z1 Z2 Z4"): 0.5j,
+            }
+        )
+
+        state_1 = ComputationalBasisState(6, bits=0b110000)
+        state_2 = ComputationalBasisState(6, bits=0b110010)
+        state_3 = create_vector_state(6, 0b110000)
+
+        # test estimator
+        estimator = create_qulacs_vector_estimator()
+        assert general_estimator(pauli, state_1) == estimator(pauli, state_1)
+        assert general_estimator(operator, state_2) == estimator(operator, state_2)
+        assert general_estimator(pauli, state_3) == estimator(pauli, state_3)
+
+        # test concurrent estimator
+        concurrent_estimator = create_qulacs_vector_concurrent_estimator()
+        estimates = concurrent_estimator([pauli], [state_1, state_2, state_3])
+        assert general_estimator(pauli, [state_1, state_2, state_3]) == estimates
+
+        estimates = concurrent_estimator([operator], [state_1, state_2, state_3])
+        assert general_estimator([operator], [state_1, state_2, state_3]) == estimates
+
+        estimates = concurrent_estimator([pauli, operator], [state_1])
+        assert general_estimator([pauli, operator], state_1) == estimates
+
+        estimates = concurrent_estimator([pauli, operator], [state_2])
+        assert general_estimator([pauli, operator], [state_2]) == estimates
+
+        estimates = concurrent_estimator([pauli, operator], [state_1, state_2])
+        assert general_estimator([pauli, operator], [state_1, state_2]) == estimates
+
+        # Set up parametric
+        param_circuit = parametric_circuit()
+        p_circuit_state = ParametricCircuitQuantumState(
+            param_circuit.qubit_count, param_circuit
+        )
+        p_vector_state = ParametricQuantumStateVector(
+            param_circuit.qubit_count,
+            param_circuit,
+            vector=create_vector(param_circuit.qubit_count, bits=1),
+        )
+        params = [np.random.random(param_circuit.parameter_count) for _ in range(4)]
+
+        p_estimator = create_qulacs_vector_parametric_estimator()
+        cp_estimator = create_qulacs_vector_concurrent_parametric_estimator()
+
+        # test parametric estimator
+        assert general_estimator(pauli, p_circuit_state, params[0]) == p_estimator(
+            pauli, p_circuit_state, params[0].tolist()
+        )
+        assert general_estimator(pauli, p_vector_state, params[0]) == p_estimator(
+            pauli, p_vector_state, params[0].tolist()
+        )
+
+        # test concurrent parametric estimator
+        cp_estimator(pauli, p_circuit_state, [ps.tolist() for ps in params])
+        general_estimator(pauli, p_circuit_state, params)
+        assert general_estimator(pauli, p_circuit_state, params) == cp_estimator(
+            pauli, p_circuit_state, [ps.tolist() for ps in params]
+        )
+        assert general_estimator(pauli, p_vector_state, params) == cp_estimator(
+            pauli, p_vector_state, [ps.tolist() for ps in params]
+        )
+
+    def test_without_executor(self) -> None:
+        general_estimator = create_qulacs_general_vector_estimator()
+        self.execute_test(general_estimator)
+
+    def test_with_executor(self) -> None:
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            general_estimator = create_qulacs_general_vector_estimator(executor, 2)
+            self.execute_test(general_estimator)
+
+
 class TestDensityMatrixEstimatorWithNoiseModel:
     def test_estimate_with_empty_noise(self) -> None:
         model = NoiseModel()
@@ -604,7 +691,7 @@ class TestDensityMatrixParametricEstimatorWithNoiseModel:
     def test_estimate_with_bitflip_noise(self) -> None:
         model = NoiseModel([BitFlipNoise(1.0)])
 
-        circuit = UnboundParametricQuantumCircuit(6)
+        circuit = ParametricQuantumCircuit(6)
         circuit.add_ParametricRX_gate(0)
         circuit.add_ParametricRY_gate(2)
         circuit.add_ParametricRZ_gate(5)
@@ -721,7 +808,7 @@ class TestDensityMatrixConcurrentParametricEstimatorWithNoiseModel:
     def test_estimate_with_bitflip_noise(self) -> None:
         model = NoiseModel([BitFlipNoise(1.0)])
 
-        circuit = UnboundParametricQuantumCircuit(6)
+        circuit = ParametricQuantumCircuit(6)
         circuit.add_ParametricRX_gate(0)
         circuit.add_ParametricRY_gate(2)
         circuit.add_ParametricRZ_gate(5)
@@ -754,3 +841,95 @@ class TestDensityMatrixConcurrentParametricEstimatorWithNoiseModel:
         assert result[2].value == 1
         assert result[3].value == -1
         assert result[4].value == -1
+
+
+class TestGeneralDensityMatrixEstimator:
+    @staticmethod
+    def execute_test(
+        general_estimator: GeneralQuantumEstimator[
+            QulacsStateT, QulacsParametricStateT
+        ],
+        model: NoiseModel,
+    ) -> None:
+        pauli = pauli_label("Z0 Z2 Z5")
+        operator = Operator(
+            {
+                pauli_label("Z0 Z2 Z5"): 0.25,
+                pauli_label("Z1 Z2 Z4"): 0.5j,
+            }
+        )
+
+        state_1 = ComputationalBasisState(6, bits=0b110000)
+        state_2 = ComputationalBasisState(6, bits=0b110010)
+        state_3 = create_vector_state(6, 0b110000)
+
+        # test estimator
+        estimator = create_qulacs_density_matrix_estimator(model)
+        assert general_estimator(pauli, state_1) == estimator(pauli, state_1)
+        assert general_estimator(operator, state_2) == estimator(operator, state_2)
+        assert general_estimator(pauli, state_3) == estimator(pauli, state_3)
+
+        # test concurrent estimator
+        concurrent_estimator = create_qulacs_density_matrix_concurrent_estimator(model)
+        estimates = concurrent_estimator([pauli], [state_1, state_2, state_3])
+        assert general_estimator(pauli, [state_1, state_2, state_3]) == estimates
+
+        estimates = concurrent_estimator([operator], [state_1, state_2, state_3])
+        assert general_estimator([operator], [state_1, state_2, state_3]) == estimates
+
+        estimates = concurrent_estimator([pauli, operator], [state_1])
+        assert general_estimator([pauli, operator], state_1) == estimates
+
+        estimates = concurrent_estimator([pauli, operator], [state_2])
+        assert general_estimator([pauli, operator], [state_2]) == estimates
+
+        estimates = concurrent_estimator([pauli, operator], [state_1, state_2])
+        assert general_estimator([pauli, operator], [state_1, state_2]) == estimates
+
+        # Set up parametric
+        param_circuit = parametric_circuit()
+        p_circuit_state = ParametricCircuitQuantumState(
+            param_circuit.qubit_count, param_circuit
+        )
+        p_vector_state = ParametricQuantumStateVector(
+            param_circuit.qubit_count,
+            param_circuit,
+            vector=create_vector(param_circuit.qubit_count, bits=1),
+        )
+        params = [np.random.random(param_circuit.parameter_count) for _ in range(4)]
+
+        p_estimator = create_qulacs_density_matrix_parametric_estimator(model)
+        cp_estimator = create_qulacs_density_matrix_concurrent_parametric_estimator(
+            model
+        )
+
+        # test parametric estimator
+        assert general_estimator(pauli, p_circuit_state, params[0]) == p_estimator(
+            pauli, p_circuit_state, params[0].tolist()
+        )
+        assert general_estimator(pauli, p_vector_state, params[0]) == p_estimator(
+            pauli, p_vector_state, params[0].tolist()
+        )
+
+        # test concurrent parametric estimator
+        cp_estimator(pauli, p_circuit_state, [ps.tolist() for ps in params])
+        general_estimator(pauli, p_circuit_state, params)
+        assert general_estimator(pauli, p_circuit_state, params) == cp_estimator(
+            pauli, p_circuit_state, [ps.tolist() for ps in params]
+        )
+        assert general_estimator(pauli, p_vector_state, params) == cp_estimator(
+            pauli, p_vector_state, [ps.tolist() for ps in params]
+        )
+
+    def test_without_executor(self) -> None:
+        model = NoiseModel([BitFlipNoise(1.0)])
+        general_estimator = create_qulacs_general_density_matrix_estimator(model)
+        self.execute_test(general_estimator, model)
+
+    def test_with_executor(self) -> None:
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            model = NoiseModel([BitFlipNoise(1.0)])
+            general_estimator = create_qulacs_general_density_matrix_estimator(
+                model, executor, 2
+            )
+            self.execute_test(general_estimator, model)

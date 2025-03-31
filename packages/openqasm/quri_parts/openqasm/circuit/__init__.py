@@ -28,7 +28,7 @@ from quri_parts.circuit.transpile import (
 )
 
 if TYPE_CHECKING:
-    from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate
+    from quri_parts.circuit import ImmutableQuantumCircuit, QuantumGate
     from quri_parts.circuit.gate_names import (
         ParametricGateNameType,
         SingleQubitGateNameType,
@@ -45,6 +45,7 @@ OpenQASMTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspil
 _HEADER = """OPENQASM 3;
 include "stdgates.inc";"""
 _QUBIT_VAR_NAME = "q"
+_BIT_VAR_NAME = "c"
 
 # For information on "stdgates.inc", see https://arxiv.org/abs/2104.14722v2
 
@@ -96,9 +97,7 @@ _not_implemented_gates: set["SingleQubitGateNameType"] = {
 }
 
 
-def convert_to_qasm(
-    circuit: "NonParametricQuantumCircuit", text_io: io.TextIOBase
-) -> None:
+def convert_to_qasm(circuit: "ImmutableQuantumCircuit", text_io: io.TextIOBase) -> None:
     """Converts a circuit to OpenQASM and writes it to IO stream.
 
     Args:
@@ -107,12 +106,14 @@ def convert_to_qasm(
     """
     text_io.write(_HEADER + "\n")
     text_io.write(f"qubit[{int(circuit.qubit_count)}] {_QUBIT_VAR_NAME};\n")
+    text_io.write(f"bit[{int(circuit.qubit_count)}] {_BIT_VAR_NAME};\n")
     for gate in circuit.gates:
         text_io.write("\n")
         text_io.write(convert_gate_to_qasm_line(gate))
+    text_io.write(f"\n{_BIT_VAR_NAME} = measure {_QUBIT_VAR_NAME};")
 
 
-def convert_to_qasm_str(circuit: "NonParametricQuantumCircuit") -> str:
+def convert_to_qasm_str(circuit: "ImmutableQuantumCircuit") -> str:
     str_io = io.StringIO()
     convert_to_qasm(circuit, str_io)
     return str_io.getvalue()

@@ -43,7 +43,7 @@ class TestQuantumCircuit:
         assert circuit.qubit_count == 2
         assert len(circuit.gates) == len(_GATES)
         assert circuit.gates == tuple(_GATES)
-        with pytest.raises(ValueError):
+        with pytest.raises((ValueError, TypeError)):
             circuit.add_gate(ParametricRX(0))  # type: ignore
         with pytest.raises(ValueError):
             circuit.add_gate(X(3))
@@ -104,6 +104,19 @@ class TestQuantumCircuit:
         assert isinstance(combined_circuit, QuantumCircuit)
         assert combined_circuit.gates == exp_circuit.gates
 
+    def test_compare_pauli_rot(self) -> None:
+        circuit1 = QuantumCircuit(3)
+        circuit2 = QuantumCircuit(3)
+        circuit1.add_H_gate(0)
+        circuit1.add_PauliRotation_gate([1, 2], [1, 1], 2)
+        circuit1.add_PauliRotation_gate([0, 1, 2], [3, 1, 1], -2)
+        circuit1.add_H_gate(0)
+        circuit2.add_H_gate(0)
+        circuit2.add_PauliRotation_gate([1, 2], [1, 1], 2)
+        circuit2.add_PauliRotation_gate([1, 0, 2], [1, 3, 1], -2)
+        circuit2.add_H_gate(0)
+        assert circuit1 == circuit2
+
 
 class TestQuantumCircuitDeprecation:
     def test_order_flip(self) -> None:
@@ -124,6 +137,7 @@ class TestImmutableQuantumCircuit:
         mut_circuit = circuit.get_mutable_copy()
         assert isinstance(mut_circuit, QuantumCircuit)
         assert circuit == mut_circuit
+        assert id(circuit) != id(mut_circuit)
 
     def test_freeze(self) -> None:
         circuit = immutable_circuit()

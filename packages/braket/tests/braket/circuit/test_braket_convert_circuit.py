@@ -16,10 +16,10 @@ from braket.circuits import Circuit, Gate, Instruction
 
 from quri_parts.braket.circuit import convert_circuit, convert_gate
 from quri_parts.circuit import (
-    LinearMappedUnboundParametricQuantumCircuit,
+    LinearMappedParametricQuantumCircuit,
+    ParametricQuantumCircuit,
     QuantumCircuit,
     QuantumGate,
-    UnboundParametricQuantumCircuit,
     gates,
 )
 from quri_parts.circuit.transpile import TwoQubitUnitaryMatrixKAKTranspiler
@@ -43,12 +43,8 @@ single_qubit_gate_mapping: Mapping[Callable[[int], QuantumGate], Gate] = {
     gates.H: Gate.H(),
     gates.S: Gate.S(),
     gates.Sdag: Gate.Si(),
-    gates.SqrtX: Gate.Unitary(
-        np.array([[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]])
-    ),
-    gates.SqrtXdag: Gate.Unitary(
-        np.array([[0.5 - 0.5j, 0.5 + 0.5j], [0.5 + 0.5j, 0.5 - 0.5j]])
-    ),
+    gates.SqrtX: Gate.V(),
+    gates.SqrtXdag: Gate.Vi(),
     gates.SqrtY: Gate.Unitary(
         np.array([[0.5 + 0.5j, -0.5 - 0.5j], [0.5 + 0.5j, 0.5 + 0.5j]])
     ),
@@ -124,25 +120,22 @@ def test_convert_u_gate() -> None:
     theta2, lmd2 = 0.125, -0.125
     theta3, phi3, lmd3 = 0.125, -0.125, 0.625
     for qp_gate, braket_matrix in {
-        gates.U1(7, lmd1): [[1.0, 0.0], [0.0, np.exp(lmd1 * 1.0j)]],
-        gates.U2(7, theta2, lmd2): [
-            [1.0 / np.sqrt(2.0), -np.exp(lmd2 * 1.0j) / np.sqrt(2.0)],
-            [
-                np.exp(theta2 * 1.0j) / np.sqrt(2.0),
-                np.exp((theta2 + lmd2) * 1.0j) / np.sqrt(2.0),
-            ],
-        ],
-        gates.U3(7, theta3, phi3, lmd3): [
-            [np.cos(theta3 / 2.0), -np.exp(lmd3 * 1.0j) * np.sin(theta3 / 2.0)],
-            [
-                np.exp(phi3 * 1.0j) * np.sin(theta3 / 2.0),
-                np.exp((phi3 + lmd3) * 1.0j) * np.cos(theta3 / 2.0),
-            ],
-        ],
+        gates.U1(7, lmd1): Gate.PhaseShift(lmd1),
+        gates.U2(7, theta2, lmd2): Gate.U(np.pi / 2, theta2, lmd2),
+        gates.U3(7, theta3, phi3, lmd3): Gate.U(theta3, phi3, lmd3),
     }.items():
         converted = convert_gate(qp_gate)
-        expected = Instruction(Gate.Unitary(np.array(braket_matrix)), 7)
-        assert instruction_equal(converted, expected)
+        expected = Instruction(braket_matrix, 7)
+        if qp_gate.name == "U1":
+            assert instruction_equal(converted, expected)
+        else:
+            # `to_ir` throws not implemented error for U gates,
+            # so `instruction_equal` cannot be used.
+            assert converted.operator.angle_1 == expected.operator.angle_1
+            assert converted.operator.angle_2 == expected.operator.angle_2
+            assert converted.operator.angle_3 == expected.operator.angle_3
+            assert len(converted.target) == 1
+            assert converted.target[0] == 7
 
 
 def test_convert_circuit() -> None:
@@ -164,7 +157,7 @@ def test_convert_circuit() -> None:
 
 
 def test_convert_bound_parametric_circuit() -> None:
-    circuit = UnboundParametricQuantumCircuit(3)
+    circuit = ParametricQuantumCircuit(3)
     circuit.add_X_gate(1)
     circuit.add_ParametricRX_gate(0)
     circuit.add_H_gate(2)
@@ -198,7 +191,7 @@ def test_convert_bound_parametric_circuit() -> None:
 
 
 def test_convert_bound_linear_mapped_parametric_circuit() -> None:
-    circuit = LinearMappedUnboundParametricQuantumCircuit(3)
+    circuit = LinearMappedParametricQuantumCircuit(3)
     theta, phi, rot = circuit.add_parameters("theta", "phi", "rot")
     circuit.add_X_gate(1)
     circuit.add_ParametricRX_gate(0, {theta: 0.5})

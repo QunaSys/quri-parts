@@ -15,10 +15,10 @@ import numpy as np
 import qulacs
 
 from quri_parts.circuit import (
-    LinearMappedUnboundParametricQuantumCircuit,
+    LinearMappedParametricQuantumCircuit,
+    ParametricQuantumCircuit,
     QuantumCircuit,
     QuantumGate,
-    UnboundParametricQuantumCircuit,
     gates,
 )
 from quri_parts.circuit.transpile import (
@@ -133,17 +133,17 @@ def test_convert_rotation_gate() -> None:
     # We need to disable type check due to an error in qulacs type annotation
     # https://github.com/qulacs/qulacs/issues/537
     assert np.allclose(
-        convert_gate(gates.RX(0, np.pi / 2)).get_matrix(),  # type: ignore
+        convert_gate(gates.RX(0, np.pi / 2)).get_matrix(),
         [[c, -s * 1j], [-s * 1j, c]],
     )
 
     assert np.allclose(
-        convert_gate(gates.RY(0, np.pi / 2)).get_matrix(),  # type: ignore
+        convert_gate(gates.RY(0, np.pi / 2)).get_matrix(),
         [[c, -s], [s, c]],
     )
 
     assert np.allclose(
-        convert_gate(gates.RZ(0, np.pi / 2)).get_matrix(),  # type: ignore
+        convert_gate(gates.RZ(0, np.pi / 2)).get_matrix(),
         [[c - s * 1j, 0], [0, c + s * 1j]],
     )
 
@@ -184,7 +184,9 @@ def test_convert_pauli_rotation_gate() -> None:
     # We need to disable type check due to an error in qulacs type annotation
     # https://github.com/qulacs/qulacs/issues/537
     assert np.allclose(
-        convert_gate(gates.PauliRotation((0,), (1,), np.pi / 2)).get_matrix(),  # type: ignore  # noqa: E501
+        convert_gate(
+            gates.PauliRotation((0,), (1,), np.pi / 2)
+        ).get_matrix(),  # noqa: E501
         [[c, -s * 1j], [-s * 1j, c]],
     )
 
@@ -196,6 +198,7 @@ def test_convert_circuit() -> None:
         gates.H(2),
         gates.CNOT(0, 2),
         gates.RX(0, 0.125),
+        gates.TOFFOLI(2, 0, 1),
     ]
     for g in original_gates:
         circuit.add_gate(g)
@@ -208,6 +211,7 @@ def test_convert_circuit() -> None:
         qulacs.gate.H(2),
         qulacs.gate.CNOT(0, 2),
         qulacs.gate.RX(0, -0.125),
+        qulacs.gate.TOFFOLI(2, 0, 1),
     ]
     assert converted.get_gate_count() == len(expected_gates)
     for i, expected in enumerate(expected_gates):
@@ -215,7 +219,7 @@ def test_convert_circuit() -> None:
 
 
 def test_convert_parametric_circuit() -> None:
-    circuit = UnboundParametricQuantumCircuit(3)
+    circuit = ParametricQuantumCircuit(3)
     circuit.add_X_gate(1)
     circuit.add_ParametricRX_gate(0)
     circuit.add_H_gate(2)
@@ -245,7 +249,7 @@ def test_convert_parametric_circuit() -> None:
 
 
 def test_convert_linear_mapped_parametric_circuit() -> None:
-    circuit = LinearMappedUnboundParametricQuantumCircuit(3)
+    circuit = LinearMappedParametricQuantumCircuit(3)
     theta, phi = circuit.add_parameters("theta", "phi")
     circuit.add_X_gate(1)
     circuit.add_ParametricRX_gate(0, {theta: 0.5})

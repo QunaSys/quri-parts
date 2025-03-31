@@ -12,19 +12,20 @@ from typing import Sequence
 
 from quri_parts.chem.utils.excitations import DoubleExcitation, SingleExcitation
 from quri_parts.circuit import (
-    ImmutableLinearMappedUnboundParametricQuantumCircuit,
-    LinearMappedUnboundParametricQuantumCircuit,
+    ImmutableLinearMappedParametricQuantumCircuit,
+    LinearMappedParametricQuantumCircuit,
     Parameter,
 )
 from quri_parts.openfermion.transforms import (
-    OpenFermionQubitMapping,
+    OpenFermionMappingMethods,
+    OpenFermionQubitMapperFactory,
     OpenFermionQubitOperatorMapper,
     jordan_wigner,
 )
 from quri_parts.openfermion.utils import add_exp_excitation_gates_trotter_decomposition
 
 
-class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
+class KUpCCGSD(ImmutableLinearMappedParametricQuantumCircuit):
     """k-unitary pair coupled-cluster generalized singles and doubles
     (k-UpCCGSD) ansatz. The ansatz consists of the exponentials of generalized
     single excitation and pair double excitation operators decomposed by first-
@@ -44,7 +45,6 @@ class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
 
     Args:
         n_spin_orbitals: Number of spin orbitals.
-        n_fermions: Number of fermions.
         k: Number of repetitions.
         fermion_qubit_mapping: Mapping from :class:`FermionOperator` to
           :class:`Operator`
@@ -60,18 +60,25 @@ class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
     def __init__(
         self,
         n_spin_orbitals: int,
-        n_fermions: int,
         k: int = 1,
-        fermion_qubit_mapping: OpenFermionQubitMapping = jordan_wigner,
+        fermion_qubit_mapping: OpenFermionMappingMethods = jordan_wigner,
         trotter_number: int = 1,
         delta_sz: int = 0,
         singlet_excitation: bool = False,
     ):
-        n_qubits = fermion_qubit_mapping.n_qubits_required(n_spin_orbitals)
-        op_mapper = fermion_qubit_mapping.get_of_operator_mapper(
-            n_spin_orbitals, n_fermions
+        mapping = (
+            fermion_qubit_mapping(n_spin_orbitals)
+            if isinstance(fermion_qubit_mapping, OpenFermionQubitMapperFactory)
+            else fermion_qubit_mapping
         )
-        circuit = LinearMappedUnboundParametricQuantumCircuit(n_qubits)
+
+        assert mapping.n_spin_orbitals == n_spin_orbitals, "n_spin_orbital specified "
+        "in the mapping is not consistent with that specified to the first arguement."
+
+        op_mapper = mapping.of_operator_mapper
+        n_qubits = mapping.n_qubits
+
+        circuit = LinearMappedParametricQuantumCircuit(n_qubits)
 
         _construct_circuit(
             circuit=circuit,
@@ -87,7 +94,7 @@ class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
 
 
 def _construct_circuit(
-    circuit: LinearMappedUnboundParametricQuantumCircuit,
+    circuit: LinearMappedParametricQuantumCircuit,
     n_spin_orb: int,
     delta_sz: int,
     k: int,

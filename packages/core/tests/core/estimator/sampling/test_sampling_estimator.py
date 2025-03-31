@@ -8,22 +8,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import unittest
 from collections.abc import Collection, Iterable
 from math import sqrt
 from typing import Any, Union, cast
 from unittest.mock import Mock
 
+import numpy as np
 import pytest
 
-from quri_parts.circuit import H, NonParametricQuantumCircuit, QuantumCircuit
+from quri_parts.circuit import (
+    H,
+    ImmutableQuantumCircuit,
+    ParametricQuantumCircuit,
+    QuantumCircuit,
+    X,
+)
 from quri_parts.core.estimator import Estimate
 from quri_parts.core.estimator.sampling import (
     concurrent_sampling_estimate,
+    create_general_sampling_estimator,
     create_sampling_concurrent_estimator,
     create_sampling_estimator,
+    get_estimate_from_sampling_result,
+    get_sampling_circuits_and_shots,
     sampling_estimate,
 )
 from quri_parts.core.measurement import (
+    CachedMeasurementFactory,
     CommutablePauliSetMeasurement,
     CommutablePauliSetMeasurementTuple,
     bitwise_commuting_pauli_measurement,
@@ -41,7 +53,11 @@ from quri_parts.core.sampling import MeasurementCounts, PauliSamplingSetting
 from quri_parts.core.sampling.shots_allocator import (
     create_equipartition_shots_allocator,
 )
-from quri_parts.core.state import ComputationalBasisState
+from quri_parts.core.state import (
+    CircuitQuantumState,
+    ComputationalBasisState,
+    ParametricCircuitQuantumState,
+)
 
 n_qubits = 3
 
@@ -71,7 +87,7 @@ def total_shots() -> int:
 
 
 def sampler(
-    shot_circuit_pairs: Iterable[tuple[NonParametricQuantumCircuit, int]]
+    shot_circuit_pairs: Iterable[tuple[ImmutableQuantumCircuit, int]]
 ) -> Iterable[MeasurementCounts]:
     return [counts() for _ in shot_circuit_pairs]
 
@@ -156,6 +172,17 @@ def assert_sample(estimate: Estimate[complex]) -> None:
     assert estimate.error == expected_err
 
 
+def test_get_estimate_from_sampling_result() -> None:
+    op = operator()
+    measurement_groups = measurement_factory(op)
+    sampling_counts = [counts() for _ in measurement_groups]
+
+    estimate = get_estimate_from_sampling_result(
+        op, measurement_groups, 0, sampling_counts
+    )
+    assert_sample(estimate)
+
+
 class TestSamplingEstimate:
     def test_zero_op(self) -> None:
         estimate = sampling_estimate(
@@ -207,9 +234,62 @@ class TestSamplingEstimate:
         assert_sampler_args(s)
         assert_sample(estimate)
 
+    def test_cached_sampling_estimate(self) -> None:
+        op = operator()
+        s = mock_sampler()
+        mock_measurement_factory = Mock(side_effect=bitwise_commuting_pauli_measurement)
+        cached_measurement_factory = CachedMeasurementFactory(mock_measurement_factory)
+
+        # repeat estimation twice to test if the function uses cahced result
+        for _ in range(2):
+            estimate = sampling_estimate(
+                op,
+                initial_state(),
+                total_shots(),
+                s,
+                cached_measurement_factory,
+                allocator,
+            )
+            assert_sample(estimate)
+            mock_measurement_factory.assert_called_once()
+            assert len(cached_measurement_factory.cached_groups) == 1
+
+    def test_sample_with_customized_circuit_shot_prep_function(self) -> None:
+        def prep(
+            state: CircuitQuantumState,
+            measurement_groups: Iterable[CommutablePauliSetMeasurement],
+            shots_map: dict[CommutablePauliSet, int],
+        ) -> Iterable[tuple[ImmutableQuantumCircuit, int]]:
+            default_pairs = get_sampling_circuits_and_shots(
+                state, measurement_groups, shots_map
+            )
+            new_pairs = []
+            for circuit, shot in default_pairs:
+                new_circuit = circuit.combine([X(0)])
+                new_pairs.append((new_circuit, shot))
+            return new_pairs
+
+        op = operator()
+        s = mock_sampler()
+        sampling_estimate(
+            op,
+            initial_state(),
+            total_shots(),
+            s,
+            bitwise_commuting_pauli_measurement,
+            allocator,
+            prep,
+        )
+        args: list[Any] = list(*s.call_args.args)
+        expected_circuits = [c.combine([X(0)]) for c in sampled_circuits()]
+
+        for circuit, shots in args:
+            assert shots == total_shots() // 4
+            assert circuit in expected_circuits
+
     def test_sampling_estimate_zero_shots(self) -> None:
         def sampler(
-            shot_circuit_pairs: Iterable[tuple[NonParametricQuantumCircuit, int]]
+            shot_circuit_pairs: Iterable[tuple[ImmutableQuantumCircuit, int]]
         ) -> Iterable[MeasurementCounts]:
             return [{} if s == 0 else counts() for _, s in shot_circuit_pairs]
 
@@ -316,6 +396,29 @@ class TestConcurrentSamplingEstimate:
         assert_sample(estimate_list[0])
         assert estimate_list[1].value == (1 - 1 + 2 - 4) / 8
 
+    def test_cached_concurrent_estimate(self) -> None:
+        s = mock_sampler()
+
+        op1 = operator()
+        op2 = pauli_label("Z0")
+        cached_measurement_factory = CachedMeasurementFactory(
+            bitwise_commuting_pauli_measurement
+        )
+
+        estimates = concurrent_sampling_estimate(
+            [op1, op2],
+            [initial_state(), ComputationalBasisState(3, bits=0b001)],
+            total_shots(),
+            s,
+            cached_measurement_factory,
+            allocator,
+        )
+
+        estimate_list = list(estimates)
+        assert len(estimate_list) == 2
+        assert_sample(estimate_list[0])
+        assert estimate_list[1].value == (1 - 1 + 2 - 4) / 8
+
     def test_concurrent_estimate_single_state(self) -> None:
         s = mock_sampler()
 
@@ -333,6 +436,32 @@ class TestConcurrentSamplingEstimate:
         assert_sample(estimate_list[0])
         assert estimate_list[1].value == (1 - 1 + 2 - 4) / 8
 
+    def test_cached_concurrent_estimate_single_state(self) -> None:
+        s = mock_sampler()
+        op1 = operator()
+        op2 = pauli_label("Z0")
+        mock_measurement_factory = Mock(side_effect=bitwise_commuting_pauli_measurement)
+
+        cached_measurement_factory = CachedMeasurementFactory(mock_measurement_factory)
+
+        # repeat estimation twice to test if the function uses cahced result
+        for _ in range(2):
+            estimates = concurrent_sampling_estimate(
+                [op1, op2],
+                [initial_state()],
+                total_shots(),
+                s,
+                cached_measurement_factory,
+                allocator,
+            )
+
+            estimate_list = list(estimates)
+            assert len(estimate_list) == 2
+            assert_sample(estimate_list[0])
+            assert estimate_list[1].value == (1 - 1 + 2 - 4) / 8
+            assert len(cached_measurement_factory.cached_groups) == 2
+            assert mock_measurement_factory.call_count == 2
+
     def test_concurrent_estimate_single_operator(self) -> None:
         s = mock_sampler()
 
@@ -349,6 +478,30 @@ class TestConcurrentSamplingEstimate:
         assert len(estimate_list) == 2
         assert_sample(estimate_list[0])
         assert_sample(estimate_list[1])
+
+    def test_cached_concurrent_estimate_single_operator(self) -> None:
+        s = mock_sampler()
+        op = operator()
+        mock_measurement_factory = Mock(side_effect=bitwise_commuting_pauli_measurement)
+        cached_measurement_factory = CachedMeasurementFactory(mock_measurement_factory)
+
+        # repeat estimation twice to test if the function uses cahced result
+        for _ in range(2):
+            estimates = concurrent_sampling_estimate(
+                [op],
+                [initial_state(), ComputationalBasisState(3, bits=0b001)],
+                total_shots(),
+                s,
+                cached_measurement_factory,
+                allocator,
+            )
+
+            estimate_list = list(estimates)
+            assert len(estimate_list) == 2
+            assert_sample(estimate_list[0])
+            assert_sample(estimate_list[1])
+            assert len(cached_measurement_factory.cached_groups) == 1
+            mock_measurement_factory.assert_called_once()
 
 
 class TestSamplingConcurrentEstimator:
@@ -370,3 +523,107 @@ class TestSamplingConcurrentEstimator:
         assert len(estimate_list) == 2
         assert_sample(estimate_list[0])
         assert estimate_list[1].value == (1 - 1 + 2 - 4) / 8
+
+
+class GeneralSamplingEstimator(unittest.TestCase):
+    def setUp(self) -> None:
+        s = mock_sampler()
+        self.general_estimator = create_general_sampling_estimator(
+            total_shots(),
+            s,
+            bitwise_commuting_pauli_measurement,
+            allocator,
+        )
+
+    def test_general_quantum_estimator(self) -> None:
+        estimate = self.general_estimator(operator(), initial_state())
+        assert_sample(estimate)
+
+    def test_concurrent_estimate(self) -> None:
+        estimates = self.general_estimator(
+            operator(),
+            [initial_state(), ComputationalBasisState(3, bits=0b001)],
+        )
+
+        estimate_list = list(estimates)
+        assert len(estimate_list) == 2
+        assert_sample(estimate_list[0])
+        assert_sample(estimate_list[1])
+
+        estimates = self.general_estimator(
+            [operator()],
+            [initial_state(), ComputationalBasisState(3, bits=0b001)],
+        )
+
+        estimate_list = list(estimates)
+        assert len(estimate_list) == 2
+        assert_sample(estimate_list[0])
+        assert_sample(estimate_list[1])
+
+        estimates = self.general_estimator(
+            [operator(), pauli_label("Z0")],
+            ComputationalBasisState(3, bits=0b001),
+        )
+
+        estimate_list = list(estimates)
+        assert len(estimate_list) == 2
+        assert_sample(estimate_list[0])
+        assert estimate_list[1].value == (1 - 1 + 2 - 4) / 8
+
+        estimates = self.general_estimator(
+            [operator(), pauli_label("Z0")],
+            [ComputationalBasisState(3, bits=0b001)],
+        )
+
+        estimate_list = list(estimates)
+        assert len(estimate_list) == 2
+        assert_sample(estimate_list[0])
+        assert estimate_list[1].value == (1 - 1 + 2 - 4) / 8
+
+        estimates = self.general_estimator(
+            [operator(), pauli_label("Z0")],
+            [initial_state(), ComputationalBasisState(3, bits=0b001)],
+        )
+
+        estimate_list = list(estimates)
+        assert len(estimate_list) == 2
+        assert_sample(estimate_list[0])
+        assert estimate_list[1].value == (1 - 1 + 2 - 4) / 8
+
+    def test_parametric_estimate(self) -> None:
+        circuit = ParametricQuantumCircuit(n_qubits)
+        circuit.add_X_gate(0)
+        circuit.add_ParametricRX_gate(0)
+        circuit.add_ParametricRY_gate(1)
+        circuit.add_ParametricRZ_gate(2)
+
+        state = ParametricCircuitQuantumState(n_qubits, circuit)
+
+        estimate = self.general_estimator(operator(), state, [0, 1, 2])
+        assert_sample(estimate)
+
+        estimate = self.general_estimator(operator(), state, np.array([0, 1, 2]))
+        assert_sample(estimate)
+
+    def test_concurrent_parametric_estimate(self) -> None:
+        circuit = ParametricQuantumCircuit(n_qubits)
+        circuit.add_X_gate(0)
+        circuit.add_ParametricRX_gate(0)
+        circuit.add_ParametricRY_gate(1)
+        circuit.add_ParametricRZ_gate(2)
+
+        state = ParametricCircuitQuantumState(n_qubits, circuit)
+
+        estimates = self.general_estimator(operator(), state, [[0, 1, 2], [4, 5, 6]])
+        estimate_list = list(estimates)
+        assert len(estimate_list) == 2
+        assert_sample(estimate_list[0])
+        assert_sample(estimate_list[1])
+
+        estimates = self.general_estimator(
+            operator(), state, np.array([[0, 1, 2], [4, 5, 6]])
+        )
+        estimate_list = list(estimates)
+        assert len(estimate_list) == 2
+        assert_sample(estimate_list[0])
+        assert_sample(estimate_list[1])

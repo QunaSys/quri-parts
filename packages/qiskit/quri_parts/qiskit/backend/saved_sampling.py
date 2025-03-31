@@ -15,6 +15,7 @@ from typing import Any, Mapping, MutableMapping, Optional, Sequence, Union
 import qiskit
 from pydantic.dataclasses import dataclass
 from pydantic.json import pydantic_encoder
+from qiskit import qasm3
 from qiskit.providers.backend import Backend
 from typing_extensions import TypeAlias
 
@@ -25,7 +26,7 @@ from quri_parts.backend import (
     SamplingJob,
     SamplingResult,
 )
-from quri_parts.circuit import NonParametricQuantumCircuit
+from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.qiskit.circuit import QiskitCircuitConverter, convert_circuit
 
@@ -91,7 +92,7 @@ class QiskitSavedDataSamplingJob(SamplingJob):
     Args:
         circuit_qasm: A string that represents the circuit used in a sampling job.
             Note that it should take in the qasm string of a qiskit quantum circuit.
-            It can be accessed by `qiskit_circuit.qasm()`.
+            It can be accessed by `qiskit.qasm3.dumps(qiskit_circuit)`.
         n_shots: The total shots of a sampling job.
         saved_result: A `QiskitSavedDataSamplingResult` instance that represents the
             result when (circuit_str, n_shots) is passed into the sampler.
@@ -164,7 +165,7 @@ class QiskitSavedDataSamplingBackend(SamplingBackend):
         saved_data: A json string output by the `.json_str` property of
             `:class:`~quri_parts.qiskit.backend.QiskitSamplingBackend`.
         circuit_converter: A function converting
-            :class:`~quri_parts.circuit.NonParametricQuantumCircuit` to
+            :class:`~quri_parts.circuit.ImmutableQuantumCircuit` to
             a Qiskit :class:`qiskit.circuit.QuantumCircuit`.
         circuit_transpiler: A transpiler applied to the circuit before running it.
             :class:`~QiskitSetTranspiler` is used when not specified.
@@ -216,7 +217,7 @@ class QiskitSavedDataSamplingBackend(SamplingBackend):
         self._saved_data = self._load_data(saved_data)
         self._replay_memory = {k: 0 for k in self._saved_data}
 
-    def sample(self, circuit: NonParametricQuantumCircuit, n_shots: int) -> SamplingJob:
+    def sample(self, circuit: ImmutableQuantumCircuit, n_shots: int) -> SamplingJob:
         if not n_shots >= 1:
             raise ValueError("n_shots should be a positive integer.")
 
@@ -227,7 +228,7 @@ class QiskitSavedDataSamplingBackend(SamplingBackend):
         qiskit_circuit = self._circuit_converter(circuit, self._circuit_transpiler)
         qiskit_circuit.measure_all()
         transpiled_circuit = qiskit.transpile(qiskit_circuit, self._backend)
-        qasm_str = transpiled_circuit.qasm()
+        qasm_str = qasm3.dumps(transpiled_circuit)
         jobs: list[SamplingJob] = []
 
         for s in shot_dist:

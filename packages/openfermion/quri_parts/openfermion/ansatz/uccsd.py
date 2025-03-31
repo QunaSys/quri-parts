@@ -8,6 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 from quri_parts.chem.utils.excitations import (
     DoubleExcitation,
     SingleExcitation,
@@ -15,25 +16,32 @@ from quri_parts.chem.utils.excitations import (
     to_spin_symmetric_order,
 )
 from quri_parts.circuit import (
-    ImmutableLinearMappedUnboundParametricQuantumCircuit,
-    LinearMappedUnboundParametricQuantumCircuit,
+    ImmutableLinearMappedParametricQuantumCircuit,
+    LinearMappedParametricQuantumCircuit,
 )
 from quri_parts.core.circuit import add_parametric_commuting_paulis_exp_gate
 
-from ..transforms import OpenFermionQubitMapping, jordan_wigner
+from ..transforms import (
+    OpenFermionMappingMethods,
+    OpenFermionQubitMapperFactory,
+    OpenFermionQubitMapping,
+    jordan_wigner,
+)
 from ..utils import add_exp_excitation_gates_trotter_decomposition
 from ..utils.add_exp_excitation_gates_trotter_decomposition import (
     create_anti_hermitian_sd_excitation_operator,
 )
 
 
-class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
+class TrotterUCCSD(ImmutableLinearMappedParametricQuantumCircuit):
     r"""Unitary coupled-cluster singles and doubles (UCCSD) ansatz. The ansatz
     consists of the exponentials of single excitation and double excitation
-    operator decomposed by first-order Trotter product formula. Note that the ansatz
-    only supports singlet state and the occupied orbitals are the lowest
-    :attr:`n_fermions` spin orbitals. The decomposition using Trotter product formula
-    is executed for each qubit operators obtained by mapping excitation operators.
+    operator decomposed by first-order Trotter product formula. Note that the
+    occupied orbitals are the lowest :attr:`n_fermions` spin orbitals. The
+    decomposition using Trotter product formula is executed for each qubit
+    operators obtained by mapping excitation operators. The excitation operator
+    involved in the UCCSD ansatz will be determined by (n_spin_orbitals,
+    n_fermions, delta_sz).
 
     Args:
         n_spin_orbitals: Number of spin orbitals.
@@ -43,7 +51,15 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
         trotter_number: Number for first-order Trotter product formula.
         use_singles: If ``True``, single-excitation gates are applied.
         delta_sz: The spin difference of the molecule before and after the transition.
-        singlet_excitation: If ``True``, the ansatz will be spin symmetric.
+            If delta_sz = 0, the excitation operator T present in the ansatz respects
+            the symmetry condition :math:`[T, S_z] = 0`.
+        singlet_excitation:
+            If ``True``, certain circuit parameters that corresponds to the excitation
+            amplitude will be identified according to the symmetry condition:
+            :math:`[S_x, T] = [S_y, T] = [S_z, T] = 0`. Please check out the note below
+            for information about how circuit parameters are identified by the
+            symmetry condition.
+
             Parameters for the spin symmetric ansatz are named according to the spatial
             transition amplitude.
 
@@ -54,14 +70,17 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
                 from occupied spin orbital (i, ↑), (j, ↓) to virtual spin orbitals
                 (a, ↑), (b, ↓).
 
+
     Note:
-        Singlets excitation ansatz:
+
+        When singlet_excitation = True:
 
         1. Certain excitation operators will share the same circuit parameters.
             - For single excitation:
                 :math:`c_{a↑}^† c_{i↑}` and :math:`c_{a↓}^† c_{i↓}` share the same
                 transition amplitude :math:`t_i^a`,
                 thus sharing the same circuit parameter s_i_a.
+
             - For mixed spin double excitation:
                 - :math:`c_{a↑}^† c_{b↓}^† c_{j↓} c_{i↑}` and
                   :math:`c_{a↓}^† c_{b↑}^† c_{j↑} c_{i↓}` share the same excitaion
@@ -69,7 +88,7 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
                   circuit parameter d_i_j_a_b.
 
                 - All the circuit parameters for double excitation are fixed by
-                the mixed spin double excitation mode.
+                    the mixed spin double excitation mode.
 
             - For same spin double excitation:
                 :math:`c_{a↑}^† c_{b↑}^† c_{j↑} c_{i↑}` and
@@ -92,16 +111,31 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
         self,
         n_spin_orbitals: int,
         n_fermions: int,
-        fermion_qubit_mapping: OpenFermionQubitMapping = jordan_wigner,
+        fermion_qubit_mapping: OpenFermionMappingMethods = jordan_wigner,
         trotter_number: int = 1,
         use_singles: bool = True,
         delta_sz: int = 0,
         singlet_excitation: bool = False,
     ):
+        mapping = (
+            fermion_qubit_mapping(n_spin_orbitals, n_fermions)
+            if isinstance(fermion_qubit_mapping, OpenFermionQubitMapperFactory)
+            else fermion_qubit_mapping
+        )
+        assert mapping.n_spin_orbitals == n_spin_orbitals, "n_spin_orbital specified "
+        "in the mapping is not consistent with that specified to the first arguement."
+        assert mapping.n_fermions == n_fermions, "n_fermions specified "
+        "in the mapping is not consistent with that specified to the second arguement."
+
+        assert (
+            n_spin_orbitals is not None and n_fermions is not None
+        ), "n_spin_orbitals and n_fermions must not be None for ansatz construction."
         n_vir_sorbs = n_spin_orbitals - n_fermions
 
-        if n_fermions % 2:
-            raise ValueError("Number of electrons must be even for SingletUCCSD.")
+        if n_fermions % 2 and singlet_excitation:
+            raise ValueError(
+                "Singlet excitation is not supported when " "number of electron is odd."
+            )
 
         if n_vir_sorbs <= 0:
             raise ValueError("Number of virtual orbitals must be a non-zero integer.")
@@ -111,17 +145,13 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
 
         circuit = (
             _construct_singlet_excitation_circuit(
-                n_spin_orbitals,
-                n_fermions,
-                fermion_qubit_mapping,
+                mapping,
                 trotter_number,
                 use_singles,
             )
             if singlet_excitation
             else _construct_circuit(
-                n_spin_orbitals,
-                n_fermions,
-                fermion_qubit_mapping,
+                mapping,
                 trotter_number,
                 use_singles,
                 delta_sz,
@@ -132,26 +162,27 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
 
 
 def _construct_circuit(
-    n_spin_orbitals: int,
-    n_fermions: int,
     fermion_qubit_mapping: OpenFermionQubitMapping,
     trotter_number: int,
     use_singles: bool,
     delta_sz: int = 0,
-) -> LinearMappedUnboundParametricQuantumCircuit:
-    n_qubits = fermion_qubit_mapping.n_qubits_required(n_spin_orbitals)
+) -> LinearMappedParametricQuantumCircuit:
+    n_spin_orbitals = fermion_qubit_mapping.n_spin_orbitals
+    n_fermions = fermion_qubit_mapping.n_fermions
+    n_qubits = fermion_qubit_mapping.n_qubits
+    assert (
+        n_spin_orbitals is not None and n_fermions is not None and n_qubits is not None
+    ), "n_spin_orbitals and n_fermions must not be None for ansatz construction."
 
     s_excs, d_excs = excitations(n_spin_orbitals, n_fermions, delta_sz=delta_sz)
 
-    circuit = LinearMappedUnboundParametricQuantumCircuit(n_qubits)
+    circuit = LinearMappedParametricQuantumCircuit(n_qubits)
     if use_singles:
         s_exc_params = [
             circuit.add_parameter(f"theta_s_{i}") for i in range(len(s_excs))
         ]
     d_exc_params = [circuit.add_parameter(f"theta_d_{i}") for i in range(len(d_excs))]
-    op_mapper = fermion_qubit_mapping.get_of_operator_mapper(
-        n_spin_orbitals, n_fermions
-    )
+    op_mapper = fermion_qubit_mapping.of_operator_mapper
     for _ in range(trotter_number):
         add_exp_excitation_gates_trotter_decomposition(
             circuit, d_excs, d_exc_params, op_mapper, 1 / trotter_number
@@ -165,18 +196,20 @@ def _construct_circuit(
 
 
 def _construct_singlet_excitation_circuit(
-    n_spin_orbitals: int,
-    n_fermions: int,
     fermion_qubit_mapping: OpenFermionQubitMapping,
     trotter_number: int,
     use_singles: bool,
-) -> LinearMappedUnboundParametricQuantumCircuit:
-    n_qubits = fermion_qubit_mapping.n_qubits_required(n_spin_orbitals)
-    circuit = LinearMappedUnboundParametricQuantumCircuit(n_qubits)
+) -> LinearMappedParametricQuantumCircuit:
+    n_spin_orbitals = fermion_qubit_mapping.n_spin_orbitals
+    n_fermions = fermion_qubit_mapping.n_fermions
+    n_qubits = fermion_qubit_mapping.n_qubits
+    assert (
+        n_spin_orbitals is not None and n_fermions is not None and n_qubits is not None
+    ), "n_spin_orbitals and n_fermions must not be None for ansatz construction."
 
-    op_mapper = fermion_qubit_mapping.get_of_operator_mapper(
-        n_spin_orbitals, n_fermions
-    )
+    circuit = LinearMappedParametricQuantumCircuit(n_qubits)
+
+    op_mapper = fermion_qubit_mapping.of_operator_mapper
 
     (
         s_params,

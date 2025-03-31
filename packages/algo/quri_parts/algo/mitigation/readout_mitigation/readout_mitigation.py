@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, cast
 import numpy as np
 from scipy import linalg
 
-from quri_parts.circuit import NonParametricQuantumCircuit
+from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.core.sampling import (
     ConcurrentSampler,
     MeasurementCounts,
@@ -44,7 +44,7 @@ def create_filter_matrix(
     ]
     amatrix = []
     for counts in sampler(pairs):
-        cv: "npt.NDArray[np.float_]" = np.array(
+        cv: "npt.NDArray[np.float64]" = np.array(
             [float(counts[k]) if k in counts else 0.0 for k in range(dim)]
         )
         amatrix.append(cv / linalg.norm(cv, ord=1))
@@ -70,7 +70,7 @@ def readout_mitigation(
     def counts_iter() -> Iterable[MeasurementCounts]:
         for count in counts:
             dim = filter_matrix.shape[0]
-            cnoisy: "npt.NDArray[np.float_]" = np.array(
+            cnoisy: "npt.NDArray[np.float64]" = np.array(
                 [float(count[k]) if k in count else 0.0 for k in range(dim)]
             )
             cideal = filter_matrix.dot(cnoisy)
@@ -94,7 +94,7 @@ def create_readout_mitigation_concurrent_sampler(
     filter_matrix = create_filter_matrix(qubit_count, sampler, shots)
 
     def wrapped_sampler(
-        pairs: Iterable[tuple[NonParametricQuantumCircuit, int]]
+        pairs: Iterable[tuple[ImmutableQuantumCircuit, int]]
     ) -> Iterable[MeasurementCounts]:
         return readout_mitigation(sampler(pairs), filter_matrix)
 

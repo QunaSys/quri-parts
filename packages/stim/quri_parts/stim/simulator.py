@@ -11,10 +11,10 @@
 from typing import Union
 
 import stim
-from numpy import cfloat, zeros
+from numpy import complex128, zeros
 from numpy.typing import NDArray
 
-from quri_parts.circuit import NonParametricQuantumCircuit
+from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.core.state import GeneralCircuitQuantumState, QuantumStateVector
 
 from .circuit import convert_circuit
@@ -45,10 +45,10 @@ def evaluate_state_to_vector(
 
 
 def run_circuit(
-    circuit: NonParametricQuantumCircuit,
-    init_state: NDArray[cfloat],
-) -> NDArray[cfloat]:
-    """Act a NonParametricQuantumCircuit onto a state vector and returns a new
+    circuit: ImmutableQuantumCircuit,
+    init_state: NDArray[complex128],
+) -> NDArray[complex128]:
+    """Act a ImmutableQuantumCircuit onto a state vector and returns a new
     state vector.
 
     Note that in Stim, the output vector gets canonicalized in the way
@@ -58,6 +58,6 @@ def run_circuit(
     tableau.set_state_from_state_vector(init_state, endian="little")
     stim_circuit = convert_circuit(circuit)
     tableau.do_circuit(stim_circuit)
-    out_state: NDArray[cfloat] = tableau.state_vector(endian="little")
+    out_state: NDArray[complex128] = tableau.state_vector(endian="little")
 
     return out_state

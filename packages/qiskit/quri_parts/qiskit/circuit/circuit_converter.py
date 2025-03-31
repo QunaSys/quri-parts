@@ -13,13 +13,13 @@ from typing import Callable, Optional, Type, Union
 
 import numpy as np
 import qiskit.circuit.library as qgate
+import qiskit.quantum_info as qi
 from qiskit.circuit import QuantumCircuit
 from qiskit.circuit.gate import Gate
-from qiskit.extensions import UnitaryGate
-from qiskit.opflow import X, Y, Z
+from qiskit.circuit.library import UnitaryGate
 from typing_extensions import TypeAlias
 
-from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate, gate_names
+from quri_parts.circuit import ImmutableQuantumCircuit, QuantumGate, gate_names
 from quri_parts.circuit.gate_names import (
     Measurement,
     MultiQubitGateNameType,
@@ -44,7 +44,7 @@ from quri_parts.circuit.transpile import (
 from quri_parts.qiskit.circuit.gate_names import ECR, QiskitTwoQubitGateNameType
 
 QiskitCircuitConverter: TypeAlias = Callable[
-    [NonParametricQuantumCircuit, Optional[CircuitTranspiler]], QuantumCircuit
+    [ImmutableQuantumCircuit, Optional[CircuitTranspiler]], QuantumCircuit
 ]
 
 #: CircuitTranspiler to convert a circuit configuration suitable for Qiskit.
@@ -52,6 +52,9 @@ QiskitSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspi
     [PauliDecomposeTranspiler(), PauliRotationDecomposeTranspiler()]
 )
 
+_X = qi.SparsePauliOp("X")
+_Y = qi.SparsePauliOp("Y")
+_Z = qi.SparsePauliOp("Z")
 
 _single_qubit_gate_qiskit: Mapping[SingleQubitGateNameType, Type[Gate]] = {
     gate_names.Identity: qgate.IGate,
@@ -149,7 +152,7 @@ def convert_gate(gate: QuantumGate) -> Gate:
             return q_gate
         elif gate.name == gate_names.PauliRotation:
             operator = 1
-            gate_map_op = {1: X, 2: Y, 3: Z}
+            gate_map_op = {1: _X, 2: _Y, 3: _Z}
             for p in reversed(gate.pauli_ids):
                 operator ^= gate_map_op[p]
             return qgate.PauliEvolutionGate(operator, time=float(gate.params[0] / 2))
@@ -165,10 +168,10 @@ def convert_gate(gate: QuantumGate) -> Gate:
 
 
 def convert_circuit(
-    circuit: NonParametricQuantumCircuit,
+    circuit: ImmutableQuantumCircuit,
     transpiler: Optional[CircuitTranspiler] = QiskitSetTranspiler(),
 ) -> QuantumCircuit:
-    """Converts a :class:`NonParametricQuantumCircuit` to
+    """Converts a :class:`ImmutableQuantumCircuit` to
     :class:`qiskit.QuantumCircuit`."""
     if transpiler is not None:
         circuit = transpiler(circuit)

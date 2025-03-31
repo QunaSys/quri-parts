@@ -38,6 +38,7 @@ from quri_parts.circuit import (
     X,
     Y,
     Z,
+    gate_names,
 )
 from quri_parts.circuit.transpile import (
     CliffordRZSetTranspiler,
@@ -46,6 +47,7 @@ from quri_parts.circuit.transpile import (
     H2RXRYTranspiler,
     H2RZSqrtXTranspiler,
     Identity2RZTranspiler,
+    RotationSetTranspiler,
     RX2RZSqrtXTranspiler,
     RY2RZSqrtXTranspiler,
     RZSetTranspiler,
@@ -59,6 +61,7 @@ from quri_parts.circuit.transpile import (
     SqrtY2RZSqrtXTranspiler,
     SqrtYdag2RYTranspiler,
     SqrtYdag2RZSqrtXTranspiler,
+    STARSetTranspiler,
     SWAP2CNOTTranspiler,
     T2RZTranspiler,
     Tdag2RZTranspiler,
@@ -304,7 +307,7 @@ class TestRZSetTranspile:
                 SqrtX(0),
                 RZ(0, theta + np.pi),
                 SqrtX(0),
-                RZ(0, 5.0 * np.pi / 2.0),
+                RZ(0, np.pi / 2.0),
             ]
         )
 
@@ -323,7 +326,7 @@ class TestRZSetTranspile:
                 SqrtX(0),
                 RZ(0, theta + np.pi),
                 SqrtX(0),
-                RZ(0, 3.0 * np.pi),
+                RZ(0, np.pi),
             ]
         )
 
@@ -369,7 +372,7 @@ class TestRZSetTranspile:
                 SqrtX(0),
                 RZ(0, theta + np.pi),
                 SqrtX(0),
-                RZ(0, phi + 3.0 * np.pi),
+                RZ(0, phi + np.pi),
             ]
         )
 
@@ -436,11 +439,11 @@ class TestRZSetTranspile:
                 SqrtX(2),
                 RZ(2, theta + np.pi),
                 SqrtX(2),
-                RZ(2, 5.0 * np.pi / 2.0),
+                RZ(2, np.pi / 2.0),
                 SqrtX(0),  # RY
                 RZ(0, theta + np.pi),
                 SqrtX(0),
-                RZ(0, 3.0 * np.pi),
+                RZ(0, np.pi),
                 RZ(1, lam),  # U1
                 RZ(2, lam - np.pi / 2.0),  # U2
                 SqrtX(2),
@@ -449,7 +452,7 @@ class TestRZSetTranspile:
                 SqrtX(0),
                 RZ(0, theta + np.pi),
                 SqrtX(0),
-                RZ(0, phi + 3.0 * np.pi),
+                RZ(0, phi + np.pi),
                 # TOFFOLI
                 RZ(2, np.pi / 2.0),  # H
                 SqrtX(2),
@@ -486,7 +489,7 @@ class TestRZSetTranspile:
                 SqrtX(1),
                 RZ(1, 3.0 * np.pi / 2.0),
                 SqrtX(1),
-                RZ(1, 5.0 * np.pi / 2.0),
+                RZ(1, np.pi / 2.0),
                 CNOT(2, 0),  # CNOT
                 CNOT(1, 0),  # CNOT
                 RZ(0, theta),  # RZ
@@ -499,7 +502,7 @@ class TestRZSetTranspile:
                 SqrtX(1),
                 RZ(1, np.pi / 2.0),
                 SqrtX(1),
-                RZ(1, 5.0 * np.pi / 2.0),
+                RZ(1, np.pi / 2.0),
             ]
         )
 
@@ -625,11 +628,24 @@ class TestRotationSetTranspile:
                 RX(0, np.pi / 2.0),
                 RZ(0, theta + np.pi),
                 RX(0, np.pi / 2.0),
-                RZ(0, phi + 3.0 * np.pi),
+                RZ(0, phi + np.pi),
             ]
         )
 
         assert transpiled.gates == expect.gates
+
+    def test_rotationset_transpile(self) -> None:
+        theta = np.pi / 7.0
+
+        circuit = QuantumCircuit(3)
+        circuit.add_Pauli_gate([2, 0, 1], [2, 3, 1])
+        circuit.add_PauliRotation_gate([1, 0, 2], [1, 3, 2], theta)
+        transpiled = RotationSetTranspiler()(circuit)
+
+        target_set = {gate.name for gate in transpiled.gates}
+        expect_set = {gate_names.RX, gate_names.RY, gate_names.RZ, gate_names.CNOT}
+
+        assert target_set <= expect_set
 
 
 class TestCliffordRZSetTranspile:
@@ -667,9 +683,29 @@ class TestCliffordRZSetTranspile:
                 SqrtX(0),
                 RZ(0, theta + np.pi),
                 SqrtX(0),
-                RZ(0, phi + 3.0 * np.pi),
+                RZ(0, phi + np.pi),
             ]
         )
 
         for t, e in zip(transpiled.gates, expect.gates):
             assert _gates_close(t, e)
+
+
+class TestSTARSetTranspile:
+    def test_starset_transpile(self) -> None:
+        theta = np.pi / 7.0
+
+        circuit = QuantumCircuit(3)
+        circuit.add_Pauli_gate([2, 0, 1], [2, 3, 1])
+        circuit.add_PauliRotation_gate([1, 0, 2], [1, 3, 2], theta)
+        transpiled = STARSetTranspiler()(circuit)
+
+        target_set = {gate.name for gate in transpiled.gates}
+        expect_set = {
+            gate_names.H,
+            gate_names.S,
+            gate_names.RZ,
+            gate_names.CNOT,
+        }
+
+        assert target_set <= expect_set

@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Collection, Mapping, Sequence
 from typing import Callable, Optional
 
 from typing_extensions import TypeAlias
@@ -46,6 +46,19 @@ class SquareLattice:
                     f"The same coordinates were specified multiple times: {v}."
                 )
             self._coord_to_qubit[v] = k
+        self._xsize, self._ysize = xsize, ysize
+
+    @property
+    def xsize(self) -> int:
+        return self._xsize
+
+    @property
+    def ysize(self) -> int:
+        return self._ysize
+
+    @property
+    def qubits(self) -> Collection[int]:
+        return self._qubit_to_coord.keys()
 
     def get_qubit(self, coord: Coordinate) -> int:
         """Returns qubit index corresponding to the given coordinate."""
@@ -109,9 +122,12 @@ class SquareLatticeSWAPInsertionTranspiler(GateDecomposer):
         self._square_lattice = square_lattice
 
     def is_target_gate(self, gate: QuantumGate) -> bool:
-        return gate.name in gate_names.TWO_QUBIT_GATE_NAMES
+        return len(gate.control_indices) + len(gate.target_indices) > 1
 
     def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
+        if gate.name not in {gate_names.CNOT, gate_names.SWAP, gate_names.CZ}:
+            raise ValueError(f"Unsupported multi qubit gate: {gate.name}")
+
         qubit_a, qubit_b = tuple(gate.control_indices) + tuple(gate.target_indices)
 
         if self._square_lattice.is_adjacent(qubit_a, qubit_b):
