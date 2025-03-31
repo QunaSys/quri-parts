@@ -92,12 +92,9 @@ class TimeEvolutionPowerEstimator(OperatorPowerEstimatorBase[StateT]):
         self,
         time_evo_estimator: TimeEvolutionExpectationValueEstimator[StateT],
         tau: float,
-        *,
-        transpiler: CircuitTranspiler | None = None
     ):
         self.time_evo_estimator = time_evo_estimator
         self.tau = tau
-        self.transpiler = transpiler
 
     def __call__(
         self, state: StateT, operator_power: int | float, n_shots: Optional[int] = None
