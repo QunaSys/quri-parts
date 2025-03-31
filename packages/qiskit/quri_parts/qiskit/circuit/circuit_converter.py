@@ -164,7 +164,7 @@ def convert_gate(gate: QuantumGate) -> Gate:
 
 def convert_circuit(
     circuit: ImmutableQuantumCircuit,
-    transpiler: Optional[CircuitTranspiler] = QiskitSetTranspiler(),
+    transpiler: Optional[CircuitTranspiler] = None,
 ) -> QuantumCircuit:
     """Converts a :class:`ImmutableQuantumCircuit` to
     :class:`qiskit.QuantumCircuit`."""
