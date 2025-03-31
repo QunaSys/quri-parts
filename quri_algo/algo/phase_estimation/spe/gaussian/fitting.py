@@ -66,7 +66,7 @@ class GaussianFitter:
         return optimize.minimize(loss, [mu, p0], bounds=self.bounds)
 
 
-class GaussianFittingPhaseEstimation(StatisticalPhaseEstimation[ProblemT, StateT]):
+class GaussianFittingPhaseEstimation(StatisticalPhaseEstimation[StateT]):
     """The Gaussian Fitting statistical phase estimation algorithm.
 
     Ref:
@@ -161,7 +161,7 @@ class GaussianFittingPhaseEstimation(StatisticalPhaseEstimation[ProblemT, StateT
         )
 
 
-class GaussianFittingGSEE(GaussianFittingPhaseEstimation[HamiltonianT, StateT]):
+class GaussianFittingGSEE(GaussianFittingPhaseEstimation[StateT]):
     """Performs ground state energy estimation with the Gaussian Fitting
     SPE."""
 

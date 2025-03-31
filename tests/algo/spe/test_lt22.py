@@ -31,7 +31,7 @@ class _Estimate(NamedTuple):
 
 
 class TestLT22PhaseEstimation(unittest.TestCase):
-    lt22_algo: SingleSignalLT22PhaseEstimation[Problem, CircuitQuantumState]
+    lt22_algo: SingleSignalLT22PhaseEstimation[CircuitQuantumState]
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -55,18 +55,13 @@ class TestLT22PhaseEstimation(unittest.TestCase):
 
 
 class TestLT22GSEE(unittest.TestCase):
-    lt22_algo: SingleSignalLT22PhaseEstimation[
-        QubitHamiltonianInput, CircuitQuantumState
-    ]
+    lt22_algo: SingleSignalLT22PhaseEstimation[CircuitQuantumState]
 
     @classmethod
     def setUpClass(cls) -> None:
         time_evo_estimator = unittest.mock.Mock(
             spec=TimeEvolutionExpectationValueEstimator,
             return_value=_Estimate(value=1.0),
-        )
-        time_evo_estimator.encoded_operator = QubitHamiltonianInput(
-            1, Operator({PAULI_IDENTITY: 1})
         )
         tau = 20
         cls.lt22_algo = spe.SingleSignalLT22GSEE(time_evo_estimator, tau)

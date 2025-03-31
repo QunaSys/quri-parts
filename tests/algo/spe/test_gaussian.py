@@ -33,7 +33,7 @@ class _Estimate(NamedTuple):
 
 
 class TestGaussianPhaseEstimation(unittest.TestCase):
-    gaussian_algo: spe.GaussianFittingPhaseEstimation[Problem, CircuitQuantumState]
+    gaussian_algo: spe.GaussianFittingPhaseEstimation[CircuitQuantumState]
     gaussian_param: spe.GaussianParam
     a: float
 
@@ -65,9 +65,7 @@ class TestGaussianPhaseEstimation(unittest.TestCase):
 
 
 class TestGaussianGSEE(unittest.TestCase):
-    gaussian_algo: spe.GaussianFittingPhaseEstimation[
-        QubitHamiltonianInput, CircuitQuantumState
-    ]
+    gaussian_algo: spe.GaussianFittingPhaseEstimation[CircuitQuantumState]
     gaussian_param: spe.GaussianParam
     shift: float
     tau: float

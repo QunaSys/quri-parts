@@ -38,7 +38,7 @@ class LT22PostProcessParam(NamedTuple):
     n_batch: int
 
 
-class LT22PhaseEstimation(StatisticalPhaseEstimation[ProblemT, StateT]):
+class LT22PhaseEstimation(StatisticalPhaseEstimation[StateT]):
     r"""The LT22 statistical phase estimation algorithm.
 
     Ref:
@@ -132,7 +132,7 @@ class LT22PhaseEstimation(StatisticalPhaseEstimation[ProblemT, StateT]):
         return bool(b)
 
 
-class LT22GSEE(LT22PhaseEstimation[HamiltonianT, StateT]):
+class LT22GSEE(LT22PhaseEstimation[StateT]):
     def __init__(
         self,
         time_evo_estimator: TimeEvolutionExpectationValueEstimator[StateT],
@@ -142,7 +142,7 @@ class LT22GSEE(LT22PhaseEstimation[HamiltonianT, StateT]):
         super().__init__(unitary_power_estimator)
 
 
-class SingleSignalLT22PhaseEstimation(StatisticalPhaseEstimation[ProblemT, StateT]):
+class SingleSignalLT22PhaseEstimation(StatisticalPhaseEstimation[StateT]):
     r"""The LT22 statistical phase estimation algorithm.
 
     Ref:
@@ -219,7 +219,7 @@ class SingleSignalLT22PhaseEstimation(StatisticalPhaseEstimation[ProblemT, State
         return SPEResult(phase=phase, signal_functions=[signal_function])
 
 
-class SingleSignalLT22GSEE(SingleSignalLT22PhaseEstimation[HamiltonianT, StateT]):
+class SingleSignalLT22GSEE(SingleSignalLT22PhaseEstimation[StateT]):
     r"""Solves ground state energy estimation problem with
     :class:`SingleSignalLT22PhaseEstimation`.
 
