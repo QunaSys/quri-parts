@@ -45,8 +45,6 @@ from quri_parts.qiskit.circuit.gate_names import (
     is_qiskit_two_qubit_gate_name,
 )
 
-from .qiskit_native_transpiler import CNOT2ECRTranspiler
-
 QiskitCircuitConverter: TypeAlias = Callable[
     [ImmutableQuantumCircuit, Optional[CircuitTranspiler]], QuantumCircuit
 ]
@@ -56,7 +54,6 @@ QiskitSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspi
     [
         PauliDecomposeTranspiler(),
         PauliRotationDecomposeTranspiler(),
-        CNOT2ECRTranspiler(),
     ]
 )
 
