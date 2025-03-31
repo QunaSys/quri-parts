@@ -28,7 +28,7 @@ style = "pep440"
 python = "^3.9.8"
 typing-extensions = "^4.1.1"
 numpy = ">=1.22.0"
-networkx = "^2.8.8"
+networkx = "*"
 quri-parts-rust = "*"
 
 [tool.poetry.group.dev.dependencies]
