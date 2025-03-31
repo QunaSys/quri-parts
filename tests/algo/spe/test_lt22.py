@@ -13,7 +13,6 @@ import unittest.mock
 from typing import NamedTuple
 
 import numpy as np
-from quri_parts.core.operator import PAULI_IDENTITY, Operator
 from quri_parts.core.state import CircuitQuantumState, quantum_state
 
 import quri_algo.algo.phase_estimation.spe as spe
@@ -22,7 +21,6 @@ from quri_algo.algo.estimator.time_evolution import (
     TimeEvolutionExpectationValueEstimator,
 )
 from quri_algo.algo.phase_estimation.spe import SingleSignalLT22PhaseEstimation
-from quri_algo.problem import Problem, QubitHamiltonianInput
 
 
 class _Estimate(NamedTuple):

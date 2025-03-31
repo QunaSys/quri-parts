@@ -19,7 +19,6 @@ from quri_algo.algo.estimator.time_evolution import (
     TimeEvolutionExpectationValueEstimator,
     TimeEvolutionPowerEstimator,
 )
-from quri_algo.problem import HamiltonianT, ProblemT
 
 from ..interface import SPEResult, StatisticalPhaseEstimation
 from ..utils.exp_val_collector import UnitaryOpPowerSamplingEstimator

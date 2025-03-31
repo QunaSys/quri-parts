@@ -24,7 +24,7 @@ from quri_algo.algo.estimator.time_evolution import (
 from quri_algo.algo.phase_estimation.spe.gaussian import (
     get_recommended_gaussian_parameter,
 )
-from quri_algo.problem import Problem, QubitHamiltonianInput
+from quri_algo.problem import QubitHamiltonianInput
 
 
 class _Estimate(NamedTuple):

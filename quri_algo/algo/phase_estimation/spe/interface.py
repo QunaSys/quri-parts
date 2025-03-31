@@ -17,7 +17,6 @@ from quri_algo.algo.phase_estimation.interface import (
     PhaseEstimationBase,
     PhaseEstimationResult,
 )
-from quri_algo.problem import ProblemT
 
 from .utils.exp_val_collector import UnitaryOpPowerSamplingEstimator
 
