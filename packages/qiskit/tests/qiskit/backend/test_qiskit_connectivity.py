@@ -145,8 +145,7 @@ class TestQiskitConnectivityGraphV2:
 
 def test_coupling_map_with_cnot_errors() -> None:
     devices = [
-        (fake_provider.FakeBelemV2(), [(0, 1), (1, 2), (1, 3), (3, 4)]),
-        (fake_provider.FakeAthens(), [(0, 1), (1, 2), (2, 3), (3, 4)]),
+        (fake_provider.Fake5QV1(), [(0, 1), (0, 2), (1, 2), (2, 3), (2, 4), (3, 4)]),
     ]
 
     for device, cmap in devices:
@@ -160,8 +159,7 @@ def test_coupling_map_with_cnot_errors() -> None:
 
 def test_qubit_indices_with_readout_errors() -> None:
     devices = [
-        (fake_provider.FakeBelemV2(), list(range(5))),
-        (fake_provider.FakeAthens(), list(range(5))),
+        (fake_provider.Fake5QV1(), list(range(5))),
     ]
 
     for device, qubits in devices:
