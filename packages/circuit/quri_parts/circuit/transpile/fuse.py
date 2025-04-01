@@ -305,39 +305,3 @@ class ZeroRotationEliminationTranspiler(GateKindDecomposer):
             return []
         else:
             return [gate]
-
-
-class Rotation2NamedTranspiler(SequentialTranspiler):
-    """Convert rotation gates (RX, RY, and RZ) to Identity, Z, S, Sdag, T, or
-    Tdag gates if it is equivalent to a sequence of these gates."""
-
-    def __init__(self, epsilon: float = 1.0e-9):
-        super().__init__(
-            [
-                RX2NamedTranspiler(epsilon),
-                RY2NamedTranspiler(epsilon),
-                RZ2NamedTranspiler(epsilon),
-            ]
-        )
-
-
-class ZeroRotationEliminationTranspiler(GateKindDecomposer):
-    """Remove rotation gates (RX, RY, and RZ) with rotation angles smaller than
-    epsilon."""
-
-    def __init__(self, epsilon: float = 1.0e-9):
-        self._epsilon = epsilon
-
-    @property
-    def target_gate_names(self) -> Sequence[str]:
-        return [gate_names.RX, gate_names.RY, gate_names.RZ]
-
-    def _is_close(self, a: float, b: float) -> bool:
-        return abs(a - b) < self._epsilon
-
-    def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
-        theta = gate.params[0] % (2.0 * np.pi)
-        if self._is_close(theta, 0.0) or self._is_close(theta, 2.0 * np.pi):
-            return []
-        else:
-            return [gate]
