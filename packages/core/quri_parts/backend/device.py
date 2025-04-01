@@ -5,7 +5,7 @@ from typing import Optional
 import networkx as nx
 
 from quri_parts.circuit import QuantumGate
-from quri_parts.circuit.gate_names import GateNameType, is_non_parametric_gate_name
+from quri_parts.circuit.gate_names import is_non_parametric_gate_name
 from quri_parts.circuit.noise import NoiseModel
 from quri_parts.circuit.transpile import CircuitTranspiler, ParametricCircuitTranspiler
 
@@ -50,7 +50,7 @@ class GateProperty:
         name (str, optional): name of the gate
     """
 
-    gate: GateNameType
+    gate: str
     qubits: Sequence[int]
     gate_error: Optional[float] = None
     gate_time: Optional[TimeValue] = None
@@ -89,8 +89,8 @@ class DeviceProperty:
     qubits: Sequence[int]
     qubit_graph: nx.Graph
     qubit_properties: Mapping[int, QubitProperty]
-    native_gates: Sequence[GateNameType]
-    _gate_properties: Mapping[tuple[GateNameType, tuple[int, ...]], GateProperty]
+    native_gates: Sequence[str]
+    _gate_properties: Mapping[tuple[str, tuple[int, ...]], GateProperty]
     physical_qubit_count: Optional[int] = None
     background_error: Optional[tuple[float, TimeValue]] = None
     name: Optional[str] = None
@@ -108,7 +108,7 @@ class DeviceProperty:
         qubits: Sequence[int],
         qubit_graph: nx.Graph,
         qubit_properties: Mapping[int, QubitProperty],
-        native_gates: Collection[GateNameType],
+        native_gates: Collection[str],
         gate_properties: Collection[GateProperty],
         physical_qubit_count: Optional[int] = None,
         background_error: Optional[tuple[float, TimeValue]] = None,
