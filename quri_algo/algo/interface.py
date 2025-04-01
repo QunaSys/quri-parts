@@ -1,21 +1,22 @@
-from dataclasses import dataclass
 from abc import ABC, abstractmethod
-from typing import Protocol, Mapping, Any
+from dataclasses import dataclass
+from typing import Any, Mapping, Protocol
+
 from quri_parts.backend.units import TimeValue
 from quri_parts.circuit import ImmutableQuantumCircuit
 from sympy import Expr
 
 
 @dataclass
-class AlgorithmResult:
-    """Algorithm result"""
+class AlgorithmResult(ABC):
+    """Algorithm result."""
 
     algorithm: "Algorithm"
     runtime: float
-    
+
     @property
     def name(self) -> str:
-        """The name of the algorithm"""
+        """The name of the algorithm."""
         return self.algorithm.name
 
 
@@ -28,15 +29,15 @@ class Analysis:
 
 
 @dataclass
-class QuantumAlgorithmResult(AlgorithmResult):
-    """Algorithm result with a resource analysis"""
+class QuantumAlgorithmResult(ABC, AlgorithmResult):
+    """Algorithm result with a resource analysis."""
 
     analysis: Analysis
 
 
 class Algorithm(ABC):
     name: str
-    """The name of the algorithm"""
+    """The name of the algorithm."""
 
     @abstractmethod
     def run(
@@ -44,31 +45,32 @@ class Algorithm(ABC):
     ) -> Mapping[
         str, Any
     ]:  # instead of Any: Estimate | HamiltonianEigensystem | OptimizerState | QuantumCircuit
-        """The estimate returned by the algorithm"""
+        """The estimate returned by the algorithm."""
         pass
 
     @property
     @abstractmethod
     def run_time_scaling(self, *args: Any, **kwargs: Any) -> Expr:
-        """The run-time scaling given in big-O notation as a sympy expression"""
+        """The run-time scaling given in big-O notation as a sympy
+        expression."""
         pass
 
     @abstractmethod
     def __call__(
         self, *args: Any, **kwargs: Any
     ) -> AlgorithmResult | QuantumAlgorithmResult:
-        """The call method which runs the algorithm and returns a result"""
+        """The call method which runs the algorithm and returns a result."""
         pass
 
     def __str__(self) -> str:
-        """Basic information about the algorithm should be returned"""
+        """Basic information about the algorithm should be returned."""
         return self.name + " with run-time scaling " + str(self.run_time_scaling)
 
 
 class QuantumMixin(Protocol):
     @abstractmethod
     def analyze(self, *args: Any, **kwargs: Any) -> Analysis:
-        """The resource analysis of the algorithm"""
+        """The resource analysis of the algorithm."""
         pass
 
 
@@ -77,5 +79,3 @@ class QuantumAlgorithm(Algorithm, QuantumMixin):
         return QuantumAlgorithmResult(
             self.run(*args, **kwargs), self.analyze(*args, **kwargs)
         )
-
-
