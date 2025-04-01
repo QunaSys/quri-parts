@@ -14,7 +14,7 @@ Presently QURI Algo requires Python 3.11.1 or later. We recommend installing QUR
 
 For the poetry installation, first make sure to upgrade your pip and virtualenv package. Then create a virtual environment, activate it and within it install poetry
 
-```
+```bash
 $ python -m venv .venv
 $ source .venv/bin/activate
 (.venv)$ python -m pip install poetry
@@ -22,13 +22,13 @@ $ source .venv/bin/activate
 
 Then use poetry to install dependencies.
 
-```
+```bash
 (.venv)$ python -m poetry install
 ```
 
 Otherwise you can install the requirements from the requirements.txt file as
 
-```
+```bash
 (.venv)$ pip install -r requirements.txt
 ```
 
