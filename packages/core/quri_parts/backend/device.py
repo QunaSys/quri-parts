@@ -5,7 +5,11 @@ from typing import Optional
 import networkx as nx
 
 from quri_parts.circuit import QuantumGate
+<<<<<<< HEAD
 from quri_parts.circuit.gate_names import is_parametric_gate_name
+=======
+from quri_parts.circuit.gate_names import GateNameType, is_non_parametric_gate_name
+>>>>>>> main
 from quri_parts.circuit.noise import NoiseModel
 from quri_parts.circuit.transpile import CircuitTranspiler, ParametricCircuitTranspiler
 
@@ -42,7 +46,11 @@ class GateProperty:
     """Noise property of a gate.
 
     Args:
+<<<<<<< HEAD
         gate (str): gate name
+=======
+        gate (GateNameType): gate name
+>>>>>>> main
         qubits (Sequence[int]): target qubits for the gate. The order is control_index0,
             control_index1, ..., target_index0, ...
         gate_error (float, optional): 1 - fidelity of the gate operation
@@ -50,7 +58,11 @@ class GateProperty:
         name (str, optional): name of the gate
     """
 
+<<<<<<< HEAD
     gate: str
+=======
+    gate: GateNameType
+>>>>>>> main
     qubits: Sequence[int]
     gate_error: Optional[float] = None
     gate_time: Optional[TimeValue] = None
@@ -67,7 +79,11 @@ class DeviceProperty:
         qubit_graph (newtorkx.Graph): Topology of qubit connections.
         qubit_properties (Mapping[int, QubitProperty]): Mapping from qubit index to
             QubitProperty.
+<<<<<<< HEAD
         native_gates (Collection[str]): Names of supported gates.
+=======
+        native_gates (Collection[GateNameType]): Names of supported gates.
+>>>>>>> main
         gate_properties (Collection[GateProperty]): Collection of GateProperty.
         physical_qubit_count: (int, optional): Number of physical qubits.
         background_error: (tuple[float, TimeValue], optional): The errors that
@@ -89,8 +105,13 @@ class DeviceProperty:
     qubits: Sequence[int]
     qubit_graph: nx.Graph
     qubit_properties: Mapping[int, QubitProperty]
+<<<<<<< HEAD
     native_gates: Sequence[str]
     _gate_properties: Mapping[tuple[str, tuple[int, ...]], GateProperty]
+=======
+    native_gates: Sequence[GateNameType]
+    _gate_properties: Mapping[tuple[GateNameType, tuple[int, ...]], GateProperty]
+>>>>>>> main
     physical_qubit_count: Optional[int] = None
     background_error: Optional[tuple[float, TimeValue]] = None
     name: Optional[str] = None
@@ -108,7 +129,11 @@ class DeviceProperty:
         qubits: Sequence[int],
         qubit_graph: nx.Graph,
         qubit_properties: Mapping[int, QubitProperty],
+<<<<<<< HEAD
         native_gates: Collection[str],
+=======
+        native_gates: Collection[GateNameType],
+>>>>>>> main
         gate_properties: Collection[GateProperty],
         physical_qubit_count: Optional[int] = None,
         background_error: Optional[tuple[float, TimeValue]] = None,
@@ -146,7 +171,11 @@ class DeviceProperty:
         GateProperty for the kind of the quantum gate is searched.
         """
 
+<<<<<<< HEAD
         if is_parametric_gate_name(quantum_gate.name):
+=======
+        if not is_non_parametric_gate_name(quantum_gate.name):
+>>>>>>> main
             raise ValueError(f"Unsupported gate kind: {quantum_gate.name}")
         gate = (
             quantum_gate.name,
