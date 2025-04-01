@@ -42,7 +42,7 @@ class GateProperty:
     """Noise property of a gate.
 
     Args:
-        gate (GateNameType): gate name
+        gate (str): gate name
         qubits (Sequence[int]): target qubits for the gate. The order is control_index0,
             control_index1, ..., target_index0, ...
         gate_error (float, optional): 1 - fidelity of the gate operation
@@ -67,7 +67,7 @@ class DeviceProperty:
         qubit_graph (newtorkx.Graph): Topology of qubit connections.
         qubit_properties (Mapping[int, QubitProperty]): Mapping from qubit index to
             QubitProperty.
-        native_gates (Collection[GateNameType]): Names of supported gates.
+        native_gates (Collection[str]): Names of supported gates.
         gate_properties (Collection[GateProperty]): Collection of GateProperty.
         physical_qubit_count: (int, optional): Number of physical qubits.
         background_error: (tuple[float, TimeValue], optional): The errors that

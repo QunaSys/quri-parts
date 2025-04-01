@@ -32,9 +32,6 @@ SingleQubitGateNameType: TypeAlias = Literal[
     "U1",
     "U2",
     "U3",
-    "GPi",
-    "GPi2",
-    "U1q",
 ]
 
 Identity: Literal["Identity"] = "Identity"
@@ -56,9 +53,6 @@ RZ: Literal["RZ"] = "RZ"
 U1: Literal["U1"] = "U1"
 U2: Literal["U2"] = "U2"
 U3: Literal["U3"] = "U3"
-GPi: Literal["GPi"] = "GPi"
-GPi2: Literal["GPi2"] = "GPi2"
-U1q: Literal["U1q"] = "U1q"
 
 SINGLE_QUBIT_GATE_NAMES: set[SingleQubitGateNameType] = {
     Identity,
@@ -80,9 +74,6 @@ SINGLE_QUBIT_GATE_NAMES: set[SingleQubitGateNameType] = {
     U1,
     U2,
     U3,
-    GPi,
-    GPi2,
-    U1q,
 }
 
 
@@ -94,21 +85,13 @@ TwoQubitGateNameType: TypeAlias = Literal[
     "CNOT",
     "CZ",
     "SWAP",
-    "ECR",
-    "MS",
-    "ZZ",
-    "RZZ",
 ]
 
 CNOT: Literal["CNOT"] = "CNOT"
 CZ: Literal["CZ"] = "CZ"
 SWAP: Literal["SWAP"] = "SWAP"
-ECR: Literal["ECR"] = "ECR"
-MS: Literal["MS"] = "MS"
-ZZ: Literal["ZZ"] = "ZZ"
-RZZ: Literal["RZZ"] = "RZZ"
 
-TWO_QUBIT_GATE_NAMES: set[TwoQubitGateNameType] = {CNOT, CZ, SWAP, ECR, MS, ZZ, RZZ}
+TWO_QUBIT_GATE_NAMES: set[TwoQubitGateNameType] = {CNOT, CZ, SWAP}
 
 
 def is_two_qubit_gate_name(gate_name: str) -> TypeGuard[TwoQubitGateNameType]:
