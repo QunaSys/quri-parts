@@ -5,7 +5,7 @@ from typing import Optional
 import networkx as nx
 
 from quri_parts.circuit import QuantumGate
-from quri_parts.circuit.gate_names import is_non_parametric_gate_name
+from quri_parts.circuit.gate_names import is_parametric_gate_name
 from quri_parts.circuit.noise import NoiseModel
 from quri_parts.circuit.transpile import CircuitTranspiler, ParametricCircuitTranspiler
 
@@ -146,7 +146,7 @@ class DeviceProperty:
         GateProperty for the kind of the quantum gate is searched.
         """
 
-        if not is_non_parametric_gate_name(quantum_gate.name):
+        if is_parametric_gate_name(quantum_gate.name):
             raise ValueError(f"Unsupported gate kind: {quantum_gate.name}")
         gate = (
             quantum_gate.name,

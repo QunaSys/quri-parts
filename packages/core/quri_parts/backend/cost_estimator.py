@@ -1,4 +1,4 @@
-from collections.abc import Collection, Mapping
+from collections.abc import Collection
 from typing import Callable, cast
 
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate
@@ -20,32 +20,6 @@ def _gate_weighted_depth(
             qubit_depth[q] = depth
 
     return max(qubit_depth.values()) if qubit_depth else 0.0
-
-
-def _gate_kind_weighted_depth(
-    circuit: NonParametricQuantumCircuit,
-    gate_kind_weight: Mapping[str, float],
-    default_weight: float = 0.0,
-) -> float:
-    return _gate_weighted_depth(
-        circuit, lambda gate: gate_kind_weight.get(gate.name, default_weight)
-    )
-
-
-def _estimate_gate_latency(
-    circuit: NonParametricQuantumCircuit,
-    device: DeviceProperty,
-    kinds: Collection[str] = [],
-) -> TimeValue:
-    latency = 0.0
-    for gate in circuit.gates:
-        lat = device.gate_property(gate).gate_time
-        if lat is None:
-            raise ValueError("Contains gate with unknown gate gate_time: {gate}")
-        if kinds and gate.name not in kinds:
-            continue
-        latency += lat.in_ns()
-    return TimeValue(value=latency, unit=TimeUnit.NANOSECOND)
 
 
 def estimate_circuit_latency(

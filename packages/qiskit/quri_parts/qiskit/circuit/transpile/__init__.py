@@ -66,7 +66,7 @@ class QiskitTranspiler(CircuitTranspilerProtocol):
     def __init__(
         self,
         backend: Optional[Backend] = None,
-        basis_gates: Optional[Sequence[GateNameType]] = None,
+        basis_gates: Optional[Sequence[Union[GateNameType, QiskitGateNameType]]] = None,
         optimization_level: Optional[int] = None,
     ):
         self._basis_gates: Optional[list[str]] = None
