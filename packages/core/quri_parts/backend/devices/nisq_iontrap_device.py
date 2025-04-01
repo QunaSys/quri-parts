@@ -58,14 +58,7 @@ def generate_device_property(
 
     qubits = list(range(qubit_count))
     qubit_properties = {q: QubitProperty() for q in qubits}
-    gate_properties = [
-        GateProperty(
-            gate_names.Measurement,
-            (),
-            gate_error=gate_error_meas,
-            gate_time=gate_time_meas,
-        )
-    ]
+    gate_properties = []
     gate_properties.extend(
         [
             GateProperty(name, (), gate_error=gate_error_1q, gate_time=gate_time_1q)
