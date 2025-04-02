@@ -110,9 +110,8 @@ class QAQC(QuantumCompilerGeneric):
         combined_circuit = prepare_circuit_hilbert_schmidt_test(
             target_circuit,
             ansatz.bind_parameters(list(optimizer_state.params.tolist())),
-        )
-        vm_analysis = self.vm.analyze(combined_circuit, total_circuit_executions)
-        vm_analysis
+        ).circuit
+        vm_analysis = self.vm.analyze(combined_circuit)
         analysis = Analysis(
             circuit_latency={combined_circuit: vm_analysis.latency},
             circuit_execution_count={combined_circuit: total_circuit_executions},
