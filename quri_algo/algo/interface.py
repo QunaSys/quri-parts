@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Mapping, Protocol
 
-from quri_parts.backend.units import TimeValue
+from quri_parts.backend.units import TimeValue, TimeUnit
 from quri_parts.circuit import ImmutableQuantumCircuit
 from sympy import Expr
 
@@ -22,14 +22,36 @@ class AlgorithmResult(ABC):
 
 @dataclass
 class Analysis:
-    latency: TimeValue
-    circuit_execution_count: int
+    circuit_latency: Mapping[ImmutableQuantumCircuit, TimeValue]
+    circuit_execution_count: Mapping[ImmutableQuantumCircuit, int]
     circuit_fidelities: Mapping[ImmutableQuantumCircuit, float]
-    circuit_footprint: int
+    circuit_footprint: Mapping[ImmutableQuantumCircuit, int]
+
+    @property
+    def total_latency_sequential(self) -> TimeValue:
+        """Total latency of the circuit, assuming it is not parallelizable."""
+        latency_in_ns = sum(latency.in_ns() for latency in self.circuit_latency.values())
+        return TimeValue(latency_in_ns, TimeUnit.NANOSECOND)
+    
+    @property
+    def total_latency_parallel(self) -> TimeValue:
+        """Total latency of the circuit, assuming parallelizable execution."""
+        latency_in_ns = max(latency.in_ns() for latency in self.circuit_latency.values())
+        return TimeValue(latency_in_ns, TimeUnit.NANOSECOND)
+    
+    @property
+    def total_footprint_sequential(self) -> int:
+        """Total footprint of the circuit, assuming it is not parallelizable."""
+        return max(self.circuit_footprint.values())
+    
+    @property
+    def total_footprint_parallel(self) -> int:
+        """Total footprint of the circuit, assuming parallelizable execution."""
+        return sum(self.circuit_footprint.values())
 
 
 @dataclass
-class QuantumAlgorithmResult(ABC, AlgorithmResult):
+class QuantumAlgorithmResult(AlgorithmResult, ABC):
     """Algorithm result with a resource analysis."""
 
     analysis: Analysis
@@ -44,7 +66,7 @@ class Algorithm(ABC):
         self, *args: Any, **kwargs: Any
     ) -> Mapping[
         str, Any
-    ]:  # instead of Any: Estimate | HamiltonianEigensystem | OptimizerState | QuantumCircuit
+    ]:
         """The estimate returned by the algorithm."""
         pass
 
@@ -59,7 +81,7 @@ class Algorithm(ABC):
     def __call__(
         self, *args: Any, **kwargs: Any
     ) -> AlgorithmResult | QuantumAlgorithmResult:
-        """The call method which runs the algorithm and returns a result."""
+        """Run the algorithm and return a result."""
         pass
 
     def __str__(self) -> str:
@@ -74,8 +96,8 @@ class QuantumMixin(Protocol):
         pass
 
 
-class QuantumAlgorithm(Algorithm, QuantumMixin):
+class QuantumAlgorithm(Algorithm, QuantumMixin, ABC):
+    @abstractmethod
     def __call__(self, *args: Any, **kwargs: Any) -> QuantumAlgorithmResult:
-        return QuantumAlgorithmResult(
-            self.run(*args, **kwargs), self.analyze(*args, **kwargs)
-        )
+        """Runs the algorithm and the algorithm analysis and return a result."""
+        pass

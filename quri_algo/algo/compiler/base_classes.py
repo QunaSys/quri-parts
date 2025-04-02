@@ -10,6 +10,7 @@
 
 from abc import ABC, abstractmethod
 from typing import Any, Optional
+from dataclasses import dataclass
 
 import numpy as np
 from numpy.random import default_rng
@@ -22,9 +23,20 @@ from quri_parts.circuit.parameter_shift import ShiftedParameters
 
 from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.core.cost_functions.base_classes import CostFunction
+from quri_algo.algo.interface import QuantumAlgorithm, QuantumAlgorithmResult
+from quri_vm.vm import VM
+
+@dataclass
+class QuantumCompilationResult(QuantumAlgorithmResult):
+    optimizer_result: OptimizerState
+    optimized_circuit: NonParametricQuantumCircuit
+
+    @property
+    def cost_function_value(self) -> float:
+        return self.optimizer_result.cost
 
 
-class QuantumCompiler(ABC):
+class QuantumCompiler(QuantumAlgorithm, ABC):
     @property
     @abstractmethod
     def cost_function(self) -> CostFunction:
@@ -35,8 +47,13 @@ class QuantumCompiler(ABC):
     def optimizer(self) -> Optimizer:
         ...
 
+    @property
     @abstractmethod
-    def optimize(
+    def vm(self) -> VM:
+        ...
+
+    @abstractmethod
+    def run(
         self,
         *args: Any,
         **kwargs: Any,
@@ -44,14 +61,15 @@ class QuantumCompiler(ABC):
         pass
 
     @abstractmethod
-    def __call__(self, *args: Any, **kwds: Any) -> NonParametricQuantumCircuit:
+    def __call__(self, *args: Any, **kwds: Any) -> QuantumCompilationResult:
         pass
 
 
 class QuantumCompilerGeneric(QuantumCompiler, ABC):
-    def __init__(self, cost_fn: CostFunction, optimizer: Optimizer):
+    def __init__(self, cost_fn: CostFunction, optimizer: Optimizer, vm: Optional[VM] = None):
         self._cost_fn = cost_fn
         self._optimizer = optimizer
+        self._vm = vm
 
     @property
     def cost_function(self) -> CostFunction:
@@ -147,7 +165,18 @@ class QuantumCompilerGeneric(QuantumCompiler, ABC):
         Return value:
         Compiled circuit
         """
-        self.compiled_circuit, _ = self.optimize(
+        self.compiled_circuit, optimizer_state = self.run(
             circuit_factory, ansatz, init_params, *args, **kwargs
         )
-        return self.compiled_circuit
+        if self._vm is not None:
+            analysis = None
+        else:
+            analysis = self.analyze(circuit_factory, ansatz, init_params, *args, **kwargs)
+
+        return QuantumCompilationResult(
+            algorithm=self,
+            runtime=0.0,
+            analysis=None,
+            optimizer_result=optimizer_state,
+            optimized_circuit=self.compiled_circuit,
+        )
