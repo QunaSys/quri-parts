@@ -15,10 +15,14 @@ from quri_parts.circuit import (
     LinearMappedUnboundParametricQuantumCircuit,
     NonParametricQuantumCircuit,
 )
+from quri_vm.vm import VM
+from sympy import Expr
 
 from quri_algo.algo.compiler.base_classes import QuantumCompilerGeneric
+from quri_algo.algo.interface import Analysis
 from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.core.cost_functions.base_classes import CostFunction
+from quri_algo.core.cost_functions.utils import prepare_circuit_hilbert_schmidt_test
 
 
 class QAQC(QuantumCompilerGeneric):
@@ -34,6 +38,9 @@ class QAQC(QuantumCompilerGeneric):
     def __init__(self, cost_fn: CostFunction, optimizer: Optimizer):
         super().__init__(cost_fn, optimizer)
 
+    def run_time_scaling(self) -> Expr:
+        pass
+
     @property
     def cost_function(self) -> CostFunction:
         return self._cost_fn
@@ -42,7 +49,11 @@ class QAQC(QuantumCompilerGeneric):
     def optimizer(self) -> Optimizer:
         return self._optimizer
 
-    def optimize(
+    @property
+    def vm(self) -> Optional[VM]:
+        return self._vm
+
+    def run(
         self,
         circuit_factory: CircuitFactory,
         ansatz: LinearMappedUnboundParametricQuantumCircuit,
@@ -63,3 +74,50 @@ class QAQC(QuantumCompilerGeneric):
         Tuple of compiled circuit and the state of the optimizer
         """
         return self._optimize(circuit_factory, ansatz, init_params, *args, **kwargs)
+
+    def analyze(
+        self,
+        circuit_factory: CircuitFactory,
+        ansatz: LinearMappedUnboundParametricQuantumCircuit,
+        optimizer_state: OptimizerState,
+        circuit_execution_multiplier: Optional[int] = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> Analysis:
+        """This function analyses the quantum resources required to run the
+        quantum compilation.
+
+        Arguments:
+        circuit_factory - Circuit factory which generates the target circuit for the compilation
+        ansatz - Parametric ansatz circuit that is used to approximate the target circuit
+        optimizer_state - state of the optimizer after the optimization
+        circuit_execution_multiplier - multiplier for the number of circuit executions, e.g. number of samples for each estimate
+
+        variable arguments if any are passed to the circuit_factory's __call__ method
+
+        Return value:
+        Tuple of compiled circuit and the state of the optimizer
+        """
+        assert isinstance(self.vm, VM), "VM must be set to perform analysis"
+
+        total_circuit_executions = (
+            ansatz.parameter_count * 2 * optimizer_state.gradcalls
+            + optimizer_state.funcalls
+        )
+        if circuit_execution_multiplier is not None:
+            total_circuit_executions *= circuit_execution_multiplier
+        target_circuit = circuit_factory(*args, **kwargs)
+        combined_circuit = prepare_circuit_hilbert_schmidt_test(
+            target_circuit,
+            ansatz.bind_parameters(list(optimizer_state.params.tolist())),
+        )
+        vm_analysis = self.vm.analyze(combined_circuit, total_circuit_executions)
+        vm_analysis
+        analysis = Analysis(
+            circuit_latency={combined_circuit: vm_analysis.latency},
+            circuit_execution_count={combined_circuit: total_circuit_executions},
+            circuit_fidelities={combined_circuit: vm_analysis.fidelity},
+            circuit_footprint={combined_circuit: vm_analysis.qubit_count},
+        )
+
+        return analysis

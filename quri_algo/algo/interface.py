@@ -30,17 +30,18 @@ class Analysis:
     @property
     def total_latency_sequential(self) -> TimeValue:
         """Total latency of the circuit, assuming it is not parallelizable."""
-        latency_in_ns = sum(
-            latency.in_ns() for latency in self.circuit_latency.values()
-        )
+        latency_in_ns = 0.0
+        for c, l in self.circuit_latency.items():
+            n = self.circuit_execution_count[c]
+            latency_in_ns += l.in_ns() * n
         return TimeValue(latency_in_ns, TimeUnit.NANOSECOND)
 
     @property
     def total_latency_parallel(self) -> TimeValue:
         """Total latency of the circuit, assuming parallelizable execution."""
-        latency_in_ns = max(
-            latency.in_ns() for latency in self.circuit_latency.values()
-        )
+        for c, l in self.circuit_latency.items():
+            n = self.circuit_execution_count[c]
+            latency_in_ns = max(latency_in_ns, l.in_ns() * n)
         return TimeValue(latency_in_ns, TimeUnit.NANOSECOND)
 
     @property
@@ -68,8 +69,8 @@ class Algorithm(ABC):
     """The name of the algorithm."""
 
     @abstractmethod
-    def run(self, *args: Any, **kwargs: Any) -> Mapping[str, Any]:
-        """The estimate returned by the algorithm."""
+    def run(self, *args: Any, **kwargs: Any) -> Any:
+        """Run the algorithm itself."""
         pass
 
     @property

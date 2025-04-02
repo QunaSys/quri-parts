@@ -50,7 +50,7 @@ class QuantumCompiler(QuantumAlgorithm, ABC):
 
     @property
     @abstractmethod
-    def vm(self) -> VM:
+    def vm(self) -> Optional[VM]:
         ...
 
     @abstractmethod
@@ -156,7 +156,7 @@ class QuantumCompilerGeneric(QuantumCompiler, ABC):
         init_params: Optional[Params] = None,
         *args: Any,
         **kwargs: Any,
-    ) -> NonParametricQuantumCircuit:
+    ) -> QuantumCompilationResult:
         """Perform QAQC compilation and return circuit.
 
         Arguments:
@@ -171,7 +171,9 @@ class QuantumCompilerGeneric(QuantumCompiler, ABC):
         self.compiled_circuit, optimizer_state = self.run(
             circuit_factory, ansatz, init_params, *args, **kwargs
         )
-        analysis = self.analyze(circuit_factory, ansatz, init_params, *args, **kwargs)
+        analysis = self.analyze(
+            circuit_factory, ansatz, optimizer_state, *args, **kwargs
+        )
 
         return QuantumCompilationResult(
             algorithm=self,
