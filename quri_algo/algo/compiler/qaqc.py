@@ -92,8 +92,8 @@ class QAQC(QuantumCompilerGeneric):
     circuit only.
     """
 
-    def __init__(self, cost_fn: CostFunction, optimizer: Optimizer):
-        super().__init__(cost_fn, optimizer)
+    def __init__(self, cost_fn: CostFunction, optimizer: Optimizer, vm: VM):
+        super().__init__(cost_fn, optimizer, vm)
 
     def run_time_scaling(self) -> Expr:
         pass

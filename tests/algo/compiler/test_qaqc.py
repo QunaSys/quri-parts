@@ -22,6 +22,7 @@ def test_qaqc() -> None:
     cost_fn = Mock(spec=LocalCostFunction)
     optimizer = Mock()
     ansatz = Mock()
+    vm = Mock()
     circuit_factory = Mock(spec=CircuitFactory)
     circuit_factory.qubit_count = 4
 
@@ -36,7 +37,7 @@ def test_qaqc() -> None:
     optimizer.get_init_state = Mock(return_value=optimizer_state_success)
     optimizer.step = Mock(return_value=optimizer_state_converged)
 
-    qaqc = QAQC(cost_fn, optimizer)
+    qaqc = QAQC(cost_fn, optimizer, vm)
     qaqc(circuit_factory, ansatz, evolution_time=evolution_time)
 
     assert optimizer.get_init_state.call_count == 1
