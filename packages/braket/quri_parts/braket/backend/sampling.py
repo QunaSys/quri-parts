@@ -34,8 +34,12 @@ from quri_parts.braket.circuit import (
 from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler, SequentialTranspiler
 
+from .saved_sampling import (
+    BraketSavedDataSamplingJob,
+    BraketSavedDataSamplingResult,
+    encode_saved_data_job_sequence_to_json,
+)
 from .transpiler import AwsDeviceTranspiler
-from .saved_sampling import BraketSavedDataSamplingJob, BraketSavedDataSamplingResult, encode_saved_data_job_sequence_to_json
 
 
 class BraketSamplingResult(SamplingResult):
@@ -103,7 +107,7 @@ class BraketSamplingBackend(SamplingBackend):
         enable_shots_roundup: bool = True,
         qubit_mapping: Optional[Mapping[int, int]] = None,
         run_kwargs: Mapping[str, Any] = {},
-        save_data_while_sampling: bool = False
+        save_data_while_sampling: bool = False,
     ):
         self._device = device
         self._circuit_converter = circuit_converter
@@ -135,7 +139,6 @@ class BraketSamplingBackend(SamplingBackend):
                 self._min_shots = min
             if max > 0:
                 self._max_shots = max
-        
 
         # saving mode
         self._save_data_while_sampling = save_data_while_sampling
@@ -166,7 +169,9 @@ class BraketSamplingBackend(SamplingBackend):
         jobs: list[BraketSamplingJob] = []
         try:
             for s in shot_dist:
-                braket_task = self._device.run(braket_circuit, shots=s, **self._run_kwargs)
+                braket_task = self._device.run(
+                    braket_circuit, shots=s, **self._run_kwargs
+                )
                 braket_sampling_job = BraketSamplingJob(braket_task)
                 jobs.append(braket_sampling_job)
                 if self._save_data_while_sampling:
@@ -182,7 +187,6 @@ class BraketSamplingBackend(SamplingBackend):
                     pass
             raise BackendError("Braket Device.run failed") from e
 
-        
         if self._qubit_mapping is not None:
             jobs = [QubitMappedSamplingJob(job, self._qubit_mapping) for job in jobs]
         if len(jobs) == 1:
@@ -190,13 +194,16 @@ class BraketSamplingBackend(SamplingBackend):
         else:
             return CompositeSamplingJob(jobs)
 
-
     @property
     def jobs(self) -> Sequence[BraketSavedDataSamplingJob]:
         """Convert saved data to a list of BraketSavedDataSamplingJob
         objects."""
         job_list = []
-        for circuit_program_str, n_shots, braket_runtime_sampling_job in self._saved_data:
+        for (
+            circuit_program_str,
+            n_shots,
+            braket_runtime_sampling_job,
+        ) in self._saved_data:
             result = braket_runtime_sampling_job._braket_task.result()
             counter = result.measurement_counts
             saved_sampling_result = BraketSavedDataSamplingResult(raw_data=counter)
@@ -207,7 +214,6 @@ class BraketSamplingBackend(SamplingBackend):
             )
             job_list.append(saved_sampling_job)
         return job_list
-    
 
     @property
     def jobs_json(self) -> str:

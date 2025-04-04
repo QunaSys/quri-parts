@@ -9,14 +9,13 @@
 # limitations under the License.
 
 import json
-from collections import defaultdict, Counter
+from collections import defaultdict
 from typing import Any, Mapping, MutableMapping, Optional, Sequence, Union
 
-import numpy as np
-
+from braket.aws import AwsDevice
+from braket.devices import Device
 from pydantic.dataclasses import dataclass
 from pydantic.json import pydantic_encoder
-from qiskit import qasm3
 from qiskit.providers.backend import Backend
 from typing_extensions import TypeAlias
 
@@ -28,13 +27,15 @@ from quri_parts.backend import (
     SamplingResult,
 )
 from quri_parts.backend.qubit_mapping import BackendQubitMapping, QubitMappedSamplingJob
+from quri_parts.braket.circuit import (
+    BraketCircuitConverter,
+    BraketSetTranspiler,
+    convert_circuit,
+)
 from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler, SequentialTranspiler
-from quri_parts.braket.circuit import convert_circuit, BraketCircuitConverter, BraketSetTranspiler
-from braket.aws import AwsDevice
-from braket.devices import Device
-from .transpiler import AwsDeviceTranspiler
 
+from .transpiler import AwsDeviceTranspiler
 
 SavedDataType: TypeAlias = dict[tuple[str, int], list["BraketSavedDataSamplingJob"]]
 
@@ -62,7 +63,6 @@ class BraketSavedDataSamplingResult(SamplingResult):
         for result in self.raw_data:
             measurements[int(result[::-1], 2)] = self.raw_data[result]
         return measurements
-
 
 
 @dataclass
@@ -202,7 +202,6 @@ class BraketSavedDataSamplingBackend(SamplingBackend):
                 self._min_shots = min
             if max > 0:
                 self._max_shots = max
-        
 
         # saving mode
         self._saved_data = self._load_data(saved_data)
