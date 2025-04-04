@@ -138,6 +138,7 @@ class QAQC(QuantumCompilerGeneric):
         ansatz: LinearMappedUnboundParametricQuantumCircuit,
         optimizer_state: OptimizerState,
         circuit_execution_multiplier: Optional[int] = None,
+        circuit_execution_mode: ExecutionMode = ExecutionMode.Sequential,
         *args: Any,
         **kwargs: Any,
     ) -> Analysis:
@@ -170,10 +171,14 @@ class QAQC(QuantumCompilerGeneric):
         ).circuit
         vm_analysis = self.vm.analyze(combined_circuit)
         analysis = QAQCAnalysis(
+            lowering_level=vm_analysis.lowering_level,
+            circuit_depth={combined_circuit: vm_analysis.depth},
+            circuit_gate_count={combined_circuit: vm_analysis.gate_count},
             circuit_latency={combined_circuit: vm_analysis.latency},
             circuit_execution_count={combined_circuit: total_circuit_executions},
             circuit_fidelities={combined_circuit: vm_analysis.fidelity},
             circuit_qubit_count={combined_circuit: vm_analysis.qubit_count},
+            execution_mode=circuit_execution_mode,
         )
 
         return analysis

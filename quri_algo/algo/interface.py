@@ -1,9 +1,16 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Generic, Mapping, Protocol, TypeVar, runtime_checkable
+from typing import (
+    Any,
+    Mapping,
+    Protocol,
+    TypeAlias,
+    TypeVar,
+    runtime_checkable,
+)
 
-from quri_parts.backend.units import TimeUnit, TimeValue
+from quri_parts.backend.units import TimeValue
 from quri_parts.circuit import ImmutableQuantumCircuit, NonParametricQuantumCircuit
 from quri_parts.core.estimator import Estimatable, Estimate
 from quri_parts.core.sampling import MeasurementCounts
@@ -76,14 +83,21 @@ class AlgorithmResult(ABC):
         return self.algorithm.name
 
 
+T = TypeVar("T")
+CircuitMapping: TypeAlias = Mapping[ImmutableQuantumCircuit, T]
+
+
 @dataclass
 class Analysis(ABC):
     """Analysis of the algorithm."""
 
-    circuit_latency: Mapping[ImmutableQuantumCircuit, TimeValue | None]
-    circuit_execution_count: Mapping[ImmutableQuantumCircuit, int]
-    circuit_fidelities: Mapping[ImmutableQuantumCircuit, float | None]
-    circuit_qubit_count: Mapping[ImmutableQuantumCircuit, int]
+    lowering_level: LoweringLevel
+    circuit_gate_count: CircuitMapping[int]
+    circuit_depth: CircuitMapping[int]
+    circuit_latency: CircuitMapping[TimeValue | None]
+    circuit_execution_count: CircuitMapping[int]
+    circuit_fidelities: CircuitMapping[float | None]
+    circuit_qubit_count: CircuitMapping[int]
 
     @property
     @abstractmethod
