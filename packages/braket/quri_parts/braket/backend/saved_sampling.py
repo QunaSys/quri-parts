@@ -16,7 +16,6 @@ from braket.aws import AwsDevice
 from braket.devices import Device
 from pydantic.dataclasses import dataclass
 from pydantic.json import pydantic_encoder
-from qiskit.providers.backend import Backend
 from typing_extensions import TypeAlias
 
 from quri_parts.backend import (
