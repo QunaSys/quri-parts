@@ -13,8 +13,8 @@ from typing import TYPE_CHECKING, NamedTuple, Optional
 
 import numpy as np
 
-from quri_algo.algo.estimator import StateT
-from quri_algo.algo.estimator.time_evolution import (
+from quri_algo.core.estimator import StateT
+from quri_algo.core.estimator.time_evolution import (
     TimeEvolutionExpectationValueEstimator,
     TimeEvolutionPowerEstimator,
 )

@@ -16,10 +16,10 @@ import numpy as np
 import numpy.typing as npt
 from typing_extensions import TypeAlias
 
-from quri_algo.algo.estimator import StateT
 from quri_algo.algo.phase_estimation.spe.utils.fourier.coefficient import (
     SPEFourierCoefficient,
 )
+from quri_algo.core.estimator import StateT
 
 from .exp_val_collector import (
     ExpectationValueCollector,

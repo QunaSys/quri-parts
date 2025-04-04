@@ -12,11 +12,11 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Sequence
 
-from quri_algo.algo.estimator import StateT
 from quri_algo.algo.phase_estimation.interface import (
     PhaseEstimationBase,
     PhaseEstimationResult,
 )
+from quri_algo.core.estimator import StateT
 
 from .utils.exp_val_collector import UnitaryOpPowerSamplingEstimator
 

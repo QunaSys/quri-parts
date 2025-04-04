@@ -23,11 +23,11 @@ from quri_parts.qulacs.sampler import create_qulacs_vector_ideal_sampler
 from quri_parts.qulacs.simulator import evaluate_state_to_vector
 from scipy.linalg import expm
 
-from quri_algo.algo.estimator import State
-from quri_algo.algo.estimator.time_evolution.trotter import (
+from quri_algo.circuit.hadamard_test import construct_hadamard_circuit
+from quri_algo.core.estimator import State
+from quri_algo.core.estimator.time_evolution.trotter import (
     TrotterTimeEvolutionHadamardTest,
 )
-from quri_algo.circuit.hadamard_test import construct_hadamard_circuit
 from quri_algo.problem import QubitHamiltonianInput
 
 

@@ -13,7 +13,7 @@ from quri_parts.core.operator import Operator, pauli_label
 from quri_parts.core.state import quantum_state
 from quri_parts.qulacs.sampler import create_qulacs_vector_ideal_sampler
 
-from quri_algo.algo.estimator.time_evolution import (
+from quri_algo.core.estimator.time_evolution import (
     ExactUnitaryTimeEvolutionHadamardTest,
 )
 from quri_algo.problem.operators.hamiltonian import QubitHamiltonianInput

@@ -8,24 +8,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from typing import Union
 
 from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.core.sampling import Sampler, StateSampler
 
-from quri_algo.algo.estimator import StateT
-from quri_algo.algo.estimator.interface import State
-from quri_algo.circuit.time_evolution.trotter_time_evo import (
-    TrotterControlledTimeEvolutionCircuitFactory,
+from quri_algo.circuit.time_evolution.exact_unitary import (
+    ExactUnitaryControlledTimeEvolutionCircuitFactory,
 )
+from quri_algo.core.estimator import State
 from quri_algo.problem import QubitHamiltonianInput
 
 from .interface import TimeEvolutionHadamardTest
 
 
-class TrotterTimeEvolutionHadamardTest(TimeEvolutionHadamardTest[StateT]):
-    r"""Performs :math:`\langle e^{-iHt} \rangle` base on Trotterized
+class ExactUnitaryTimeEvolutionHadamardTest(TimeEvolutionHadamardTest[State]):
+    r"""Performs :math:`\langle e^{-iHt} \rangle` base on exact unitary matrix
     implementation of the time evolution operator :math:`e^{-iHt}`."""
 
     def __init__(
@@ -33,21 +31,11 @@ class TrotterTimeEvolutionHadamardTest(TimeEvolutionHadamardTest[StateT]):
         encoded_problem: QubitHamiltonianInput,
         sampler: Union[Sampler, StateSampler[State]],
         *,
-        time_step: float | None = None,
-        n_trotter: int | None = None,
-        trotter_order: int = 1,
         transpiler: CircuitTranspiler | None = None
     ):
-        self.time_step = time_step
-        self.n_trotter = n_trotter
-        self.trotter_order = trotter_order
         controlled_time_evolution_factory = (
-            TrotterControlledTimeEvolutionCircuitFactory(
-                encoded_problem,
-                time_step=time_step,
-                n_trotter=n_trotter,
-                trotter_order=trotter_order,
-                transpiler=transpiler,
+            ExactUnitaryControlledTimeEvolutionCircuitFactory(
+                encoded_problem, transpiler=transpiler
             )
         )
         super().__init__(
