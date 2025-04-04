@@ -35,22 +35,12 @@ from quri_parts.circuit.gate_names import (
     is_two_qubit_gate_name,
     is_unitary_matrix_gate_name,
 )
-from quri_parts.circuit.transpile import (
-    CircuitTranspiler,
-    PauliDecomposeTranspiler,
-    PauliRotationDecomposeTranspiler,
-    SequentialTranspiler,
-)
+from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.qiskit.circuit.gate_names import ECR, QiskitTwoQubitGateNameType
 
 QiskitCircuitConverter: TypeAlias = Callable[
     [ImmutableQuantumCircuit, Optional[CircuitTranspiler]], QuantumCircuit
 ]
-
-#: CircuitTranspiler to convert a circuit configuration suitable for Qiskit.
-QiskitSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
-    [PauliDecomposeTranspiler(), PauliRotationDecomposeTranspiler()]
-)
 
 _X = qi.SparsePauliOp("X")
 _Y = qi.SparsePauliOp("Y")
