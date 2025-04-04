@@ -19,12 +19,14 @@ from quri_parts.circuit import (
     QuantumGate,
     UnitaryMatrix,
     gate_names,
+    gates,
 )
 from quri_parts.circuit.gate_names import (
     SingleQubitGateNameType,
     ThreeQubitGateNameType,
     TwoQubitGateNameType,
 )
+from quri_parts.qiskit.circuit.gate_names import ECR, QiskitTwoQubitGateNameType
 
 from .gate_names import ECR, QiskitTwoQubitGateNameType
 
@@ -78,7 +80,7 @@ def circuit_from_qiskit(
     qubit_count = qiskit_circuit.num_qubits
     circuit = QuantumCircuit(qubit_count)
 
-    for instruction, q, _ in qiskit_circuit:
+    for instruction, q, r in qiskit_circuit:
         gname = instruction.name
         if gname in _single_qubit_gate_qiskit_quri_parts:
             circuit.add_gate(
@@ -111,7 +113,7 @@ def circuit_from_qiskit(
                     control_indices=(q[0]._index,),
                 )
             )
-        elif gname == "swap":
+        elif gname in ["ecr", "swap"]:
             circuit.add_gate(
                 QuantumGate(
                     name=_two_qubit_gate_qiskit_quri_parts[gname],
@@ -131,6 +133,10 @@ def circuit_from_qiskit(
                         q[1]._index,
                     ),
                 )
+            )
+        elif gname == "measure":
+            circuit.add_gate(
+                gates.Measurement([i._index for i in q], [i._index for i in r])
             )
         else:
             mat = instruction.to_matrix()

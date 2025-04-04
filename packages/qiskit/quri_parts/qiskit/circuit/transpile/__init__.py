@@ -49,6 +49,7 @@ _qp_qiskit_gate_name_map: Mapping[Union[GateNameType, QiskitGateNameType], str] 
     ECR: "ecr",
     gate_names.SWAP: "swap",
     gate_names.TOFFOLI: "ccx",
+    gate_names.Measurement: "measure",
 }
 
 
@@ -73,7 +74,7 @@ class QiskitTranspiler(CircuitTranspilerProtocol):
     def __init__(
         self,
         backend: Optional[Backend] = None,
-        basis_gates: Optional[Sequence[GateNameType]] = None,
+        basis_gates: Optional[Sequence[Union[GateNameType, QiskitGateNameType]]] = None,
         optimization_level: Optional[int] = None,
     ):
         self._basis_gates: Optional[list[str]] = None
