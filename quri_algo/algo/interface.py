@@ -1,11 +1,68 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Mapping, Protocol
+from typing import Any, Mapping, Protocol, TypeVar, Generic, runtime_checkable
 
 from quri_parts.backend.units import TimeUnit, TimeValue
 from quri_parts.circuit import ImmutableQuantumCircuit
+from quri_parts.core.estimator import Estimatable, Estimate
+from quri_parts.core.sampling import MeasurementCounts
+from quri_parts.core.state import CircuitQuantumState
+from quri_parts.circuit import NonParametricQuantumCircuit
+from quri_vm.vm import VM
 from sympy import Expr
 
+class AnalyzeResult(Protocol):
+    """Analyze result protocol for consistency with the VM interface."""
+    qubit_count: int
+    gate_count: int
+    depth: int
+    latency: TimeValue | None = None
+    fidelity: float | None = None
+
+
+class VM(Protocol):
+    """VM interface protocol."""
+    @abstractmethod
+    def estimate(
+        self,
+        estimatable: Estimatable,
+        state: CircuitQuantumState,
+    ) -> Estimate[complex]:
+        pass
+    
+    @abstractmethod
+    def sample(
+        self,
+        circuit: NonParametricQuantumCircuit,
+        shots: int,
+    ) -> MeasurementCounts:
+        pass
+    
+    @abstractmethod
+    def transpile(
+        self, circuit: NonParametricQuantumCircuit
+    ) -> NonParametricQuantumCircuit:
+        pass
+
+    @abstractmethod
+    def analyze(self, circuit: NonParametricQuantumCircuit) -> AnalyzeResult:
+        pass
+
+
+T = TypeVar("T")
+
+class EvaluatorHooks(Generic[T], ABC):
+    @abstractmethod
+    def evaluate(self, *args: Any, **kwargs: Any) -> T:
+        """Evaluate the algorithm."""
+        pass
+
+class EvaluatorHooksAnalysis(EvaluatorHooks[AnalyzeResult]):
+    """Evaluator hooks for the analysis of the algorithm."""
+    
+    def analyze(self, vm: VM, *args: Any, **kwargs: Any) -> AnalyzeResult:
+        """Analyze the algorithm."""
+        return vm.analyze(*args, **kwargs)
 
 @dataclass
 class AlgorithmResult(ABC):
@@ -20,8 +77,10 @@ class AlgorithmResult(ABC):
         return self.algorithm.name
 
 
+
 @dataclass
-class Analysis:
+class Analysis(ABC):
+    """Analysis of the algorithm."""
     circuit_latency: Mapping[ImmutableQuantumCircuit, TimeValue | None]
     circuit_execution_count: Mapping[ImmutableQuantumCircuit, int]
     circuit_fidelities: Mapping[ImmutableQuantumCircuit, float | None]
@@ -39,6 +98,7 @@ class Analysis:
         return TimeValue(latency_in_ns, TimeUnit.NANOSECOND)
 
     @property
+    @abstractmethod
     def total_latency_parallel(self) -> TimeValue:
         """Total latency of the circuit, assuming parallelizable execution."""
         latency_in_ns = 0.0
