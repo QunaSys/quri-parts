@@ -9,6 +9,7 @@
 # limitations under the License.
 
 from collections.abc import Mapping
+from typing import Union
 
 from qiskit import transpile
 from qiskit.circuit import QuantumCircuit as QiskitQuantumCircuit
@@ -19,12 +20,14 @@ from quri_parts.circuit import (
     QuantumGate,
     UnitaryMatrix,
     gate_names,
+    gates,
 )
 from quri_parts.circuit.gate_names import (
     SingleQubitGateNameType,
     ThreeQubitGateNameType,
     TwoQubitGateNameType,
 )
+from quri_parts.qiskit.circuit.gate_names import ECR, QiskitTwoQubitGateNameType
 
 _single_qubit_gate_qiskit_quri_parts: Mapping[str, SingleQubitGateNameType] = {
     "id": gate_names.Identity,
@@ -46,9 +49,12 @@ _single_qubit_rotation_gate_qiskit_quri_parts: Mapping[str, SingleQubitGateNameT
     "rz": gate_names.RZ,
 }
 
-_two_qubit_gate_qiskit_quri_parts: Mapping[str, TwoQubitGateNameType] = {
+_two_qubit_gate_qiskit_quri_parts: Mapping[
+    str, Union[TwoQubitGateNameType, QiskitTwoQubitGateNameType]
+] = {
     "cx": gate_names.CNOT,
     "cz": gate_names.CZ,
+    "ecr": ECR,
     "swap": gate_names.SWAP,
 }
 
@@ -90,7 +96,7 @@ def circuit_from_qiskit(
         )
         qiskit_circuit = transpile(qiskit_circuit, basis_gates=allowed_gates)
 
-    for instruction, q, _ in qiskit_circuit:
+    for instruction, q, r in qiskit_circuit:
         gname = instruction.name
         if gname in _single_qubit_gate_qiskit_quri_parts:
             circuit.add_gate(
@@ -123,7 +129,7 @@ def circuit_from_qiskit(
                     control_indices=(q[0]._index,),
                 )
             )
-        elif gname == "swap":
+        elif gname in ["ecr", "swap"]:
             circuit.add_gate(
                 QuantumGate(
                     name=_two_qubit_gate_qiskit_quri_parts[gname],
@@ -143,6 +149,10 @@ def circuit_from_qiskit(
                         q[1]._index,
                     ),
                 )
+            )
+        elif gname == "measure":
+            circuit.add_gate(
+                gates.Measurement([i._index for i in q], [i._index for i in r])
             )
         else:
             mat = instruction.to_matrix()
