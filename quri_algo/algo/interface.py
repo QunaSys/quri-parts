@@ -1,14 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import (
-    Any,
-    Mapping,
-    Protocol,
-    TypeAlias,
-    TypeVar,
-    runtime_checkable,
-)
+from typing import Any, Mapping, Protocol, TypeAlias, TypeVar, runtime_checkable
 
 from quri_parts.backend.units import TimeValue
 from quri_parts.circuit import ImmutableQuantumCircuit, NonParametricQuantumCircuit
