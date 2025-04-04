@@ -30,7 +30,6 @@ quri-parts-qulacs = ">=0.20.2"
 quri-parts-pyscf = ">=0.20.2"
 quri-parts-openfermion = ">=0.20.2"
 pytest = "^8.3.3"
-quri-vm = "^0.1.0"
 
 [tool.poetry.group.ipykernel.dependencies]
 ipykernel = "^6.29.5"

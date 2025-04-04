@@ -10,6 +10,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from enum import Enum
 from typing import Any, Optional
 
 import numpy as np
@@ -20,9 +21,8 @@ from quri_parts.circuit import (
     NonParametricQuantumCircuit,
 )
 from quri_parts.circuit.parameter_shift import ShiftedParameters
-from quri_vm.vm import VM
 
-from quri_algo.algo.interface import QuantumAlgorithm, QuantumAlgorithmResult
+from quri_algo.algo.interface import VM, QuantumAlgorithm, QuantumAlgorithmResult
 from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.core.cost_functions.base_classes import CostFunction
 

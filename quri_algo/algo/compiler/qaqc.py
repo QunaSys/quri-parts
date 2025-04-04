@@ -8,21 +8,78 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from dataclasses import dataclass
+from enum import Enum
 from typing import Any, Optional
 
 from quri_parts.algo.optimizer import Optimizer, OptimizerState, Params
+from quri_parts.backend.units import TimeUnit, TimeValue
 from quri_parts.circuit import (
     LinearMappedUnboundParametricQuantumCircuit,
     NonParametricQuantumCircuit,
 )
-from quri_vm.vm import VM
 from sympy import Expr
 
 from quri_algo.algo.compiler.base_classes import QuantumCompilerGeneric
-from quri_algo.algo.interface import Analysis
+from quri_algo.algo.interface import VM, Analysis
 from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.core.cost_functions.base_classes import CostFunction
 from quri_algo.core.cost_functions.utils import prepare_circuit_hilbert_schmidt_test
+
+ExecutionMode = Enum("ExecutionMode", [("Sequential", 0), ("Parallel", 1)])
+
+
+@dataclass
+class QAQCAnalysis(Analysis):
+    execution_mode: ExecutionMode = ExecutionMode.Sequential
+
+    def total_latency_sequential(self) -> TimeValue:
+        """Total latency of the circuit, assuming it is not parallelizable."""
+        latency_in_ns = 0.0
+        for c, l in self.circuit_latency.items():
+            if l is None:
+                continue
+            n = self.circuit_execution_count[c]
+            latency_in_ns += l.in_ns() * n
+        return TimeValue(latency_in_ns, TimeUnit.NANOSECOND)
+
+    def total_latency_parallel(self) -> TimeValue:
+        """Total latency of the circuit, assuming parallelizable execution."""
+        latency_in_ns = 0.0
+        for c, l in self.circuit_latency.items():
+            if l is None:
+                continue
+            n = self.circuit_execution_count[c]
+            latency_in_ns = max(latency_in_ns, l.in_ns() * n)
+        return TimeValue(latency_in_ns, TimeUnit.NANOSECOND)
+
+    @property
+    def total_latency(self) -> TimeValue:
+        if self.execution_mode == ExecutionMode.Sequential:
+            return self.total_latency_sequential()
+        elif self.execution_mode == ExecutionMode.Parallel:
+            return self.total_latency_parallel()
+        else:
+            raise TypeError("Execution mode undefined")
+
+    def qubit_count_sequential(self) -> int:
+        """Total footprint of the circuit, assuming it is not
+        parallelizable."""
+        return max(self.circuit_qubit_count.values())
+
+    def qubit_count_parallel(self) -> int:
+        """Total footprint of the circuit, assuming parallelizable
+        execution."""
+        return sum(self.circuit_qubit_count.values())
+
+    @property
+    def qubit_count(self) -> int:
+        if self.execution_mode == ExecutionMode.Sequential:
+            return self.qubit_count_sequential()
+        elif self.execution_mode == ExecutionMode.Parallel:
+            return self.qubit_count_parallel()
+        else:
+            raise TypeError("Execution mode undefined")
 
 
 class QAQC(QuantumCompilerGeneric):
@@ -112,11 +169,11 @@ class QAQC(QuantumCompilerGeneric):
             ansatz.bind_parameters(list(optimizer_state.params.tolist())),
         ).circuit
         vm_analysis = self.vm.analyze(combined_circuit)
-        analysis = Analysis(
+        analysis = QAQCAnalysis(
             circuit_latency={combined_circuit: vm_analysis.latency},
             circuit_execution_count={combined_circuit: total_circuit_executions},
             circuit_fidelities={combined_circuit: vm_analysis.fidelity},
-            circuit_footprint={combined_circuit: vm_analysis.qubit_count},
+            circuit_qubit_count={combined_circuit: vm_analysis.qubit_count},
         )
 
         return analysis

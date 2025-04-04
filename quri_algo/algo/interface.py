@@ -1,18 +1,30 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Mapping, Protocol, TypeVar, Generic, runtime_checkable
+from enum import Enum
+from typing import Any, Generic, Mapping, Protocol, TypeVar, runtime_checkable
 
 from quri_parts.backend.units import TimeUnit, TimeValue
-from quri_parts.circuit import ImmutableQuantumCircuit
+from quri_parts.circuit import ImmutableQuantumCircuit, NonParametricQuantumCircuit
 from quri_parts.core.estimator import Estimatable, Estimate
 from quri_parts.core.sampling import MeasurementCounts
 from quri_parts.core.state import CircuitQuantumState
-from quri_parts.circuit import NonParametricQuantumCircuit
-from quri_vm.vm import VM
 from sympy import Expr
+
+LoweringLevel = Enum(
+    "LoweringLevel",
+    [
+        ("LogicalCircuit", 0),
+        ("ArchLogicalCircuit", 1),
+        ("ArchInstruction", 2),
+        ("DeviceInstruction", 3),
+    ],
+)
+
 
 class AnalyzeResult(Protocol):
     """Analyze result protocol for consistency with the VM interface."""
+
+    lowering_level: LoweringLevel
     qubit_count: int
     gate_count: int
     depth: int
@@ -20,8 +32,10 @@ class AnalyzeResult(Protocol):
     fidelity: float | None = None
 
 
+@runtime_checkable
 class VM(Protocol):
     """VM interface protocol."""
+
     @abstractmethod
     def estimate(
         self,
@@ -29,7 +43,7 @@ class VM(Protocol):
         state: CircuitQuantumState,
     ) -> Estimate[complex]:
         pass
-    
+
     @abstractmethod
     def sample(
         self,
@@ -37,7 +51,7 @@ class VM(Protocol):
         shots: int,
     ) -> MeasurementCounts:
         pass
-    
+
     @abstractmethod
     def transpile(
         self, circuit: NonParametricQuantumCircuit
@@ -48,21 +62,6 @@ class VM(Protocol):
     def analyze(self, circuit: NonParametricQuantumCircuit) -> AnalyzeResult:
         pass
 
-
-T = TypeVar("T")
-
-class EvaluatorHooks(Generic[T], ABC):
-    @abstractmethod
-    def evaluate(self, *args: Any, **kwargs: Any) -> T:
-        """Evaluate the algorithm."""
-        pass
-
-class EvaluatorHooksAnalysis(EvaluatorHooks[AnalyzeResult]):
-    """Evaluator hooks for the analysis of the algorithm."""
-    
-    def analyze(self, vm: VM, *args: Any, **kwargs: Any) -> AnalyzeResult:
-        """Analyze the algorithm."""
-        return vm.analyze(*args, **kwargs)
 
 @dataclass
 class AlgorithmResult(ABC):
@@ -77,49 +76,24 @@ class AlgorithmResult(ABC):
         return self.algorithm.name
 
 
-
 @dataclass
 class Analysis(ABC):
     """Analysis of the algorithm."""
+
     circuit_latency: Mapping[ImmutableQuantumCircuit, TimeValue | None]
     circuit_execution_count: Mapping[ImmutableQuantumCircuit, int]
     circuit_fidelities: Mapping[ImmutableQuantumCircuit, float | None]
-    circuit_footprint: Mapping[ImmutableQuantumCircuit, int]
-
-    @property
-    def total_latency_sequential(self) -> TimeValue:
-        """Total latency of the circuit, assuming it is not parallelizable."""
-        latency_in_ns = 0.0
-        for c, l in self.circuit_latency.items():
-            if l is None:
-                continue
-            n = self.circuit_execution_count[c]
-            latency_in_ns += l.in_ns() * n
-        return TimeValue(latency_in_ns, TimeUnit.NANOSECOND)
+    circuit_qubit_count: Mapping[ImmutableQuantumCircuit, int]
 
     @property
     @abstractmethod
-    def total_latency_parallel(self) -> TimeValue:
-        """Total latency of the circuit, assuming parallelizable execution."""
-        latency_in_ns = 0.0
-        for c, l in self.circuit_latency.items():
-            if l is None:
-                continue
-            n = self.circuit_execution_count[c]
-            latency_in_ns = max(latency_in_ns, l.in_ns() * n)
-        return TimeValue(latency_in_ns, TimeUnit.NANOSECOND)
+    def total_latency(self, *args: Any, **kwargs: Any) -> TimeValue:
+        pass
 
     @property
-    def total_footprint_sequential(self) -> int:
-        """Total footprint of the circuit, assuming it is not
-        parallelizable."""
-        return max(self.circuit_footprint.values())
-
-    @property
-    def total_footprint_parallel(self) -> int:
-        """Total footprint of the circuit, assuming parallelizable
-        execution."""
-        return sum(self.circuit_footprint.values())
+    @abstractmethod
+    def qubit_count(self, *args: Any, **kwargs: Any) -> int:
+        pass
 
 
 @dataclass
