@@ -8,7 +8,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .connectivity import device_connectivity_graph
+from .connectivity import (
+    coupling_map_with_2_qubit_gate_errors,
+    device_connectivity_graph,
+    qubit_indices_with_readout_errors,
+)
 from .primitive import (
     QiskitRuntimeSamplingBackend,
     QiskitRuntimeSamplingJob,
@@ -37,13 +41,15 @@ __all__ = [
     "QiskitRuntimeSamplingJob",
     "QiskitRuntimeSamplingResult",
     "QiskitRuntimeSavedDataSamplingResult",
-    "device_connectivity_graph",
     "QiskitSavedDataSamplingJob",
     "QiskitSavedDataSamplingResult",
     "QiskitSavedDataSamplingBackend",
+    "convert_qiskit_sampling_count_to_qp_sampling_count",
+    "coupling_map_with_2_qubit_gate_errors",
+    "device_connectivity_graph",
+    "distribute_backend_shots",
     "get_job_mapper_and_circuit_transpiler",
     "get_backend_min_max_shot",
-    "distribute_backend_shots",
-    "convert_qiskit_sampling_count_to_qp_sampling_count",
+    "qubit_indices_with_readout_errors",
     "Tracker",
 ]
