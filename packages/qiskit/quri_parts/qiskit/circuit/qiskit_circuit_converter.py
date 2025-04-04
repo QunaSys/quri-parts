@@ -28,8 +28,6 @@ from quri_parts.circuit.gate_names import (
 )
 from quri_parts.qiskit.circuit.gate_names import ECR, QiskitTwoQubitGateNameType
 
-from .gate_names import ECR, QiskitTwoQubitGateNameType
-
 _single_qubit_gate_qiskit_quri_parts: Mapping[str, SingleQubitGateNameType] = {
     "id": gate_names.Identity,
     "x": gate_names.X,
