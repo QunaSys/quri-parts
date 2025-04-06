@@ -106,7 +106,6 @@ def get_job_mapper_and_circuit_transpiler(
             2 → 5, 3 → 0, then the ``qubit_mapping`` should be
             ``{0: 4, 1: 2, 2: 5, 3: 0}``.
         circuit_transpiler: A transpiler applied to the circuit before running it.
-            :class:`~QiskitSetTranspiler` is used when not specified.
     """
     if circuit_transpiler is None:
         circuit_transpiler = SequentialTranspiler([])
