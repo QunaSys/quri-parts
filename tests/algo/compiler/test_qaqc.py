@@ -18,7 +18,7 @@ from quri_parts.circuit import (
     ParametricQuantumCircuit,
 )
 
-from quri_algo.algo.interface import LoweringLevel
+from quri_algo.algo.interface import LoweringLevel, VM
 from quri_algo.algo.compiler.qaqc import QAQC
 from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.core.cost_functions.base_classes import LocalCostFunction
@@ -33,7 +33,7 @@ def test_qaqc() -> None:
     optimize_result.qubit_count = 4
     optimize_result.latency = Mock()
     optimize_result.latency.in_ns = Mock(return_value=1000)
-    vm = Mock()
+    vm = Mock(spec=VM)
     vm.analyze = Mock(return_value=optimize_result)
     circuit_factory = Mock(spec=CircuitFactory)
     circuit_factory.qubit_count = 4
