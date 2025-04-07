@@ -135,7 +135,7 @@ class BraketSavedDataSamplingBackend(SamplingBackend):
         >>> replayed_sampling_count_3 = sampler(circuit_3, n_shots_3)
 
     Args:
-        backend: A Braket :class:`braket.devices.Device` for circuit execution.
+        device: A Braket :class:`braket.devices.Device` for circuit execution.
         saved_data: A json string output by the `.jobs_json` property of
             `:class:`~quri_parts.braket.backend.BraketSamplingBackend`.
         circuit_converter: A function converting
