@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Mapping, Protocol, TypeAlias, TypeVar, runtime_checkable
+from typing import Any, Protocol, Sequence, Tuple, TypeAlias, TypeVar, runtime_checkable
 
 from quri_parts.backend.units import TimeValue
 from quri_parts.circuit import ImmutableQuantumCircuit, NonParametricQuantumCircuit
@@ -77,7 +77,9 @@ class AlgorithmResult(ABC):
 
 
 T = TypeVar("T")
-CircuitMapping: TypeAlias = Mapping[ImmutableQuantumCircuit, T]
+CircuitMapping: TypeAlias = Sequence[
+    Tuple[ImmutableQuantumCircuit, T]
+]  # Would be better to use a dict, but circuits aren't hashable
 
 
 @dataclass

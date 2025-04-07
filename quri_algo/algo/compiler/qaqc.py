@@ -36,20 +36,20 @@ class QAQCAnalysis(Analysis):
     def total_latency_sequential(self) -> TimeValue:
         """Total latency of the circuit, assuming it is not parallelizable."""
         latency_in_ns = 0.0
-        for c, l in self.circuit_latency.items():
+        for i, (_, l) in enumerate(self.circuit_latency):
             if l is None:
                 continue
-            n = self.circuit_execution_count[c]
+            n = self.circuit_execution_count[i][1]
             latency_in_ns += l.in_ns() * n
         return TimeValue(latency_in_ns, TimeUnit.NANOSECOND)
 
     def total_latency_parallel(self) -> TimeValue:
         """Total latency of the circuit, assuming parallelizable execution."""
         latency_in_ns = 0.0
-        for c, l in self.circuit_latency.items():
+        for i, (_, l) in enumerate(self.circuit_latency):
             if l is None:
                 continue
-            n = self.circuit_execution_count[c]
+            n = self.circuit_execution_count[i][1]
             latency_in_ns = max(latency_in_ns, l.in_ns() * n)
         return TimeValue(latency_in_ns, TimeUnit.NANOSECOND)
 
@@ -65,12 +65,12 @@ class QAQCAnalysis(Analysis):
     def qubit_count_sequential(self) -> int:
         """Total footprint of the circuit, assuming it is not
         parallelizable."""
-        return max(self.circuit_qubit_count.values())
+        return max(c[1] for c in self.circuit_qubit_count)
 
     def qubit_count_parallel(self) -> int:
         """Total footprint of the circuit, assuming parallelizable
         execution."""
-        return sum(self.circuit_qubit_count.values())
+        return sum(c[1] for c in self.circuit_qubit_count)
 
     @property
     def qubit_count(self) -> int:
@@ -172,12 +172,12 @@ class QAQC(QuantumCompilerGeneric):
         vm_analysis = self.vm.analyze(combined_circuit)
         analysis = QAQCAnalysis(
             lowering_level=vm_analysis.lowering_level,
-            circuit_depth={combined_circuit: vm_analysis.depth},
-            circuit_gate_count={combined_circuit: vm_analysis.gate_count},
-            circuit_latency={combined_circuit: vm_analysis.latency},
-            circuit_execution_count={combined_circuit: total_circuit_executions},
-            circuit_fidelities={combined_circuit: vm_analysis.fidelity},
-            circuit_qubit_count={combined_circuit: vm_analysis.qubit_count},
+            circuit_depth=[(combined_circuit, vm_analysis.depth)],
+            circuit_gate_count=[(combined_circuit, vm_analysis.gate_count)],
+            circuit_latency=[(combined_circuit, vm_analysis.latency)],
+            circuit_execution_count=[(combined_circuit, total_circuit_executions)],
+            circuit_fidelities=[(combined_circuit, vm_analysis.fidelity)],
+            circuit_qubit_count=[(combined_circuit, vm_analysis.qubit_count)],
             execution_mode=circuit_execution_mode,
         )
 

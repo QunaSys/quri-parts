@@ -12,7 +12,13 @@ from unittest.mock import Mock
 
 import numpy as np
 from quri_parts.algo.optimizer import OptimizerStatus
+from quri_parts.circuit import (
+    ImmutableBoundParametricQuantumCircuit,
+    ImmutableQuantumCircuit,
+    ParametricQuantumCircuit,
+)
 
+from quri_algo.algo.interface import LoweringLevel
 from quri_algo.algo.compiler.qaqc import QAQC
 from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.core.cost_functions.base_classes import LocalCostFunction
@@ -21,10 +27,24 @@ from quri_algo.core.cost_functions.base_classes import LocalCostFunction
 def test_qaqc() -> None:
     cost_fn = Mock(spec=LocalCostFunction)
     optimizer = Mock()
-    ansatz = Mock()
+    ansatz = Mock(spec=ParametricQuantumCircuit)
+    optimize_result = Mock()
+    optimize_result.lowering_level = LoweringLevel.ArchInstruction
+    optimize_result.qubit_count = 4
+    optimize_result.latency = Mock()
+    optimize_result.latency.in_ns = Mock(return_value=1000)
     vm = Mock()
+    vm.analyze = Mock(return_value=optimize_result)
     circuit_factory = Mock(spec=CircuitFactory)
     circuit_factory.qubit_count = 4
+    bound_circuit = Mock(spec=ImmutableBoundParametricQuantumCircuit)
+    bound_circuit.qubit_count = 4
+    bound_circuit.gates = []
+    returned_circuit = Mock(spec=ImmutableQuantumCircuit)
+    returned_circuit.qubit_count = 4
+    returned_circuit.gates = []
+    ansatz.bind_parameters = Mock(return_value=bound_circuit)
+    circuit_factory.return_value = returned_circuit
 
     evolution_time = 0.5
     opt_params = np.array([0.5, 0.1, 0.3])
@@ -34,12 +54,30 @@ def test_qaqc() -> None:
     optimizer_state_converged = Mock()
     optimizer_state_converged.status = OptimizerStatus.CONVERGED
     optimizer_state_converged.params = opt_params
+    optimizer_state_converged.gradcalls = 16
+    optimizer_state_converged.funcalls = 4
     optimizer.get_init_state = Mock(return_value=optimizer_state_success)
     optimizer.step = Mock(return_value=optimizer_state_converged)
 
     qaqc = QAQC(cost_fn, optimizer, vm)
-    qaqc(circuit_factory, ansatz, evolution_time=evolution_time)
+    qaqc.run(circuit_factory, ansatz, evolution_time=evolution_time)
 
     assert optimizer.get_init_state.call_count == 1
     assert optimizer.step.call_count == 1
     ansatz.bind_parameters.assert_called_with(opt_params.tolist())
+
+    analysis = qaqc.analyze(
+        circuit_factory,
+        ansatz,
+        optimizer_state_converged,
+        evolution_time=evolution_time,
+        circuit_execution_multiplier=500,
+    )
+
+    assert analysis.lowering_level == optimize_result.lowering_level
+    assert analysis.circuit_latency[0][1] == optimize_result.latency
+    assert analysis.circuit_qubit_count[0][1] == optimize_result.qubit_count
+    assert analysis.total_latency.in_ns() == 500 * 1000 * (16 * 16 * 2 + 4)
+    assert analysis.qubit_count == 4
+
+    optimize_result.latency.in_ns.assert_called_once()
