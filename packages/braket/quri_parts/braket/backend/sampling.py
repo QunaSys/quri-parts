@@ -10,7 +10,7 @@
 
 from collections import Counter
 from collections.abc import Mapping
-from typing import Any, Optional, Sequence
+from typing import Any, Optional, Sequence, cast
 
 import numpy as np
 from braket.aws import AwsDevice
@@ -166,20 +166,20 @@ class BraketSamplingBackend(SamplingBackend):
                 )
 
         braket_circuit = self._circuit_converter(circuit, self._circuit_transpiler)
-        jobs: list[BraketSamplingJob] = []
+        braket_jobs: list[BraketSamplingJob] = []
         try:
             for s in shot_dist:
                 braket_task = self._device.run(
                     braket_circuit, shots=s, **self._run_kwargs
                 )
                 braket_sampling_job = BraketSamplingJob(braket_task)
-                jobs.append(braket_sampling_job)
+                braket_jobs.append(braket_sampling_job)
                 if self._save_data_while_sampling:
                     circuit_program = braket_circuit.to_ir().json()
                     self._saved_data.append((circuit_program, s, braket_sampling_job))
 
         except Exception as e:
-            for j in jobs:
+            for j in braket_jobs:
                 try:
                     j._braket_task.cancel()
                 except Exception:
@@ -187,8 +187,12 @@ class BraketSamplingBackend(SamplingBackend):
                     pass
             raise BackendError("Braket Device.run failed") from e
 
-        if self._qubit_mapping is not None:
-            jobs = [QubitMappedSamplingJob(job, self._qubit_mapping) for job in jobs]
+        jobs: list[SamplingJob] = (
+            [QubitMappedSamplingJob(job, self._qubit_mapping) for job in braket_jobs]
+            if self._qubit_mapping is not None
+            else cast(list[SamplingJob], braket_jobs)
+        )
+
         if len(jobs) == 1:
             return jobs[0]
         else:

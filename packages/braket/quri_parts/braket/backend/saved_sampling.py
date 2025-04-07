@@ -86,8 +86,8 @@ class BraketSavedDataSamplingJob(SamplingJob):
 
 
 class BraketSavedDataSamplingBackend(SamplingBackend):
-    """A Qiskit backend for replaying saved sampling experiments. When a
-    sampler is created with a QiskitSavedDataSamplingBackend object, the
+    """A Braket backend for replaying saved sampling experiments. When a
+    sampler is created with a BraketSavedDataSamplingBackend object, the
     sequence of (circuit, n_shots) pairs should be passed in to the sampler the
     same order as the orginal experiment.
 
@@ -96,8 +96,8 @@ class BraketSavedDataSamplingBackend(SamplingBackend):
 
         1-a: Sampling mode with data saving
 
-        >>> backend_device = AerSimulator()
-        >>> sampling_backend = QiskitSamplingBackend(
+        >>> backend_device = LocalSimulator()
+        >>> sampling_backend = BraketSamplingBackend(
         ...     backend_device, save_data_while_sampling=True
         ... )
         >>> sampler = create_sampler_from_sampling_backend(sampling_backend)
