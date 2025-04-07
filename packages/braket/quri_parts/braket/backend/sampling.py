@@ -203,12 +203,8 @@ class BraketSamplingBackend(SamplingBackend):
         """Convert saved data to a list of BraketSavedDataSamplingJob
         objects."""
         job_list = []
-        for (
-            circuit_program_str,
-            n_shots,
-            braket_runtime_sampling_job,
-        ) in self._saved_data:
-            result = braket_runtime_sampling_job._braket_task.result()
+        for circuit_program_str, n_shots, braket_sampling_job in self._saved_data:
+            result = braket_sampling_job._braket_task.result()
             counter = result.measurement_counts
             saved_sampling_result = BraketSavedDataSamplingResult(raw_data=counter)
             saved_sampling_job = BraketSavedDataSamplingJob(
