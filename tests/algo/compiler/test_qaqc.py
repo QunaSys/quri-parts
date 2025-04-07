@@ -18,8 +18,8 @@ from quri_parts.circuit import (
     ParametricQuantumCircuit,
 )
 
-from quri_algo.algo.interface import LoweringLevel, VM
 from quri_algo.algo.compiler.qaqc import QAQC
+from quri_algo.algo.interface import VM, LoweringLevel
 from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.core.cost_functions.base_classes import LocalCostFunction
 

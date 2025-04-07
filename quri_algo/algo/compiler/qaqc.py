@@ -93,7 +93,7 @@ class QAQC(QuantumCompilerGeneric):
     """
 
     def __init__(self, cost_fn: CostFunction, optimizer: Optimizer, vm: VM):
-        super().__init__(cost_fn, optimizer, vm)
+        super().__init__("Quantum-Assisted Quantum Compiling", cost_fn, optimizer, vm)
 
     def run_time_scaling(self) -> Expr:
         pass
@@ -110,7 +110,7 @@ class QAQC(QuantumCompilerGeneric):
     def vm(self) -> Optional[VM]:
         return self._vm
 
-    def run(
+    def _run(
         self,
         circuit_factory: CircuitFactory,
         ansatz: LinearMappedUnboundParametricQuantumCircuit,

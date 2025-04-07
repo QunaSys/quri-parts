@@ -1,7 +1,17 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Protocol, Sequence, Tuple, TypeAlias, TypeVar, runtime_checkable
+from time import time
+from typing import (
+    Any,
+    Optional,
+    Protocol,
+    Sequence,
+    Tuple,
+    TypeAlias,
+    TypeVar,
+    runtime_checkable,
+)
 
 from quri_parts.backend.units import TimeValue
 from quri_parts.circuit import ImmutableQuantumCircuit, NonParametricQuantumCircuit
@@ -68,7 +78,7 @@ class AlgorithmResult(ABC):
     """Algorithm result."""
 
     algorithm: "Algorithm"
-    runtime: float
+    elapsed_time: Optional[float]
 
     @property
     def name(self) -> str:
@@ -113,13 +123,35 @@ class QuantumAlgorithmResult(AlgorithmResult, ABC):
 
 
 class Algorithm(ABC):
-    name: str
-    """The name of the algorithm."""
+    def __init__(self, name: str):
+        self.name = name
+        self._elapsed_time: Optional[float] = None
+
+    @property
+    def elapsed_time(self) -> Optional[float]:
+        t = self._elapsed_time
+        self._elapsed_time = None
+        return t
+
+    @elapsed_time.setter
+    def elapsed_time(self, t: float) -> None:
+        self._elapsed_time = t
+
+    @elapsed_time.deleter
+    def elapsed_time(self) -> None:
+        self._elapsed_time = None
 
     @abstractmethod
+    def _run(self, *args: Any, **kwargs: Any) -> Any:
+        pass
+
     def run(self, *args: Any, **kwargs: Any) -> Any:
         """Run the algorithm itself."""
-        pass
+        t0 = time()
+        result = self._run(*args, **kwargs)
+        t1 = time()
+        self.elapsed_time = t1 - t0
+        return result
 
     @property
     @abstractmethod
