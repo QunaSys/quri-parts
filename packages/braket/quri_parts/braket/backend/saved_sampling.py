@@ -69,7 +69,7 @@ class BraketSavedDataSamplingJob(SamplingJob):
     """An object that represents a saved sampling job.
 
     Args:
-        circuit_qasm: A string that represents the circuit used in a sampling job.
+        circuit_program_str: A string that represents the circuit used in a sampling job.
             Note that it should take in the program string of a braket quantum circuit.
             It can be accessed by `braket_circuit.to_ir().json()`.
         n_shots: The total shots of a sampling job.
