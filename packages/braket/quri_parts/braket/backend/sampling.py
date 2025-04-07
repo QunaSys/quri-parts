@@ -221,6 +221,6 @@ class BraketSamplingBackend(SamplingBackend):
 
     @property
     def jobs_json(self) -> str:
-        """Encodes the list of QiskitSavedDataSamplingJob objects to a json
+        """Encodes the list of BraketSavedDataSamplingJob objects to a json
         string."""
         return encode_saved_data_job_sequence_to_json(self.jobs)

@@ -41,12 +41,12 @@ SavedDataType: TypeAlias = dict[tuple[str, int], list["BraketSavedDataSamplingJo
 
 @dataclass
 class BraketSavedDataSamplingResult(SamplingResult):
-    """An object that holds a sampling count from qiskit backend output and
+    """An object that holds a sampling count from Braket backend output and
     converts it into quri-parts sampling count.
 
     The `raw_data` should take in the output of
-    `qiskit_result.get_counts()`, which is a counter that uses str as
-    its key.
+    `braket_task.result().measurement_counts`, which is a counter that
+    uses str as its key.
     """
 
     raw_data: dict[str, int]
@@ -70,10 +70,10 @@ class BraketSavedDataSamplingJob(SamplingJob):
 
     Args:
         circuit_qasm: A string that represents the circuit used in a sampling job.
-            Note that it should take in the qasm string of a qiskit quantum circuit.
-            It can be accessed by `qiskit.qasm3.dumps(qiskit_circuit)`.
+            Note that it should take in the program string of a braket quantum circuit.
+            It can be accessed by `braket_circuit.to_ir().json()`.
         n_shots: The total shots of a sampling job.
-        saved_result: A `QiskitSavedDataSamplingResult` instance that represents the
+        saved_result: A `BraketSavedDataSamplingResult` instance that represents the
             result when (circuit_str, n_shots) is passed into the sampler.
     """
 
@@ -116,7 +116,7 @@ class BraketSavedDataSamplingBackend(SamplingBackend):
 
         2-a: Create sampling backend and sampler with saved data.
 
-        >>> saved_data_sampling_backend = QiskitSavedDataSamplingBackend(
+        >>> saved_data_sampling_backend = BraketSavedDataSamplingBackend(
         ...     backend = backend_device,
         ...     saved_data = experiment_json_str
         ... )
@@ -135,15 +135,14 @@ class BraketSavedDataSamplingBackend(SamplingBackend):
         >>> replayed_sampling_count_3 = sampler(circuit_3, n_shots_3)
 
     Args:
-        backend: A Qiskit :class:`qiskit.providers.backend.Backend`
-            for circuit execution.
-        saved_data: A json string output by the `.json_str` property of
-            `:class:`~quri_parts.qiskit.backend.QiskitSamplingBackend`.
+        backend: A Braket :class:`braket.devices.Device` for circuit execution.
+        saved_data: A json string output by the `.jobs_json` property of
+            `:class:`~quri_parts.braket.backend.BraketSamplingBackend`.
         circuit_converter: A function converting
             :class:`~quri_parts.circuit.ImmutableQuantumCircuit` to
-            a Qiskit :class:`qiskit.circuit.QuantumCircuit`.
+            a Braket :class:`braket.circuits.Circuit`.
         circuit_transpiler: A transpiler applied to the circuit before running it.
-            :class:`~QiskitSetTranspiler` is used when not specified.
+            :class:`~BraketSetTranspiler` is used when not specified.
         enable_shots_roundup: If True, when a number of shots specified to
             :meth:`~sample` is smaller than the minimum number of shots supported by
             the device, it is rounded up to the minimum. In this case, it is possible
@@ -158,7 +157,7 @@ class BraketSavedDataSamplingBackend(SamplingBackend):
             2 → 5, 3 → 0, then the ``qubit_mapping`` should be
             ``{0: 4, 1: 2, 2: 5, 3: 0}``.
         run_kwargs: Additional keyword arguments for
-            :meth:`qiskit.providers.backend.Backend.run` method.
+            :meth:`braket.devices.Device.run` method.
     """
 
     def __init__(
