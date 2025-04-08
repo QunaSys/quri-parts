@@ -28,13 +28,13 @@ def test_qaqc() -> None:
     cost_fn = Mock(spec=LocalCostFunction)
     optimizer = Mock()
     ansatz = Mock(spec=ParametricQuantumCircuit)
-    optimize_result = Mock()
-    optimize_result.lowering_level = LoweringLevel.ArchInstruction
-    optimize_result.qubit_count = 4
-    optimize_result.latency = Mock()
-    optimize_result.latency.in_ns = Mock(return_value=1000)
+    analyze_result = Mock()
+    analyze_result.lowering_level = LoweringLevel.ArchInstruction
+    analyze_result.qubit_count = 4
+    analyze_result.latency = Mock()
+    analyze_result.latency.in_ns = Mock(return_value=1000)
     vm = Mock(spec=VM)
-    vm.analyze = Mock(return_value=optimize_result)
+    vm.analyze = Mock(return_value=analyze_result)
     circuit_factory = Mock(spec=CircuitFactory)
     circuit_factory.qubit_count = 4
     bound_circuit = Mock(spec=ImmutableBoundParametricQuantumCircuit)
@@ -69,15 +69,15 @@ def test_qaqc() -> None:
     analysis = qaqc.analyze(
         circuit_factory,
         ansatz,
-        optimizer_state_converged,
+        [optimizer_state_converged],
         evolution_time=evolution_time,
         circuit_execution_multiplier=500,
     )
 
-    assert analysis.lowering_level == optimize_result.lowering_level
-    assert list(analysis.circuit_latency.values())[0] == optimize_result.latency
-    assert list(analysis.circuit_qubit_count.values())[0] == optimize_result.qubit_count
+    assert analysis.lowering_level == analyze_result.lowering_level
+    assert list(analysis.circuit_latency.values())[0] == analyze_result.latency
+    assert list(analysis.circuit_qubit_count.values())[0] == analyze_result.qubit_count
     assert analysis.total_latency.in_ns() == 500 * 1000 * (16 * 16 * 2 + 4)
     assert analysis.qubit_count == 4
 
-    optimize_result.latency.in_ns.assert_called_once()
+    analyze_result.latency.in_ns.assert_called_once()
