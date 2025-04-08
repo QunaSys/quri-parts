@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from dataclasses import dataclass
-from typing import Any, Optional, Sequence
+from typing import Any, Literal, Optional, Sequence
 
 from quri_parts.algo.optimizer import Optimizer, OptimizerState, Params
 from quri_parts.backend.units import TimeUnit, TimeValue
@@ -58,8 +58,10 @@ class QAQC(QuantumCompilerGeneric):
     circuit only.
     """
 
+    name = Literal["Quantum-Assisted Quantum Compilation (QAQC)"]
+
     def __init__(self, cost_fn: CostFunction, optimizer: Optimizer, vm: VM):
-        super().__init__("Quantum-Assisted Quantum Compiling", cost_fn, optimizer, vm)
+        super().__init__(cost_fn, optimizer, vm)
 
     def run_time_scaling(self) -> Expr:
         pass

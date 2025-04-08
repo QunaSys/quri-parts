@@ -68,7 +68,6 @@ class QuantumCompiler(QuantumAlgorithm, ABC):
 class QuantumCompilerGeneric(QuantumCompiler, ABC):
     def __init__(
         self,
-        name: str,
         cost_fn: CostFunction,
         optimizer: Optimizer,
         vm: Optional[VM] = None,
@@ -76,8 +75,6 @@ class QuantumCompilerGeneric(QuantumCompiler, ABC):
         self._cost_fn = cost_fn
         self._optimizer = optimizer
         self._vm = vm
-
-        super().__init__(name)
 
     @property
     def cost_function(self) -> CostFunction:

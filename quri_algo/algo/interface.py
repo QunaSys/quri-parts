@@ -19,7 +19,6 @@ from quri_parts.circuit import ImmutableQuantumCircuit, NonParametricQuantumCirc
 from quri_parts.core.estimator import Estimatable, Estimate
 from quri_parts.core.sampling import MeasurementCounts
 from quri_parts.core.state import CircuitQuantumState
-from sympy import Expr
 
 LoweringLevel = Enum(
     "LoweringLevel",
@@ -178,14 +177,20 @@ class QuantumAlgorithmResult(AlgorithmResult, ABC):
 
 
 class Algorithm(ABC):
-    def __init__(self, name: str):
-        self.name = name
+    """Base class for all algorithms."""
+
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """The name of the algorithm."""
+        pass
+
+    def __init__(self) -> None:
         self._elapsed_time: Optional[float] = None
 
     @property
     def elapsed_time(self) -> Optional[float]:
         t = self._elapsed_time
-        self._elapsed_time = None
         return t
 
     @elapsed_time.setter
@@ -208,29 +213,20 @@ class Algorithm(ABC):
         self.elapsed_time = t1 - t0
         return result
 
-    @property
     @abstractmethod
-    def run_time_scaling(self, *args: Any, **kwargs: Any) -> Expr:
-        """The run-time scaling given in big-O notation as a sympy
-        expression."""
-        pass
-
-    @abstractmethod
-    def __call__(
-        self, *args: Any, **kwargs: Any
-    ) -> AlgorithmResult | QuantumAlgorithmResult:
+    def __call__(self, *args: Any, **kwargs: Any) -> AlgorithmResult:
         """Run the algorithm and return a result."""
         pass
 
     def __str__(self) -> str:
         """Basic information about the algorithm should be returned."""
-        return self.name + " with run-time scaling " + str(self.run_time_scaling)
+        return self.name
 
 
 class QuantumMixin(Protocol):
     @abstractmethod
     def analyze(self, *args: Any, **kwargs: Any) -> Analysis:
-        """The resource analysis of the algorithm."""
+        """The quantum resource analysis of the algorithm."""
         pass
 
 
