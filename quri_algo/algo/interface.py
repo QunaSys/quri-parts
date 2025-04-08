@@ -13,6 +13,7 @@ from typing import (
     runtime_checkable,
 )
 
+from quri_parts.algo.optimizer import OptimizerState
 from quri_parts.backend.units import TimeValue
 from quri_parts.circuit import ImmutableQuantumCircuit, NonParametricQuantumCircuit
 from quri_parts.core.estimator import Estimatable, Estimate
@@ -84,6 +85,23 @@ class AlgorithmResult(ABC):
     def name(self) -> str:
         """The name of the algorithm."""
         return self.algorithm.name
+
+
+@dataclass
+class VariationalAlgorithmResultMixin(ABC):
+    optimizer_history: Sequence[OptimizerState]
+
+    @property
+    def optimizer_result(self) -> OptimizerState:
+        return self.optimizer_history[-1]
+
+    @property
+    def cost_function_value(self) -> float:
+        return self.optimizer_result.cost
+
+    @property
+    def cost_function_history(self) -> Sequence[float]:
+        return [optimizer_state.cost for optimizer_state in self.optimizer_history]
 
 
 T = TypeVar("T")

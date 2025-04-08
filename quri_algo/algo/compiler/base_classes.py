@@ -10,7 +10,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, Optional, Sequence
 
 import numpy as np
 from numpy.random import default_rng
@@ -21,19 +21,19 @@ from quri_parts.circuit import (
 )
 from quri_parts.circuit.parameter_shift import ShiftedParameters
 
-from quri_algo.algo.interface import VM, QuantumAlgorithm, QuantumAlgorithmResult
+from quri_algo.algo.interface import (
+    VM,
+    QuantumAlgorithm,
+    QuantumAlgorithmResult,
+    VariationalAlgorithmResultMixin,
+)
 from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.core.cost_functions.base_classes import CostFunction
 
 
 @dataclass
-class QuantumCompilationResult(QuantumAlgorithmResult):
-    optimizer_result: OptimizerState
+class QuantumCompilationResult(VariationalAlgorithmResultMixin, QuantumAlgorithmResult):
     optimized_circuit: NonParametricQuantumCircuit
-
-    @property
-    def cost_function_value(self) -> float:
-        return self.optimizer_result.cost
 
 
 class QuantumCompiler(QuantumAlgorithm, ABC):
@@ -57,7 +57,7 @@ class QuantumCompiler(QuantumAlgorithm, ABC):
         self,
         *args: Any,
         **kwargs: Any,
-    ) -> tuple[NonParametricQuantumCircuit, OptimizerState]:
+    ) -> tuple[NonParametricQuantumCircuit, Sequence[OptimizerState]]:
         pass
 
     @abstractmethod
@@ -94,7 +94,7 @@ class QuantumCompilerGeneric(QuantumCompiler, ABC):
         init_params: Optional[Params] = None,
         *args: Any,
         **kwargs: Any,
-    ) -> tuple[NonParametricQuantumCircuit, OptimizerState]:
+    ) -> tuple[NonParametricQuantumCircuit, Sequence[OptimizerState]]:
         if not isinstance(circuit_factory, CircuitFactory):
             raise TypeError(
                 "Target circuit factory should be an instance of CircuitFactory."
@@ -144,15 +144,17 @@ class QuantumCompilerGeneric(QuantumCompiler, ABC):
             rng = default_rng()
             init_params = rng.random(ansatz.parameter_count) * 2 * np.pi
         optimizer_state = self.optimizer.get_init_state(init_params)
+        optimizer_history = [optimizer_state]
         while optimizer_state.status == OptimizerStatus.SUCCESS:
             optimizer_state = self.optimizer.step(
                 optimizer_state, cost, grad_function=gradient
             )
+            optimizer_history.append(optimizer_state)
 
         opt_params = optimizer_state.params
         opt_circuit = ansatz.bind_parameters(list(opt_params.tolist()))
 
-        return opt_circuit, optimizer_state
+        return opt_circuit, optimizer_history
 
     def __call__(
         self,
@@ -173,17 +175,17 @@ class QuantumCompilerGeneric(QuantumCompiler, ABC):
         Return value:
         Compiled circuit
         """
-        self.compiled_circuit, optimizer_state = self.run(
+        self.compiled_circuit, optimizer_history = self.run(
             circuit_factory, ansatz, init_params, *args, **kwargs
         )
         analysis = self.analyze(
-            circuit_factory, ansatz, optimizer_state, *args, **kwargs
+            circuit_factory, ansatz, optimizer_history, *args, **kwargs
         )
 
         return QuantumCompilationResult(
             algorithm=self,
             elapsed_time=self.elapsed_time,
             analysis=analysis,
-            optimizer_result=optimizer_state,
+            optimizer_history=optimizer_history,
             optimized_circuit=self.compiled_circuit,
         )

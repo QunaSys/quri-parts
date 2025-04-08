@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, Optional, Sequence
 
 from quri_parts.algo.optimizer import Optimizer, OptimizerState, Params
 from quri_parts.backend.units import TimeUnit, TimeValue
@@ -83,7 +83,7 @@ class QAQC(QuantumCompilerGeneric):
         init_params: Optional[Params] = None,
         *args: Any,
         **kwargs: Any,
-    ) -> tuple[NonParametricQuantumCircuit, OptimizerState]:
+    ) -> tuple[NonParametricQuantumCircuit, Sequence[OptimizerState]]:
         """This function initiates the variational optimization.
 
         Arguments:
@@ -102,7 +102,7 @@ class QAQC(QuantumCompilerGeneric):
         self,
         circuit_factory: CircuitFactory,
         ansatz: LinearMappedUnboundParametricQuantumCircuit,
-        optimizer_state: OptimizerState,
+        optimizer_history: Sequence[OptimizerState],
         circuit_execution_multiplier: Optional[int] = None,
         concurrency: int = 1,
         *args: Any,
@@ -124,34 +124,45 @@ class QAQC(QuantumCompilerGeneric):
         """
         assert isinstance(self.vm, VM), "VM must be set to perform analysis"
 
+        circuit_list = []
+        for optimizer_state in optimizer_history:
+            target_circuit = circuit_factory(*args, **kwargs)
+            combined_circuit = prepare_circuit_hilbert_schmidt_test(
+                target_circuit,
+                ansatz.bind_parameters(list(optimizer_state.params.tolist())),
+            ).circuit
+            circuit_list.append(combined_circuit)
+
         total_circuit_executions = (
             ansatz.parameter_count * 2 * optimizer_state.gradcalls
             + optimizer_state.funcalls
         )
         if circuit_execution_multiplier is not None:
             total_circuit_executions *= circuit_execution_multiplier
-        target_circuit = circuit_factory(*args, **kwargs)
-        combined_circuit = prepare_circuit_hilbert_schmidt_test(
-            target_circuit,
-            ansatz.bind_parameters(list(optimizer_state.params.tolist())),
-        ).circuit
-        vm_analysis = self.vm.analyze(combined_circuit)
+        vm_analysis = self.vm.analyze(
+            combined_circuit
+        )  # QAQC analysis can be assumed to result identically for each circuit
         analysis = QAQCAnalysis(
             lowering_level=vm_analysis.lowering_level,
-            circuit_depth=CircuitMapping([(combined_circuit, vm_analysis.depth)]),
-            circuit_gate_count=CircuitMapping(
-                [(combined_circuit, vm_analysis.gate_count)]
+            circuit_depth=CircuitMapping(
+                [(c, vm_analysis.depth) for c in circuit_list]
             ),
-            circuit_latency=CircuitMapping([(combined_circuit, vm_analysis.latency)]),
+            circuit_gate_count=CircuitMapping(
+                [(c, vm_analysis.gate_count) for c in circuit_list]
+            ),
+            circuit_latency=CircuitMapping(
+                [(c, vm_analysis.latency) for c in circuit_list]
+            ),
             circuit_execution_count=CircuitMapping(
-                [(combined_circuit, total_circuit_executions)]
+                [(c, total_circuit_executions) for c in circuit_list]
             ),
             circuit_fidelities=CircuitMapping(
-                [(combined_circuit, vm_analysis.fidelity)]
+                [(c, vm_analysis.fidelity) for c in circuit_list]
             ),
             circuit_qubit_count=CircuitMapping(
-                [(combined_circuit, vm_analysis.qubit_count)]
+                [(c, vm_analysis.qubit_count) for c in circuit_list]
             ),
+            # The analysis is the same for all circuits
             concurrency=concurrency,
         )
 
