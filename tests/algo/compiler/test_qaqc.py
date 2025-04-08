@@ -75,8 +75,8 @@ def test_qaqc() -> None:
     )
 
     assert analysis.lowering_level == optimize_result.lowering_level
-    assert analysis.circuit_latency[0][1] == optimize_result.latency
-    assert analysis.circuit_qubit_count[0][1] == optimize_result.qubit_count
+    assert list(analysis.circuit_latency.values())[0] == optimize_result.latency
+    assert list(analysis.circuit_qubit_count.values())[0] == optimize_result.qubit_count
     assert analysis.total_latency.in_ns() == 500 * 1000 * (16 * 16 * 2 + 4)
     assert analysis.qubit_count == 4
 
