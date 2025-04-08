@@ -1,13 +1,13 @@
 ---
 name: scipy
-version: 1.13.1
+version: 1.15.2
 type: pip
 summary: Fundamental algorithms for scientific computing in Python
 homepage: https://scipy.org/
 license: bsd-3-clause
 licenses:
 - sources: LICENSE.txt
-  text: "Copyright (c) 2001-2002 Enthought, Inc. 2003-2023, SciPy Developers.\nAll
+  text: "Copyright (c) 2001-2002 Enthought, Inc. 2003-2024, SciPy Developers.\nAll
     rights reserved.\n\nRedistribution and use in source and binary forms, with or
     without\nmodification, are permitted provided that the following conditions\nare
     met:\n\n1. Redistributions of source code must retain the above copyright\n   notice,
@@ -26,63 +26,63 @@ licenses:
     OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY\nTHEORY OF LIABILITY, WHETHER
     IN CONTRACT, STRICT LIABILITY, OR TORT\n(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
     IN ANY WAY OUT OF THE USE\nOF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
-    OF SUCH DAMAGE.\n\n----\n\nThis binary distribution of SciPy also bundles the
-    following software:\n\n\nName: OpenBLAS\nFiles: .libs/libopenb*.so\nDescription:
-    bundled as a dynamically linked library\nAvailability: https://github.com/xianyi/OpenBLAS/\nLicense:
-    3-clause BSD\n  Copyright (c) 2011-2014, The OpenBLAS Project\n  All rights reserved.\n
-    \ \n  Redistribution and use in source and binary forms, with or without\n  modification,
-    are permitted provided that the following conditions are\n  met:\n  \n     1.
-    Redistributions of source code must retain the above copyright\n        notice,
-    this list of conditions and the following disclaimer.\n  \n     2. Redistributions
-    in binary form must reproduce the above copyright\n        notice, this list of
-    conditions and the following disclaimer in\n        the documentation and/or other
-    materials provided with the\n        distribution.\n     3. Neither the name of
-    the OpenBLAS project nor the names of \n        its contributors may be used to
-    endorse or promote products \n        derived from this software without specific
-    prior written \n        permission.\n  \n  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT
-    HOLDERS AND CONTRIBUTORS \"AS IS\"\n  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
-    BUT NOT LIMITED TO, THE\n  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-    A PARTICULAR PURPOSE\n  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
-    OR CONTRIBUTORS BE\n  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
-    OR CONSEQUENTIAL\n  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-    GOODS OR\n  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-    HOWEVER\n  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-    LIABILITY,\n  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
-    OF THE\n  USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\n\nName:
-    LAPACK\nFiles: .libs/libopenb*.so\nDescription: bundled in OpenBLAS\nAvailability:
-    https://github.com/xianyi/OpenBLAS/\nLicense 3-clause BSD\n  Copyright (c) 1992-2013
-    The University of Tennessee and The University\n                          of Tennessee
-    Research Foundation.  All rights\n                          reserved.\n  Copyright
-    (c) 2000-2013 The University of California Berkeley. All\n                          rights
-    reserved.\n  Copyright (c) 2006-2013 The University of Colorado Denver.  All rights\n
-    \                         reserved.\n  \n  $COPYRIGHT$\n  \n  Additional copyrights
-    may follow\n  \n  $HEADER$\n  \n  Redistribution and use in source and binary
-    forms, with or without\n  modification, are permitted provided that the following
-    conditions are\n  met:\n  \n  - Redistributions of source code must retain the
-    above copyright\n    notice, this list of conditions and the following disclaimer.\n
-    \ \n  - Redistributions in binary form must reproduce the above copyright\n    notice,
-    this list of conditions and the following disclaimer listed\n    in this license
-    in the documentation and/or other materials\n    provided with the distribution.\n
-    \ \n  - Neither the name of the copyright holders nor the names of its\n    contributors
-    may be used to endorse or promote products derived from\n    this software without
-    specific prior written permission.\n  \n  The copyright holders provide no reassurances
-    that the source code\n  provided does not infringe any patent, copyright, or any
-    other\n  intellectual property rights of third parties.  The copyright holders\n
-    \ disclaim any liability to any recipient for claims brought against\n  recipient
-    by any third party for infringement of that parties\n  intellectual property rights.\n
-    \ \n  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS\n  \"AS
-    IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT\n  LIMITED TO,
-    THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR\n  A PARTICULAR PURPOSE
-    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT\n  OWNER OR CONTRIBUTORS BE LIABLE
-    FOR ANY DIRECT, INDIRECT, INCIDENTAL,\n  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-    DAMAGES (INCLUDING, BUT NOT\n  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-    SERVICES; LOSS OF USE,\n  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-    CAUSED AND ON ANY\n  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-    OR TORT\n  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\n
-    \ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\n\nName:
-    GCC runtime library\nFiles: .libs/libgfortran*.so\nDescription: dynamically linked
-    to files compiled with gcc\nAvailability: https://gcc.gnu.org/viewcvs/gcc/\nLicense:
-    GPLv3 + runtime exception\n  Copyright (C) 2002-2017 Free Software Foundation,
+    OF SUCH DAMAGE.\n\n----\n\nThis binary distribution of SciPy can also bundle the
+    following software\n(depending on the build):\n\n\nName: OpenBLAS\nFiles: scipy/.dylibs/libscipy_openblas*.so\nDescription:
+    bundled as a dynamically linked library\nAvailability: https://github.com/OpenMathLib/OpenBLAS/\nLicense:
+    BSD-3-Clause-Attribution\n  Copyright (c) 2011-2014, The OpenBLAS Project\n  All
+    rights reserved.\n\n  Redistribution and use in source and binary forms, with
+    or without\n  modification, are permitted provided that the following conditions
+    are\n  met:\n\n     1. Redistributions of source code must retain the above copyright\n
+    \       notice, this list of conditions and the following disclaimer.\n\n     2.
+    Redistributions in binary form must reproduce the above copyright\n        notice,
+    this list of conditions and the following disclaimer in\n        the documentation
+    and/or other materials provided with the\n        distribution.\n     3. Neither
+    the name of the OpenBLAS project nor the names of\n        its contributors may
+    be used to endorse or promote products\n        derived from this software without
+    specific prior written\n        permission.\n\n  THIS SOFTWARE IS PROVIDED BY
+    THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\"\n  AND ANY EXPRESS OR IMPLIED
+    WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE\n  IMPLIED WARRANTIES OF MERCHANTABILITY
+    AND FITNESS FOR A PARTICULAR PURPOSE\n  ARE DISCLAIMED. IN NO EVENT SHALL THE
+    COPYRIGHT OWNER OR CONTRIBUTORS BE\n  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+    SPECIAL, EXEMPLARY, OR CONSEQUENTIAL\n  DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+    PROCUREMENT OF SUBSTITUTE GOODS OR\n  SERVICES; LOSS OF USE, DATA, OR PROFITS;
+    OR BUSINESS INTERRUPTION) HOWEVER\n  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+    IN CONTRACT, STRICT LIABILITY,\n  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE\n  USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.\n\n\nName: LAPACK\nFiles: scipy/.dylibs/libscipy_openblas*.so\nDescription:
+    bundled in OpenBLAS\nAvailability: https://github.com/OpenMathLib/OpenBLAS/\nLicense:
+    BSD-3-Clause-Attribution\n  Copyright (c) 1992-2013 The University of Tennessee
+    and The University\n                          of Tennessee Research Foundation.
+    \ All rights\n                          reserved.\n  Copyright (c) 2000-2013 The
+    University of California Berkeley. All\n                          rights reserved.\n
+    \ Copyright (c) 2006-2013 The University of Colorado Denver.  All rights\n                          reserved.\n\n
+    \ $COPYRIGHT$\n\n  Additional copyrights may follow\n\n  $HEADER$\n\n  Redistribution
+    and use in source and binary forms, with or without\n  modification, are permitted
+    provided that the following conditions are\n  met:\n\n  - Redistributions of source
+    code must retain the above copyright\n    notice, this list of conditions and
+    the following disclaimer.\n\n  - Redistributions in binary form must reproduce
+    the above copyright\n    notice, this list of conditions and the following disclaimer
+    listed\n    in this license in the documentation and/or other materials\n    provided
+    with the distribution.\n\n  - Neither the name of the copyright holders nor the
+    names of its\n    contributors may be used to endorse or promote products derived
+    from\n    this software without specific prior written permission.\n\n  The copyright
+    holders provide no reassurances that the source code\n  provided does not infringe
+    any patent, copyright, or any other\n  intellectual property rights of third parties.
+    \ The copyright holders\n  disclaim any liability to any recipient for claims
+    brought against\n  recipient by any third party for infringement of that parties\n
+    \ intellectual property rights.\n\n  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT
+    HOLDERS AND CONTRIBUTORS\n  \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
+    BUT NOT\n  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR\n
+    \ A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT\n  OWNER
+    OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,\n  SPECIAL, EXEMPLARY,
+    OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT\n  LIMITED TO, PROCUREMENT OF SUBSTITUTE
+    GOODS OR SERVICES; LOSS OF USE,\n  DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+    HOWEVER CAUSED AND ON ANY\n  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+    LIABILITY, OR TORT\n  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+    OF THE USE\n  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\n\nName:
+    GCC runtime library\nFiles: scipy/.dylibs/libgfortran*, scipy/.dylibs/libgcc*\nDescription:
+    dynamically linked to files compiled with gcc\nAvailability: https://gcc.gnu.org/git/?p=gcc.git;a=tree;f=libgfortran\nLicense:
+    GPL-3.0-with-GCC-exception\n  Copyright (C) 2002-2017 Free Software Foundation,
     Inc.\n  \n  Libgfortran is free software; you can redistribute it and/or modify\n
     \ it under the terms of the GNU General Public License as published by\n  the
     Free Software Foundation; either version 3, or (at your option)\n  any later version.\n
@@ -577,5 +577,16 @@ licenses:
     proprietary programs.  If your program is a subroutine library, you\nmay consider
     it more useful to permit linking proprietary applications with\nthe library.  If
     this is what you want to do, use the GNU Lesser General\nPublic License instead
-    of this License.  But first, please read\n<http://www.gnu.org/philosophy/why-not-lgpl.html>.\n"
+    of this License.  But first, please read\n<http://www.gnu.org/philosophy/why-not-lgpl.html>.\n\n\nName:
+    libquadmath\nFiles: scipy/.dylibs/libquadmath*.so\nDescription: dynamically linked
+    to files compiled with gcc\nAvailability: https://gcc.gnu.org/git/?p=gcc.git;a=tree;f=libquadmath\nLicense:
+    LGPL-2.1-or-later\n\n    GCC Quad-Precision Math Library\n    Copyright (C) 2010-2019
+    Free Software Foundation, Inc.\n    Written by Francois-Xavier Coudert  <fxcoudert@gcc.gnu.org>\n\n
+    \   This file is part of the libquadmath library.\n    Libquadmath is free software;
+    you can redistribute it and/or\n    modify it under the terms of the GNU Library
+    General Public\n    License as published by the Free Software Foundation; either\n
+    \   version 2.1 of the License, or (at your option) any later version.\n\n    Libquadmath
+    is distributed in the hope that it will be useful,\n    but WITHOUT ANY WARRANTY;
+    without even the implied warranty of\n    MERCHANTABILITY or FITNESS FOR A PARTICULAR
+    PURPOSE.  See the GNU\n    Lesser General Public License for more details.\n    https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html\n"
 notices: []

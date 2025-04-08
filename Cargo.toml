@@ -1,6 +1,6 @@
 [package]
 name = "quri-parts"
-version = "0.20.2"
+version = "0.20.3"
 edition = "2021"
 description = "Platform-independent quantum computing library"
 authors = ["QURI Parts Authors <opensource@qunasys.com>"]
@@ -17,7 +17,7 @@ path = "rust/lib.rs"
 crate-type = ["rlib", "dylib"]
 
 [dependencies.pyo3]
-version = "*"
+version = "0.22.6"
 features = ["extension-module"]
 optional = true
 

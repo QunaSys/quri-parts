@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from collections.abc import Mapping, Sequence
-from typing import Callable, Optional, Type
+from typing import Callable, Optional, Type, Union
 
 import numpy as np
 import qiskit.circuit.library as qgate
@@ -35,21 +35,12 @@ from quri_parts.circuit.gate_names import (
     is_two_qubit_gate_name,
     is_unitary_matrix_gate_name,
 )
-from quri_parts.circuit.transpile import (
-    CircuitTranspiler,
-    PauliDecomposeTranspiler,
-    PauliRotationDecomposeTranspiler,
-    SequentialTranspiler,
-)
+from quri_parts.circuit.transpile import CircuitTranspiler
+from quri_parts.qiskit.circuit.gate_names import ECR, QiskitTwoQubitGateNameType
 
 QiskitCircuitConverter: TypeAlias = Callable[
     [ImmutableQuantumCircuit, Optional[CircuitTranspiler]], QuantumCircuit
 ]
-
-#: CircuitTranspiler to convert a circuit configuration suitable for Qiskit.
-QiskitSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
-    [PauliDecomposeTranspiler(), PauliRotationDecomposeTranspiler()]
-)
 
 _X = qi.SparsePauliOp("X")
 _Y = qi.SparsePauliOp("Y")
@@ -75,9 +66,12 @@ _single_qubit_rotation_gate_qiskit: Mapping[SingleQubitGateNameType, Type[Gate]]
     gate_names.RZ: qgate.RZGate,
 }
 
-_two_qubit_gate_qiskit: Mapping[TwoQubitGateNameType, Type[Gate]] = {
+_two_qubit_gate_qiskit: Mapping[
+    Union[TwoQubitGateNameType, QiskitTwoQubitGateNameType], Type[Gate]
+] = {
     gate_names.CNOT: qgate.CXGate,
     gate_names.CZ: qgate.CZGate,
+    ECR: qgate.ECRGate,
     gate_names.SWAP: qgate.SwapGate,
 }
 
@@ -139,17 +133,16 @@ def convert_gate(gate: QuantumGate) -> Gate:
 
     elif is_multi_qubit_gate_name(gate.name) and gate.name in _multi_qubit_gate_qiskit:
         if gate.name == gate_names.Pauli:
-            q_gate = qgate.PauliGate(label=None)
             pauli_str = ""
             gate_map_str = {1: "X", 2: "Y", 3: "Z"}
             for p in reversed(gate.pauli_ids):
                 pauli_str += gate_map_str[p]
-            q_gate.params = [pauli_str]
+            q_gate = qgate.PauliGate(pauli_str)
             return q_gate
         elif gate.name == gate_names.PauliRotation:
-            operator = 1
             gate_map_op = {1: _X, 2: _Y, 3: _Z}
-            for p in reversed(gate.pauli_ids):
+            operator = gate_map_op[gate.pauli_ids[-1]]
+            for p in reversed(gate.pauli_ids[:-1]):
                 operator ^= gate_map_op[p]
             return qgate.PauliEvolutionGate(operator, time=float(gate.params[0] / 2))
 
@@ -165,7 +158,7 @@ def convert_gate(gate: QuantumGate) -> Gate:
 
 def convert_circuit(
     circuit: ImmutableQuantumCircuit,
-    transpiler: Optional[CircuitTranspiler] = QiskitSetTranspiler(),
+    transpiler: Optional[CircuitTranspiler] = None,
 ) -> QuantumCircuit:
     """Converts a :class:`ImmutableQuantumCircuit` to
     :class:`qiskit.QuantumCircuit`."""
