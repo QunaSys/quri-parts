@@ -20,7 +20,7 @@ from quri_parts.circuit import (
 from sympy import Expr
 
 from quri_algo.algo.compiler.base_classes import QuantumCompilerGeneric
-from quri_algo.algo.interface import VM, Analysis, CircuitMapping
+from quri_algo.algo.interface import Analysis, Analyzer, CircuitMapping
 from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.core.cost_functions.base_classes import CostFunction
 from quri_algo.core.cost_functions.utils import prepare_circuit_hilbert_schmidt_test
@@ -60,8 +60,8 @@ class QAQC(QuantumCompilerGeneric):
 
     name = Literal["Quantum-Assisted Quantum Compilation (QAQC)"]
 
-    def __init__(self, cost_fn: CostFunction, optimizer: Optimizer, vm: VM):
-        super().__init__(cost_fn, optimizer, vm)
+    def __init__(self, cost_fn: CostFunction, optimizer: Optimizer, analyzer: Analyzer):
+        super().__init__(cost_fn, optimizer, analyzer)
 
     def run_time_scaling(self) -> Expr:
         pass
@@ -75,8 +75,8 @@ class QAQC(QuantumCompilerGeneric):
         return self._optimizer
 
     @property
-    def vm(self) -> Optional[VM]:
-        return self._vm
+    def analyzer(self) -> Optional[Analyzer]:
+        return self._analyzer
 
     def _run(
         self,
@@ -124,7 +124,7 @@ class QAQC(QuantumCompilerGeneric):
         Return value:
         Tuple of compiled circuit and the state of the optimizer
         """
-        assert isinstance(self.vm, VM), "VM must be set to perform analysis"
+        assert self.analyzer, "Needs an analyzer to analyze the circuit"
 
         circuit_list = []
         for optimizer_state in optimizer_history:
@@ -141,28 +141,28 @@ class QAQC(QuantumCompilerGeneric):
         )
         if circuit_execution_multiplier is not None:
             total_circuit_executions *= circuit_execution_multiplier
-        vm_analysis = self.vm.analyze(
+        circuit_analysis = self.analyzer(
             combined_circuit
         )  # QAQC analysis can be assumed to result identically for each circuit
         analysis = QAQCAnalysis(
-            lowering_level=vm_analysis.lowering_level,
+            lowering_level=circuit_analysis.lowering_level,
             circuit_depth=CircuitMapping(
-                [(c, vm_analysis.depth) for c in circuit_list]
+                [(c, circuit_analysis.depth) for c in circuit_list]
             ),
             circuit_gate_count=CircuitMapping(
-                [(c, vm_analysis.gate_count) for c in circuit_list]
+                [(c, circuit_analysis.gate_count) for c in circuit_list]
             ),
             circuit_latency=CircuitMapping(
-                [(c, vm_analysis.latency) for c in circuit_list]
+                [(c, circuit_analysis.latency) for c in circuit_list]
             ),
             circuit_execution_count=CircuitMapping(
                 [(c, total_circuit_executions) for c in circuit_list]
             ),
             circuit_fidelities=CircuitMapping(
-                [(c, vm_analysis.fidelity) for c in circuit_list]
+                [(c, circuit_analysis.fidelity) for c in circuit_list]
             ),
             circuit_qubit_count=CircuitMapping(
-                [(c, vm_analysis.qubit_count) for c in circuit_list]
+                [(c, circuit_analysis.qubit_count) for c in circuit_list]
             ),
             # The analysis is the same for all circuits
             concurrency=concurrency,

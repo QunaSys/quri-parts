@@ -4,21 +4,19 @@ from enum import Enum
 from time import time
 from typing import (
     Any,
+    Callable,
     Iterator,
     Mapping,
     Optional,
     Protocol,
     Sequence,
+    TypeAlias,
     TypeVar,
-    runtime_checkable,
 )
 
 from quri_parts.algo.optimizer import OptimizerState
 from quri_parts.backend.units import TimeValue
 from quri_parts.circuit import ImmutableQuantumCircuit, NonParametricQuantumCircuit
-from quri_parts.core.estimator import Estimatable, Estimate
-from quri_parts.core.sampling import MeasurementCounts
-from quri_parts.core.state import CircuitQuantumState
 
 LoweringLevel = Enum(
     "LoweringLevel",
@@ -42,35 +40,9 @@ class AnalyzeResult(Protocol):
     fidelity: float | None = None
 
 
-@runtime_checkable
-class VM(Protocol):
-    """VM interface protocol."""
-
-    @abstractmethod
-    def estimate(
-        self,
-        estimatable: Estimatable,
-        state: CircuitQuantumState,
-    ) -> Estimate[complex]:
-        pass
-
-    @abstractmethod
-    def sample(
-        self,
-        circuit: NonParametricQuantumCircuit,
-        shots: int,
-    ) -> MeasurementCounts:
-        pass
-
-    @abstractmethod
-    def transpile(
-        self, circuit: NonParametricQuantumCircuit
-    ) -> NonParametricQuantumCircuit:
-        pass
-
-    @abstractmethod
-    def analyze(self, circuit: NonParametricQuantumCircuit) -> AnalyzeResult:
-        pass
+Analyzer: TypeAlias = Callable[
+    [NonParametricQuantumCircuit], AnalyzeResult
+]  # Provides an interface for QURI VM
 
 
 @dataclass

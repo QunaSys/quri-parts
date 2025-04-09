@@ -19,7 +19,7 @@ from quri_parts.circuit import (
 )
 
 from quri_algo.algo.compiler.qaqc import QAQC
-from quri_algo.algo.interface import VM, LoweringLevel
+from quri_algo.algo.interface import Analyzer, LoweringLevel
 from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.core.cost_functions.base_classes import LocalCostFunction
 
@@ -33,8 +33,8 @@ def test_qaqc() -> None:
     analyze_result.qubit_count = 4
     analyze_result.latency = Mock()
     analyze_result.latency.in_ns = Mock(return_value=1000)
-    vm = Mock(spec=VM)
-    vm.analyze = Mock(return_value=analyze_result)
+    vm = Mock()
+    vm.analyze = Mock(return_value=analyze_result, spec=Analyzer)
     circuit_factory = Mock(spec=CircuitFactory)
     circuit_factory.qubit_count = 4
     bound_circuit = Mock(spec=ImmutableBoundParametricQuantumCircuit)
@@ -59,7 +59,7 @@ def test_qaqc() -> None:
     optimizer.get_init_state = Mock(return_value=optimizer_state_success)
     optimizer.step = Mock(return_value=optimizer_state_converged)
 
-    qaqc = QAQC(cost_fn, optimizer, vm)
+    qaqc = QAQC(cost_fn, optimizer, vm.analyze)
     qaqc.run(circuit_factory, ansatz, evolution_time=evolution_time)
 
     assert optimizer.get_init_state.call_count == 1

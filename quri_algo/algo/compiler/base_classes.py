@@ -22,7 +22,7 @@ from quri_parts.circuit import (
 from quri_parts.circuit.parameter_shift import ShiftedParameters
 
 from quri_algo.algo.interface import (
-    VM,
+    Analyzer,
     QuantumAlgorithm,
     QuantumAlgorithmResult,
     VariationalAlgorithmResultMixin,
@@ -49,7 +49,7 @@ class QuantumCompiler(QuantumAlgorithm, ABC):
 
     @property
     @abstractmethod
-    def vm(self) -> Optional[VM]:
+    def analyzer(self) -> Optional[Analyzer]:
         ...
 
     @abstractmethod
@@ -70,11 +70,11 @@ class QuantumCompilerGeneric(QuantumCompiler, ABC):
         self,
         cost_fn: CostFunction,
         optimizer: Optimizer,
-        vm: Optional[VM] = None,
+        analyzer: Optional[Analyzer] = None,
     ):
         self._cost_fn = cost_fn
         self._optimizer = optimizer
-        self._vm = vm
+        self._analyzer = analyzer
 
     @property
     def cost_function(self) -> CostFunction:
