@@ -22,7 +22,7 @@ jobs:
         poetry install
 
     - run: |
-        for f in $(git diff --name-only main quri_sdk_notebooks/ | grep .ipynb)
+        for f in $(git diff --name-only origin/main quri_sdk_notebooks/ | grep .ipynb)
         do
           if grep -Fxq $f .exclude
           then
