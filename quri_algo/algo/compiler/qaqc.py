@@ -17,7 +17,6 @@ from quri_parts.circuit import (
     LinearMappedUnboundParametricQuantumCircuit,
     NonParametricQuantumCircuit,
 )
-from sympy import Expr
 
 from quri_algo.algo.compiler.base_classes import QuantumCompilerGeneric
 from quri_algo.algo.interface import Analysis, Analyzer, CircuitMapping
@@ -62,9 +61,6 @@ class QAQC(QuantumCompilerGeneric):
 
     def __init__(self, cost_fn: CostFunction, optimizer: Optimizer, analyzer: Analyzer):
         super().__init__(cost_fn, optimizer, analyzer)
-
-    def run_time_scaling(self) -> Expr:
-        pass
 
     @property
     def cost_function(self) -> CostFunction:
