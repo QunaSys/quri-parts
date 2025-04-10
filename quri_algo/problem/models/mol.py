@@ -5,8 +5,8 @@ from quri_parts.chem.mol import ActiveSpace
 from typing_extensions import TypeAlias
 
 from quri_algo.problem.operators.hamiltonian import (
-    FermionicHamiltonianInput,
-    QubitHamiltonianInput,
+    FermionicHamiltonian,
+    QubitHamiltonian,
 )
 
 from .interface import HamiltonianMixin
@@ -25,8 +25,8 @@ class MolecularSystem(HamiltonianMixin):
         "pyscf_mem_efficient", "pyscf_density_fitting"
     ] = "pyscf_mem_efficient"
 
-    def get_qubit_hamiltonian(self) -> QubitHamiltonianInput:
+    def get_qubit_hamiltonian(self) -> QubitHamiltonian:
         raise NotImplementedError("Not supported")
 
-    def get_fermionic_hamiltonian(self) -> FermionicHamiltonianInput:
+    def get_fermionic_hamiltonian(self) -> FermionicHamiltonian:
         raise NotImplementedError("Not supported")

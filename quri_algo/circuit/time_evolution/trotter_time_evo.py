@@ -29,9 +29,9 @@ from quri_parts.core.operator import (
 )
 
 from quri_algo.circuit.utils.transpile import apply_transpiler
-from quri_algo.problem import QubitHamiltonianInput
+from quri_algo.problem import QubitHamiltonian
 
-from .interface import (  # PartialTimeEvolutionCircuitFactory,
+from .interface import (
     ControlledTimeEvolutionCircuitFactory,
     TimeEvolutionCircuitFactory,
 )
@@ -99,7 +99,7 @@ class FixedStepTrotterTimeEvolutionCircuitFactory(TimeEvolutionCircuitFactory):
     number Trotter steps. circuit based on a qubit Hamiltonian.
 
     Args:
-        encoded_problem: A :class:`QubitHamiltonianInput`.
+        qubit_hamiltonian: A :class:`QubitHamiltonian`.
         n_trotter: The total number of Trotter steps.
         trotter_order: The Trotter order. Either 1 or an even number.
         transpiler: The transpiler used to transpile the generated circuit.
@@ -107,20 +107,20 @@ class FixedStepTrotterTimeEvolutionCircuitFactory(TimeEvolutionCircuitFactory):
 
     def __init__(
         self,
-        encoded_problem: QubitHamiltonianInput,
+        qubit_hamiltonian: QubitHamiltonian,
         n_trotter: int,
         trotter_order: int = 1,
         *,
         transpiler: CircuitTranspiler | None = None,
     ):
         self.n_trotter = n_trotter
-        self.encoded_problem = encoded_problem
-        self.qubit_count = self.encoded_problem.n_state_qubit
+        self.qubit_hamiltonian = qubit_hamiltonian
+        self.qubit_count = self.qubit_hamiltonian.n_state_qubit
         self.trotter_order = trotter_order
         self.transpiler = transpiler
         self._param_evo_circuit = get_trotter_time_evolution_operator(
-            self.encoded_problem.qubit_hamiltonian,
-            self.encoded_problem.n_state_qubit,
+            self.qubit_hamiltonian.qubit_hamiltonian,
+            self.qubit_hamiltonian.n_state_qubit,
             self.n_trotter,
             self.trotter_order,
         )
@@ -187,7 +187,7 @@ class FixedStepTrotterControlledTimeEvolutionCircuitFactory(
     a fixed number Trotter steps. circuit based on a qubit Hamiltonian.
 
     Args:
-        encoded_problem: A :class:`QubitHamiltonianInput`.
+        qubit_hamiltonian: A :class:`QubitHamiltonian`.
         n_trotter: The total number of Trotter steps.
         trotter_order: The Trotter order. Either 1 or an even number.
         transpiler: The transpiler used to transpile the generated circuit.
@@ -195,21 +195,20 @@ class FixedStepTrotterControlledTimeEvolutionCircuitFactory(
 
     def __init__(
         self,
-        encoded_problem: QubitHamiltonianInput,
+        qubit_hamiltonian: QubitHamiltonian,
         n_trotter: int,
         trotter_order: int = 1,
         *,
         transpiler: CircuitTranspiler | None = None,
     ):
         self.n_trotter = n_trotter
-        self.encoded_problem = encoded_problem
-        self.qubit_count = encoded_problem.n_state_qubit
+        self.qubit_hamiltonian = qubit_hamiltonian
+        self.qubit_count = qubit_hamiltonian.n_state_qubit
         self.transpiler = transpiler
-        assert isinstance(self.encoded_problem, QubitHamiltonianInput)
         self.trotter_order = trotter_order
         self._param_evo_circuit = get_trotter_controlled_time_evolution_operator(
-            self.encoded_problem.qubit_hamiltonian,
-            self.encoded_problem.n_state_qubit,
+            self.qubit_hamiltonian.qubit_hamiltonian,
+            self.qubit_hamiltonian.n_state_qubit,
             self.n_trotter,
             self.trotter_order,
         )
@@ -239,7 +238,7 @@ class FixedIntervalTrotterTimeEvolutionCircuitFactory(TimeEvolutionCircuitFactor
     based on a qubit Hamiltonian.
 
     Args:
-        encoded_problem: A :class:`QubitHamiltonianInput`.
+        qubit_hamiltonian: A :class:`QubitHamiltonian`.
         time_step: The time step in a single Trotter step.
         trotter_order: The Trotter order. Either 1 or an even number.
         transpiler: The transpiler used to transpile the generated circuit.
@@ -247,21 +246,21 @@ class FixedIntervalTrotterTimeEvolutionCircuitFactory(TimeEvolutionCircuitFactor
 
     def __init__(
         self,
-        encoded_problem: QubitHamiltonianInput,
+        qubit_hamiltonian: QubitHamiltonian,
         time_step: float,
         trotter_order: int = 1,
         *,
         transpiler: CircuitTranspiler | None = None,
     ):
-        self.encoded_problem = encoded_problem
-        self.qubit_count = encoded_problem.n_state_qubit
+        self.qubit_hamiltonian = qubit_hamiltonian
+        self.qubit_count = qubit_hamiltonian.n_state_qubit
         self.time_step = time_step
         self.transpiler = transpiler
         self.trotter_order = trotter_order
 
         self._single_time_step_circuit = get_trotter_time_evolution_operator(
-            encoded_problem.qubit_hamiltonian,
-            encoded_problem.n_state_qubit,
+            qubit_hamiltonian.qubit_hamiltonian,
+            qubit_hamiltonian.n_state_qubit,
             trotter_order=trotter_order,
         ).bind_parameters([time_step])
 
@@ -281,7 +280,7 @@ class FixedIntervalTrotterControlledTimeEvolutionCircuitFactory(
     evolution circuit based on a qubit Hamiltonian.
 
     Args:
-        encoded_problem: A :class:`QubitHamiltonianInput`.
+        qubit_hamiltonian: A :class:`QubitHamiltonian`.
         time_step: The time step in a single Trotter step.
         trotter_order: The Trotter order. Either 1 or an even number.
         transpiler: The transpiler used to transpile the generated circuit.
@@ -289,21 +288,21 @@ class FixedIntervalTrotterControlledTimeEvolutionCircuitFactory(
 
     def __init__(
         self,
-        encoded_problem: QubitHamiltonianInput,
+        qubit_hamiltonian: QubitHamiltonian,
         time_step: float,
         trotter_order: int = 1,
         *,
         transpiler: CircuitTranspiler | None = None,
     ):
-        self.encoded_problem = encoded_problem
-        self.qubit_count = encoded_problem.n_state_qubit
+        self.qubit_hamiltonian = qubit_hamiltonian
+        self.qubit_count = qubit_hamiltonian.n_state_qubit
         self.time_step = time_step
         self.transpiler = transpiler
         self.trotter_order = trotter_order
 
         self._single_time_step_circuit = get_trotter_controlled_time_evolution_operator(
-            self.encoded_problem.qubit_hamiltonian,
-            self.encoded_problem.n_state_qubit,
+            self.qubit_hamiltonian.qubit_hamiltonian,
+            self.qubit_hamiltonian.n_state_qubit,
             1,
             self.trotter_order,
         ).bind_parameters([time_step])
@@ -325,7 +324,7 @@ class TrotterTimeEvolutionCircuitFactory(TimeEvolutionCircuitFactory):
         You can only specify either time_step or n_trotter.
 
     Args:
-        encoded_problem: A :class:`QubitHamiltonianInput`.
+        qubit_hamiltonian: A :class:`QubitHamiltonian`.
         time_step: The time step in a single Trotter step.
         n_trotter: The total number of Trotter steps.
         trotter_order: The Trotter order. Either 1 or an even number.
@@ -334,15 +333,15 @@ class TrotterTimeEvolutionCircuitFactory(TimeEvolutionCircuitFactory):
 
     def __init__(
         self,
-        encoded_problem: QubitHamiltonianInput,
+        qubit_hamiltonian: QubitHamiltonian,
         *,
         time_step: float | None = None,
         n_trotter: int | None = None,
         trotter_order: int = 1,
         transpiler: CircuitTranspiler | None = None,
     ):
-        self.encoded_problem = encoded_problem
-        self.qubit_count = encoded_problem.n_state_qubit
+        self.qubit_hamiltonian = qubit_hamiltonian
+        self.qubit_count = qubit_hamiltonian.n_state_qubit
         self.time_step = time_step
         self.n_trotter = n_trotter
         self.trotter_order = trotter_order
@@ -356,11 +355,11 @@ class TrotterTimeEvolutionCircuitFactory(TimeEvolutionCircuitFactory):
 
         if time_step is not None:
             self._factory = FixedIntervalTrotterTimeEvolutionCircuitFactory(
-                encoded_problem, time_step, trotter_order, transpiler=transpiler
+                qubit_hamiltonian, time_step, trotter_order, transpiler=transpiler
             )
         elif n_trotter is not None:
             self._factory = FixedStepTrotterTimeEvolutionCircuitFactory(
-                encoded_problem, n_trotter, trotter_order, transpiler=transpiler
+                qubit_hamiltonian, n_trotter, trotter_order, transpiler=transpiler
             )
 
     @apply_transpiler  # type: ignore
@@ -373,7 +372,7 @@ class TrotterControlledTimeEvolutionCircuitFactory(
 ):
     def __init__(
         self,
-        encoded_problem: QubitHamiltonianInput,
+        qubit_hamiltonian: QubitHamiltonian,
         *,
         time_step: float | None = None,
         n_trotter: int | None = None,
@@ -387,14 +386,14 @@ class TrotterControlledTimeEvolutionCircuitFactory(
             You can only specify either time_step or n_trotter.
 
         Args:
-            encoded_problem: A :class:`QubitHamiltonianInput`.
+            qubit_hamiltonian: A :class:`QubitHamiltonian`.
             time_step: The time step in a single Trotter step.
             n_trotter: The total number of Trotter steps.
             trotter_order: The Trotter order. Either 1 or an even number.
             transpiler: The transpiler used to transpile the generated circuit.
         """
-        self.encoded_problem = encoded_problem
-        self.qubit_count = encoded_problem.n_state_qubit
+        self.qubit_hamiltonian = qubit_hamiltonian
+        self.qubit_count = qubit_hamiltonian.n_state_qubit
         self.time_step = time_step
         self.n_trotter = n_trotter
         self.trotter_order = trotter_order
@@ -408,11 +407,11 @@ class TrotterControlledTimeEvolutionCircuitFactory(
 
         if time_step is not None:
             self._factory = FixedIntervalTrotterControlledTimeEvolutionCircuitFactory(
-                encoded_problem, time_step, trotter_order, transpiler=transpiler
+                qubit_hamiltonian, time_step, trotter_order, transpiler=transpiler
             )
         elif n_trotter is not None:
             self._factory = FixedStepTrotterControlledTimeEvolutionCircuitFactory(
-                encoded_problem, n_trotter, trotter_order, transpiler=transpiler
+                qubit_hamiltonian, n_trotter, trotter_order, transpiler=transpiler
             )
 
     @apply_transpiler  # type: ignore

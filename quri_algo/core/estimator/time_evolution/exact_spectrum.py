@@ -17,7 +17,7 @@ from quri_parts.core.estimator import Estimate
 from quri_parts.qulacs.simulator import evaluate_state_to_vector
 
 from quri_algo.core.estimator import State
-from quri_algo.problem import HamiltonianInput
+from quri_algo.problem import Hamiltonian
 
 from .interface import TimeEvolutionExpectationValueEstimator
 
@@ -34,13 +34,13 @@ class ExactTimeEvolutionExpectationValueEstimator(
 
     def __init__(
         self,
-        encoded_problem: HamiltonianInput,
+        hamiltonian: Hamiltonian,
         eigenvalues: npt.NDArray[np.complex128],
         eigenvectors: npt.NDArray[np.complex128],
         *,
         transpiler: CircuitTranspiler | None = None
     ):
-        self.encoded_problem = encoded_problem
+        self.hamiltonian = hamiltonian
         self.eigenvalues = eigenvalues
         self.eigenvectors = eigenvectors
         self.transpiler = transpiler

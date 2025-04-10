@@ -9,24 +9,27 @@
 # limitations under the License.
 
 
-from typing import Protocol, TypeVar
+from abc import abstractmethod
+from typing import Any, Protocol, TypeVar
 
+import numpy as np
+import numpy.typing as npt
 from openfermion import FermionOperator
 from quri_parts.core.operator import Operator
 
-from .interface import OperatorProtocol
 
-
-class HamiltonianInput(OperatorProtocol, Protocol):
+class Hamiltonian(Protocol):
     """Represents an encoded Hamiltonian."""
 
-    ...
+    @abstractmethod
+    def get_matrix_representation(self, *args: Any) -> npt.NDArray[np.complex128]:
+        ...
 
 
-HamiltonianT = TypeVar("HamiltonianT", bound="HamiltonianInput")
+HamiltonianT = TypeVar("HamiltonianT", bound="Hamiltonian")
 
 
-class QubitHamiltonianInput(HamiltonianInput):
+class QubitHamiltonian(Hamiltonian):
     """Represents the Hamiltonian of a fixed qubit size in its qubit
     Hamiltonian form."""
 
@@ -38,8 +41,11 @@ class QubitHamiltonianInput(HamiltonianInput):
     def qubit_hamiltonian(self) -> Operator:
         return self._qubit_hamiltonian.copy()
 
+    def get_matrix_representation(self, *args: Any) -> npt.NDArray[np.complex128]:
+        raise NotImplementedError("Not supported yet")
 
-class FermionicHamiltonianInput(HamiltonianInput):
+
+class FermionicHamiltonian(Hamiltonian):
     def __init__(self, n_spin_orbital: int, fermionic_hamiltonian: FermionOperator):
         self.n_spin_orbital = n_spin_orbital
         self._fermionic_hamiltonian = fermionic_hamiltonian
@@ -47,3 +53,6 @@ class FermionicHamiltonianInput(HamiltonianInput):
     @property
     def fermionic_hamiltonian(self) -> FermionOperator:
         return self._fermionic_hamiltonian
+
+    def get_matrix_representation(self, *args: Any) -> npt.NDArray[np.complex128]:
+        raise NotImplementedError("Not supported yet")

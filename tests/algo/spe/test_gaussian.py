@@ -24,7 +24,7 @@ from quri_algo.core.estimator import OperatorPowerEstimatorBase
 from quri_algo.core.estimator.time_evolution import (
     TimeEvolutionExpectationValueEstimator,
 )
-from quri_algo.problem import QubitHamiltonianInput
+from quri_algo.problem import QubitHamiltonian
 
 
 class _Estimate(NamedTuple):
@@ -86,9 +86,6 @@ class TestGaussianGSEE(unittest.TestCase):
             side_effect=lambda state, evolution_time, n_shots: _Estimate(
                 value=np.exp(-1j * evolution_time * cls.shift)
             ),
-        )
-        time_evo_estimator.encoded_operator = QubitHamiltonianInput(
-            1, Operator({PAULI_IDENTITY: 1})
         )
 
         cls.tau = 1 / 20

@@ -17,7 +17,7 @@ from quri_algo.circuit.time_evolution.exact_unitary import (
     ExactUnitaryControlledTimeEvolutionCircuitFactory,
 )
 from quri_algo.core.estimator import State
-from quri_algo.problem import QubitHamiltonianInput
+from quri_algo.problem import QubitHamiltonian
 
 from .interface import TimeEvolutionHadamardTest
 
@@ -28,18 +28,18 @@ class ExactUnitaryTimeEvolutionHadamardTest(TimeEvolutionHadamardTest[State]):
 
     def __init__(
         self,
-        encoded_problem: QubitHamiltonianInput,
+        qubit_hamiltonian: QubitHamiltonian,
         sampler: Union[Sampler, StateSampler[State]],
         *,
         transpiler: CircuitTranspiler | None = None
     ):
         controlled_time_evolution_factory = (
             ExactUnitaryControlledTimeEvolutionCircuitFactory(
-                encoded_problem, transpiler=transpiler
+                qubit_hamiltonian, transpiler=transpiler
             )
         )
         super().__init__(
-            encoded_problem,
+            qubit_hamiltonian,
             controlled_time_evolution_factory,
             sampler,
             transpiler=transpiler,

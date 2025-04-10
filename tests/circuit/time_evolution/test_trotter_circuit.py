@@ -24,7 +24,7 @@ from quri_algo.circuit.time_evolution.trotter_time_evo import (
     TrotterTimeEvolutionCircuitFactory,
     get_trotter_time_evolution_operator,
 )
-from quri_algo.problem import QubitHamiltonianInput
+from quri_algo.problem import QubitHamiltonian
 
 
 def test_get_trotter_time_evolution_operator() -> None:
@@ -63,7 +63,7 @@ def test_trotter_factory() -> None:
     operator = Operator(
         {pauli_label("X0 X1"): 2, pauli_label("Y0 Y1"): 2, PAULI_IDENTITY: 2}
     )
-    problem = QubitHamiltonianInput(2, operator)
+    problem = QubitHamiltonian(2, operator)
     circuit_factory = FixedStepTrotterTimeEvolutionCircuitFactory(problem, 1)
     circuit = circuit_factory(1.0)
     expected_circuit = QuantumCircuit(2)
@@ -101,7 +101,7 @@ def test_controlled_trotter_factory() -> None:
     operator = Operator(
         {pauli_label("X0 X1"): 2, pauli_label("Y0 Y1"): 2, PAULI_IDENTITY: 2}
     )
-    problem = QubitHamiltonianInput(2, operator)
+    problem = QubitHamiltonian(2, operator)
     circuit_factory = FixedStepTrotterControlledTimeEvolutionCircuitFactory(problem, 1)
     circuit = circuit_factory(1.0)
     expected_circuit = QuantumCircuit(3)
@@ -153,7 +153,7 @@ def test_fixed_interval_trotter() -> None:
     operator = Operator(
         {pauli_label("X0 X1"): 2, pauli_label("Y0 Y1"): 2, PAULI_IDENTITY: 2}
     )
-    problem = QubitHamiltonianInput(2, operator)
+    problem = QubitHamiltonian(2, operator)
     time_step = 0.1
     circuit_factory = FixedIntervalTrotterTimeEvolutionCircuitFactory(
         problem, time_step, trotter_order=2
@@ -197,7 +197,7 @@ def test_fixed_interval_controlled_trotter() -> None:
     operator = Operator(
         {pauli_label("X0 X1"): 2, pauli_label("Y0 Y1"): 2, PAULI_IDENTITY: 2}
     )
-    problem = QubitHamiltonianInput(2, operator)
+    problem = QubitHamiltonian(2, operator)
     time_step = 0.1
     circuit_factory = FixedIntervalTrotterControlledTimeEvolutionCircuitFactory(
         problem, time_step, trotter_order=2
@@ -245,14 +245,14 @@ def test_fixed_interval_controlled_trotter() -> None:
 
 class TestTrotterTimeEvolutionCircuitFactory(unittest.TestCase):
     operator: Operator
-    problem: QubitHamiltonianInput
+    problem: QubitHamiltonian
 
     @classmethod
     def setUpClass(cls) -> None:
         cls.operator = Operator(
             {pauli_label("X0 X1"): 2, pauli_label("Y0 Y1"): 2, PAULI_IDENTITY: 2}
         )
-        cls.problem = QubitHamiltonianInput(2, cls.operator)
+        cls.problem = QubitHamiltonian(2, cls.operator)
 
     def test_fixed_trotter_step(self) -> None:
         evolution_time = 0.5
@@ -328,14 +328,14 @@ class TestTrotterTimeEvolutionCircuitFactory(unittest.TestCase):
 
 class TestTrotterControlledTimeEvolutionCircuitFactory(unittest.TestCase):
     operator: Operator
-    problem: QubitHamiltonianInput
+    problem: QubitHamiltonian
 
     @classmethod
     def setUpClass(cls) -> None:
         cls.operator = Operator(
             {pauli_label("X0 X1"): 2, pauli_label("Y0 Y1"): 2, PAULI_IDENTITY: 2}
         )
-        cls.problem = QubitHamiltonianInput(2, cls.operator)
+        cls.problem = QubitHamiltonian(2, cls.operator)
 
     def test_fixed_trotter_step(self) -> None:
         evolution_time = 0.5

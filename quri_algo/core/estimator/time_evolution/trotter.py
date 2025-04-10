@@ -19,7 +19,7 @@ from quri_algo.circuit.time_evolution.trotter_time_evo import (
 )
 from quri_algo.core.estimator import StateT
 from quri_algo.core.estimator.interface import State
-from quri_algo.problem import QubitHamiltonianInput
+from quri_algo.problem import QubitHamiltonian
 
 from .interface import TimeEvolutionHadamardTest
 
@@ -30,7 +30,7 @@ class TrotterTimeEvolutionHadamardTest(TimeEvolutionHadamardTest[StateT]):
 
     def __init__(
         self,
-        encoded_problem: QubitHamiltonianInput,
+        qubit_hamiltonian: QubitHamiltonian,
         sampler: Union[Sampler, StateSampler[State]],
         *,
         time_step: float | None = None,
@@ -43,7 +43,7 @@ class TrotterTimeEvolutionHadamardTest(TimeEvolutionHadamardTest[StateT]):
         self.trotter_order = trotter_order
         controlled_time_evolution_factory = (
             TrotterControlledTimeEvolutionCircuitFactory(
-                encoded_problem,
+                qubit_hamiltonian,
                 time_step=time_step,
                 n_trotter=n_trotter,
                 trotter_order=trotter_order,
@@ -51,7 +51,7 @@ class TrotterTimeEvolutionHadamardTest(TimeEvolutionHadamardTest[StateT]):
             )
         )
         super().__init__(
-            encoded_problem,
+            qubit_hamiltonian,
             controlled_time_evolution_factory,
             sampler,
             transpiler=transpiler,
