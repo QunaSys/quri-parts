@@ -8,6 +8,7 @@ name = "quri-parts-rust"
 version = "0.20.4"
 description = "Platform-independent quantum circuit library"
 license = { text = "Apache-2.0" }
+
 authors = [{ name = "QURI Parts Authors", email = "<opensource@qunasys.com>" }]
 requires-python = ">=3.9.8,<4.0.0"
 keywords = ["quantum", "quantum computing"]
