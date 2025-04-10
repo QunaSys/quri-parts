@@ -21,7 +21,7 @@ from quri_algo.problem.operators.hamiltonian import QubitHamiltonian
 
 def test_exact_unitary_hadamard_test() -> None:
     hamiltonian = Operator({pauli_label("X0"): 1})
-    hamiltonian_input = QubitHamiltonian(n_state_qubit=1, qubit_hamiltonian=hamiltonian)
+    hamiltonian_input = QubitHamiltonian(n_qubit=1, qubit_hamiltonian=hamiltonian)
     sampler = create_qulacs_vector_ideal_sampler()
 
     state = quantum_state(1, bits=0b1)

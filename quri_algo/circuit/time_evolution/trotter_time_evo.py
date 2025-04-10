@@ -115,12 +115,12 @@ class FixedStepTrotterTimeEvolutionCircuitFactory(TimeEvolutionCircuitFactory):
     ):
         self.n_trotter = n_trotter
         self.qubit_hamiltonian = qubit_hamiltonian
-        self.qubit_count = self.qubit_hamiltonian.n_state_qubit
+        self.qubit_count = self.qubit_hamiltonian.n_qubit
         self.trotter_order = trotter_order
         self.transpiler = transpiler
         self._param_evo_circuit = get_trotter_time_evolution_operator(
             self.qubit_hamiltonian.qubit_hamiltonian,
-            self.qubit_hamiltonian.n_state_qubit,
+            self.qubit_hamiltonian.n_qubit,
             self.n_trotter,
             self.trotter_order,
         )
@@ -203,12 +203,12 @@ class FixedStepTrotterControlledTimeEvolutionCircuitFactory(
     ):
         self.n_trotter = n_trotter
         self.qubit_hamiltonian = qubit_hamiltonian
-        self.qubit_count = qubit_hamiltonian.n_state_qubit
+        self.qubit_count = qubit_hamiltonian.n_qubit
         self.transpiler = transpiler
         self.trotter_order = trotter_order
         self._param_evo_circuit = get_trotter_controlled_time_evolution_operator(
             self.qubit_hamiltonian.qubit_hamiltonian,
-            self.qubit_hamiltonian.n_state_qubit,
+            self.qubit_hamiltonian.n_qubit,
             self.n_trotter,
             self.trotter_order,
         )
@@ -253,14 +253,14 @@ class FixedIntervalTrotterTimeEvolutionCircuitFactory(TimeEvolutionCircuitFactor
         transpiler: CircuitTranspiler | None = None,
     ):
         self.qubit_hamiltonian = qubit_hamiltonian
-        self.qubit_count = qubit_hamiltonian.n_state_qubit
+        self.qubit_count = qubit_hamiltonian.n_qubit
         self.time_step = time_step
         self.transpiler = transpiler
         self.trotter_order = trotter_order
 
         self._single_time_step_circuit = get_trotter_time_evolution_operator(
             qubit_hamiltonian.qubit_hamiltonian,
-            qubit_hamiltonian.n_state_qubit,
+            qubit_hamiltonian.n_qubit,
             trotter_order=trotter_order,
         ).bind_parameters([time_step])
 
@@ -295,14 +295,14 @@ class FixedIntervalTrotterControlledTimeEvolutionCircuitFactory(
         transpiler: CircuitTranspiler | None = None,
     ):
         self.qubit_hamiltonian = qubit_hamiltonian
-        self.qubit_count = qubit_hamiltonian.n_state_qubit
+        self.qubit_count = qubit_hamiltonian.n_qubit
         self.time_step = time_step
         self.transpiler = transpiler
         self.trotter_order = trotter_order
 
         self._single_time_step_circuit = get_trotter_controlled_time_evolution_operator(
             self.qubit_hamiltonian.qubit_hamiltonian,
-            self.qubit_hamiltonian.n_state_qubit,
+            self.qubit_hamiltonian.n_qubit,
             1,
             self.trotter_order,
         ).bind_parameters([time_step])
@@ -341,7 +341,7 @@ class TrotterTimeEvolutionCircuitFactory(TimeEvolutionCircuitFactory):
         transpiler: CircuitTranspiler | None = None,
     ):
         self.qubit_hamiltonian = qubit_hamiltonian
-        self.qubit_count = qubit_hamiltonian.n_state_qubit
+        self.qubit_count = qubit_hamiltonian.n_qubit
         self.time_step = time_step
         self.n_trotter = n_trotter
         self.trotter_order = trotter_order
@@ -393,7 +393,7 @@ class TrotterControlledTimeEvolutionCircuitFactory(
             transpiler: The transpiler used to transpile the generated circuit.
         """
         self.qubit_hamiltonian = qubit_hamiltonian
-        self.qubit_count = qubit_hamiltonian.n_state_qubit
+        self.qubit_count = qubit_hamiltonian.n_qubit
         self.time_step = time_step
         self.n_trotter = n_trotter
         self.trotter_order = trotter_order

@@ -49,7 +49,7 @@ class ExactUnitaryTimeEvolutionCircuitFactory(TimeEvolutionCircuitFactory):
     @apply_transpiler  # type: ignore
     def __call__(self, evolution_time: float) -> NonParametricQuantumCircuit:
         unitary = self.get_time_evo_matrix(evolution_time).tolist()
-        n_state_qubits = self.qubit_hamiltonian.n_state_qubit
+        n_state_qubits = self.qubit_hamiltonian.n_qubit
         circuit = QuantumCircuit(n_state_qubits)
         circuit.add_UnitaryMatrix_gate(range(n_state_qubits), unitary)
         return circuit
@@ -67,7 +67,7 @@ class ExactUnitaryControlledTimeEvolutionCircuitFactory(
         transpiler: CircuitTranspiler | None = None
     ):
         self.qubit_hamiltonian = qubit_hamiltonian
-        self.qubit_count = qubit_hamiltonian.n_state_qubit + 1
+        self.qubit_count = qubit_hamiltonian.n_qubit + 1
         self.transpiler = transpiler
         self._hamiltonian_matrix = get_sparse_matrix(
             self.qubit_hamiltonian.qubit_hamiltonian
@@ -78,7 +78,7 @@ class ExactUnitaryControlledTimeEvolutionCircuitFactory(
     ) -> npt.NDArray[np.complex128]:
         time_evo = expm(-1j * evolution_time * self._hamiltonian_matrix)
         unitary = np.kron(
-            np.eye(2**self.qubit_hamiltonian.n_state_qubit, dtype=np.complex128),
+            np.eye(2**self.qubit_hamiltonian.n_qubit, dtype=np.complex128),
             np.array([[1, 0], [0, 0]], dtype=np.complex128),
         )
         unitary += np.kron(time_evo, np.array([[0, 0], [0, 1]], dtype=np.complex128))
@@ -88,7 +88,7 @@ class ExactUnitaryControlledTimeEvolutionCircuitFactory(
     @apply_transpiler  # type: ignore
     def __call__(self, evolution_time: float) -> NonParametricQuantumCircuit:
         unitary = self.get_controlled_time_evo_matrix(evolution_time).tolist()
-        n_state_qubits = self.qubit_hamiltonian.n_state_qubit
+        n_state_qubits = self.qubit_hamiltonian.n_qubit
         circuit = QuantumCircuit(n_state_qubits + 1)
         circuit.add_UnitaryMatrix_gate(range(n_state_qubits + 1), unitary)
         return circuit

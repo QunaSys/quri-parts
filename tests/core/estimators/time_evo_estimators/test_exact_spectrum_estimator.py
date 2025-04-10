@@ -20,7 +20,7 @@ from quri_algo.problem.operators.hamiltonian import QubitHamiltonian
 
 def test_exact_time_evolution() -> None:
     hamiltonian = Operator({pauli_label("X0"): 1})
-    hamiltonian_input = QubitHamiltonian(n_state_qubit=1, qubit_hamiltonian=hamiltonian)
+    hamiltonian_input = QubitHamiltonian(n_qubit=1, qubit_hamiltonian=hamiltonian)
     vals, vecs = np.linalg.eigh(get_sparse_matrix(hamiltonian).toarray())
 
     state = quantum_state(1, bits=0b1)

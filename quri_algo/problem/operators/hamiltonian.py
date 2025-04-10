@@ -33,8 +33,8 @@ class QubitHamiltonian(Hamiltonian):
     """Represents the Hamiltonian of a fixed qubit size in its qubit
     Hamiltonian form."""
 
-    def __init__(self, n_state_qubit: int, qubit_hamiltonian: Operator):
-        self.n_state_qubit = n_state_qubit
+    def __init__(self, n_qubit: int, qubit_hamiltonian: Operator):
+        self.n_qubit = n_qubit
         self._qubit_hamiltonian = qubit_hamiltonian
 
     @property
