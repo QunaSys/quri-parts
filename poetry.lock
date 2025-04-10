@@ -4254,7 +4254,7 @@ develop = true
 networkx = "*"
 numpy = ">=1.22.0"
 pydantic = "^2.0"
-qiskit = ">=1"
+qiskit = ">=1,<2"
 qiskit-ibm-runtime = "^0.22.0"
 quri-parts-circuit = "*"
 quri-parts-core = "*"
