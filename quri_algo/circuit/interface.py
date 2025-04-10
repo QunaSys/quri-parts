@@ -26,13 +26,3 @@ class CircuitFactory(Protocol):
     @abstractmethod
     def __call__(self, *args: Any, **kwargs: Any) -> NonParametricQuantumCircuit:
         ...
-
-
-# @runtime_checkable
-# class PartialCircuitFactory(CircuitFactory, Protocol):
-#     @apply_transpiler  # type: ignore
-#     @abstractmethod
-#     def __call__(
-#         self, idx0: int, idx1: int, *args: Any, **kwargs: Any
-#     ) -> NonParametricQuantumCircuit:
-#         ...
