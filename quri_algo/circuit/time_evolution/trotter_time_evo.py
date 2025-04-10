@@ -219,43 +219,6 @@ class FixedStepTrotterControlledTimeEvolutionCircuitFactory(
         return self._param_evo_circuit.bind_parameters([evolution_time])
 
 
-# class TrotterPartialTimeEvolutionCircuitFactory(PartialTimeEvolutionCircuitFactory):
-#     def __init__(
-#         self,
-#         encoded_problem: QubitHamiltonianInput,
-#         n_trotter: int,
-#         *,
-#         transpiler: CircuitTranspiler | None = None,
-#     ):
-#         self.encoded_problem = encoded_problem
-#         self.n_trotter = n_trotter
-#         self.transpiler = transpiler
-
-#     @lru_cache(maxsize=None)
-#     def get_partial_time_evolution_circuit(
-#         self, idx0: int, idx1: int
-#     ) -> ImmutableLinearMappedUnboundParametricQuantumCircuit:
-#         local_hamiltonian_input = self.get_local_hamiltonian_input(idx0, idx1)
-#         return get_trotter_time_evolution_operator(
-#             local_hamiltonian_input.qubit_hamiltonian,
-#             local_hamiltonian_input.n_state_qubit,
-#             self.n_trotter,
-#         )
-
-#     @apply_transpiler  # type: ignore
-#     def __call__(
-#         self, idx0: int, idx1: int, evolution_time: float
-#     ) -> NonParametricQuantumCircuit:
-#         return self.get_partial_time_evolution_circuit(idx0, idx1).bind_parameters(
-#             [evolution_time]
-#         )
-
-#     def __hash__(self) -> int:
-#         return (
-#             self.n_trotter
-#         )  # The arguments to a cached function must all be hashable, including `self`
-
-
 def get_evolution_trotter_step(
     time_step: float, evolution_time: float
 ) -> tuple[int, int]:
