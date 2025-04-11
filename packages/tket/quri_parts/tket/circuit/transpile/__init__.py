@@ -107,7 +107,10 @@ class TketTranspiler(CircuitTranspilerProtocol):
             pass_list.append(passes.FullPeepholeOptimise())  # type: ignore
 
         if self._basis_gates is not None:
-            pass_list.append(passes.auto_rebase_pass(self._basis_gates))
+            if hasattr(passes, "auto_rebase_pass"):
+                pass_list.append(passes.auto_rebase_pass(self._basis_gates))
+            else:
+                pass_list.append(passes.AutoRebase(self._basis_gates))
 
         passes.SequencePass(pass_list).apply(tket_circ)  # type: ignore
         return circuit_from_tket(tket_circ)
