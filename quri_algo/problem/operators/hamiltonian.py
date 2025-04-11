@@ -41,7 +41,9 @@ class QubitHamiltonian(Hamiltonian):
     def qubit_hamiltonian(self) -> Operator:
         return self._qubit_hamiltonian.copy()
 
-    def get_matrix_representation(self, *args: Any) -> npt.NDArray[np.complex128]:
+    def get_matrix_representation(
+        self, *args: Any, **kwargs: Any
+    ) -> npt.NDArray[np.complex128]:
         raise NotImplementedError("Not supported yet")
 
 
@@ -54,5 +56,7 @@ class FermionicHamiltonian(Hamiltonian):
     def fermionic_hamiltonian(self) -> FermionOperator:
         return self._fermionic_hamiltonian
 
-    def get_matrix_representation(self, *args: Any) -> npt.NDArray[np.complex128]:
+    def get_matrix_representation(
+        self, *args: Any, **kwargs: Any
+    ) -> npt.NDArray[np.complex128]:
         raise NotImplementedError("Not supported yet")
