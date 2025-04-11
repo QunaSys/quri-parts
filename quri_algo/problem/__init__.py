@@ -8,13 +8,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .hamiltonian import HamiltonianInput, HamiltonianT, QubitHamiltonianInput
 from .interface import Problem, ProblemT
+from .operators.hamiltonian import (
+    FermionicHamiltonian,
+    Hamiltonian,
+    HamiltonianT,
+    QubitHamiltonian,
+)
 
 __all__ = [
     "Problem",
     "ProblemT",
-    "HamiltonianInput",
+    "Hamiltonian",
     "HamiltonianT",
-    "QubitHamiltonianInput",
+    "QubitHamiltonian",
+    "FermionicHamiltonian",
 ]

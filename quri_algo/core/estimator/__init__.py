@@ -8,6 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from .hadamard_test import HadamardTest
 from .interface import (
     ExpectationValueEstimator,
     OperatorPowerEstimatorBase,
@@ -15,4 +16,10 @@ from .interface import (
     StateT,
 )
 
-__all__ = ["ExpectationValueEstimator", "StateT", "State", "OperatorPowerEstimatorBase"]
+__all__ = [
+    "ExpectationValueEstimator",
+    "StateT",
+    "State",
+    "OperatorPowerEstimatorBase",
+    "HadamardTest",
+]

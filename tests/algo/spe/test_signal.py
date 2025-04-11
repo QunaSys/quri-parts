@@ -21,14 +21,14 @@ import quri_algo.algo.phase_estimation.spe.utils.fourier as fourier
 from quri_algo.algo.phase_estimation.spe.utils.exp_val_collector import (
     ExpectationValueCollector,
     SPESample,
+    UnitaryOpPowerSamplingEstimator,
 )
 from quri_algo.algo.phase_estimation.spe.utils.signal import (
     GaussianSignalGenerator,
     SPEDiscreteSignalFunction,
     StepFunctionSignalGenerator,
 )
-from quri_algo.core.estimator import OperatorPowerEstimatorBase
-from quri_algo.problem import HamiltonianInput
+from quri_algo.core.estimator import State
 
 
 class _Estimate(NamedTuple):
@@ -59,11 +59,9 @@ class FakeSignalInfo:
         ]
 
     @staticmethod
-    def fake_unitary_power_estimator() -> (
-        OperatorPowerEstimatorBase[HamiltonianInput, CircuitQuantumState]
-    ):
+    def fake_unitary_power_estimator() -> UnitaryOpPowerSamplingEstimator[State]:
         return cast(
-            OperatorPowerEstimatorBase[HamiltonianInput, CircuitQuantumState],
+            UnitaryOpPowerSamplingEstimator[State],
             lambda state, operator_power, n_shots: _Estimate(value=1.0),
         )
 
@@ -121,13 +119,13 @@ class TestStepFunctionSignalGenerator(unittest.TestCase):
         mock_numpy.default_rng.return_value = rng
 
         estimator = cast(
-            OperatorPowerEstimatorBase[HamiltonianInput, CircuitQuantumState],
+            UnitaryOpPowerSamplingEstimator[State],
             lambda state, operator_power, n_shots: _Estimate(value=1.0),
         )
 
         state = quantum_state(100)
         generator: StepFunctionSignalGenerator[
-            HamiltonianInput, CircuitQuantumState
+            CircuitQuantumState
         ] = StepFunctionSignalGenerator(
             power_estimator=estimator, state=state, d=10000, delta=1e-4
         )
@@ -205,13 +203,13 @@ class TestGaussianSignalGenerator(unittest.TestCase):
         mock_numpy.default_rng.return_value = rng
 
         estimator = cast(
-            OperatorPowerEstimatorBase[HamiltonianInput, CircuitQuantumState],
+            UnitaryOpPowerSamplingEstimator[State],
             lambda state, operator_power, n_shots: _Estimate(value=1.0),
         )
 
         state = quantum_state(100)
         generator: GaussianSignalGenerator[
-            HamiltonianInput, CircuitQuantumState
+            CircuitQuantumState
         ] = GaussianSignalGenerator(
             power_estimator=estimator,
             state=state,

@@ -24,15 +24,16 @@ from quri_parts.qulacs.simulator import evaluate_state_to_vector
 from scipy.linalg import expm
 
 from quri_algo.circuit.hadamard_test import construct_hadamard_circuit
-from quri_algo.core.estimator.time_evolution_estimator.trotter import (
+from quri_algo.core.estimator import State
+from quri_algo.core.estimator.time_evolution.trotter import (
     TrotterTimeEvolutionHadamardTest,
 )
-from quri_algo.problem import QubitHamiltonianInput
+from quri_algo.problem import QubitHamiltonian
 
 
 class TestTrotterTimeEvoHadamardTest(unittest.TestCase):
-    problem: QubitHamiltonianInput
-    estimator: TrotterTimeEvolutionHadamardTest
+    problem: QubitHamiltonian
+    estimator: TrotterTimeEvolutionHadamardTest[State]
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -44,9 +45,9 @@ class TestTrotterTimeEvoHadamardTest(unittest.TestCase):
                 PAULI_IDENTITY: 2,
             }
         )
-        cls.problem = QubitHamiltonianInput(2, operator)
+        cls.problem = QubitHamiltonian(2, operator)
         cls.estimator = TrotterTimeEvolutionHadamardTest(
-            encoded_problem=cls.problem,
+            qubit_hamiltonian=cls.problem,
             sampler=create_qulacs_vector_ideal_sampler(),
             n_trotter=1,
         )
@@ -90,9 +91,11 @@ def test_trotter_hadamard_test_with_transpiler() -> None:
     operator = Operator(
         {pauli_label("X0 X1"): 2, pauli_label("Y0 Y1"): 2, pauli_label("Z0 Z1"): 2}
     )
-    problem = QubitHamiltonianInput(2, operator)
-    estimator = TrotterTimeEvolutionHadamardTest(
-        encoded_problem=problem,
+    problem = QubitHamiltonian(2, operator)
+    estimator: TrotterTimeEvolutionHadamardTest[
+        State
+    ] = TrotterTimeEvolutionHadamardTest(
+        qubit_hamiltonian=problem,
         sampler=create_qulacs_vector_ideal_sampler(),
         n_trotter=1,
         transpiler=fake_transpiler,

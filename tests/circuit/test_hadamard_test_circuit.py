@@ -19,7 +19,7 @@ from quri_algo.circuit.time_evolution.trotter_time_evo import (
     TrotterControlledTimeEvolutionCircuitFactory,
     get_shifted_hamiltonian,
 )
-from quri_algo.problem import QubitHamiltonianInput
+from quri_algo.problem import QubitHamiltonian
 
 
 def test_get_shifted_hamiltonian() -> None:
@@ -37,7 +37,7 @@ def test_get_shifted_hamiltonian() -> None:
 def test_construct_hadamard_circuit_real() -> None:
     coef = 1.0
     hamiltonian = Operator({pauli_label("X 0 X 1"): coef})
-    h_input = QubitHamiltonianInput(2, hamiltonian)
+    h_input = QubitHamiltonian(2, hamiltonian)
     evo_time = 2.0
     n_trotter = 1
 
@@ -60,7 +60,7 @@ def test_construct_hadamard_circuit_real() -> None:
 def test_construct_hadamard_circuit_imag() -> None:
     coef = 1.0
     hamiltonian = Operator({pauli_label("X 0 X 1"): coef})
-    h_input = QubitHamiltonianInput(2, hamiltonian)
+    h_input = QubitHamiltonian(2, hamiltonian)
     evo_time = 2.0
     n_trotter = 1
 
@@ -84,7 +84,7 @@ def test_construct_hadamard_circuit_imag() -> None:
 def test_construct_hadamard_circuit_pre() -> None:
     coef = 1.0
     hamiltonian = Operator({pauli_label("X 0 X 1"): coef})
-    h_input = QubitHamiltonianInput(2, hamiltonian)
+    h_input = QubitHamiltonian(2, hamiltonian)
     evo_time = 2.0
     n_trotter = 1
     pre = QuantumCircuit(3)
@@ -112,7 +112,7 @@ def test_construct_hadamard_circuit_pre() -> None:
 def test_construct_hadamard_circuit_post() -> None:
     coef = 1.0
     hamiltonian = Operator({pauli_label("X 0 X 1"): coef})
-    h_input = QubitHamiltonianInput(2, hamiltonian)
+    h_input = QubitHamiltonian(2, hamiltonian)
     evo_time = 2.0
     n_trotter = 1
     post = QuantumCircuit(3)
@@ -140,7 +140,7 @@ def test_construct_hadamard_circuit_post() -> None:
 def test_construct_hadamard_circuit_five_trotter() -> None:
     coef = 1.0
     hamiltonian = Operator({pauli_label("X 0 X 1"): coef})
-    h_input = QubitHamiltonianInput(2, hamiltonian)
+    h_input = QubitHamiltonian(2, hamiltonian)
     evo_time = 2.0
     n_trotter = 5
     post = QuantumCircuit(3)
@@ -186,7 +186,7 @@ def test_construct_hadamard_circuit_five_trotter() -> None:
 def test_construct_hadamard_circuit_all() -> None:
     coef = 1.0
     hamiltonian = Operator({pauli_label("X 0 X 1"): coef})
-    h_input = QubitHamiltonianInput(2, hamiltonian)
+    h_input = QubitHamiltonian(2, hamiltonian)
     evo_time = 2.0
     n_trotter = 1
     post = QuantumCircuit(3)
@@ -221,7 +221,7 @@ def test_construct_hadamard_circuit_all() -> None:
 def test_hadamard_test_circuit_compiler() -> None:
     coef = 1.0
     hamiltonian = Operator({pauli_label("X 0 X 1"): coef})
-    h_input = QubitHamiltonianInput(2, hamiltonian)
+    h_input = QubitHamiltonian(2, hamiltonian)
     evo_time = 2.0
     n_trotter = 1
 
@@ -239,7 +239,7 @@ def test_hadamard_test_circuit_compiler() -> None:
         circuit_expected.add_H_gate(0)
 
         hadamard_test_circuit_generator = HadamardTestCircuitFactory(
-            h_input, test_real, time_evo_generator
+            test_real, time_evo_generator
         )
         hadamard_test_circuit = hadamard_test_circuit_generator(evo_time)
 

@@ -21,7 +21,7 @@ enable = true
 style = "pep440"
 
 [tool.poetry.dependencies]
-python = ">=3.10,<4"
+python = ">=3.10,<3.12"
 quri-parts-core = ">=0.20.2"
 quri-parts-circuit = ">=0.20.2"
 quri-parts-algo = ">=0.20.2"

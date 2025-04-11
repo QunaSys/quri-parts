@@ -12,17 +12,15 @@ import numpy as np
 from quri_parts.core.operator import Operator, get_sparse_matrix, pauli_label
 from quri_parts.core.state import quantum_state
 
-from quri_algo.core.estimator.time_evolution_estimator.exact_spectrum import (
+from quri_algo.core.estimator.time_evolution.exact_spectrum import (
     ExactTimeEvolutionExpectationValueEstimator,
 )
-from quri_algo.problem.hamiltonian import QubitHamiltonianInput
+from quri_algo.problem.operators.hamiltonian import QubitHamiltonian
 
 
 def test_exact_time_evolution() -> None:
     hamiltonian = Operator({pauli_label("X0"): 1})
-    hamiltonian_input = QubitHamiltonianInput(
-        n_state_qubit=1, qubit_hamiltonian=hamiltonian
-    )
+    hamiltonian_input = QubitHamiltonian(n_qubit=1, qubit_hamiltonian=hamiltonian)
     vals, vecs = np.linalg.eigh(get_sparse_matrix(hamiltonian).toarray())
 
     state = quantum_state(1, bits=0b1)

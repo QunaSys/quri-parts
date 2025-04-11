@@ -13,16 +13,14 @@ import unittest.mock
 from typing import NamedTuple
 
 import numpy as np
-from quri_parts.core.operator import PAULI_IDENTITY, Operator
 from quri_parts.core.state import CircuitQuantumState, quantum_state
 
 import quri_algo.algo.phase_estimation.spe as spe
 from quri_algo.algo.phase_estimation.spe import SingleSignalLT22PhaseEstimation
 from quri_algo.core.estimator import OperatorPowerEstimatorBase
-from quri_algo.core.estimator.time_evolution_estimator import (
+from quri_algo.core.estimator.time_evolution import (
     TimeEvolutionExpectationValueEstimator,
 )
-from quri_algo.problem import Problem, QubitHamiltonianInput
 
 
 class _Estimate(NamedTuple):
@@ -31,12 +29,12 @@ class _Estimate(NamedTuple):
 
 
 class TestLT22PhaseEstimation(unittest.TestCase):
-    lt22_algo: SingleSignalLT22PhaseEstimation[Problem, CircuitQuantumState]
+    lt22_algo: SingleSignalLT22PhaseEstimation[CircuitQuantumState]
 
     @classmethod
     def setUpClass(cls) -> None:
         estimator = unittest.mock.Mock(
-            spec=OperatorPowerEstimatorBase[Problem, CircuitQuantumState],
+            spec=OperatorPowerEstimatorBase,
             return_value=_Estimate(value=1.0),
         )
         cls.lt22_algo = SingleSignalLT22PhaseEstimation(estimator)
@@ -55,20 +53,13 @@ class TestLT22PhaseEstimation(unittest.TestCase):
 
 
 class TestLT22GSEE(unittest.TestCase):
-    lt22_algo: SingleSignalLT22PhaseEstimation[
-        QubitHamiltonianInput, CircuitQuantumState
-    ]
+    lt22_algo: SingleSignalLT22PhaseEstimation[CircuitQuantumState]
 
     @classmethod
     def setUpClass(cls) -> None:
         time_evo_estimator = unittest.mock.Mock(
-            spec=TimeEvolutionExpectationValueEstimator[
-                QubitHamiltonianInput, CircuitQuantumState
-            ],
+            spec=TimeEvolutionExpectationValueEstimator,
             return_value=_Estimate(value=1.0),
-        )
-        time_evo_estimator.encoded_problem = QubitHamiltonianInput(
-            1, Operator({PAULI_IDENTITY: 1})
         )
         tau = 20
         cls.lt22_algo = spe.SingleSignalLT22GSEE(time_evo_estimator, tau)

@@ -23,9 +23,9 @@ from quri_parts.core.state import (
 )
 
 from quri_algo.circuit.hadamard_test import HadamardTestCircuitFactory
-from quri_algo.circuit.interface import ProblemCircuitFactory
-from quri_algo.core.estimator import ExpectationValueEstimator, State, StateT
-from quri_algo.problem.interface import ProblemT
+from quri_algo.circuit.interface import CircuitFactory
+
+from .interface import ExpectationValueEstimator, State, StateT
 
 
 class _Estimate(NamedTuple):
@@ -54,7 +54,7 @@ def _general_sample_on_state(
     return sampler(state.circuit, n_shots)
 
 
-class HadamardTest(ExpectationValueEstimator[ProblemT, StateT]):
+class HadamardTest(ExpectationValueEstimator[StateT]):
     r"""Estimate a unitary operator U's expectation value :math:`\langle U.
 
     \rangle` with Hadamard test.
@@ -62,30 +62,26 @@ class HadamardTest(ExpectationValueEstimator[ProblemT, StateT]):
 
     def __init__(
         self,
-        encoded_problem: ProblemT,
-        controlled_circuit_factory: ProblemCircuitFactory[ProblemT],
+        controlled_circuit_factory: CircuitFactory,
         sampler: Union[Sampler, StateSampler[StateT]],
         *,
         transpiler: CircuitTranspiler | None = None
     ):
-        self.encoded_problem = encoded_problem
         self.controlled_circuit_factory = controlled_circuit_factory
         self.sampler = sampler
         self.transpiler = transpiler
 
     @property
-    def real_circuit_factory(self) -> HadamardTestCircuitFactory[ProblemT]:
+    def real_circuit_factory(self) -> HadamardTestCircuitFactory:
         return HadamardTestCircuitFactory(
-            self.encoded_problem,
             True,
             self.controlled_circuit_factory,
             transpiler=self.transpiler,
         )
 
     @property
-    def imag_circuit_factory(self) -> HadamardTestCircuitFactory[ProblemT]:
+    def imag_circuit_factory(self) -> HadamardTestCircuitFactory:
         return HadamardTestCircuitFactory(
-            self.encoded_problem,
             False,
             self.controlled_circuit_factory,
             transpiler=self.transpiler,

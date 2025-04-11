@@ -13,22 +13,19 @@ from typing import Any, Optional
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
 
-from quri_algo.circuit.interface import ProblemCircuitFactory
+from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.circuit.utils.transpile import apply_transpiler
-from quri_algo.problem import ProblemT
 
 
-class HadamardTestCircuitFactory(ProblemCircuitFactory[ProblemT]):
+class HadamardTestCircuitFactory(CircuitFactory):
     def __init__(
         self,
-        encoded_problem: ProblemT,
         test_real: bool,
-        controlled_circuit_factory: ProblemCircuitFactory[ProblemT],
+        controlled_circuit_factory: CircuitFactory,
         *,
         transpiler: CircuitTranspiler | None = None
     ):
-        self.encoded_problem = encoded_problem
-        self.qubit_count = encoded_problem.n_state_qubit + 1
+        self.qubit_count = controlled_circuit_factory.qubit_count
         self.test_real = test_real
         self.controlled_circuit_factory = controlled_circuit_factory
         self.transpiler = transpiler

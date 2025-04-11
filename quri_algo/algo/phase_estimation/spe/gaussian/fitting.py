@@ -14,14 +14,14 @@ import numpy as np
 import numpy.typing as npt
 from scipy import optimize
 
-from quri_algo.core.estimator import OperatorPowerEstimatorBase, StateT
-from quri_algo.core.estimator.time_evolution_estimator import (
+from quri_algo.core.estimator import StateT
+from quri_algo.core.estimator.time_evolution import (
     TimeEvolutionExpectationValueEstimator,
     TimeEvolutionPowerEstimator,
 )
-from quri_algo.problem import HamiltonianT, ProblemT
 
 from ..interface import SPEResult, StatisticalPhaseEstimation
+from ..utils.exp_val_collector import UnitaryOpPowerSamplingEstimator
 from ..utils.signal import GaussianSignalGenerator, SPEDiscreteSignalFunction
 
 if TYPE_CHECKING:
@@ -65,7 +65,7 @@ class GaussianFitter:
         return optimize.minimize(loss, [mu, p0], bounds=self.bounds)
 
 
-class GaussianFittingPhaseEstimation(StatisticalPhaseEstimation[ProblemT, StateT]):
+class GaussianFittingPhaseEstimation(StatisticalPhaseEstimation[StateT]):
     """The Gaussian Fitting statistical phase estimation algorithm.
 
     Ref:
@@ -83,12 +83,12 @@ class GaussianFittingPhaseEstimation(StatisticalPhaseEstimation[ProblemT, StateT
     """
 
     def __init__(
-        self, unitary_power_estimator: OperatorPowerEstimatorBase[ProblemT, StateT]
+        self, unitary_power_estimator: UnitaryOpPowerSamplingEstimator[StateT]
     ):
         self._unitary_power_estimator = unitary_power_estimator
 
     @property
-    def unitary_power_estimator(self) -> OperatorPowerEstimatorBase[ProblemT, StateT]:
+    def unitary_power_estimator(self) -> UnitaryOpPowerSamplingEstimator[StateT]:
         return self._unitary_power_estimator
 
     def __call__(
@@ -160,15 +160,13 @@ class GaussianFittingPhaseEstimation(StatisticalPhaseEstimation[ProblemT, StateT
         )
 
 
-class GaussianFittingGSEE(GaussianFittingPhaseEstimation[HamiltonianT, StateT]):
+class GaussianFittingGSEE(GaussianFittingPhaseEstimation[StateT]):
     """Performs ground state energy estimation with the Gaussian Fitting
     SPE."""
 
     def __init__(
         self,
-        time_evo_estimator: TimeEvolutionExpectationValueEstimator[
-            HamiltonianT, StateT
-        ],
+        time_evo_estimator: TimeEvolutionExpectationValueEstimator[StateT],
         tau: float,
     ):
         unitary_power_estimator = TimeEvolutionPowerEstimator(
