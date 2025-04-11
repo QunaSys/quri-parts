@@ -9,8 +9,8 @@
 # limitations under the License.
 
 
-from abc import abstractmethod
-from typing import Any, Protocol, TypeVar
+from abc import ABC, abstractmethod
+from typing import Any, TypeVar
 
 import numpy as np
 import numpy.typing as npt
@@ -18,7 +18,7 @@ from openfermion import FermionOperator
 from quri_parts.core.operator import Operator
 
 
-class Hamiltonian(Protocol):
+class Hamiltonian(ABC):
     """Represents an encoded Hamiltonian."""
 
     @abstractmethod
