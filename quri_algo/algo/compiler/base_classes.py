@@ -22,17 +22,24 @@ from quri_parts.circuit import (
 from quri_parts.circuit.parameter_shift import ShiftedParameters
 
 from quri_algo.algo.interface import (
+    AlgorithmResult,
     Analyzer,
     QuantumAlgorithm,
     QuantumAlgorithmResult,
     VariationalAlgorithmResultMixin,
 )
+from quri_algo.algo.utils import timer
 from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.core.cost_functions.base_classes import CostFunction
 
 
 @dataclass
-class QuantumCompilationResult(VariationalAlgorithmResultMixin, QuantumAlgorithmResult):
+class CompilationResult(AlgorithmResult, VariationalAlgorithmResultMixin):
+    optimized_circuit: NonParametricQuantumCircuit
+
+
+@dataclass
+class QuantumCompilationResult(QuantumAlgorithmResult, VariationalAlgorithmResultMixin):
     optimized_circuit: NonParametricQuantumCircuit
 
 
@@ -52,12 +59,13 @@ class QuantumCompiler(QuantumAlgorithm, ABC):
     def analyzer(self) -> Optional[Analyzer]:
         ...
 
+    @timer
     @abstractmethod
-    def _run(
+    def run(
         self,
         *args: Any,
         **kwargs: Any,
-    ) -> tuple[NonParametricQuantumCircuit, Sequence[OptimizerState]]:
+    ) -> CompilationResult:
         pass
 
     @abstractmethod
@@ -172,17 +180,21 @@ class QuantumCompilerGeneric(QuantumCompiler, ABC):
         Return value:
         Compiled circuit
         """
-        self.compiled_circuit, optimizer_history = self.run(
+        compilation_result = self.run(
             circuit_factory, ansatz, init_params, *args, **kwargs
         )
         analysis = self.analyze(
-            circuit_factory, ansatz, optimizer_history, *args, **kwargs
+            circuit_factory,
+            ansatz,
+            compilation_result.optimizer_history,
+            *args,
+            **kwargs,
         )
 
         return QuantumCompilationResult(
             algorithm=self,
-            elapsed_time=self.elapsed_time,
+            elapsed_time=compilation_result.elapsed_time,
             analysis=analysis,
-            optimizer_history=optimizer_history,
-            optimized_circuit=self.compiled_circuit,
+            optimizer_history=compilation_result.optimizer_history,
+            optimized_circuit=compilation_result.optimized_circuit,
         )

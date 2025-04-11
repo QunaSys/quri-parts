@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from time import time
 from typing import (
     Any,
     Callable,
@@ -17,6 +16,8 @@ from typing import (
 from quri_parts.algo.optimizer import OptimizerState
 from quri_parts.backend.units import TimeValue
 from quri_parts.circuit import ImmutableQuantumCircuit, NonParametricQuantumCircuit
+
+from .utils import timer
 
 LoweringLevel = Enum(
     "LoweringLevel",
@@ -173,17 +174,11 @@ class Algorithm(ABC):
     def elapsed_time(self) -> None:
         self._elapsed_time = None
 
+    @timer
     @abstractmethod
-    def _run(self, *args: Any, **kwargs: Any) -> Any:
-        pass
-
     def run(self, *args: Any, **kwargs: Any) -> Any:
         """Run the algorithm itself."""
-        t0 = time()
-        result = self._run(*args, **kwargs)
-        t1 = time()
-        self.elapsed_time = t1 - t0
-        return result
+        pass
 
     @abstractmethod
     def __call__(self, *args: Any, **kwargs: Any) -> AlgorithmResult:

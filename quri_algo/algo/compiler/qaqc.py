@@ -15,11 +15,14 @@ from quri_parts.algo.optimizer import Optimizer, OptimizerState, Params
 from quri_parts.backend.units import TimeUnit, TimeValue
 from quri_parts.circuit import (
     LinearMappedUnboundParametricQuantumCircuit,
-    NonParametricQuantumCircuit,
 )
 
-from quri_algo.algo.compiler.base_classes import QuantumCompilerGeneric
+from quri_algo.algo.compiler.base_classes import (
+    CompilationResult,
+    QuantumCompilerGeneric,
+)
 from quri_algo.algo.interface import Analysis, Analyzer, CircuitMapping
+from quri_algo.algo.utils import timer
 from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.core.cost_functions.base_classes import CostFunction
 from quri_algo.core.cost_functions.utils import prepare_circuit_hilbert_schmidt_test
@@ -74,14 +77,15 @@ class QAQC(QuantumCompilerGeneric):
     def analyzer(self) -> Optional[Analyzer]:
         return self._analyzer
 
-    def _run(
+    @timer
+    def run(
         self,
         circuit_factory: CircuitFactory,
         ansatz: LinearMappedUnboundParametricQuantumCircuit,
         init_params: Optional[Params] = None,
         *args: Any,
         **kwargs: Any,
-    ) -> tuple[NonParametricQuantumCircuit, Sequence[OptimizerState]]:
+    ) -> CompilationResult:
         """This function initiates the variational optimization.
 
         Arguments:
@@ -94,7 +98,13 @@ class QAQC(QuantumCompilerGeneric):
         Return value:
         Tuple of compiled circuit and the state of the optimizer
         """
-        return self._optimize(circuit_factory, ansatz, init_params, *args, **kwargs)
+        optimized_circuit, optimizer_history = self._optimize(
+            circuit_factory, ansatz, init_params, *args, **kwargs
+        )
+
+        return CompilationResult(
+            optimizer_history=optimizer_history, optimized_circuit=optimized_circuit
+        )
 
     def analyze(
         self,
