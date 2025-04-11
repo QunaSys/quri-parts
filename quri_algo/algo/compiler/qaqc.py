@@ -13,9 +13,7 @@ from typing import Any, Literal, Optional, Sequence
 
 from quri_parts.algo.optimizer import Optimizer, OptimizerState, Params
 from quri_parts.backend.units import TimeUnit, TimeValue
-from quri_parts.circuit import (
-    LinearMappedUnboundParametricQuantumCircuit,
-)
+from quri_parts.circuit import LinearMappedUnboundParametricQuantumCircuit
 
 from quri_algo.algo.compiler.base_classes import (
     CompilationResult,
@@ -103,7 +101,10 @@ class QAQC(QuantumCompilerGeneric):
         )
 
         return CompilationResult(
-            optimizer_history=optimizer_history, optimized_circuit=optimized_circuit
+            algorithm=self,
+            elapsed_time=None,
+            optimizer_history=optimizer_history,
+            optimized_circuit=optimized_circuit,
         )
 
     def analyze(
