@@ -38,7 +38,7 @@ from quri_parts.backend import (
 )
 from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
-from quri_parts.qiskit.circuit import QiskitCircuitConverter, convert_circuit
+from quri_parts.qiskit.circuit.transpile import QiskitCircuitConverter, convert_circuit
 
 from .saved_sampling import (
     QiskitRuntimeSavedDataSamplingResult,

@@ -12,9 +12,14 @@ from typing import Optional
 
 import networkx as nx
 import pytest
-from qiskit.providers import BackendV1, BackendV2
+from qiskit.providers import BackendV1, BackendV2, fake_provider
 
-from quri_parts.qiskit.backend import device_connectivity_graph
+from quri_parts.circuit import gate_names
+from quri_parts.qiskit.backend import (
+    coupling_map_with_2_qubit_gate_errors,
+    device_connectivity_graph,
+    qubit_indices_with_readout_errors,
+)
 
 
 class MockCouplingMap:
@@ -136,3 +141,29 @@ class TestQiskitConnectivityGraphV2:
 
         with pytest.raises(ValueError, match="does not have a coupling map."):
             device_connectivity_graph(backend)
+
+
+def test_coupling_map_with_cnot_errors() -> None:
+    devices = [
+        (fake_provider.Fake5QV1(), [(0, 1), (0, 2), (1, 2), (2, 3), (2, 4), (3, 4)]),
+    ]
+
+    for device, cmap in devices:
+        cnot_errors = coupling_map_with_2_qubit_gate_errors(
+            device, gate_name=gate_names.CNOT
+        )
+        assert set(cmap + [(b, a) for a, b in cmap]) == cnot_errors.keys()
+        for e in cnot_errors.values():
+            assert 1.0 >= e and e >= 0.0
+
+
+def test_qubit_indices_with_readout_errors() -> None:
+    devices = [
+        (fake_provider.Fake5QV1(), list(range(5))),
+    ]
+
+    for device, qubits in devices:
+        readout_errors = qubit_indices_with_readout_errors(device)
+        assert set(qubits) == readout_errors.keys()
+        for e in readout_errors.values():
+            assert 1.0 >= e and e >= 0.0
