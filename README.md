@@ -33,6 +33,7 @@ You are also encouraged to propose or author new components as necessary.
       - `quri-parts-ionq`: [IONQ](https://ionq.com/docs/)
 - Intermediate representation support
   - `quri-parts-openqasm`: [OpenQASM 3.0](https://openqasm.com/)
+- `quri-parts-qsub`: Structured circuit generation for FTQC algorithms
 - `quri-parts-algo`: Algorithms
   - Ansatz, optimizer, error mitigation etc.
 - Chemistry
@@ -75,6 +76,7 @@ Currently available extras are as follows:
 - `stim`
 - `openqasm`
 - `itensor`
+- `qsub`
 
 You can also install individual components (`quri-parts-*`) directly.
 In fact, `quri-parts` is a meta package, a convenience method to install those individual components.
@@ -91,8 +93,8 @@ pip install -r requirements-local.txt
 
 ## Documentation and tutorials
 
-Documentation of QURI Parts is available at <https://quri-parts.qunasys.com>.
-[Tutorials](https://quri-parts.qunasys.com/docs/category/basics) would be a good starting point.
+Documentation of QURI SDK is available at <https://quri-sdk.qunasys.com/>.
+[Tutorials](https://quri-sdk.qunasys.com/docs/tutorials/quri-parts) would be a good starting point.
 
 ## Release notes
 

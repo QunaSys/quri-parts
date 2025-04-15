@@ -8,18 +8,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from quri_parts.circuit.transpile import (
-    PauliDecomposeTranspiler,
-    PauliRotationDecomposeTranspiler,
-    SequentialTranspiler,
-)
-from quri_parts.qiskit.circuit import QiskitSetTranspiler
+from typing import Literal
 
+from typing_extensions import TypeAlias
 
-def test_qiskit_transpiler() -> None:
-    transpiler = QiskitSetTranspiler()
-    assert isinstance(transpiler, SequentialTranspiler)
-    assert [type(x) for x in transpiler._transpilers] == [
-        PauliDecomposeTranspiler,
-        PauliRotationDecomposeTranspiler,
-    ]
+QiskitGateNameType: TypeAlias = Literal["ECR"]
+
+QiskitTwoQubitGateNameType: TypeAlias = Literal["ECR"]
+
+ECR: Literal["ECR"] = "ECR"
