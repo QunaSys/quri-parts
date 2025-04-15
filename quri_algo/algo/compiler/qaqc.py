@@ -19,8 +19,7 @@ from quri_algo.algo.compiler.base_classes import (
     CompilationResult,
     QuantumCompilerGeneric,
 )
-from quri_algo.algo.interface import Analysis, Analyzer, CircuitMapping
-from quri_algo.algo.utils import timer
+from quri_algo.algo.interface import Analysis, Analyzer, CircuitMapping, timer
 from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.core.cost_functions.base_classes import CostFunction
 from quri_algo.core.cost_functions.utils import prepare_circuit_hilbert_schmidt_test
@@ -60,7 +59,7 @@ class QAQC(QuantumCompilerGeneric):
 
     name = Literal["Quantum-Assisted Quantum Compilation (QAQC)"]
 
-    def __init__(self, cost_fn: CostFunction, optimizer: Optimizer, analyzer: Analyzer):
+    def __init__(self, cost_fn: CostFunction, optimizer: Optimizer, analyzer: Optional[Analyzer] = None):
         super().__init__(cost_fn, optimizer, analyzer)
 
     @property

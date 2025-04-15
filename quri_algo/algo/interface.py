@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from functools import wraps
+from time import time
 from enum import Enum
 from typing import (
     Any,
@@ -11,13 +13,12 @@ from typing import (
     Sequence,
     TypeAlias,
     TypeVar,
+    ParamSpec,
 )
-
 from quri_parts.algo.optimizer import OptimizerState
 from quri_parts.backend.units import TimeValue
 from quri_parts.circuit import ImmutableQuantumCircuit, NonParametricQuantumCircuit
 
-from .utils import timer
 
 LoweringLevel = Enum(
     "LoweringLevel",
@@ -59,6 +60,22 @@ class AlgorithmResult(ABC):
         return self.algorithm.name
 
 
+T = TypeVar("T", bound=AlgorithmResult)
+P = ParamSpec("P")
+
+
+def timer(f: Callable[P, T]) -> Callable[P, T]:
+    @wraps(f)
+    def wrap(*args: P.args, **kwargs: P.kwargs) -> T:
+        t0 = time()
+        result = f(*args, **kwargs)
+        t1 = time()
+        result.elapsed_time = t1 - t0
+        return result
+
+    return wrap
+
+
 @dataclass
 class VariationalAlgorithmResultMixin(ABC):
     optimizer_history: Sequence[OptimizerState]
@@ -76,13 +93,13 @@ class VariationalAlgorithmResultMixin(ABC):
         return [optimizer_state.cost for optimizer_state in self.optimizer_history]
 
 
-T = TypeVar("T")
+U = TypeVar("U")
 
 
-class CircuitMapping(Mapping[ImmutableQuantumCircuit, T]):
+class CircuitMapping(Mapping[ImmutableQuantumCircuit, U]):
     """Map an immutable quantum circuit to a value."""
 
-    _vals_dictionary: dict[int, T]
+    _vals_dictionary: dict[int, U]
     _keys_dictionary: dict[int, ImmutableQuantumCircuit]
 
     def _circuit_hash(self, circuit: ImmutableQuantumCircuit) -> int:
@@ -90,7 +107,7 @@ class CircuitMapping(Mapping[ImmutableQuantumCircuit, T]):
         return hash((circuit.qubit_count, circuit.gates))
 
     def __init__(
-        self, circuit_vals: Sequence[tuple[ImmutableQuantumCircuit, T]]
+        self, circuit_vals: Sequence[tuple[ImmutableQuantumCircuit, U]]
     ) -> None:
         self._vals_dictionary = {}
         self._keys_dictionary = {}
@@ -98,10 +115,10 @@ class CircuitMapping(Mapping[ImmutableQuantumCircuit, T]):
             self._vals_dictionary[self._circuit_hash(circuit)] = val
             self._keys_dictionary[self._circuit_hash(circuit)] = circuit
 
-    def __getitem__(self, circuit: ImmutableQuantumCircuit) -> T:
+    def __getitem__(self, circuit: ImmutableQuantumCircuit) -> U:
         return self._vals_dictionary.__getitem__(self._circuit_hash(circuit))
 
-    def __setitem__(self, circuit: ImmutableQuantumCircuit, value: T) -> None:
+    def __setitem__(self, circuit: ImmutableQuantumCircuit, value: U) -> None:
         self._vals_dictionary.__setitem__(self._circuit_hash(circuit), value)
         self._keys_dictionary.__setitem__(self._circuit_hash(circuit), circuit)
 
@@ -160,19 +177,6 @@ class Algorithm(ABC):
 
     def __init__(self) -> None:
         self._elapsed_time: Optional[float] = None
-
-    @property
-    def elapsed_time(self) -> Optional[float]:
-        t = self._elapsed_time
-        return t
-
-    @elapsed_time.setter
-    def elapsed_time(self, t: float) -> None:
-        self._elapsed_time = t
-
-    @elapsed_time.deleter
-    def elapsed_time(self) -> None:
-        self._elapsed_time = None
 
     @timer
     @abstractmethod

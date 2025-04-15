@@ -27,8 +27,8 @@ from quri_algo.algo.interface import (
     QuantumAlgorithm,
     QuantumAlgorithmResult,
     VariationalAlgorithmResultMixin,
+    timer,
 )
-from quri_algo.algo.utils import timer
 from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.core.cost_functions.base_classes import CostFunction
 
