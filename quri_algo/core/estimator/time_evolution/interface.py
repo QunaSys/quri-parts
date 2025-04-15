@@ -29,7 +29,7 @@ from quri_algo.problem import HamiltonianT
 
 
 class TimeEvolutionExpectationValueEstimator(
-    ExpectationValueEstimator[HamiltonianT, StateT], Protocol
+    ExpectationValueEstimator[StateT], Protocol
 ):
     r"""Estimator that computes :math:`\langle e^{-iHt} \rangle`"""
 
@@ -40,9 +40,7 @@ class TimeEvolutionExpectationValueEstimator(
         ...
 
 
-class TimeEvolutionHadamardTest(
-    TimeEvolutionExpectationValueEstimator[HamiltonianT, StateT],
-):
+class TimeEvolutionHadamardTest(TimeEvolutionExpectationValueEstimator[StateT]):
     r"""Computes :math:`\langle e^{-iHt} \rangle` with Hadamard test.
 
     This object can be instantiated or inherited for performing the
@@ -53,9 +51,7 @@ class TimeEvolutionHadamardTest(
     def __init__(
         self,
         encoded_problem: HamiltonianT,
-        controlled_time_evolution_factory: ControlledTimeEvolutionCircuitFactory[
-            HamiltonianT
-        ],
+        controlled_time_evolution_factory: ControlledTimeEvolutionCircuitFactory,
         sampler: Union[Sampler, StateSampler[StateT]],
         *,
         transpiler: CircuitTranspiler | None = None
@@ -66,18 +62,17 @@ class TimeEvolutionHadamardTest(
         self.transpiler = transpiler
 
         self._hadamard_test = HadamardTest(
-            self.encoded_problem,
             self.controlled_time_evolution_factory,
             self.sampler,
             transpiler=self.transpiler,
         )
 
     @property
-    def real_circuit_factory(self) -> HadamardTestCircuitFactory[HamiltonianT]:
+    def real_circuit_factory(self) -> HadamardTestCircuitFactory:
         return self._hadamard_test.real_circuit_factory
 
     @property
-    def imag_circuit_factory(self) -> HadamardTestCircuitFactory[HamiltonianT]:
+    def imag_circuit_factory(self) -> HadamardTestCircuitFactory:
         return self._hadamard_test.imag_circuit_factory
 
     def __call__(
@@ -87,7 +82,7 @@ class TimeEvolutionHadamardTest(
         return self._hadamard_test(state, n_shots, evolution_time)
 
 
-class TimeEvolutionPowerEstimator(OperatorPowerEstimatorBase[HamiltonianT, StateT]):
+class TimeEvolutionPowerEstimator(OperatorPowerEstimatorBase[StateT]):
     r"""Turns a :class:`TimeEvolutionExpectationValueEstimator` for evaluating
     :math:`e^{-iH k \tau}` into a  :class:`OperatorPowerEstimatorBase` so that
     :math:`e^{-iH\tau}` is treated as the unitary operator and :math:`k` as the power.
@@ -95,18 +90,11 @@ class TimeEvolutionPowerEstimator(OperatorPowerEstimatorBase[HamiltonianT, State
 
     def __init__(
         self,
-        time_evo_estimator: TimeEvolutionExpectationValueEstimator[
-            HamiltonianT, StateT
-        ],
+        time_evo_estimator: TimeEvolutionExpectationValueEstimator[StateT],
         tau: float,
-        *,
-        transpiler: CircuitTranspiler | None = None
     ):
         self.time_evo_estimator = time_evo_estimator
         self.tau = tau
-
-        self.encoded_problem = self.time_evo_estimator.encoded_problem
-        self.transpiler = transpiler
 
     def __call__(
         self, state: StateT, operator_power: int | float, n_shots: Optional[int] = None

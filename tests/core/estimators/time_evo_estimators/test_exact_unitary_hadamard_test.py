@@ -13,17 +13,15 @@ from quri_parts.core.operator import Operator, pauli_label
 from quri_parts.core.state import quantum_state
 from quri_parts.qulacs.sampler import create_qulacs_vector_ideal_sampler
 
-from quri_algo.core.estimator.time_evolution_estimator.exact_unitary import (
+from quri_algo.core.estimator.time_evolution import (
     ExactUnitaryTimeEvolutionHadamardTest,
 )
-from quri_algo.problem.hamiltonian import QubitHamiltonianInput
+from quri_algo.problem.operators.hamiltonian import QubitHamiltonian
 
 
 def test_exact_unitary_hadamard_test() -> None:
     hamiltonian = Operator({pauli_label("X0"): 1})
-    hamiltonian_input = QubitHamiltonianInput(
-        n_state_qubit=1, qubit_hamiltonian=hamiltonian
-    )
+    hamiltonian_input = QubitHamiltonian(n_qubit=1, qubit_hamiltonian=hamiltonian)
     sampler = create_qulacs_vector_ideal_sampler()
 
     state = quantum_state(1, bits=0b1)

@@ -10,14 +10,15 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING, Any, Sequence
 
 from quri_algo.algo.phase_estimation.interface import (
     PhaseEstimationBase,
     PhaseEstimationResult,
 )
-from quri_algo.core.estimator import OperatorPowerEstimatorBase, StateT
-from quri_algo.problem import ProblemT
+from quri_algo.core.estimator import StateT
+
+from .utils.exp_val_collector import UnitaryOpPowerSamplingEstimator
 
 if TYPE_CHECKING:
     from .utils.signal import SPEDiscreteSignalFunction
@@ -37,7 +38,7 @@ class SPEResult(PhaseEstimationResult):
     signal_functions: Sequence["SPEDiscreteSignalFunction"]
 
 
-class StatisticalPhaseEstimation(PhaseEstimationBase[ProblemT, StateT, SPEResult], ABC):
+class StatisticalPhaseEstimation(PhaseEstimationBase[StateT], ABC):
     r"""Base class for statistical phase estimations.
 
     Args:
@@ -48,5 +49,9 @@ class StatisticalPhaseEstimation(PhaseEstimationBase[ProblemT, StateT, SPEResult
 
     @property
     @abstractmethod
-    def unitary_power_estimator(self) -> OperatorPowerEstimatorBase[ProblemT, StateT]:
+    def unitary_power_estimator(self) -> UnitaryOpPowerSamplingEstimator[StateT]:
+        ...
+
+    @abstractmethod
+    def __call__(self, state: StateT, *args: Any, **kwds: Any) -> SPEResult:
         ...

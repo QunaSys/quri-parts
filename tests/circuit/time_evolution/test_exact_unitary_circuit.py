@@ -20,7 +20,7 @@ from quri_algo.circuit.time_evolution.exact_unitary import (
     ExactUnitaryControlledTimeEvolutionCircuitFactory,
 )
 from quri_algo.core.estimator.hadamard_test import remap_state_for_hadamard_test
-from quri_algo.problem import QubitHamiltonianInput
+from quri_algo.problem import QubitHamiltonian
 
 
 def test_exact_unitary_time_evo_circuit() -> None:
@@ -38,7 +38,7 @@ def test_exact_unitary_time_evo_circuit() -> None:
         np.eye(4), np.array([[1, 0], [0, 0]], dtype=np.complex128)
     )
 
-    h_input = QubitHamiltonianInput(2, hamiltonian)
+    h_input = QubitHamiltonian(2, hamiltonian)
     evo_circuit_compiler = ExactUnitaryControlledTimeEvolutionCircuitFactory(h_input)
     evo_circuit = evo_circuit_compiler(evolution_time)
     assert evo_circuit.qubit_count == 3

@@ -16,16 +16,16 @@ import numpy as np
 import numpy.typing as npt
 from typing_extensions import TypeAlias
 
-from quri_algo.algo.phase_estimation.spe.utils.exp_val_collector import (
-    ExpectationValueCollector,
-    SPESample,
-)
 from quri_algo.algo.phase_estimation.spe.utils.fourier.coefficient import (
     SPEFourierCoefficient,
 )
-from quri_algo.core.estimator import OperatorPowerEstimatorBase, StateT
-from quri_algo.problem.interface import ProblemT
+from quri_algo.core.estimator import StateT
 
+from .exp_val_collector import (
+    ExpectationValueCollector,
+    SPESample,
+    UnitaryOpPowerSamplingEstimator,
+)
 from .fourier.gaussian_coefficient import GaussianSampler
 from .fourier.step_func_coefficient import StepFunctionSampler
 
@@ -103,13 +103,13 @@ class SPEDiscreteSignalFunction:
         )
 
 
-class SPEDiscreteSignalGenerator(Generic[ProblemT, StateT]):
+class SPEDiscreteSignalGenerator(Generic[StateT]):
     """Base object that generates a :class:`SignalFunction` in a Monte-Carlo
     manner."""
 
     def __init__(
         self,
-        power_estimator: OperatorPowerEstimatorBase[ProblemT, StateT],
+        power_estimator: UnitaryOpPowerSamplingEstimator[StateT],
         state: StateT,
         classical_sampler: ClassicalSampler,
         norm_factor: float,
@@ -144,13 +144,13 @@ class SPEDiscreteSignalGenerator(Generic[ProblemT, StateT]):
         )
 
 
-class StepFunctionSignalGenerator(SPEDiscreteSignalGenerator[ProblemT, StateT]):
+class StepFunctionSignalGenerator(SPEDiscreteSignalGenerator[StateT]):
     """A factory that generates Z_F(x) based on SPE, where F is the periodic
     step function."""
 
     def __init__(
         self,
-        power_estimator: OperatorPowerEstimatorBase[ProblemT, StateT],
+        power_estimator: UnitaryOpPowerSamplingEstimator[StateT],
         state: StateT,
         d: int,
         delta: float,
@@ -170,13 +170,13 @@ class StepFunctionSignalGenerator(SPEDiscreteSignalGenerator[ProblemT, StateT]):
         )
 
 
-class GaussianSignalGenerator(SPEDiscreteSignalGenerator[ProblemT, StateT]):
+class GaussianSignalGenerator(SPEDiscreteSignalGenerator[StateT]):
     r"""A factory that generates Z_F(x) based on SPE, where F is the Gaussian
     distribition function."""
 
     def __init__(
         self,
-        power_estimator: OperatorPowerEstimatorBase[ProblemT, StateT],
+        power_estimator: UnitaryOpPowerSamplingEstimator[StateT],
         state: StateT,
         cutoff_T: float,
         n_discretize: int,

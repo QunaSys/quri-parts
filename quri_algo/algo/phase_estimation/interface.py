@@ -10,13 +10,12 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Generic, Optional, Sequence, TypeVar
+from typing import Any, Generic, Optional, Sequence
 
 import numpy as np
 from quri_parts.core.estimator import Estimate, Estimates
 
 from quri_algo.core.estimator import StateT
-from quri_algo.problem.interface import ProblemT
 
 
 @dataclass
@@ -45,20 +44,11 @@ class MultiplePhaseEstimationResult(Estimates[float]):
         return None
 
 
-#: Result of phase estimation algorithm. It should be either
-#: a :class:`~PhaseEstimationResult` that contians the estimation of one
-#: single phase or a :class:`~MultiplePhaseEstimationResult` that contains
-#: estimations of multiple phases.
-PhaseEstResT = TypeVar(
-    "PhaseEstResT",
-    bound=PhaseEstimationResult | MultiplePhaseEstimationResult,
-    covariant=True,
-)
-
-
-class PhaseEstimationBase(Generic[ProblemT, StateT, PhaseEstResT], ABC):
+class PhaseEstimationBase(Generic[StateT], ABC):
     """Base class for implementing phase estimation algorithm."""
 
     @abstractmethod
-    def __call__(self, state: StateT, *args: Any, **kwds: Any) -> PhaseEstResT:
+    def __call__(
+        self, state: StateT, *args: Any, **kwds: Any
+    ) -> PhaseEstimationResult | MultiplePhaseEstimationResult:
         ...

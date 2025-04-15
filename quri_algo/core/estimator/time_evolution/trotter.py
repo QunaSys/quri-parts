@@ -17,34 +17,41 @@ from quri_parts.core.sampling import Sampler, StateSampler
 from quri_algo.circuit.time_evolution.trotter_time_evo import (
     TrotterControlledTimeEvolutionCircuitFactory,
 )
+from quri_algo.core.estimator import StateT
 from quri_algo.core.estimator.interface import State
-from quri_algo.problem import QubitHamiltonianInput
+from quri_algo.problem import QubitHamiltonian
 
 from .interface import TimeEvolutionHadamardTest
 
 
-class TrotterTimeEvolutionHadamardTest(
-    TimeEvolutionHadamardTest[QubitHamiltonianInput, State]
-):
+class TrotterTimeEvolutionHadamardTest(TimeEvolutionHadamardTest[StateT]):
     r"""Performs :math:`\langle e^{-iHt} \rangle` base on Trotterized
     implementation of the time evolution operator :math:`e^{-iHt}`."""
 
     def __init__(
         self,
-        encoded_problem: QubitHamiltonianInput,
+        qubit_hamiltonian: QubitHamiltonian,
         sampler: Union[Sampler, StateSampler[State]],
-        n_trotter: int,
         *,
+        time_step: float | None = None,
+        n_trotter: int | None = None,
+        trotter_order: int = 1,
         transpiler: CircuitTranspiler | None = None
     ):
+        self.time_step = time_step
         self.n_trotter = n_trotter
+        self.trotter_order = trotter_order
         controlled_time_evolution_factory = (
             TrotterControlledTimeEvolutionCircuitFactory(
-                encoded_problem, self.n_trotter, transpiler=transpiler
+                qubit_hamiltonian,
+                time_step=time_step,
+                n_trotter=n_trotter,
+                trotter_order=trotter_order,
+                transpiler=transpiler,
             )
         )
         super().__init__(
-            encoded_problem,
+            qubit_hamiltonian,
             controlled_time_evolution_factory,
             sampler,
             transpiler=transpiler,

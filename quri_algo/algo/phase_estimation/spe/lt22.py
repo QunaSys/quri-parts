@@ -13,14 +13,14 @@ from typing import TYPE_CHECKING, NamedTuple, Optional
 
 import numpy as np
 
-from quri_algo.core.estimator import OperatorPowerEstimatorBase, StateT
-from quri_algo.core.estimator.time_evolution_estimator import (
+from quri_algo.core.estimator import StateT
+from quri_algo.core.estimator.time_evolution import (
     TimeEvolutionExpectationValueEstimator,
     TimeEvolutionPowerEstimator,
 )
-from quri_algo.problem import HamiltonianT, ProblemT
 
 from .interface import SPEResult, StatisticalPhaseEstimation
+from .utils.exp_val_collector import UnitaryOpPowerSamplingEstimator
 from .utils.signal import SPEDiscreteSignalFunction, StepFunctionSignalGenerator
 
 if TYPE_CHECKING:
@@ -37,7 +37,7 @@ class LT22PostProcessParam(NamedTuple):
     n_batch: int
 
 
-class LT22PhaseEstimation(StatisticalPhaseEstimation[ProblemT, StateT]):
+class LT22PhaseEstimation(StatisticalPhaseEstimation[StateT]):
     r"""The LT22 statistical phase estimation algorithm.
 
     Ref:
@@ -53,13 +53,13 @@ class LT22PhaseEstimation(StatisticalPhaseEstimation[ProblemT, StateT]):
     """
 
     def __init__(
-        self, unitary_power_estimator: OperatorPowerEstimatorBase[ProblemT, StateT]
+        self, unitary_power_estimator: UnitaryOpPowerSamplingEstimator[StateT]
     ):
         self._unitary_power_estimator = unitary_power_estimator
         self._logger = Logger(__name__)
 
     @property
-    def unitary_power_estimator(self) -> OperatorPowerEstimatorBase[ProblemT, StateT]:
+    def unitary_power_estimator(self) -> UnitaryOpPowerSamplingEstimator[StateT]:
         return self._unitary_power_estimator
 
     def __call__(
@@ -105,7 +105,7 @@ class LT22PhaseEstimation(StatisticalPhaseEstimation[ProblemT, StateT]):
 
     def certify(
         self,
-        function_generator: StepFunctionSignalGenerator[ProblemT, StateT],
+        function_generator: StepFunctionSignalGenerator[StateT],
         n_sample: int,
         x: float,
         post_processing_param: LT22PostProcessParam,
@@ -131,19 +131,17 @@ class LT22PhaseEstimation(StatisticalPhaseEstimation[ProblemT, StateT]):
         return bool(b)
 
 
-class LT22GSEE(LT22PhaseEstimation[HamiltonianT, StateT]):
+class LT22GSEE(LT22PhaseEstimation[StateT]):
     def __init__(
         self,
-        time_evo_estimator: TimeEvolutionExpectationValueEstimator[
-            HamiltonianT, StateT
-        ],
+        time_evo_estimator: TimeEvolutionExpectationValueEstimator[StateT],
         tau: float,
     ):
         unitary_power_estimator = TimeEvolutionPowerEstimator(time_evo_estimator, tau)
         super().__init__(unitary_power_estimator)
 
 
-class SingleSignalLT22PhaseEstimation(StatisticalPhaseEstimation[ProblemT, StateT]):
+class SingleSignalLT22PhaseEstimation(StatisticalPhaseEstimation[StateT]):
     r"""The LT22 statistical phase estimation algorithm.
 
     Ref:
@@ -159,12 +157,12 @@ class SingleSignalLT22PhaseEstimation(StatisticalPhaseEstimation[ProblemT, State
     """
 
     def __init__(
-        self, unitary_power_estimator: OperatorPowerEstimatorBase[ProblemT, StateT]
+        self, unitary_power_estimator: UnitaryOpPowerSamplingEstimator[StateT]
     ):
         self._unitary_power_estimator = unitary_power_estimator
 
     @property
-    def unitary_power_estimator(self) -> OperatorPowerEstimatorBase[ProblemT, StateT]:
+    def unitary_power_estimator(self) -> UnitaryOpPowerSamplingEstimator[StateT]:
         return self._unitary_power_estimator
 
     @staticmethod
@@ -220,7 +218,7 @@ class SingleSignalLT22PhaseEstimation(StatisticalPhaseEstimation[ProblemT, State
         return SPEResult(phase=phase, signal_functions=[signal_function])
 
 
-class SingleSignalLT22GSEE(SingleSignalLT22PhaseEstimation[HamiltonianT, StateT]):
+class SingleSignalLT22GSEE(SingleSignalLT22PhaseEstimation[StateT]):
     r"""Solves ground state energy estimation problem with
     :class:`SingleSignalLT22PhaseEstimation`.
 
@@ -234,9 +232,7 @@ class SingleSignalLT22GSEE(SingleSignalLT22PhaseEstimation[HamiltonianT, StateT]
 
     def __init__(
         self,
-        time_evo_estimator: TimeEvolutionExpectationValueEstimator[
-            HamiltonianT, StateT
-        ],
+        time_evo_estimator: TimeEvolutionExpectationValueEstimator[StateT],
         tau: float,
     ):
         unitary_power_estimator = TimeEvolutionPowerEstimator(time_evo_estimator, tau)

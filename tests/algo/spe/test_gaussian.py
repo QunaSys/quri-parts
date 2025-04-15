@@ -21,10 +21,10 @@ from quri_algo.algo.phase_estimation.spe.gaussian import (
     get_recommended_gaussian_parameter,
 )
 from quri_algo.core.estimator import OperatorPowerEstimatorBase
-from quri_algo.core.estimator.time_evolution_estimator import (
+from quri_algo.core.estimator.time_evolution import (
     TimeEvolutionExpectationValueEstimator,
 )
-from quri_algo.problem import Problem, QubitHamiltonianInput
+from quri_algo.problem import QubitHamiltonian
 
 
 class _Estimate(NamedTuple):
@@ -33,7 +33,7 @@ class _Estimate(NamedTuple):
 
 
 class TestGaussianPhaseEstimation(unittest.TestCase):
-    gaussian_algo: spe.GaussianFittingPhaseEstimation[Problem, CircuitQuantumState]
+    gaussian_algo: spe.GaussianFittingPhaseEstimation[CircuitQuantumState]
     gaussian_param: spe.GaussianParam
     a: float
 
@@ -50,7 +50,7 @@ class TestGaussianPhaseEstimation(unittest.TestCase):
         cls.a = np.pi / 4
 
         estimator = unittest.mock.Mock(
-            spec=OperatorPowerEstimatorBase[Problem, CircuitQuantumState],
+            spec=OperatorPowerEstimatorBase,
             side_effect=lambda state, operator_power, n_shots: _Estimate(
                 value=np.exp(-1j * operator_power * 2 * np.pi * cls.a)
             ),
@@ -65,9 +65,7 @@ class TestGaussianPhaseEstimation(unittest.TestCase):
 
 
 class TestGaussianGSEE(unittest.TestCase):
-    gaussian_algo: spe.GaussianFittingPhaseEstimation[
-        QubitHamiltonianInput, CircuitQuantumState
-    ]
+    gaussian_algo: spe.GaussianFittingPhaseEstimation[CircuitQuantumState]
     gaussian_param: spe.GaussianParam
     shift: float
     tau: float
@@ -84,15 +82,10 @@ class TestGaussianGSEE(unittest.TestCase):
         cls.shift = np.pi / 4
 
         time_evo_estimator = unittest.mock.Mock(
-            spec=TimeEvolutionExpectationValueEstimator[
-                QubitHamiltonianInput, CircuitQuantumState
-            ],
+            spec=TimeEvolutionExpectationValueEstimator,
             side_effect=lambda state, evolution_time, n_shots: _Estimate(
                 value=np.exp(-1j * evolution_time * cls.shift)
             ),
-        )
-        time_evo_estimator.encoded_problem = QubitHamiltonianInput(
-            1, Operator({PAULI_IDENTITY: 1})
         )
 
         cls.tau = 1 / 20
