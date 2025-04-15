@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from enum import Enum
 from functools import wraps
 from time import time
@@ -47,12 +46,12 @@ Analyzer: TypeAlias = Callable[
 ]  # Provides an interface for QURI VM
 
 
-@dataclass
 class AlgorithmResult(ABC):
     """Algorithm result."""
 
-    algorithm: "Algorithm"
-    elapsed_time: Optional[float]
+    def __init__(self, algorithm: "Algorithm", elapsed_time: Optional[float] = None):
+        self.algorithm = algorithm
+        self.elapsed_time = elapsed_time
 
     @property
     def name(self) -> str:
@@ -76,9 +75,9 @@ def timer(f: Callable[P, T]) -> Callable[P, T]:
     return wrap
 
 
-@dataclass
 class VariationalAlgorithmResultMixin(ABC):
-    optimizer_history: Sequence[OptimizerState]
+    def __init__(self, optimizer_history: Sequence[OptimizerState]) -> None:
+        self.optimizer_history = optimizer_history
 
     @property
     def optimizer_result(self) -> OptimizerState:
@@ -136,17 +135,26 @@ class CircuitMapping(Mapping[ImmutableQuantumCircuit, U]):
         return True if key in self._keys_dictionary.values() else False
 
 
-@dataclass
 class Analysis(ABC):
     """Analysis of the algorithm."""
 
-    lowering_level: LoweringLevel
-    circuit_gate_count: CircuitMapping[int]
-    circuit_depth: CircuitMapping[int]
-    circuit_latency: CircuitMapping[TimeValue | None]
-    circuit_execution_count: CircuitMapping[int]
-    circuit_fidelities: CircuitMapping[float | None]
-    circuit_qubit_count: CircuitMapping[int]
+    def __init__(
+        self,
+        lowering_level: LoweringLevel,
+        circuit_gate_count: CircuitMapping[int],
+        circuit_depth: CircuitMapping[int],
+        circuit_latency: CircuitMapping[TimeValue | None],
+        circuit_execution_count: CircuitMapping[int],
+        circuit_fidelities: CircuitMapping[float | None],
+        circuit_qubit_count: CircuitMapping[int],
+    ) -> None:
+        self.lowering_level = lowering_level
+        self.circuit_gate_count = circuit_gate_count
+        self.circuit_depth = circuit_depth
+        self.circuit_latency = circuit_latency
+        self.circuit_execution_count = circuit_execution_count
+        self.circuit_fidelities = circuit_fidelities
+        self.circuit_qubit_count = circuit_qubit_count
 
     @property
     @abstractmethod
@@ -159,11 +167,17 @@ class Analysis(ABC):
         pass
 
 
-@dataclass
 class QuantumAlgorithmResult(AlgorithmResult, ABC):
     """Algorithm result with a resource analysis."""
 
-    analysis: Analysis
+    def __init__(
+        self,
+        algorithm: "Algorithm",
+        analysis: Analysis,
+        elapsed_time: Optional[float] = None,
+    ) -> None:
+        super().__init__(algorithm, elapsed_time)
+        self.analysis = analysis
 
 
 class Algorithm(ABC):

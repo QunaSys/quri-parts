@@ -9,7 +9,6 @@
 # limitations under the License.
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from typing import Any, Optional, Sequence
 
 import numpy as np
@@ -22,7 +21,9 @@ from quri_parts.circuit import (
 from quri_parts.circuit.parameter_shift import ShiftedParameters
 
 from quri_algo.algo.interface import (
+    Algorithm,
     AlgorithmResult,
+    Analysis,
     Analyzer,
     QuantumAlgorithm,
     QuantumAlgorithmResult,
@@ -33,14 +34,31 @@ from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.core.cost_functions.base_classes import CostFunction
 
 
-@dataclass
 class CompilationResult(AlgorithmResult, VariationalAlgorithmResultMixin):
-    optimized_circuit: NonParametricQuantumCircuit
+    def __init__(
+        self,
+        algorithm: Algorithm,
+        optimized_circuit: NonParametricQuantumCircuit,
+        optimizer_history: Sequence[OptimizerState],
+        elapsed_time: Optional[float] = None,
+    ):
+        super().__init__(algorithm, elapsed_time)
+        self.optimized_circuit = optimized_circuit
+        self.optimizer_history = optimizer_history
 
 
-@dataclass
 class QuantumCompilationResult(QuantumAlgorithmResult, VariationalAlgorithmResultMixin):
-    optimized_circuit: NonParametricQuantumCircuit
+    def __init__(
+        self,
+        algorithm: Algorithm,
+        analysis: Analysis,
+        optimized_circuit: NonParametricQuantumCircuit,
+        optimizer_history: Sequence[OptimizerState],
+        elapsed_time: Optional[float] = None,
+    ) -> None:
+        super().__init__(algorithm, analysis, elapsed_time)
+        self.optimized_circuit = optimized_circuit
+        self.optimizer_history = optimizer_history
 
 
 class QuantumCompiler(QuantumAlgorithm, ABC):

@@ -8,7 +8,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import dataclass
 from typing import Any, Literal, Optional, Sequence
 
 from quri_parts.algo.optimizer import Optimizer, OptimizerState, Params
@@ -19,15 +18,41 @@ from quri_algo.algo.compiler.base_classes import (
     CompilationResult,
     QuantumCompilerGeneric,
 )
-from quri_algo.algo.interface import Analysis, Analyzer, CircuitMapping, timer
+from quri_algo.algo.interface import (
+    Analysis,
+    Analyzer,
+    CircuitMapping,
+    LoweringLevel,
+    timer,
+)
 from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.core.cost_functions.base_classes import CostFunction
 from quri_algo.core.cost_functions.utils import prepare_circuit_hilbert_schmidt_test
 
 
-@dataclass
 class QAQCAnalysis(Analysis):
-    concurrency: int = 1
+    def __init__(
+        self,
+        lowering_level: LoweringLevel,
+        circuit_gate_count: CircuitMapping[int],
+        circuit_depth: CircuitMapping[int],
+        circuit_latency: CircuitMapping[TimeValue | None],
+        circuit_execution_count: CircuitMapping[int],
+        circuit_fidelities: CircuitMapping[float | None],
+        circuit_qubit_count: CircuitMapping[int],
+        concurrency: int = 1,
+    ):
+        super().__init__(
+            lowering_level,
+            circuit_gate_count,
+            circuit_depth,
+            circuit_latency,
+            circuit_execution_count,
+            circuit_fidelities,
+            circuit_qubit_count,
+        )
+
+        self.concurrency = concurrency
 
     @property
     def total_latency(self) -> TimeValue:
@@ -106,7 +131,6 @@ class QAQC(QuantumCompilerGeneric):
 
         return CompilationResult(
             algorithm=self,
-            elapsed_time=None,
             optimizer_history=optimizer_history,
             optimized_circuit=optimized_circuit,
         )
@@ -120,7 +144,7 @@ class QAQC(QuantumCompilerGeneric):
         concurrency: int = 1,
         *args: Any,
         **kwargs: Any,
-    ) -> Analysis:
+    ) -> QAQCAnalysis:
         """This function analyses the quantum resources required to run the
         quantum compilation.
 
