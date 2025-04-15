@@ -59,7 +59,12 @@ class QAQC(QuantumCompilerGeneric):
 
     name = Literal["Quantum-Assisted Quantum Compilation (QAQC)"]
 
-    def __init__(self, cost_fn: CostFunction, optimizer: Optimizer, analyzer: Optional[Analyzer] = None):
+    def __init__(
+        self,
+        cost_fn: CostFunction,
+        optimizer: Optimizer,
+        analyzer: Optional[Analyzer] = None,
+    ):
         super().__init__(cost_fn, optimizer, analyzer)
 
     @property

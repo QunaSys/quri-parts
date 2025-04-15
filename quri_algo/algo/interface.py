@@ -1,24 +1,24 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from enum import Enum
 from functools import wraps
 from time import time
-from enum import Enum
 from typing import (
     Any,
     Callable,
     Iterator,
     Mapping,
     Optional,
+    ParamSpec,
     Protocol,
     Sequence,
     TypeAlias,
     TypeVar,
-    ParamSpec,
 )
+
 from quri_parts.algo.optimizer import OptimizerState
 from quri_parts.backend.units import TimeValue
 from quri_parts.circuit import ImmutableQuantumCircuit, NonParametricQuantumCircuit
-
 
 LoweringLevel = Enum(
     "LoweringLevel",
