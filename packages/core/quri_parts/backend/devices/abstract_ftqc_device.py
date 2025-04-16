@@ -17,7 +17,6 @@ from quri_parts.circuit.transpile import (
 
 def generate_device_property(
     logical_qubit_count: int,
-    physical_qubit_count: int,
     qec_cycle: TimeValue,
     logical_error_rate: float,
     delta_sk: float,
@@ -28,7 +27,6 @@ def generate_device_property(
 
     Args:
         logical_qubit_count: Number of logical qubits.
-        physical_qubit_count: Number of physical qubits.
         qec_cycle: Time duration of each syndrome measurement for quantum
             error correction (without code distance dependency).
         logical_error_rate: Logical error rate per QEC cycle.
@@ -119,7 +117,6 @@ def generate_device_property(
             gate_names.CNOT,
         ],
         gate_properties=gate_properties,
-        physical_qubit_count=physical_qubit_count,
         background_error=(logical_error_rate, qec_cycle),
         analyze_transpiler=trans,
         analyze_parametric_transpiler=param_trans,
