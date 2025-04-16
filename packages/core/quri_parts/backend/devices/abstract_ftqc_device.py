@@ -21,6 +21,7 @@ def generate_device_property(
     qec_cycle: TimeValue,
     logical_error_rate: float,
     delta_sk: float,
+    clifford_gate_cycles: int = 1,
     t_gate_cycles: int = 1,
 ) -> DeviceProperty:
     """Generate DeviceInfo object for Clifford + T architecture devices.
@@ -32,6 +33,8 @@ def generate_device_property(
             error correction (without code distance dependency).
         logical_error_rate: Logical error rate per QEC cycle.
         delta_sk: Required accuracy of sk decompositon of each rotation gate.
+        clifford_gate_cycles: QEC cycles for each logical Clifford gate operation.
+        t_gate_cycles: QEC cycles for each T gate operation.
 
     Returns:
         DeviceInfo object representing the target Abstract FTQC architecture device.
@@ -45,18 +48,22 @@ def generate_device_property(
 
     qubits = list(range(logical_qubit_count))
     qubit_properties = {q: QubitProperty() for q in qubits}
+
+    clifford_gate_time = TimeValue(
+        value=clifford_gate_cycles * qec_cycle.value, unit=qec_cycle.unit
+    )
     gate_properties = [
         GateProperty(
             gate_names.H,
             [],
             gate_error=0.0,
-            gate_time=qec_cycle,
+            gate_time=clifford_gate_time,
         ),
         GateProperty(
             gate_names.S,
             [],
             gate_error=0.0,
-            gate_time=qec_cycle,
+            gate_time=clifford_gate_time,
         ),
         GateProperty(
             gate_names.T,
@@ -70,7 +77,7 @@ def generate_device_property(
             gate_names.CNOT,
             [],
             gate_error=0.0,
-            gate_time=qec_cycle,
+            gate_time=clifford_gate_time,
         ),
         GateProperty(
             gate_names.RZ,
