@@ -43,8 +43,8 @@ def generate_device_property(
         https://arxiv.org/abs/2303.13181
     """
 
-    num_Ts_for_1q = ceil(3 * log2(1 / delta_sk))
-    latency_1q = t_gate_cycles * num_Ts_for_1q
+    t_counts_for_rz = ceil(3 * log2(1 / delta_sk))
+    rz_gate_cycles = t_gate_cycles * t_counts_for_rz
 
     qubits = list(range(logical_qubit_count))
     qubit_properties = {q: QubitProperty() for q in qubits}
@@ -84,7 +84,7 @@ def generate_device_property(
             [],
             gate_error=delta_sk,
             gate_time=TimeValue(
-                value=latency_1q * qec_cycle.value, unit=qec_cycle.unit
+                value=rz_gate_cycles * qec_cycle.value, unit=qec_cycle.unit
             ),
         ),
         GateProperty(
@@ -92,7 +92,7 @@ def generate_device_property(
             [],
             gate_error=delta_sk,
             gate_time=TimeValue(
-                value=latency_1q * qec_cycle.value, unit=qec_cycle.unit
+                value=rz_gate_cycles * qec_cycle.value, unit=qec_cycle.unit
             ),
         ),
     ]
