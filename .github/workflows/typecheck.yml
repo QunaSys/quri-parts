@@ -33,7 +33,7 @@ jobs:
         poetry install --only main,dev,typecheck
 
     - name: Cache mypy cache
-      uses: AustinScola/mypy-cache-github-action@v1.0.0
+      uses: QunaSys/mypy-cache-github-action@master
 
     - run: poetry run mypy .
       if: success() || failure()
