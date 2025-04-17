@@ -1,7 +1,6 @@
 name: Type check
 
 on:
-  workflow_dispatch:
   pull_request:
     paths:
       - packages/**/*.py
