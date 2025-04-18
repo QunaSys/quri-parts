@@ -125,13 +125,13 @@ class Analysis(ABC):
     @property
     @abstractmethod
     def total_latency(self) -> TimeValue:
-        """Total latency of the circuit is algorithm dependent"""
+        """Total latency of the circuit is algorithm dependent."""
         pass
 
     @property
     @abstractmethod
     def max_physical_qubit_count(self) -> int:
-        """Maximum physical qubit count is algorithm dependent"""
+        """Maximum physical qubit count is algorithm dependent."""
         pass
 
 
