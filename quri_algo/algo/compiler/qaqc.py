@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Literal, Optional, Sequence
+from typing import Any, Final, Optional, Sequence
 
 from quri_parts.algo.optimizer import Optimizer, OptimizerState, Params
 from quri_parts.backend.units import TimeUnit, TimeValue
@@ -18,13 +18,8 @@ from quri_algo.algo.compiler.base_classes import (
     CompilationResult,
     QuantumCompilerGeneric,
 )
-from quri_algo.algo.interface import (
-    Analysis,
-    Analyzer,
-    CircuitMapping,
-    LoweringLevel,
-    timer,
-)
+from quri_algo.algo.interface import Analysis, Analyzer, LoweringLevel
+from quri_algo.algo.utils import CircuitMapping, timer
 from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.core.cost_functions.base_classes import CostFunction
 from quri_algo.core.cost_functions.utils import prepare_circuit_hilbert_schmidt_test
@@ -66,7 +61,7 @@ class QAQCAnalysis(Analysis):
         return TimeValue(latency_in_ns, TimeUnit.NANOSECOND)
 
     @property
-    def qubit_count(self) -> int:
+    def max_physical_qubit_count(self) -> int:
         """Total number of physical qubits of the circuit."""
         qubit_counts = [c * self.concurrency for c in self.circuit_qubit_count.values()]
         return max(qubit_counts)
@@ -82,7 +77,11 @@ class QAQC(QuantumCompilerGeneric):
     circuit only.
     """
 
-    name = Literal["Quantum-Assisted Quantum Compilation (QAQC)"]
+    _name: Final[str] = "Quantum-Assisted Quantum Compilation (QAQC)"
+
+    @property
+    def name(self) -> str:
+        return self._name
 
     def __init__(
         self,

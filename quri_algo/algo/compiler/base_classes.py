@@ -28,8 +28,8 @@ from quri_algo.algo.interface import (
     QuantumAlgorithm,
     QuantumAlgorithmResult,
     VariationalAlgorithmResultMixin,
-    timer,
 )
+from quri_algo.algo.utils import timer
 from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.core.cost_functions.base_classes import CostFunction
 
@@ -87,7 +87,7 @@ class QuantumCompiler(QuantumAlgorithm, ABC):
         pass
 
     @abstractmethod
-    def __call__(self, *args: Any, **kwds: Any) -> QuantumCompilationResult:
+    def run_and_analyze(self, *args: Any, **kwds: Any) -> QuantumCompilationResult:
         pass
 
 
@@ -179,7 +179,7 @@ class QuantumCompilerGeneric(QuantumCompiler, ABC):
 
         return opt_circuit, optimizer_history
 
-    def __call__(
+    def run_and_analyze(
         self,
         circuit_factory: CircuitFactory,
         ansatz: LinearMappedUnboundParametricQuantumCircuit,

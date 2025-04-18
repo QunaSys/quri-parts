@@ -10,24 +10,13 @@
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from functools import wraps
-from time import time
-from typing import (
-    Any,
-    Callable,
-    Iterator,
-    Mapping,
-    Optional,
-    ParamSpec,
-    Protocol,
-    Sequence,
-    TypeAlias,
-    TypeVar,
-)
+from typing import Any, Callable, Optional, Protocol, Sequence, TypeAlias
 
 from quri_parts.algo.optimizer import OptimizerState
 from quri_parts.backend.units import TimeValue
-from quri_parts.circuit import ImmutableQuantumCircuit, NonParametricQuantumCircuit
+from quri_parts.circuit import NonParametricQuantumCircuit
+
+from quri_algo.algo.utils import CircuitMapping, timer
 
 LoweringLevel = Enum(
     "LoweringLevel",
@@ -69,20 +58,20 @@ class AlgorithmResult(ABC):
         return self.algorithm.name
 
 
-T = TypeVar("T", bound=AlgorithmResult)
-P = ParamSpec("P")
+# T = TypeVar("T", bound=AlgorithmResult)
+# P = ParamSpec("P")
 
 
-def timer(f: Callable[P, T]) -> Callable[P, T]:
-    @wraps(f)
-    def wrap(*args: P.args, **kwargs: P.kwargs) -> T:
-        t0 = time()
-        result = f(*args, **kwargs)
-        t1 = time()
-        result.elapsed_time = t1 - t0
-        return result
+# def timer(f: Callable[P, T]) -> Callable[P, T]:
+#     @wraps(f)
+#     def wrap(*args: P.args, **kwargs: P.kwargs) -> T:
+#         t0 = time()
+#         result = f(*args, **kwargs)
+#         t1 = time()
+#         result.elapsed_time = t1 - t0
+#         return result
 
-    return wrap
+#     return wrap
 
 
 class VariationalAlgorithmResultMixin(ABC):
@@ -102,51 +91,18 @@ class VariationalAlgorithmResultMixin(ABC):
         return [optimizer_state.cost for optimizer_state in self.optimizer_history]
 
 
-U = TypeVar("U")
-
-
-class CircuitMapping(Mapping[ImmutableQuantumCircuit, U]):
-    """Map an immutable quantum circuit to a value."""
-
-    _vals_dictionary: dict[int, U]
-    _keys_dictionary: dict[int, ImmutableQuantumCircuit]
-
-    def _circuit_hash(self, circuit: ImmutableQuantumCircuit) -> int:
-        """Hash the circuit gates and qubit count."""
-        return hash((circuit.qubit_count, circuit.gates))
-
-    def __init__(
-        self, circuit_vals: Sequence[tuple[ImmutableQuantumCircuit, U]]
-    ) -> None:
-        self._vals_dictionary = {}
-        self._keys_dictionary = {}
-        for circuit, val in circuit_vals:
-            self._vals_dictionary[self._circuit_hash(circuit)] = val
-            self._keys_dictionary[self._circuit_hash(circuit)] = circuit
-
-    def __getitem__(self, circuit: ImmutableQuantumCircuit) -> U:
-        return self._vals_dictionary.__getitem__(self._circuit_hash(circuit))
-
-    def __setitem__(self, circuit: ImmutableQuantumCircuit, value: U) -> None:
-        self._vals_dictionary.__setitem__(self._circuit_hash(circuit), value)
-        self._keys_dictionary.__setitem__(self._circuit_hash(circuit), circuit)
-
-    def __delitem__(self, circuit: ImmutableQuantumCircuit) -> None:
-        self._vals_dictionary.__delitem__(self._circuit_hash(circuit))
-        self._keys_dictionary.__delitem__(self._circuit_hash(circuit))
-
-    def __iter__(self) -> Iterator[ImmutableQuantumCircuit]:
-        return self._keys_dictionary.values().__iter__()
-
-    def __len__(self) -> int:
-        return len(self._vals_dictionary)
-
-    def __contains__(self, key: object) -> bool:
-        return True if key in self._keys_dictionary.values() else False
-
-
 class Analysis(ABC):
-    """Analysis of the algorithm."""
+    """Analysis of the algorithm.
+
+    Properties:
+        lowering_level: The level of analysis, e.g., logical, arch, device.
+        circuit_gate_count: gate count of each circuit,
+        circuit_depth: circuit depth of each circuit,
+        circuit_latency: latency of each circuit,
+        circuit_execution_count: execution count of each circuit,
+        circuit_fidelities: fidelity of each circuit,
+        circuit_physical_qubit_count: required number of physical qubits for each circuit.,
+    """
 
     def __init__(
         self,
@@ -156,7 +112,7 @@ class Analysis(ABC):
         circuit_latency: CircuitMapping[TimeValue | None],
         circuit_execution_count: CircuitMapping[int],
         circuit_fidelities: CircuitMapping[float | None],
-        circuit_qubit_count: CircuitMapping[int],
+        circuit_physical_qubit_count: CircuitMapping[int],
     ) -> None:
         self.lowering_level = lowering_level
         self.circuit_gate_count = circuit_gate_count
@@ -164,16 +120,18 @@ class Analysis(ABC):
         self.circuit_latency = circuit_latency
         self.circuit_execution_count = circuit_execution_count
         self.circuit_fidelities = circuit_fidelities
-        self.circuit_qubit_count = circuit_qubit_count
+        self.circuit_qubit_count = circuit_physical_qubit_count
 
     @property
     @abstractmethod
-    def total_latency(self, *args: Any, **kwargs: Any) -> TimeValue:
+    def total_latency(self) -> TimeValue:
+        """Total latency of the circuit is algorithm dependent"""
         pass
 
     @property
     @abstractmethod
-    def qubit_count(self, *args: Any, **kwargs: Any) -> int:
+    def max_physical_qubit_count(self) -> int:
+        """Maximum physical qubit count is algorithm dependent"""
         pass
 
 
@@ -199,18 +157,10 @@ class Algorithm(ABC):
         """The name of the algorithm."""
         pass
 
-    def __init__(self) -> None:
-        self._elapsed_time: Optional[float] = None
-
     @timer
     @abstractmethod
-    def run(self, *args: Any, **kwargs: Any) -> Any:
+    def run(self, *args: Any, **kwargs: Any) -> AlgorithmResult:
         """Run the algorithm itself."""
-        pass
-
-    @abstractmethod
-    def __call__(self, *args: Any, **kwargs: Any) -> AlgorithmResult:
-        """Run the algorithm and return a result."""
         pass
 
     def __str__(self) -> str:
@@ -218,16 +168,16 @@ class Algorithm(ABC):
         return self.name
 
 
-class QuantumMixin(Protocol):
+class CircuitAnalysisMixin(Protocol):
     @abstractmethod
     def analyze(self, *args: Any, **kwargs: Any) -> Analysis:
         """The quantum resource analysis of the algorithm."""
         pass
 
 
-class QuantumAlgorithm(Algorithm, QuantumMixin, ABC):
+class QuantumAlgorithm(Algorithm, CircuitAnalysisMixin, ABC):
     @abstractmethod
-    def __call__(self, *args: Any, **kwargs: Any) -> QuantumAlgorithmResult:
+    def run_and_analyze(self, *args: Any, **kwargs: Any) -> QuantumAlgorithmResult:
         """Runs the algorithm and the algorithm analysis and return a
         result."""
         pass
