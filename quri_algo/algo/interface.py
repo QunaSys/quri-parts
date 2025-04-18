@@ -59,22 +59,6 @@ class AlgorithmResult(ABC):
         return self.algorithm.name
 
 
-# T = TypeVar("T", bound=AlgorithmResult)
-# P = ParamSpec("P")
-
-
-# def timer(f: Callable[P, T]) -> Callable[P, T]:
-#     @wraps(f)
-#     def wrap(*args: P.args, **kwargs: P.kwargs) -> T:
-#         t0 = time()
-#         result = f(*args, **kwargs)
-#         t1 = time()
-#         result.elapsed_time = t1 - t0
-#         return result
-
-#     return wrap
-
-
 class VariationalAlgorithmResultMixin(ABC):
     def __init__(self, optimizer_history: Sequence[OptimizerState]) -> None:
         self.optimizer_history = optimizer_history
