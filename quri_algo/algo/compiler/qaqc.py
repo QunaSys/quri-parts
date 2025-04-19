@@ -16,6 +16,7 @@ from quri_parts.circuit import LinearMappedUnboundParametricQuantumCircuit
 
 from quri_algo.algo.compiler.base_classes import (
     CompilationResult,
+    QuantumCompiler,
     QuantumCompilerGeneric,
 )
 from quri_algo.algo.interface import Analysis, Analyzer, LoweringLevel
@@ -88,9 +89,9 @@ class QAQC(QuantumCompilerGeneric):
         self,
         cost_fn: CostFunction,
         optimizer: Optimizer,
-        analyzer: Optional[Analyzer] = None,
     ):
-        super().__init__(cost_fn, optimizer, analyzer)
+        self._cost_fn = cost_fn
+        self._optimizer = optimizer
 
     @property
     def cost_function(self) -> CostFunction:
@@ -99,10 +100,6 @@ class QAQC(QuantumCompilerGeneric):
     @property
     def optimizer(self) -> Optimizer:
         return self._optimizer
-
-    @property
-    def analyzer(self) -> Optional[Analyzer]:
-        return self._analyzer
 
     @timer
     def run(
@@ -140,6 +137,7 @@ class QAQC(QuantumCompilerGeneric):
         circuit_factory: CircuitFactory,
         ansatz: LinearMappedUnboundParametricQuantumCircuit,
         optimizer_history: Sequence[OptimizerState],
+        analyzer: Analyzer,
         circuit_execution_multiplier: Optional[int] = None,
         concurrency: int = 1,
         *args: Any,
@@ -159,7 +157,6 @@ class QAQC(QuantumCompilerGeneric):
         Return value:
         Tuple of compiled circuit and the state of the optimizer
         """
-        assert self.analyzer, "Needs an analyzer to analyze the circuit"
 
         circuit_list = []
         for optimizer_state in optimizer_history:
@@ -176,7 +173,7 @@ class QAQC(QuantumCompilerGeneric):
         )
         if circuit_execution_multiplier is not None:
             total_circuit_executions *= circuit_execution_multiplier
-        circuit_analysis = self.analyzer(
+        circuit_analysis = analyzer(
             combined_circuit
         )  # QAQC analysis can be assumed to result identically for each circuit
         analysis = QAQCAnalysis(

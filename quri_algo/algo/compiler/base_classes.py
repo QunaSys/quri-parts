@@ -30,6 +30,7 @@ from quri_algo.algo.interface import (
     VariationalAlgorithmResultMixin,
 )
 from quri_algo.algo.utils.timer import timer
+from quri_algo.algo.utils.variational_solvers import VariationalSolver
 from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.core.cost_functions.base_classes import CostFunction
 
@@ -69,12 +70,7 @@ class QuantumCompiler(QuantumAlgorithm, ABC):
 
     @property
     @abstractmethod
-    def optimizer(self) -> Optimizer:
-        ...
-
-    @property
-    @abstractmethod
-    def analyzer(self) -> Optional[Analyzer]:
+    def solver(self) -> VariationalSolver:
         ...
 
     @timer
@@ -95,11 +91,11 @@ class QuantumCompilerGeneric(QuantumCompiler, ABC):
     def __init__(
         self,
         cost_fn: CostFunction,
-        optimizer: Optimizer,
+        solver: VariationalSolver,
         analyzer: Optional[Analyzer] = None,
     ):
         self._cost_fn = cost_fn
-        self._optimizer = optimizer
+        self._solver = solver
         self._analyzer = analyzer
 
     @property
@@ -107,8 +103,8 @@ class QuantumCompilerGeneric(QuantumCompiler, ABC):
         return self._cost_fn
 
     @property
-    def optimizer(self) -> Optimizer:
-        return self._optimizer
+    def solver(self) -> VariationalSolver:
+        return self._solver
 
     def _optimize(
         self,
@@ -166,15 +162,10 @@ class QuantumCompilerGeneric(QuantumCompiler, ABC):
         if init_params is None:
             rng = default_rng()
             init_params = rng.random(ansatz.parameter_count) * 2 * np.pi
-        optimizer_state = self.optimizer.get_init_state(init_params)
-        optimizer_history = [optimizer_state]
-        while optimizer_state.status == OptimizerStatus.SUCCESS:
-            optimizer_state = self.optimizer.step(
-                optimizer_state, cost, grad_function=gradient
-            )
-            optimizer_history.append(optimizer_state)
 
-        opt_params = optimizer_state.params
+        optimizer_history = self.solver(cost, gradient, init_params)
+
+        opt_params = optimizer_history[-1].params
         opt_circuit = ansatz.bind_parameters(list(opt_params.tolist()))
 
         return opt_circuit, optimizer_history
