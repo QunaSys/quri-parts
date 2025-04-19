@@ -59,7 +59,7 @@ def test_qaqc() -> None:
     optimizer.get_init_state = Mock(return_value=optimizer_state_success)
     optimizer.step = Mock(return_value=optimizer_state_converged)
 
-    qaqc = QAQC(cost_fn, optimizer, vm.analyze)
+    qaqc = QAQC(cost_fn, optimizer)
     qaqc.run(circuit_factory, ansatz, evolution_time=evolution_time)
 
     assert optimizer.get_init_state.call_count == 1
@@ -70,6 +70,7 @@ def test_qaqc() -> None:
         circuit_factory,
         ansatz,
         [optimizer_state_converged],
+        vm.analyze,
         evolution_time=evolution_time,
         circuit_execution_multiplier=500,
     )

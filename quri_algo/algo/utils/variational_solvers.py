@@ -19,6 +19,7 @@ from quri_parts.algo.optimizer import (
     OptimizerStatus,
     Params,
 )
+from quri_parts.algo.optimizer.lbfgs import LBFGS
 from scipy.optimize import OptimizeResult, minimize
 
 
@@ -90,3 +91,12 @@ class SciPyVariationalSolver(VariationalSolver):
         )
 
         return optimizer_history
+
+
+def create_default_variational_solver() -> VariationalSolver:
+    """Create a default variational solver.
+
+    Returns:
+        A variational solver instance.
+    """
+    return QURIPartsVariationalSolver(LBFGS())

@@ -10,20 +10,33 @@
 
 from typing import Any, Final, Optional, Sequence
 
-from quri_parts.algo.optimizer import Optimizer, OptimizerState, Params
+import numpy as np
+from numpy.random import default_rng
+from quri_parts.algo.optimizer import OptimizerState, Params
 from quri_parts.backend.units import TimeUnit, TimeValue
-from quri_parts.circuit import LinearMappedUnboundParametricQuantumCircuit
+from quri_parts.circuit import (
+    LinearMappedUnboundParametricQuantumCircuit,
+    NonParametricQuantumCircuit,
+)
+from quri_parts.circuit.parameter_shift import ShiftedParameters
 
 from quri_algo.algo.compiler.base_classes import (
     CompilationResult,
+    QuantumCompilationResult,
     QuantumCompiler,
-    QuantumCompilerGeneric,
 )
 from quri_algo.algo.interface import Analysis, Analyzer, LoweringLevel
 from quri_algo.algo.utils.mappings import CircuitMapping
 from quri_algo.algo.utils.timer import timer
+from quri_algo.algo.utils.variational_solvers import (
+    VariationalSolver,
+    create_default_variational_solver,
+)
 from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.core.cost_functions.base_classes import CostFunction
+from quri_algo.core.cost_functions.hilbert_schmidt_test import (
+    create_default_hilbert_schmidt_test,
+)
 from quri_algo.core.cost_functions.utils import prepare_circuit_hilbert_schmidt_test
 
 
@@ -69,7 +82,7 @@ class QAQCAnalysis(Analysis):
         return max(qubit_counts)
 
 
-class QAQC(QuantumCompilerGeneric):
+class QAQC(QuantumCompiler):
     """Quantum-Assisted Quantum Compilation (QAQC)
 
     This class provides an implementation of QAQC https://quantum-
@@ -87,19 +100,83 @@ class QAQC(QuantumCompilerGeneric):
 
     def __init__(
         self,
-        cost_fn: CostFunction,
-        optimizer: Optimizer,
+        cost_fn: CostFunction = create_default_hilbert_schmidt_test(),
+        solver: VariationalSolver = create_default_variational_solver(),
     ):
         self._cost_fn = cost_fn
-        self._optimizer = optimizer
+        self._solver = solver
 
     @property
     def cost_function(self) -> CostFunction:
         return self._cost_fn
 
     @property
-    def optimizer(self) -> Optimizer:
-        return self._optimizer
+    def solver(self) -> VariationalSolver:
+        return self._solver
+
+    def _optimize(
+        self,
+        circuit_factory: CircuitFactory,
+        ansatz: LinearMappedUnboundParametricQuantumCircuit,
+        init_params: Optional[Params] = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> tuple[NonParametricQuantumCircuit, Sequence[OptimizerState]]:
+        if not isinstance(circuit_factory, CircuitFactory):
+            raise TypeError(
+                "Target circuit factory should be an instance of CircuitFactory."
+            )
+        target_circuit = circuit_factory(*args, **kwargs)
+
+        def cost(params: Params) -> float:
+            trial_circuit = ansatz.bind_parameters(list(params.tolist()))
+            return self.cost_function(target_circuit, trial_circuit).value.real
+
+        def gradient(params: Params) -> Params:
+            """Parameter shift gradient function.
+
+            This calculates the gradient based on the parameter shift rule, as in (https://quri-parts.qunasys.com/docs/tutorials/advanced/parametric/gradient_estimators/#parameter-shift-gradient-estimator)
+            """
+
+            param_mapping = ansatz.param_mapping
+            raw_circuit = ansatz.primitive_circuit()
+            parameter_shift = ShiftedParameters(param_mapping)
+            derivatives = parameter_shift.get_derivatives()
+            shifted_parameters_and_coefs = [
+                d.get_shifted_parameters_and_coef(list(params)) for d in derivatives
+            ]
+
+            gate_params = set()
+            for params_and_coefs in shifted_parameters_and_coefs:
+                for p, _ in params_and_coefs:
+                    gate_params.add(p)
+            gate_params_list = list(gate_params)
+
+            estimates = [
+                self.cost_function(target_circuit, raw_circuit.bind_parameters(list(p)))
+                for p in gate_params_list
+            ]
+            estimates_dict = dict(zip(gate_params_list, estimates))
+
+            gradient = []
+            for params_and_coefs in shifted_parameters_and_coefs:
+                g = 0.0
+                for p, c in params_and_coefs:
+                    g += estimates_dict[p].value.real * c.real
+                gradient.append(g)
+
+            return np.array(gradient)
+
+        if init_params is None:
+            rng = default_rng()
+            init_params = rng.random(ansatz.parameter_count) * 2 * np.pi
+
+        optimizer_history = self.solver(cost, gradient, init_params)
+
+        opt_params = optimizer_history[-1].params
+        opt_circuit = ansatz.bind_parameters(list(opt_params.tolist()))
+
+        return opt_circuit, optimizer_history
 
     @timer
     def run(
@@ -201,3 +278,41 @@ class QAQC(QuantumCompilerGeneric):
         )
 
         return analysis
+
+    def run_and_analyze(
+        self,
+        circuit_factory: CircuitFactory,
+        ansatz: LinearMappedUnboundParametricQuantumCircuit,
+        init_params: Optional[Params] = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> QuantumCompilationResult:
+        """Perform QAQC compilation and return circuit.
+
+        Arguments:
+        circuit_factory - Circuit factory which generates the target circuit for the compilation
+        ansatz - Parametric ansatz circuit that is used to approximate the target circuit
+        init_params - initial variational parameters for the optimization
+        variable arguments if any are passed to the circuit_factory's __call__ method
+
+        Return value:
+        Compiled circuit
+        """
+        compilation_result = self.run(
+            circuit_factory, ansatz, init_params, *args, **kwargs
+        )
+        analysis = self.analyze(
+            circuit_factory,
+            ansatz,
+            compilation_result.optimizer_history,
+            *args,
+            **kwargs,
+        )
+
+        return QuantumCompilationResult(
+            algorithm=self,
+            elapsed_time=compilation_result.elapsed_time,
+            analysis=analysis,
+            optimizer_history=compilation_result.optimizer_history,
+            optimized_circuit=compilation_result.optimized_circuit,
+        )

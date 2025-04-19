@@ -11,27 +11,19 @@
 from abc import ABC, abstractmethod
 from typing import Any, Optional, Sequence
 
-import numpy as np
-from numpy.random import default_rng
-from quri_parts.algo.optimizer import Optimizer, OptimizerState, OptimizerStatus, Params
-from quri_parts.circuit import (
-    LinearMappedUnboundParametricQuantumCircuit,
-    NonParametricQuantumCircuit,
-)
-from quri_parts.circuit.parameter_shift import ShiftedParameters
+from quri_parts.algo.optimizer import OptimizerState
+from quri_parts.circuit import NonParametricQuantumCircuit
 
 from quri_algo.algo.interface import (
     Algorithm,
     AlgorithmResult,
     Analysis,
-    Analyzer,
     QuantumAlgorithm,
     QuantumAlgorithmResult,
     VariationalAlgorithmResultMixin,
 )
 from quri_algo.algo.utils.timer import timer
 from quri_algo.algo.utils.variational_solvers import VariationalSolver
-from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.core.cost_functions.base_classes import CostFunction
 
 
@@ -87,123 +79,123 @@ class QuantumCompiler(QuantumAlgorithm, ABC):
         pass
 
 
-class QuantumCompilerGeneric(QuantumCompiler, ABC):
-    def __init__(
-        self,
-        cost_fn: CostFunction,
-        solver: VariationalSolver,
-        analyzer: Optional[Analyzer] = None,
-    ):
-        self._cost_fn = cost_fn
-        self._solver = solver
-        self._analyzer = analyzer
+# class QuantumCompilerGeneric(QuantumCompiler, ABC):
+#     def __init__(
+#         self,
+#         cost_fn: CostFunction,
+#         solver: VariationalSolver,
+#         analyzer: Optional[Analyzer] = None,
+#     ):
+#         self._cost_fn = cost_fn
+#         self._solver = solver
+#         self._analyzer = analyzer
 
-    @property
-    def cost_function(self) -> CostFunction:
-        return self._cost_fn
+#     @property
+#     def cost_function(self) -> CostFunction:
+#         return self._cost_fn
 
-    @property
-    def solver(self) -> VariationalSolver:
-        return self._solver
+#     @property
+#     def solver(self) -> VariationalSolver:
+#         return self._solver
 
-    def _optimize(
-        self,
-        circuit_factory: CircuitFactory,
-        ansatz: LinearMappedUnboundParametricQuantumCircuit,
-        init_params: Optional[Params] = None,
-        *args: Any,
-        **kwargs: Any,
-    ) -> tuple[NonParametricQuantumCircuit, Sequence[OptimizerState]]:
-        if not isinstance(circuit_factory, CircuitFactory):
-            raise TypeError(
-                "Target circuit factory should be an instance of CircuitFactory."
-            )
-        target_circuit = circuit_factory(*args, **kwargs)
+#     def _optimize(
+#         self,
+#         circuit_factory: CircuitFactory,
+#         ansatz: LinearMappedUnboundParametricQuantumCircuit,
+#         init_params: Optional[Params] = None,
+#         *args: Any,
+#         **kwargs: Any,
+#     ) -> tuple[NonParametricQuantumCircuit, Sequence[OptimizerState]]:
+#         if not isinstance(circuit_factory, CircuitFactory):
+#             raise TypeError(
+#                 "Target circuit factory should be an instance of CircuitFactory."
+#             )
+#         target_circuit = circuit_factory(*args, **kwargs)
 
-        def cost(params: Params) -> float:
-            trial_circuit = ansatz.bind_parameters(list(params.tolist()))
-            return self.cost_function(target_circuit, trial_circuit).value.real
+#         def cost(params: Params) -> float:
+#             trial_circuit = ansatz.bind_parameters(list(params.tolist()))
+#             return self.cost_function(target_circuit, trial_circuit).value.real
 
-        def gradient(params: Params) -> Params:
-            """Parameter shift gradient function.
+#         def gradient(params: Params) -> Params:
+#             """Parameter shift gradient function.
 
-            This calculates the gradient based on the parameter shift rule, as in (https://quri-parts.qunasys.com/docs/tutorials/advanced/parametric/gradient_estimators/#parameter-shift-gradient-estimator)
-            """
+#             This calculates the gradient based on the parameter shift rule, as in (https://quri-parts.qunasys.com/docs/tutorials/advanced/parametric/gradient_estimators/#parameter-shift-gradient-estimator)
+#             """
 
-            param_mapping = ansatz.param_mapping
-            raw_circuit = ansatz.primitive_circuit()
-            parameter_shift = ShiftedParameters(param_mapping)
-            derivatives = parameter_shift.get_derivatives()
-            shifted_parameters_and_coefs = [
-                d.get_shifted_parameters_and_coef(list(params)) for d in derivatives
-            ]
+#             param_mapping = ansatz.param_mapping
+#             raw_circuit = ansatz.primitive_circuit()
+#             parameter_shift = ShiftedParameters(param_mapping)
+#             derivatives = parameter_shift.get_derivatives()
+#             shifted_parameters_and_coefs = [
+#                 d.get_shifted_parameters_and_coef(list(params)) for d in derivatives
+#             ]
 
-            gate_params = set()
-            for params_and_coefs in shifted_parameters_and_coefs:
-                for p, _ in params_and_coefs:
-                    gate_params.add(p)
-            gate_params_list = list(gate_params)
+#             gate_params = set()
+#             for params_and_coefs in shifted_parameters_and_coefs:
+#                 for p, _ in params_and_coefs:
+#                     gate_params.add(p)
+#             gate_params_list = list(gate_params)
 
-            estimates = [
-                self.cost_function(target_circuit, raw_circuit.bind_parameters(list(p)))
-                for p in gate_params_list
-            ]
-            estimates_dict = dict(zip(gate_params_list, estimates))
+#             estimates = [
+#                 self.cost_function(target_circuit, raw_circuit.bind_parameters(list(p)))
+#                 for p in gate_params_list
+#             ]
+#             estimates_dict = dict(zip(gate_params_list, estimates))
 
-            gradient = []
-            for params_and_coefs in shifted_parameters_and_coefs:
-                g = 0.0
-                for p, c in params_and_coefs:
-                    g += estimates_dict[p].value.real * c.real
-                gradient.append(g)
+#             gradient = []
+#             for params_and_coefs in shifted_parameters_and_coefs:
+#                 g = 0.0
+#                 for p, c in params_and_coefs:
+#                     g += estimates_dict[p].value.real * c.real
+#                 gradient.append(g)
 
-            return np.array(gradient)
+#             return np.array(gradient)
 
-        if init_params is None:
-            rng = default_rng()
-            init_params = rng.random(ansatz.parameter_count) * 2 * np.pi
+#         if init_params is None:
+#             rng = default_rng()
+#             init_params = rng.random(ansatz.parameter_count) * 2 * np.pi
 
-        optimizer_history = self.solver(cost, gradient, init_params)
+#         optimizer_history = self.solver(cost, gradient, init_params)
 
-        opt_params = optimizer_history[-1].params
-        opt_circuit = ansatz.bind_parameters(list(opt_params.tolist()))
+#         opt_params = optimizer_history[-1].params
+#         opt_circuit = ansatz.bind_parameters(list(opt_params.tolist()))
 
-        return opt_circuit, optimizer_history
+#         return opt_circuit, optimizer_history
 
-    def run_and_analyze(
-        self,
-        circuit_factory: CircuitFactory,
-        ansatz: LinearMappedUnboundParametricQuantumCircuit,
-        init_params: Optional[Params] = None,
-        *args: Any,
-        **kwargs: Any,
-    ) -> QuantumCompilationResult:
-        """Perform QAQC compilation and return circuit.
+#     def run_and_analyze(
+#         self,
+#         circuit_factory: CircuitFactory,
+#         ansatz: LinearMappedUnboundParametricQuantumCircuit,
+#         init_params: Optional[Params] = None,
+#         *args: Any,
+#         **kwargs: Any,
+#     ) -> QuantumCompilationResult:
+#         """Perform QAQC compilation and return circuit.
 
-        Arguments:
-        circuit_factory - Circuit factory which generates the target circuit for the compilation
-        ansatz - Parametric ansatz circuit that is used to approximate the target circuit
-        init_params - initial variational parameters for the optimization
-        variable arguments if any are passed to the circuit_factory's __call__ method
+#         Arguments:
+#         circuit_factory - Circuit factory which generates the target circuit for the compilation
+#         ansatz - Parametric ansatz circuit that is used to approximate the target circuit
+#         init_params - initial variational parameters for the optimization
+#         variable arguments if any are passed to the circuit_factory's __call__ method
 
-        Return value:
-        Compiled circuit
-        """
-        compilation_result = self.run(
-            circuit_factory, ansatz, init_params, *args, **kwargs
-        )
-        analysis = self.analyze(
-            circuit_factory,
-            ansatz,
-            compilation_result.optimizer_history,
-            *args,
-            **kwargs,
-        )
+#         Return value:
+#         Compiled circuit
+#         """
+#         compilation_result = self.run(
+#             circuit_factory, ansatz, init_params, *args, **kwargs
+#         )
+#         analysis = self.analyze(
+#             circuit_factory,
+#             ansatz,
+#             compilation_result.optimizer_history,
+#             *args,
+#             **kwargs,
+#         )
 
-        return QuantumCompilationResult(
-            algorithm=self,
-            elapsed_time=compilation_result.elapsed_time,
-            analysis=analysis,
-            optimizer_history=compilation_result.optimizer_history,
-            optimized_circuit=compilation_result.optimized_circuit,
-        )
+#         return QuantumCompilationResult(
+#             algorithm=self,
+#             elapsed_time=compilation_result.elapsed_time,
+#             analysis=analysis,
+#             optimizer_history=compilation_result.optimizer_history,
+#             optimized_circuit=compilation_result.optimized_circuit,
+#         )
