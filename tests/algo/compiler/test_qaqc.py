@@ -20,9 +20,9 @@ from quri_parts.circuit import (
 
 from quri_algo.algo.compiler.qaqc import QAQC
 from quri_algo.algo.interface import Analyzer, LoweringLevel
+from quri_algo.algo.utils.variational_solvers import QURIPartsVariationalSolver
 from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.core.cost_functions.base_classes import LocalCostFunction
-from quri_algo.algo.utils.variational_solvers import QURIPartsVariationalSolver
 
 
 def test_qaqc() -> None:
