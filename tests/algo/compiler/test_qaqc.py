@@ -22,6 +22,7 @@ from quri_algo.algo.compiler.qaqc import QAQC
 from quri_algo.algo.interface import Analyzer, LoweringLevel
 from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.core.cost_functions.base_classes import LocalCostFunction
+from quri_algo.algo.utils.variational_solvers import QURIPartsVariationalSolver
 
 
 def test_qaqc() -> None:
@@ -58,8 +59,9 @@ def test_qaqc() -> None:
     optimizer_state_converged.funcalls = 4
     optimizer.get_init_state = Mock(return_value=optimizer_state_success)
     optimizer.step = Mock(return_value=optimizer_state_converged)
+    solver = QURIPartsVariationalSolver(optimizer)
 
-    qaqc = QAQC(cost_fn, optimizer)
+    qaqc = QAQC(cost_fn, solver)
     qaqc.run(circuit_factory, ansatz, evolution_time=evolution_time)
 
     assert optimizer.get_init_state.call_count == 1
