@@ -35,7 +35,7 @@ def generate_device_property(
         t_gate_cycles: QEC cycles for each T gate operation.
 
     Returns:
-        DeviceInfo object representing the target Abstract FTQC architecture device.
+        DeviceProperty object representing the target abstract FTQC architecture device.
 
     References:
         https://arxiv.org/abs/2303.13181
