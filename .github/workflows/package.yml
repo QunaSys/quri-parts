@@ -113,7 +113,7 @@ jobs:
             target: "aarch64-apple-darwin"
           - os: "windows-latest"
             target: "x86_64-pc-windows-msvc"
-        python-version: [ "9", "10", "11" ]
+        python-version: [ "9", "10", "11", "12" ]
         toolchain: [ "stable" ]
     defaults:
       run:
