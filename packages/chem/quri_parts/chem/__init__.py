@@ -8,8 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .circuit import convert_to_qasm_str
+
+from .mol import cas
 
 __all__ = [
-    "convert_to_qasm_str",
+    "cas",
 ]
