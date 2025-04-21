@@ -3,7 +3,7 @@ name: Package and release
 on:
   workflow_dispatch:
   push:
-    branches: [main, binary-release-312]
+    branches: [main]
   release:
     types: [published]
 
