@@ -14,7 +14,7 @@ from .estimator import (
 )
 from .sampler import (
     create_qulacs_density_matrix_general_sampler,
-    create_qulacs_density_matrix_sampler,
+    create_qulacs_general_vector_sampler,
 )
 from .simulator import evaluate_state_to_vector
 from .types import QulacsParametricStateT, QulacsStateT
@@ -22,9 +22,9 @@ from .types import QulacsParametricStateT, QulacsStateT
 __all__ = [
     "QulacsStateT",
     "QulacsParametricStateT",
-    "create_qulacs_general_vector_estimator",
     "create_qulacs_general_density_matrix_estimator",
-    "create_qulacs_density_matrix_sampler",
+    "create_qulacs_general_vector_estimator",
     "create_qulacs_density_matrix_general_sampler",
+    "create_qulacs_general_vector_sampler",
     "evaluate_state_to_vector",
 ]
