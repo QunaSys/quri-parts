@@ -4212,28 +4212,24 @@ test = ["openfermion"]
 
 [[package]]
 name = "qulacsvis"
-version = "0.7.3"
+version = "0.7.4"
 description = "visualizers for qulacs"
 optional = false
-python-versions = "^3.8"
+python-versions = ">=3.9"
 groups = ["main", "dev"]
 markers = "python_version >= \"3.10\""
-files = []
-develop = false
+files = [
+    {file = "qulacsvis-0.7.4-py3-none-any.whl", hash = "sha256:66ad3cc402ed572a462dce6005d36d077c5cd3c3be661c1aa359db68189d05b2"},
+    {file = "qulacsvis-0.7.4.tar.gz", hash = "sha256:5a4f5be082ab32c77ba9f7e8da73ac580f149a1a72c457de5a0a3c223d6b3e8d"},
+]
 
 [package.dependencies]
-dataclasses-json = "^0.5.7"
-matplotlib = "^3.4.3"
-numpy = "^1.24.0"
-Pillow = "^9.1.0"
+dataclasses-json = ">=0.5"
+matplotlib = ">=3.4.3,<4.0.0"
+numpy = ">=1.24.0,<2.0.0"
+Pillow = ">=9.1.0,<10.0.0"
 Qulacs = ">=0.5.0"
-temp = "^2020.7.2"
-
-[package.source]
-type = "git"
-url = "https://github.com/QunaSys/qulacs-visualizer"
-reference = "control_swap"
-resolved_reference = "3d7f6d6ed4b4b09877fb6dd3a1ea25476ecdc39c"
+temp = ">=2020.7.2,<2021.0.0"
 
 [[package]]
 name = "quri-parts-algo"
@@ -4462,7 +4458,7 @@ develop = true
 networkx = "*"
 numpy = ">=1.22.0"
 pydantic = "^2.0"
-qiskit = ">=1"
+qiskit = ">=1,<2"
 qiskit-ibm-runtime = "^0.22.0"
 quri-parts-circuit = "*"
 quri-parts-core = "*"
@@ -4476,14 +4472,14 @@ name = "quri-parts-qsub"
 version = "0.0.0"
 description = "A support library for consturcting structured quantum circuits"
 optional = false
-python-versions = "^3.10"
+python-versions = ">=3.10"
 groups = ["main", "dev"]
 markers = "python_version >= \"3.10\""
 files = []
 develop = true
 
 [package.dependencies]
-qulacsvis = {git = "https://github.com/QunaSys/qulacs-visualizer", rev = "control_swap"}
+qulacsvis = "^0.7.4"
 quri-parts-circuit = "*"
 quri-parts-qulacs = "*"
 
@@ -4532,7 +4528,7 @@ url = "packages/qulacs"
 
 [[package]]
 name = "quri-parts-rust"
-version = "0.20.3"
+version = "0.21.0"
 description = "Platform-independent quantum circuit library"
 optional = false
 python-versions = "^3.9.8"
