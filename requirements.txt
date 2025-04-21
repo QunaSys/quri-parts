@@ -27,4 +27,5 @@ quri-parts-qsci @ git+https://github.com/QunaSys/quri-parts-qsci.git@85929727f06
 quri-parts-qulacs==0.20.3
 quri-parts-rust==0.20.3
 quri-parts-tket==0.20.3
+quri-parts-qsub==0.21.0
 quri-vm==0.1.0
