@@ -12,9 +12,11 @@ from typing import Any, Final, Optional, Sequence
 
 import numpy as np
 from numpy.random import default_rng
-from quri_parts.algo.optimizer import OptimizerState, Params
+from quri_parts.algo.optimizer import CostFunction as QPCostFunction
+from quri_parts.algo.optimizer import GradientFunction, OptimizerState, Params
 from quri_parts.backend.units import TimeUnit, TimeValue
 from quri_parts.circuit import (
+    ImmutableQuantumCircuit,
     LinearMappedUnboundParametricQuantumCircuit,
     NonParametricQuantumCircuit,
 )
@@ -25,7 +27,7 @@ from quri_algo.algo.compiler.base_classes import (
     QuantumCompilationResult,
     QuantumCompiler,
 )
-from quri_algo.algo.interface import Analysis, Analyzer, LoweringLevel
+from quri_algo.algo.interface import Analysis, Analyzer, AnalyzeResult, LoweringLevel
 from quri_algo.algo.utils.mappings import CircuitMapping
 from quri_algo.algo.utils.timer import timer
 from quri_algo.algo.utils.variational_solvers import (
@@ -63,6 +65,38 @@ class QAQCAnalysis(Analysis):
         )
 
         self.concurrency = concurrency
+
+    @classmethod
+    def from_circuit_list(
+        cls,
+        circuit_analysis: AnalyzeResult,
+        total_circuit_executions: int,
+        circuit_list: Sequence[ImmutableQuantumCircuit],
+        concurrency: int = 1,
+    ) -> "QAQCAnalysis":
+        return cls(
+            lowering_level=circuit_analysis.lowering_level,
+            circuit_depth=CircuitMapping(
+                [(c, circuit_analysis.depth) for c in circuit_list]
+            ),
+            circuit_gate_count=CircuitMapping(
+                [(c, circuit_analysis.gate_count) for c in circuit_list]
+            ),
+            circuit_latency=CircuitMapping(
+                [(c, circuit_analysis.latency) for c in circuit_list]
+            ),
+            circuit_execution_count=CircuitMapping(
+                [(c, total_circuit_executions) for c in circuit_list]
+            ),
+            circuit_fidelities=CircuitMapping(
+                [(c, circuit_analysis.fidelity) for c in circuit_list]
+            ),
+            circuit_qubit_count=CircuitMapping(
+                [(c, circuit_analysis.qubit_count) for c in circuit_list]
+            ),
+            # The analysis is the same for all circuits
+            concurrency=concurrency,
+        )
 
     @property
     def total_latency(self) -> TimeValue:
@@ -114,24 +148,22 @@ class QAQC(QuantumCompiler):
     def solver(self) -> VariationalSolver:
         return self._solver
 
-    def _optimize(
+    def get_cost_fn(
         self,
-        circuit_factory: CircuitFactory,
         ansatz: LinearMappedUnboundParametricQuantumCircuit,
-        init_params: Optional[Params] = None,
-        *args: Any,
-        **kwargs: Any,
-    ) -> tuple[NonParametricQuantumCircuit, Sequence[OptimizerState]]:
-        if not isinstance(circuit_factory, CircuitFactory):
-            raise TypeError(
-                "Target circuit factory should be an instance of CircuitFactory."
-            )
-        target_circuit = circuit_factory(*args, **kwargs)
-
+        target_circuit: ImmutableQuantumCircuit,
+    ) -> QPCostFunction:
         def cost(params: Params) -> float:
             trial_circuit = ansatz.bind_parameters(list(params.tolist()))
             return self.cost_function(target_circuit, trial_circuit).value.real
 
+        return cost
+
+    def get_gradient_fn(
+        self,
+        ansatz: LinearMappedUnboundParametricQuantumCircuit,
+        target_circuit: ImmutableQuantumCircuit,
+    ) -> GradientFunction:
         def gradient(params: Params) -> Params:
             """Parameter shift gradient function.
 
@@ -166,6 +198,25 @@ class QAQC(QuantumCompiler):
                 gradient.append(g)
 
             return np.array(gradient)
+
+        return gradient
+
+    def _optimize(
+        self,
+        circuit_factory: CircuitFactory,
+        ansatz: LinearMappedUnboundParametricQuantumCircuit,
+        init_params: Optional[Params] = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> tuple[NonParametricQuantumCircuit, Sequence[OptimizerState]]:
+        if not isinstance(circuit_factory, CircuitFactory):
+            raise TypeError(
+                "Target circuit factory should be an instance of CircuitFactory."
+            )
+        target_circuit = circuit_factory(*args, **kwargs)
+
+        cost = self.get_cost_fn(ansatz, target_circuit)
+        gradient = self.get_gradient_fn(ansatz, target_circuit)
 
         if init_params is None:
             rng = default_rng()
@@ -213,7 +264,7 @@ class QAQC(QuantumCompiler):
         self,
         circuit_factory: CircuitFactory,
         ansatz: LinearMappedUnboundParametricQuantumCircuit,
-        optimizer_history: Sequence[OptimizerState],
+        result: CompilationResult,
         analyzer: Analyzer,
         circuit_execution_multiplier: Optional[int] = None,
         concurrency: int = 1,
@@ -236,6 +287,7 @@ class QAQC(QuantumCompiler):
         """
 
         circuit_list = []
+        optimizer_history = result.optimizer_history
         for optimizer_state in optimizer_history:
             target_circuit = circuit_factory(*args, **kwargs)
             combined_circuit = prepare_circuit_hilbert_schmidt_test(
@@ -243,38 +295,18 @@ class QAQC(QuantumCompiler):
                 ansatz.bind_parameters(list(optimizer_state.params.tolist())),
             ).circuit
             circuit_list.append(combined_circuit)
-
+        ansatz.param_mapping
         total_circuit_executions = (
-            ansatz.parameter_count * 2 * optimizer_state.gradcalls
+            len(ansatz.param_mapping.out_params) * 2 * optimizer_state.gradcalls
             + optimizer_state.funcalls
         )
         if circuit_execution_multiplier is not None:
             total_circuit_executions *= circuit_execution_multiplier
         circuit_analysis = analyzer(
-            combined_circuit
+            circuit_list[-1]
         )  # QAQC analysis can be assumed to result identically for each circuit
-        analysis = QAQCAnalysis(
-            lowering_level=circuit_analysis.lowering_level,
-            circuit_depth=CircuitMapping(
-                [(c, circuit_analysis.depth) for c in circuit_list]
-            ),
-            circuit_gate_count=CircuitMapping(
-                [(c, circuit_analysis.gate_count) for c in circuit_list]
-            ),
-            circuit_latency=CircuitMapping(
-                [(c, circuit_analysis.latency) for c in circuit_list]
-            ),
-            circuit_execution_count=CircuitMapping(
-                [(c, total_circuit_executions) for c in circuit_list]
-            ),
-            circuit_fidelities=CircuitMapping(
-                [(c, circuit_analysis.fidelity) for c in circuit_list]
-            ),
-            circuit_qubit_count=CircuitMapping(
-                [(c, circuit_analysis.qubit_count) for c in circuit_list]
-            ),
-            # The analysis is the same for all circuits
-            concurrency=concurrency,
+        analysis = QAQCAnalysis.from_circuit_list(
+            circuit_analysis, total_circuit_executions, circuit_list, concurrency
         )
 
         return analysis
@@ -283,7 +315,10 @@ class QAQC(QuantumCompiler):
         self,
         circuit_factory: CircuitFactory,
         ansatz: LinearMappedUnboundParametricQuantumCircuit,
+        analyzer: Analyzer,
         init_params: Optional[Params] = None,
+        circuit_execution_multiplier: Optional[int] = None,
+        concurrency: int = 1,
         *args: Any,
         **kwargs: Any,
     ) -> QuantumCompilationResult:
@@ -304,7 +339,10 @@ class QAQC(QuantumCompiler):
         analysis = self.analyze(
             circuit_factory,
             ansatz,
-            compilation_result.optimizer_history,
+            compilation_result,
+            analyzer,
+            circuit_execution_multiplier,
+            concurrency,
             *args,
             **kwargs,
         )

@@ -45,6 +45,9 @@ def test_qaqc() -> None:
     returned_circuit.qubit_count = 4
     returned_circuit.gates = []
     ansatz.bind_parameters = Mock(return_value=bound_circuit)
+    ansatz.param_mapping = Mock()
+    ansatz.param_mapping.out_params = Mock()
+    ansatz.param_mapping.out_params.__len__ = Mock(return_value=32)
     circuit_factory.return_value = returned_circuit
 
     evolution_time = 0.5
@@ -57,6 +60,8 @@ def test_qaqc() -> None:
     optimizer_state_converged.params = opt_params
     optimizer_state_converged.gradcalls = 16
     optimizer_state_converged.funcalls = 4
+    result = Mock()
+    result.optimizer_history = [optimizer_state_converged]
     optimizer.get_init_state = Mock(return_value=optimizer_state_success)
     optimizer.step = Mock(return_value=optimizer_state_converged)
     solver = QURIPartsVariationalSolver(optimizer)
@@ -71,7 +76,7 @@ def test_qaqc() -> None:
     analysis = qaqc.analyze(
         circuit_factory,
         ansatz,
-        [optimizer_state_converged],
+        result,
         vm.analyze,
         evolution_time=evolution_time,
         circuit_execution_multiplier=500,
