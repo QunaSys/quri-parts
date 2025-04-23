@@ -15,6 +15,7 @@ import numpy as np
 from typing_extensions import TypeAlias
 
 from quri_parts.circuit.circuit import GateSequence, ImmutableQuantumCircuit
+from quri_parts.core.sampling import DEFAULT_SAMPLER, MeasurementCounts
 
 from ..utils.array import readonly_array
 from .state import CircuitQuantumStateMixin, QuantumState
@@ -82,3 +83,14 @@ class QuantumStateVector(
         """
         circuit = self._circuit + gates
         return QuantumStateVector(self._n_qubits, self.vector, circuit)
+
+    def sample(self, n_shots: int) -> MeasurementCounts:
+        """Samples the state.
+
+        Args:
+            n_shots: The number of shots to sample.
+
+        Returns:
+            A list of measurement results.
+        """
+        return DEFAULT_SAMPLER(self, n_shots)

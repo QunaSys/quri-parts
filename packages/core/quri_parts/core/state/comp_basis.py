@@ -23,6 +23,7 @@ from quri_parts.circuit import (
     gate_names,
 )
 from quri_parts.circuit.gate_names import is_pauli_name
+from quri_parts.core.sampling import DEFAULT_SAMPLER, MeasurementCounts
 
 from ..utils.bit import different_bit_index, get_bit
 from .state import CircuitQuantumState, GeneralCircuitQuantumState
@@ -154,6 +155,9 @@ class ComputationalBasisState(CircuitQuantumState):
     def phase(self) -> float:
         """The phase of the state."""
         return self._phase * np.pi / 2
+
+    def sample(self, n_shots: int) -> MeasurementCounts:
+        return DEFAULT_SAMPLER(self, n_shots)
 
 
 def comp_basis_superposition(

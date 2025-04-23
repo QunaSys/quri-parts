@@ -12,6 +12,7 @@ from abc import ABC, abstractmethod, abstractproperty
 from typing import Optional, Protocol
 
 from quri_parts.circuit import GateSequence, ImmutableQuantumCircuit, QuantumCircuit
+from quri_parts.core.sampling import DEFAULT_SAMPLER, MeasurementCounts
 
 
 class QuantumState(Protocol):
@@ -43,6 +44,18 @@ class CircuitQuantumState(QuantumState):
         """Returns a new state with the gates applied.
 
         The original state is not changed.
+        """
+        ...
+
+    @abstractmethod
+    def sample(self, n_shots: int) -> MeasurementCounts:
+        """Samples the state.
+
+        Args:
+            n_shots: The number of shots to sample.
+
+        Returns:
+            A list of measurement results.
         """
         ...
 
@@ -92,3 +105,6 @@ class GeneralCircuitQuantumState(CircuitQuantumStateMixin, CircuitQuantumState):
     def with_gates_applied(self, gates: GateSequence) -> "GeneralCircuitQuantumState":
         circuit = self.circuit + gates
         return GeneralCircuitQuantumState(self._n_qubits, circuit)
+
+    def sample(self, n_shots: int) -> MeasurementCounts:
+        return DEFAULT_SAMPLER(self, n_shots)

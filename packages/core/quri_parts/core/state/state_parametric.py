@@ -12,6 +12,7 @@ from abc import ABC
 from collections.abc import Sequence
 
 from quri_parts.circuit import GateSequence, ParametricQuantumCircuitProtocol
+from quri_parts.core.sampling import DEFAULT_SAMPLER, MeasurementCounts
 
 from .state import GeneralCircuitQuantumState, QuantumState
 
@@ -94,3 +95,15 @@ class ParametricCircuitQuantumState(ParametricCircuitQuantumStateMixin, QuantumS
         """
         circuit = self.parametric_circuit.bind_parameters(params)
         return GeneralCircuitQuantumState(self._n_qubits, circuit)
+
+    def sample(self, n_shots: int, params: Sequence[float]) -> MeasurementCounts:
+        """Samples the state.
+
+        Args:
+            n_shots: The number of shots to sample.
+            params: The parameters to bind to the parametric state.
+
+        Returns:
+            A list of measurement results.
+        """
+        return DEFAULT_SAMPLER(self, n_shots, params)
