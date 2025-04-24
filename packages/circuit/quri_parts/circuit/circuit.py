@@ -281,20 +281,8 @@ class ImmutableQuantumCircuit(ImmutableQuantumCircuitRust):
         return hash((self.qubit_count, self.gates))
 
 
-class QuantumCircuit(QuantumCircuitRust):
-    def sample(self, n_shots: int) -> MeasurementCounts:
-        """Samples the circuit.
-
-        Args:
-            n_shots: The number of shots to sample.
-
-        Returns:
-            A list of measurement results.
-        """
-        return DEFAULT_SAMPLER(self, n_shots)
-
-    def __hash__(self):
-        return hash((self.qubit_count, self.gates))
+class QuantumCircuit(ImmutableQuantumCircuit, QuantumCircuitRust):
+    ...
 
 
 #: A quantum circuit having only non-parametric gates.

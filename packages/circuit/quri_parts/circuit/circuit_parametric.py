@@ -12,13 +12,13 @@ from abc import abstractmethod, abstractproperty
 from collections.abc import Sequence
 from typing import Protocol, Union, runtime_checkable
 
-from quri_parts.rust.circuit.circuit_parametric import (
-    ImmutableBoundParametricQuantumCircuit,
-    ImmutableParametricQuantumCircuit,
-    ParametricQuantumCircuit,
-)
+from quri_parts.core.sampling import MeasurementCounts, DEFAULT_SAMPLER
+from quri_parts.rust.circuit.circuit_parametric import ImmutableBoundParametricQuantumCircuit as ImmutableBoundParametricQuantumCircuitRust
+from quri_parts.rust.circuit.circuit_parametric import ParametricQuantumCircuit as ParametricQuantumCircuitRust
+from quri_parts.rust.circuit.circuit_parametric import ImmutableParametricQuantumCircuit as ImmutableParametricQuantumCircuitRust
 
-from .circuit import GateSequence, MutableQuantumCircuitProtocol, QuantumCircuitProtocol
+
+from .circuit import GateSequence, MutableQuantumCircuitProtocol, QuantumCircuitProtocol, ImmutableQuantumCircuit
 from .gate import ParametricQuantumGate, QuantumGate
 from .parameter import Parameter
 from .parameter_mapping import ParameterMapping
@@ -154,6 +154,26 @@ class MutableParametricQuantumCircuitProtocol(
 #: Deprecated: use `MutableParametricQuantumCircuitProtocol` instead
 MutableUnboundParametricQuantumCircuitProtocol = MutableParametricQuantumCircuitProtocol
 
+
+class ImmutableBoundParametricQuantumCircuit(ImmutableQuantumCircuit,ImmutableBoundParametricQuantumCircuitRust):
+    ...
+
+
+class ImmutableParametricQuantumCircuit(ImmutableParametricQuantumCircuitRust):
+    def sample(self, n_shots: int, params: Sequence[float]) -> MeasurementCounts:
+        """Samples the circuit.
+
+        Args:
+            n_shots: The number of shots to sample.
+
+        Returns:
+            A list of measurement results.
+        """
+        return DEFAULT_SAMPLER(self, n_shots, params)
+
+
+class ParametricQuantumCircuit(ImmutableParametricQuantumCircuit, ParametricQuantumCircuitRust):
+    ...
 
 #: An immutable unbound parametric quantum circuit.
 #:
