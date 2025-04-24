@@ -12,13 +12,23 @@ from abc import abstractmethod, abstractproperty
 from collections.abc import Sequence
 from typing import Protocol, Union, runtime_checkable
 
-from quri_parts.core.sampling import MeasurementCounts, DEFAULT_SAMPLER
-from quri_parts.rust.circuit.circuit_parametric import ImmutableBoundParametricQuantumCircuit as ImmutableBoundParametricQuantumCircuitRust
-from quri_parts.rust.circuit.circuit_parametric import ParametricQuantumCircuit as ParametricQuantumCircuitRust
-from quri_parts.rust.circuit.circuit_parametric import ImmutableParametricQuantumCircuit as ImmutableParametricQuantumCircuitRust
+from quri_parts.core.sampling import DEFAULT_SAMPLER, MeasurementCounts
+from quri_parts.rust.circuit.circuit_parametric import (
+    ImmutableBoundParametricQuantumCircuit as ImmutableBoundParametricQuantumCircuitRust,  # noqa
+)
+from quri_parts.rust.circuit.circuit_parametric import (
+    ImmutableParametricQuantumCircuit as ImmutableParametricQuantumCircuitRust,
+)
+from quri_parts.rust.circuit.circuit_parametric import (
+    ParametricQuantumCircuit as ParametricQuantumCircuitRust,
+)
 
-
-from .circuit import GateSequence, MutableQuantumCircuitProtocol, QuantumCircuitProtocol, ImmutableQuantumCircuit
+from .circuit import (
+    GateSequence,
+    ImmutableQuantumCircuit,
+    MutableQuantumCircuitProtocol,
+    QuantumCircuitProtocol,
+)
 from .gate import ParametricQuantumGate, QuantumGate
 from .parameter import Parameter
 from .parameter_mapping import ParameterMapping
@@ -155,7 +165,9 @@ class MutableParametricQuantumCircuitProtocol(
 MutableUnboundParametricQuantumCircuitProtocol = MutableParametricQuantumCircuitProtocol
 
 
-class ImmutableBoundParametricQuantumCircuit(ImmutableQuantumCircuit,ImmutableBoundParametricQuantumCircuitRust):
+class ImmutableBoundParametricQuantumCircuit(
+    ImmutableQuantumCircuit, ImmutableBoundParametricQuantumCircuitRust
+):
     ...
 
 
@@ -172,8 +184,11 @@ class ImmutableParametricQuantumCircuit(ImmutableParametricQuantumCircuitRust):
         return DEFAULT_SAMPLER(self, n_shots, params)
 
 
-class ParametricQuantumCircuit(ImmutableParametricQuantumCircuit, ParametricQuantumCircuitRust):
+class ParametricQuantumCircuit(
+    ImmutableParametricQuantumCircuit, ParametricQuantumCircuitRust
+):
     ...
+
 
 #: An immutable unbound parametric quantum circuit.
 #:
