@@ -22,11 +22,7 @@ from quri_parts.circuit import (
 )
 from quri_parts.circuit.parameter_shift import ShiftedParameters
 
-from quri_algo.algo.compiler.base_classes import (
-    CompilationResult,
-    QuantumCompilationResult,
-    QuantumCompiler,
-)
+from quri_algo.algo.compiler.base_classes import CompilationResult, QuantumCompiler
 from quri_algo.algo.interface import Analysis, Analyzer, AnalyzeResult, LoweringLevel
 from quri_algo.algo.utils.mappings import CircuitMapping
 from quri_algo.algo.utils.timer import timer
@@ -295,7 +291,6 @@ class QAQC(QuantumCompiler):
                 ansatz.bind_parameters(list(optimizer_state.params.tolist())),
             ).circuit
             circuit_list.append(combined_circuit)
-        ansatz.param_mapping
         total_circuit_executions = (
             len(ansatz.param_mapping.out_params) * 2 * optimizer_state.gradcalls
             + optimizer_state.funcalls
@@ -310,47 +305,3 @@ class QAQC(QuantumCompiler):
         )
 
         return analysis
-
-    def run_and_analyze(
-        self,
-        circuit_factory: CircuitFactory,
-        ansatz: LinearMappedUnboundParametricQuantumCircuit,
-        analyzer: Analyzer,
-        init_params: Optional[Params] = None,
-        circuit_execution_multiplier: Optional[int] = None,
-        concurrency: int = 1,
-        *args: Any,
-        **kwargs: Any,
-    ) -> QuantumCompilationResult:
-        """Perform QAQC compilation and return circuit.
-
-        Arguments:
-        circuit_factory - Circuit factory which generates the target circuit for the compilation
-        ansatz - Parametric ansatz circuit that is used to approximate the target circuit
-        init_params - initial variational parameters for the optimization
-        variable arguments if any are passed to the circuit_factory's __call__ method
-
-        Return value:
-        Compiled circuit
-        """
-        compilation_result = self.run(
-            circuit_factory, ansatz, init_params, *args, **kwargs
-        )
-        analysis = self.analyze(
-            circuit_factory,
-            ansatz,
-            compilation_result,
-            analyzer,
-            circuit_execution_multiplier,
-            concurrency,
-            *args,
-            **kwargs,
-        )
-
-        return QuantumCompilationResult(
-            algorithm=self,
-            elapsed_time=compilation_result.elapsed_time,
-            analysis=analysis,
-            optimizer_history=compilation_result.optimizer_history,
-            optimized_circuit=compilation_result.optimized_circuit,
-        )

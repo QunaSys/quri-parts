@@ -120,19 +120,6 @@ class Analysis(ABC):
         pass
 
 
-class QuantumAlgorithmResult(AlgorithmResult, ABC):
-    """Algorithm result with a resource analysis."""
-
-    def __init__(
-        self,
-        algorithm: "Algorithm",
-        analysis: Analysis,
-        elapsed_time: Optional[float] = None,
-    ) -> None:
-        super().__init__(algorithm, elapsed_time)
-        self.analysis = analysis
-
-
 class Algorithm(ABC):
     """Base class for all algorithms."""
 
@@ -161,8 +148,4 @@ class CircuitAnalysisMixin(Protocol):
 
 
 class QuantumAlgorithm(Algorithm, CircuitAnalysisMixin, ABC):
-    @abstractmethod
-    def run_and_analyze(self, *args: Any, **kwargs: Any) -> QuantumAlgorithmResult:
-        """Runs the algorithm and the algorithm analysis and return a
-        result."""
-        pass
+    ...

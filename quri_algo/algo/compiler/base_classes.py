@@ -17,9 +17,7 @@ from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_algo.algo.interface import (
     Algorithm,
     AlgorithmResult,
-    Analysis,
     QuantumAlgorithm,
-    QuantumAlgorithmResult,
     VariationalAlgorithmResultMixin,
 )
 from quri_algo.algo.utils.timer import timer
@@ -35,23 +33,9 @@ class CompilationResult(AlgorithmResult, VariationalAlgorithmResultMixin):
         optimizer_history: Sequence[OptimizerState],
         elapsed_time: Optional[float] = None,
     ):
-        super().__init__(algorithm, elapsed_time)
+        AlgorithmResult.__init__(self, algorithm, elapsed_time)
+        VariationalAlgorithmResultMixin.__init__(self, optimizer_history)
         self.optimized_circuit = optimized_circuit
-        self.optimizer_history = optimizer_history
-
-
-class QuantumCompilationResult(QuantumAlgorithmResult, VariationalAlgorithmResultMixin):
-    def __init__(
-        self,
-        algorithm: Algorithm,
-        analysis: Analysis,
-        optimized_circuit: NonParametricQuantumCircuit,
-        optimizer_history: Sequence[OptimizerState],
-        elapsed_time: Optional[float] = None,
-    ) -> None:
-        super().__init__(algorithm, analysis, elapsed_time)
-        self.optimized_circuit = optimized_circuit
-        self.optimizer_history = optimizer_history
 
 
 class QuantumCompiler(QuantumAlgorithm, ABC):
@@ -72,8 +56,4 @@ class QuantumCompiler(QuantumAlgorithm, ABC):
         *args: Any,
         **kwargs: Any,
     ) -> CompilationResult:
-        pass
-
-    @abstractmethod
-    def run_and_analyze(self, *args: Any, **kwds: Any) -> QuantumCompilationResult:
         pass
