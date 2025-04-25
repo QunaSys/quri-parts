@@ -12,13 +12,13 @@ from typing import Iterator, Mapping, Sequence, TypeVar
 
 from quri_parts.circuit import ImmutableQuantumCircuit
 
-U = TypeVar("U")
+T = TypeVar("T")
 
 
-class CircuitMapping(Mapping[ImmutableQuantumCircuit, U]):
+class CircuitMapping(Mapping[ImmutableQuantumCircuit, T]):
     """Map an immutable quantum circuit to a value."""
 
-    _vals_dictionary: dict[int, U]
+    _vals_dictionary: dict[int, T]
     _keys_dictionary: dict[int, ImmutableQuantumCircuit]
 
     def _circuit_hash(self, circuit: ImmutableQuantumCircuit) -> int:
@@ -26,7 +26,7 @@ class CircuitMapping(Mapping[ImmutableQuantumCircuit, U]):
         return hash((circuit.qubit_count, circuit.gates))
 
     def __init__(
-        self, circuit_vals: Sequence[tuple[ImmutableQuantumCircuit, U]]
+        self, circuit_vals: Sequence[tuple[ImmutableQuantumCircuit, T]]
     ) -> None:
         self._vals_dictionary = {}
         self._keys_dictionary = {}
@@ -34,10 +34,10 @@ class CircuitMapping(Mapping[ImmutableQuantumCircuit, U]):
             self._vals_dictionary[self._circuit_hash(circuit)] = val
             self._keys_dictionary[self._circuit_hash(circuit)] = circuit
 
-    def __getitem__(self, circuit: ImmutableQuantumCircuit) -> U:
+    def __getitem__(self, circuit: ImmutableQuantumCircuit) -> T:
         return self._vals_dictionary.__getitem__(self._circuit_hash(circuit))
 
-    def __setitem__(self, circuit: ImmutableQuantumCircuit, value: U) -> None:
+    def __setitem__(self, circuit: ImmutableQuantumCircuit, value: T) -> None:
         self._vals_dictionary.__setitem__(self._circuit_hash(circuit), value)
         self._keys_dictionary.__setitem__(self._circuit_hash(circuit), circuit)
 

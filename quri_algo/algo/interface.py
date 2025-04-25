@@ -10,13 +10,21 @@
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Callable, Optional, Protocol, Sequence, TypeAlias
+from typing import (
+    Any,
+    Callable,
+    Mapping,
+    Optional,
+    Protocol,
+    Sequence,
+    TypeAlias,
+    TypeVar,
+)
 
 from quri_parts.algo.optimizer import OptimizerState
 from quri_parts.backend.units import TimeValue
 from quri_parts.circuit import NonParametricQuantumCircuit
 
-from quri_algo.algo.utils.mappings import CircuitMapping
 from quri_algo.algo.utils.timer import timer
 
 LoweringLevel = Enum(
@@ -76,6 +84,9 @@ class VariationalAlgorithmResultMixin(ABC):
         return [optimizer_state.cost for optimizer_state in self.optimizer_history]
 
 
+T = TypeVar("T")
+
+
 class Analysis(ABC):
     """Analysis of the algorithm.
 
@@ -92,12 +103,12 @@ class Analysis(ABC):
     def __init__(
         self,
         lowering_level: LoweringLevel,
-        circuit_gate_count: CircuitMapping[int],
-        circuit_depth: CircuitMapping[int],
-        circuit_latency: CircuitMapping[TimeValue | None],
-        circuit_execution_count: CircuitMapping[int],
-        circuit_fidelities: CircuitMapping[float | None],
-        circuit_physical_qubit_count: CircuitMapping[int],
+        circuit_gate_count: Mapping[T, int],
+        circuit_depth: Mapping[T, int],
+        circuit_latency: Mapping[T, TimeValue | None],
+        circuit_execution_count: Mapping[T, int],
+        circuit_fidelities: Mapping[T, float | None],
+        circuit_physical_qubit_count: Mapping[T, int],
     ) -> None:
         self.lowering_level = lowering_level
         self.circuit_gate_count = circuit_gate_count
