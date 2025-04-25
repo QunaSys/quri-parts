@@ -11,7 +11,7 @@ python = ">=3.10,<3.12"
 quri-parts-qsci = { git = "https://github.com/QunaSys/quri-parts-qsci.git"}
 quri-algo = "^0.1"
 quri-vm = "^0.1"
-quri-parts = { version=">=0.20.3", extras=["braket", "cirq", "qiskit", "qulacs", "tket"] }
+quri-parts = { version=">=0.21", extras=["braket", "cirq", "qiskit", "qulacs", "tket", "qsub"] }
 tabulate = "^0.9"
 pylatexenc = "^2.10"
 seaborn = "^0.13.2"
