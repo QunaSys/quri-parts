@@ -22,7 +22,7 @@ from qiskit.circuit.library import UnitaryGate
 
 from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
 from quri_parts.circuit.transpile import TwoQubitUnitaryMatrixKAKTranspiler
-from quri_parts.qiskit.circuit import convert_circuit, convert_gate
+from quri_parts.qiskit.circuit.transpile import convert_circuit, convert_gate
 
 
 def gate_equal(i1: QiskitGate, i2: QiskitGate) -> bool:
