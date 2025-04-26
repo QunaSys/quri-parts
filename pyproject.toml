@@ -9,9 +9,21 @@ package-mode = false
 [tool.poetry.dependencies]
 python = ">=3.10,<3.12"
 quri-parts-qsci = { git = "https://github.com/QunaSys/quri-parts-qsci.git"}
-quri-algo = "^0.1"
+quri-algo = "^0.1.1"
 quri-vm = "^0.1"
-quri-parts = { version=">=0.21", extras=["braket", "cirq", "qiskit", "qulacs", "tket", "qsub"] }
+quri-parts-algo = "0.21.0"
+quri-parts-braket = "0.21.0"
+quri-parts-chem = "0.21.0"
+quri-parts-circuit = "0.21.0"
+quri-parts-cirq = "0.21.0"
+quri-parts-core = "0.21.0"
+quri-parts-openfermion = "0.21.0"
+quri-parts-pyscf = "0.21.0"
+quri-parts-qiskit = "0.21.0"
+quri-parts-qsub = "0.21.0"
+quri-parts-qulacs = "0.21.0"
+quri-parts-rust = "0.21.0"
+quri-parts-tket = "0.21.0"
 tabulate = "^0.9"
 pylatexenc = "^2.10"
 seaborn = "^0.13.2"
