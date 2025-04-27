@@ -12,6 +12,7 @@ from collections.abc import Mapping, Sequence
 from typing import Callable, Optional, Type, Union
 
 import numpy as np
+from quri_parts.circuit.transpile import SequentialTranspiler
 import qiskit.circuit.library as qgate
 import qiskit.quantum_info as qi
 from qiskit.circuit import QuantumCircuit
@@ -158,7 +159,7 @@ def convert_gate(gate: QuantumGate) -> Gate:
 
 def convert_circuit(
     circuit: NonParametricQuantumCircuit,
-    transpiler: Optional[CircuitTranspiler] = QiskitSetTranspiler(),
+    transpiler: Optional[CircuitTranspiler] = SequentialTranspiler(),
 ) -> QuantumCircuit:
     """Converts a :class:`NonParametricQuantumCircuit` to
     :class:`qiskit.QuantumCircuit`."""
