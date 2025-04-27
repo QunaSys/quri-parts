@@ -1,4 +1,3 @@
-from __future__ import annotations   # isort: skip
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -11,13 +10,15 @@ from __future__ import annotations   # isort: skip
 
 import json
 from collections import defaultdict
-from typing import Any, Mapping, MutableMapping, Optional, Sequence, Union
+from typing import Any, Mapping, Optional, Sequence
 
 import qiskit
 from pydantic.dataclasses import dataclass
 from pydantic.json import pydantic_encoder
 from qiskit import qasm3
 from qiskit.providers.backend import Backend
+from typing_extensions import TypeAlias
+
 from quri_parts.backend import (
     CompositeSamplingJob,
     SamplingBackend,
@@ -27,8 +28,6 @@ from quri_parts.backend import (
 )
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
-from typing_extensions import TypeAlias
-
 from quri_parts.qiskit.circuit import QiskitCircuitConverter, convert_circuit
 
 from .utils import (
@@ -64,29 +63,6 @@ class QiskitSavedDataSamplingResult(SamplingResult):
 
 
 @dataclass
-class QiskitRuntimeSavedDataSamplingResult(SamplingResult):
-    """An object that holds quasi disttribution and total shot count from
-    qiskit runtime output and converts it into quri-parts sampling count.
-
-    Args:
-        quasi_dist: The first element of the quasi_dists attribute of a
-            :class:`qiskit.primitives.SamplerResult` object.
-        n_shots: The metadata[0]["shots"] output of a
-            :class:`qiskit.primitives.SamplerResult` object.
-    """
-
-    quasi_dist: dict[int, float]
-    n_shots: int
-
-    @property
-    def counts(self) -> SamplingCounts:
-        measurements: MutableMapping[int, float] = {}
-        for result, quasi_prob in self.quasi_dist.items():
-            measurements[result] = quasi_prob * self.n_shots
-        return measurements
-
-
-@dataclass
 class QiskitSavedDataSamplingJob(SamplingJob):
     """An object that represents a saved sampling job.
 
@@ -101,13 +77,9 @@ class QiskitSavedDataSamplingJob(SamplingJob):
 
     circuit_qasm: str
     n_shots: int
-    saved_result: Union[
-        QiskitSavedDataSamplingResult, QiskitRuntimeSavedDataSamplingResult
-    ]
+    saved_result: QiskitSavedDataSamplingResult
 
-    def result(
-        self,
-    ) -> Union[QiskitSavedDataSamplingResult, QiskitRuntimeSavedDataSamplingResult]:
+    def result(self) -> QiskitSavedDataSamplingResult:
         return self.saved_result
 
 

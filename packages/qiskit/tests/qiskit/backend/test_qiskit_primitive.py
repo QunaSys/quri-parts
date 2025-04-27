@@ -16,25 +16,22 @@ import warnings
 from collections import Counter
 from typing import Any
 from unittest.mock import MagicMock, patch
-from qiskit.primitives import PrimitiveResult, PubResult
-# from qiskit.primitives.pub_result import PubResult
 
 import pytest
 import qiskit
 from pydantic.json import pydantic_encoder
 from qiskit import QuantumCircuit as QiskitQuantumCircuit
 from qiskit import qasm3
-from qiskit.primitives import SamplerResult
-from qiskit.result import QuasiDistribution
-from qiskit_ibm_runtime import SamplerOptions, QiskitRuntimeService, RuntimeJob
+from qiskit.primitives import PrimitiveResult, PubResult
+from qiskit_ibm_runtime import QiskitRuntimeService, RuntimeJob, SamplerOptions
 from qiskit_ibm_runtime.runtime_job import JobStatus
 
 from quri_parts.backend import BackendError, CompositeSamplingJob
 from quri_parts.circuit import QuantumCircuit
 from quri_parts.qiskit.backend import (
     QiskitRuntimeSamplingBackend,
-    QiskitRuntimeSavedDataSamplingResult,
     QiskitSavedDataSamplingJob,
+    QiskitSavedDataSamplingResult,
     Tracker,
 )
 from quri_parts.qiskit.backend.primitive import (
@@ -63,6 +60,7 @@ def fake_run(*args, **kwargs) -> RuntimeJob:  # type: ignore
         return "aaa"
 
     from unittest.mock import Mock
+
     def result() -> PrimitiveResult:
         pubres = Mock(spec=PubResult)
         pubres.data.meas.get_counts.return_value = {"000001": 10}
@@ -162,7 +160,6 @@ class TestQiskitPrimitive:
         service._api_client.close_session.assert_called()
 
     @patch("qiskit.transpile", fake_qiskit_transpile)
-    @patch("qiskit_ibm_runtime.SamplerV1._validate_options", fake_validate)
     def test_sampler_composite(self) -> None:
         runtime_service = mock_get_backend()
         service = runtime_service()
@@ -311,7 +308,6 @@ class TestQiskitPrimitive:
         assert sampler._qiskit_sampler_options is None
 
     @patch("qiskit.transpile", fake_qiskit_transpile)
-    @patch("qiskit_ibm_runtime.SamplerV1._validate_options", fake_validate)
     def test_saving_mode(self) -> None:
         runtime_service = mock_get_backend()
         service = runtime_service()
@@ -353,23 +349,21 @@ class TestQiskitPrimitive:
         assert measurement_counter_from_memory == measurement_counter
 
         # Construct the saved data objects
-        quasi_dist_0 = sampler._saved_data[0][2]._qiskit_job.result().quasi_dists[0]
-        quasi_dist_1 = sampler._saved_data[1][2]._qiskit_job.result().quasi_dists[0]
+        qiskit_result_0 = sampler._saved_data[0][2]._qiskit_job.result()
+        qiskit_sampling_cnt_0 = qiskit_result_0[0].data.meas.get_counts()
+        qiskit_result_1 = sampler._saved_data[1][2]._qiskit_job.result()
+        qiskit_sampling_cnt_1 = qiskit_result_1[0].data.meas.get_counts()
 
         expected_saved_data_0 = QiskitSavedDataSamplingJob(
             circuit_qasm=circuit_qasm,
             n_shots=10,
-            saved_result=QiskitRuntimeSavedDataSamplingResult(
-                quasi_dist=quasi_dist_0, n_shots=10
-            ),
+            saved_result=QiskitSavedDataSamplingResult(qiskit_sampling_cnt_0),
         )
 
         expected_saved_data_1 = QiskitSavedDataSamplingJob(
             circuit_qasm=circuit_qasm,
             n_shots=10,
-            saved_result=QiskitRuntimeSavedDataSamplingResult(
-                quasi_dist=quasi_dist_1, n_shots=10
-            ),
+            saved_result=QiskitSavedDataSamplingResult(qiskit_sampling_cnt_1),
         )
 
         # Check the jobs and jobs_json properties.
@@ -384,7 +378,6 @@ class TestQiskitPrimitive:
         assert sampler.jobs_json == expected_json_str
 
     @patch("qiskit.transpile", fake_qiskit_transpile)
-    @patch("qiskit_ibm_runtime.SamplerV1._validate_options", fake_validate)
     def test_saving_mode_session(self) -> None:
         runtime_service = mock_get_backend()
         service = runtime_service()
@@ -426,14 +419,13 @@ class TestQiskitPrimitive:
         assert measurement_counter_from_memory == measurement_counter
 
         # Construct the saved data objects
-        quasi_dist = sampler._saved_data[0][2]._qiskit_job.result().quasi_dists[0]
+        qiskit_result = sampler._saved_data[0][2]._qiskit_job.result()
+        sampling_cnt = qiskit_result[0].data.meas.get_counts()
 
         expected_saved_data = QiskitSavedDataSamplingJob(
             circuit_qasm=circuit_qasm,
             n_shots=10,
-            saved_result=QiskitRuntimeSavedDataSamplingResult(
-                quasi_dist=quasi_dist, n_shots=10
-            ),
+            saved_result=QiskitSavedDataSamplingResult(sampling_cnt),
         )
 
         # Check the jobs and jobs_json properties.
@@ -484,23 +476,21 @@ class TestQiskitPrimitive:
         assert measurement_counter_from_memory == measurement_counter
 
         # Construct the saved data objects
-        quasi_dist_0 = sampler._saved_data[0][2]._qiskit_job.result().quasi_dists[0]
-        quasi_dist_1 = sampler._saved_data[1][2]._qiskit_job.result().quasi_dists[0]
+        result_0 = sampler._saved_data[0][2]._qiskit_job.result()
+        cnt_0 = result_0[0].data.meas.get_counts()
+        result_1 = sampler._saved_data[1][2]._qiskit_job.result()
+        cnt_1 = result_1[0].data.meas.get_counts()
 
         expected_saved_data_0 = QiskitSavedDataSamplingJob(
             circuit_qasm=circuit_qasm,
             n_shots=10,
-            saved_result=QiskitRuntimeSavedDataSamplingResult(
-                quasi_dist=quasi_dist_0, n_shots=10
-            ),
+            saved_result=QiskitSavedDataSamplingResult(cnt_0),
         )
 
         expected_saved_data_1 = QiskitSavedDataSamplingJob(
             circuit_qasm=circuit_qasm,
             n_shots=10,
-            saved_result=QiskitRuntimeSavedDataSamplingResult(
-                quasi_dist=quasi_dist_1, n_shots=10
-            ),
+            saved_result=QiskitSavedDataSamplingResult(cnt_1),
         )
 
         # Check the jobs and jobs_json properties.
@@ -554,14 +544,13 @@ class TestQiskitPrimitive:
         assert measurement_counter_from_memory == measurement_counter
 
         # Construct the saved data objects
-        quasi_dist = sampler._saved_data[0][2]._qiskit_job.result().quasi_dists[0]
+        result = sampler._saved_data[0][2]._qiskit_job.result()
+        cnt = result[0].data.meas.get_counts()
 
         expected_saved_data = QiskitSavedDataSamplingJob(
             circuit_qasm=circuit_qasm,
             n_shots=10,
-            saved_result=QiskitRuntimeSavedDataSamplingResult(
-                quasi_dist=quasi_dist, n_shots=10
-            ),
+            saved_result=QiskitSavedDataSamplingResult(cnt),
         )
 
         # Check the jobs and jobs_json properties.
@@ -573,7 +562,6 @@ class TestQiskitPrimitive:
         assert sampler.jobs_json == expected_json_str
 
     @patch("qiskit.transpile", fake_qiskit_transpile)
-    @patch("qiskit_ibm_runtime.SamplerV1._validate_options", fake_validate)
     def test_reject_job(self) -> None:
         runtime_service = mock_get_backend()
         service = runtime_service()
@@ -604,7 +592,6 @@ class TestQiskitPrimitive:
         assert job2._qiskit_job.status() == "CANCELLED"
 
     @patch("qiskit.transpile", fake_qiskit_transpile)
-    @patch("qiskit_ibm_runtime.SamplerV1._validate_options", fake_validate)
     def test_job_registered_to_tracker(self) -> None:
         runtime_service = mock_get_backend()
         service = runtime_service()

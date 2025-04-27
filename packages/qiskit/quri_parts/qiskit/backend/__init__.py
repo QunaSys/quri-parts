@@ -1,4 +1,3 @@
-from __future__ import annotations   # isort: skip
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -17,7 +16,6 @@ from .primitive import (
 )
 from .sampling import QiskitSamplingBackend, QiskitSamplingJob, QiskitSamplingResult
 from .saved_sampling import (
-    QiskitRuntimeSavedDataSamplingResult,
     QiskitSavedDataSamplingBackend,
     QiskitSavedDataSamplingJob,
     QiskitSavedDataSamplingResult,
@@ -37,7 +35,6 @@ __all__ = [
     "QiskitRuntimeSamplingBackend",
     "QiskitRuntimeSamplingJob",
     "QiskitRuntimeSamplingResult",
-    "QiskitRuntimeSavedDataSamplingResult",
     "device_connectivity_graph",
     "QiskitSavedDataSamplingJob",
     "QiskitSavedDataSamplingResult",

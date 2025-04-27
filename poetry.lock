@@ -4059,22 +4059,22 @@ visualization = ["Pillow (>=4.2.1)", "matplotlib (>=3.3)", "pydot", "pylatexenc 
 
 [[package]]
 name = "qiskit-ibm-runtime"
-version = "0.22.0"
+version = "0.29.1"
 description = "IBM Quantum client for Qiskit Runtime."
 optional = false
 python-versions = ">=3.8"
 groups = ["main", "dev"]
 files = [
-    {file = "qiskit-ibm-runtime-0.22.0.tar.gz", hash = "sha256:880e3bdda0afec3b14cd866b355939f17bff484062aa3746235a4f2fccba9707"},
-    {file = "qiskit_ibm_runtime-0.22.0-py3-none-any.whl", hash = "sha256:91ee9dfd121da0bb32aecf14d6e8db93a32c472c5a73456986d5cdb61f6db2b4"},
+    {file = "qiskit_ibm_runtime-0.29.1-py3-none-any.whl", hash = "sha256:3ecd6bfdf63046b59716a80aacdee27de13ec3465a30c820beefdf51bfa1c36c"},
+    {file = "qiskit_ibm_runtime-0.29.1.tar.gz", hash = "sha256:b1dd9b19d26c3fffee78bd14b093ed22a77e97666b6570db1784b9a4b7eeaa41"},
 ]
 
 [package.dependencies]
 ibm-platform-services = ">=0.22.6"
 numpy = ">=1.13"
-pydantic = "*"
+pydantic = ">=2.5.0"
 python-dateutil = ">=2.8.0"
-qiskit = ">=1.0.0"
+qiskit = ">=1.1.0"
 requests = ">=2.19"
 requests-ntlm = ">=1.1.0"
 urllib3 = ">=1.21.1"
@@ -4369,8 +4369,13 @@ develop = true
 networkx = "*"
 numpy = ">=1.22.0"
 pydantic = "^2.0"
+<<<<<<< HEAD
 qiskit = ">=1,<2"
 qiskit-ibm-runtime = "^0.22.0"
+=======
+qiskit = ">=1"
+qiskit-ibm-runtime = "^0.29.0"
+>>>>>>> 35ffdcc3 (primitive fix)
 quri-parts-circuit = "*"
 quri-parts-core = "*"
 
