@@ -15,7 +15,7 @@ from qiskit import transpile
 from qiskit.circuit import QuantumCircuit as QiskitQuantumCircuit
 
 from quri_parts.circuit import (
-    NonParametricQuantumCircuit,
+    ImmutableQuantumCircuit,
     QuantumCircuit,
     QuantumGate,
     UnitaryMatrix,

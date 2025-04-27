@@ -12,7 +12,6 @@ from collections.abc import Mapping, Sequence
 from typing import Callable, Optional, Type, Union
 
 import numpy as np
-from quri_parts.circuit.transpile import SequentialTranspiler
 import qiskit.circuit.library as qgate
 import qiskit.quantum_info as qi
 from qiskit.circuit import QuantumCircuit
@@ -20,7 +19,7 @@ from qiskit.circuit.gate import Gate
 from qiskit.circuit.library import UnitaryGate
 from typing_extensions import TypeAlias
 
-from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate, gate_names
+from quri_parts.circuit import ImmutableQuantumCircuit, QuantumGate, gate_names
 from quri_parts.circuit.gate_names import (
     Measurement,
     MultiQubitGateNameType,
@@ -40,7 +39,7 @@ from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.qiskit.circuit.gate_names import ECR, QiskitTwoQubitGateNameType
 
 QiskitCircuitConverter: TypeAlias = Callable[
-    [NonParametricQuantumCircuit, Optional[CircuitTranspiler]], QuantumCircuit
+    [ImmutableQuantumCircuit, Optional[CircuitTranspiler]], QuantumCircuit
 ]
 
 _X = qi.SparsePauliOp("X")
@@ -158,10 +157,10 @@ def convert_gate(gate: QuantumGate) -> Gate:
 
 
 def convert_circuit(
-    circuit: NonParametricQuantumCircuit,
-    transpiler: Optional[CircuitTranspiler] = SequentialTranspiler(),
+    circuit: ImmutableQuantumCircuit,
+    transpiler: Optional[CircuitTranspiler] = None,
 ) -> QuantumCircuit:
-    """Converts a :class:`NonParametricQuantumCircuit` to
+    """Converts a :class:`ImmutableQuantumCircuit` to
     :class:`qiskit.QuantumCircuit`."""
     if transpiler is not None:
         circuit = transpiler(circuit)
