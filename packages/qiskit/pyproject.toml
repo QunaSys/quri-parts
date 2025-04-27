@@ -26,13 +26,8 @@ quri-parts-circuit = "*"
 quri-parts-core = "*"
 pydantic = "^2.0"
 networkx = "*"
-<<<<<<< HEAD
 qiskit = ">=1,<2"
-qiskit-ibm-runtime = "^0.22.0"
-=======
-qiskit = ">=1"
 qiskit-ibm-runtime = "^0.29.0"
->>>>>>> 35ffdcc3 (primitive fix)
 
 [tool.poetry.group.dev.dependencies]
 quri-parts-circuit = { path = "../circuit", develop = true }
