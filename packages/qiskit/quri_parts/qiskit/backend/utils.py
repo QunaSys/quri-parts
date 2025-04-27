@@ -16,10 +16,6 @@ from qiskit.providers.backend import Backend, BackendV1, BackendV2
 from quri_parts.backend import BackendError, SamplingCounts, SamplingJob
 from quri_parts.backend.qubit_mapping import BackendQubitMapping, QubitMappedSamplingJob
 from quri_parts.circuit.transpile import CircuitTranspiler, SequentialTranspiler
-<<<<<<< HEAD
-=======
-from quri_parts.qiskit.circuit import QiskitSetTranspiler
->>>>>>> 35ffdcc3 (primitive fix)
 
 DEFAULT_MAX_SHOT = int(1e6)
 
