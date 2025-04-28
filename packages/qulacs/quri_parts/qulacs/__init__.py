@@ -8,16 +8,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence, Union, cast
-
-from numpy.typing import ArrayLike
-from typing_extensions import TypeAlias, TypeVar
-
-from quri_parts.core.state import (
-    CircuitQuantumState,
-    ParametricCircuitQuantumState,
-    ParametricQuantumStateVector,
-    QuantumStateVector,
 from .estimator import (
     create_qulacs_general_density_matrix_estimator,
     create_qulacs_general_vector_estimator,
