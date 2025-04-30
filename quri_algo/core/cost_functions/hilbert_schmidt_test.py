@@ -13,6 +13,7 @@ from typing import Optional
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.core.estimator import Estimate, QuantumEstimator
 from quri_parts.core.state import CircuitQuantumState
+from quri_parts.qulacs.estimator import create_qulacs_vector_estimator
 
 from quri_algo.core.cost_functions.base_classes import NonLocalCostFunction
 from quri_algo.core.cost_functions.utils import (
@@ -63,3 +64,11 @@ class HilbertSchmidtTest(NonLocalCostFunction):
         combined_operator = get_hs_operator(alpha, lattice_size)
 
         return self.estimator(combined_operator, combined_circuit)
+
+
+def create_default_hilbert_schmidt_test() -> HilbertSchmidtTest:
+    """Create a default Hilbert-Schmidt test cost function.
+
+    Return value:     A Hilbert-Schmidt test cost function
+    """
+    return HilbertSchmidtTest(create_qulacs_vector_estimator(), 1.0)
