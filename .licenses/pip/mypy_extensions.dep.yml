@@ -1,10 +1,10 @@
 ---
-name: mypy-extensions
+name: mypy_extensions
 version: 1.1.0
 type: pip
 summary: Type system extensions for programs checked with the mypy type checker.
 homepage: https://github.com/python/mypy_extensions
-license: other
+license: mit
 licenses:
 - sources: LICENSE
   text: |
