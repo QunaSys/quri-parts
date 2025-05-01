@@ -105,6 +105,7 @@ def _assert_inverse_gates(a: QuantumGate, b: QuantumGate) -> None:
 
 
 def _assert_inverse_circuits(a: QuantumCircuit, b: QuantumCircuit) -> None:
+    print(f"{a.gates=} {b.gates=}")
     assert a == inverse_circuit(b)
     assert inverse_circuit(a) == b
 
