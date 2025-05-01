@@ -153,7 +153,8 @@ impl ImmutableQuantumCircuit {
     #[pyo3(name = "__hash__")]
     fn py_hash<'py>(slf: PyRef<'py, Self>) -> i64 {
         let builtins = PyModule::import_bound(slf.py(), "builtins")?;
-        let hash = builtins.getattr("hash")?.call1(((slf.gates, slf.qubit_count,),))?;
+        let hash = builtins.getattr("hash")?.call1(((Self::get_gates(slf), slf.qubit_count,),))?;
+        Ok(hash)
     }
 
     fn draw<'py>(slf: &Bound<'py, Self>) {
