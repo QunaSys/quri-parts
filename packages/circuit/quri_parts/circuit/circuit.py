@@ -14,14 +14,9 @@ from typing import Optional, Protocol, Union
 
 from typing_extensions import TypeAlias, TypeGuard
 
-from quri_parts.core.sampling import DEFAULT_SAMPLER, MeasurementCounts
-
 #: An immutable quantum circuit having only non-parametric gates.
 #: A mutable quantum circuit having only non-parametric gates.
-from quri_parts.rust.circuit.circuit import (
-    ImmutableQuantumCircuit as ImmutableQuantumCircuitRust,
-)
-from quri_parts.rust.circuit.circuit import QuantumCircuit as QuantumCircuitRust
+from quri_parts.rust.circuit.circuit import ImmutableQuantumCircuit, QuantumCircuit
 
 from .gate import QuantumGate
 from .gates import (
@@ -260,33 +255,10 @@ class MutableQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
         self.add_gate(Measurement(qubit_indices, classical_indices))
 
 
-class ImmutableQuantumCircuit(ImmutableQuantumCircuitRust):
-    """A base class for quantum circuits having only non-parametric gates.
-
-    This class supports ``+`` operator with ``GateSequence``.
-    """
-
-    def sample(self, n_shots: int) -> MeasurementCounts:
-        """Samples the circuit.
-
-        Args:
-            n_shots: The number of shots to sample.
-
-        Returns:
-            A list of measurement results.
-        """
-        return DEFAULT_SAMPLER(self, n_shots)
-
-    def __hash__(self):
-        return hash((self.qubit_count, self.gates))
-
-
-class QuantumCircuit(ImmutableQuantumCircuit, QuantumCircuitRust):
-    ...
-
-
-#: A quantum circuit having only non-parametric gates.
-# ImmutableQuantumCircuit = ImmutableQuantumCircuit
+#: A base class for quantum circuits having only non-parametric gates.
+#:
+#: This class support ``+`` operator with ``GateSequence``.
+ImmutableQuantumCircuit = ImmutableQuantumCircuit
 
 
 #: Deprecated: use `quri_parts.circuit.ImmutableQuantumCircuit` instead
