@@ -144,16 +144,15 @@ impl ImmutableQuantumCircuit {
         Py::new(slf.py(), (QuantumCircuit(), slf.borrow().clone()))
     }
 
-    fn sample(slf: &Bound<'_, Self>, shot_count: i32) -> PyObject {
+    fn sample<'py>(slf: &Bound<'py, Self>, shot_count: i32) -> PyResult<Bound<'py, PyAny>> {
         Python::with_gil(|py| {
-            let sampling = PyModule::import_bound(py, "quri_parts.core.sampling");
+            let sampling = PyModule::import_bound(py, "quri_parts.core.sampling")?;
             let sampling_counts = sampling
-            .getattr("DEFAULT_SAMPLER")
-            .call1(shot_count)?
-            .extract()?;
-            todo!()
+            .getattr("DEFAULT_SAMPLER")?
+            .call1((shot_count,))?;
+            Ok(sampling_counts)
         })
-    }
+    }//Mapping[int, Union[int, float]]
 
     // #[pyo3(name = "__hash__")]
     // fn py_hash(slf: Bound<'_, Self>) -> uint {
