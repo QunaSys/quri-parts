@@ -41,11 +41,6 @@ from quri_parts.core.state import (
     ParametricQuantumStateVector,
     QuantumStateVector,
 )
-from quri_parts.qulacs.sampler import create_qulacs_general_vector_sampler
-
-#: Default sampler based on Qulacs state-vector simulator.
-#: This sampler is used when no other sampler is specified.
-DEFAULT_SAMPLER = create_qulacs_general_vector_sampler()
 
 #: A type variable represents *any* non-parametric quantum state classes.
 #: This is different from :class:`quri_parts.core.state.QuantumStateT`;

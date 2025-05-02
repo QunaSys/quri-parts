@@ -419,6 +419,24 @@ impl ImmutableParametricQuantumCircuit {
         ParametricQuantumCircuit::extend(ret.bind(slf.py()).clone(), slf.as_any())?;
         Ok(ret)
     }
+
+    fn sample<'py>(slf: &Bound<'py, Self>, shot_count: i32, params: Vec<f64>) -> PyResult<Bound<'py, PyAny>> {
+        let sampling = PyModule::import_bound(slf.py(), "quri_parts.core.sampling.default_sampler")?;
+        let sampling_counts = sampling.getattr("DEFAULT_SAMPLER")?.call1((slf, shot_count, params));
+        sampling_counts
+    }
+
+    // #[pyo3(name = "__hash__")]
+    // fn py_hash<'py>(slf: PyRef<'py, Self>) -> i32 {
+    //     let builtins = PyModule::import_bound(slf.py(), "builtins").unwrap();
+    //     let hash = builtins.getattr("hash").unwrap().call1(((slf.qubit_count, slf.gates.0.clone(), ),)).unwrap().extract().unwrap();
+    //     hash
+    // }
+
+    fn draw<'py>(slf: &Bound<'py, Self>) {
+        let circuit_drawer = PyModule::import_bound(slf.py(), "quri_parts.circuit.utils.circuit_drawer").unwrap();
+        let _ = circuit_drawer.getattr("draw_circuit").unwrap().call1((slf,));
+    }
 }
 
 #[pyclass(

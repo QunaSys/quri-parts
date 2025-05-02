@@ -9,10 +9,9 @@
 # limitations under the License.
 
 from abc import ABC, abstractmethod, abstractproperty
-from typing import Optional, Protocol
+from typing import Mapping, Optional, Protocol, Union
 
 from quri_parts.circuit import GateSequence, ImmutableQuantumCircuit, QuantumCircuit
-from quri_parts.core.sampling import DEFAULT_SAMPLER, MeasurementCounts
 
 
 class QuantumState(Protocol):
@@ -48,15 +47,8 @@ class CircuitQuantumState(QuantumState):
         ...
 
     @abstractmethod
-    def sample(self, n_shots: int) -> MeasurementCounts:
-        """Samples the state.
-
-        Args:
-            n_shots: The number of shots to sample.
-
-        Returns:
-            A list of measurement results.
-        """
+    def sample(self, n_shots: int) -> Mapping[int, Union[int, float]]:
+        """Samples the state using a default sampler"""
         ...
 
 
@@ -79,6 +71,10 @@ class CircuitQuantumStateMixin(ABC):
     def circuit(self) -> ImmutableQuantumCircuit:
         """Circuit to build the quantum state."""
         return self._circuit
+
+    def sample(self, n_shots: int) -> Mapping[int, Union[int, float]]:
+        """Sample state using qulacs"""
+        return self.circuit.sample(n_shots)
 
 
 class GeneralCircuitQuantumState(CircuitQuantumStateMixin, CircuitQuantumState):
@@ -105,6 +101,3 @@ class GeneralCircuitQuantumState(CircuitQuantumStateMixin, CircuitQuantumState):
     def with_gates_applied(self, gates: GateSequence) -> "GeneralCircuitQuantumState":
         circuit = self.circuit + gates
         return GeneralCircuitQuantumState(self._n_qubits, circuit)
-
-    def sample(self, n_shots: int) -> MeasurementCounts:
-        return DEFAULT_SAMPLER(self, n_shots)

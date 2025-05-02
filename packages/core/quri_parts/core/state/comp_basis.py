@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from functools import cached_property
-from typing import Literal, Union
+from typing import Literal, Mapping, Union
 
 import numpy as np
 from typing_extensions import TypeAlias
@@ -23,7 +23,6 @@ from quri_parts.circuit import (
     gate_names,
 )
 from quri_parts.circuit.gate_names import is_pauli_name
-from quri_parts.core.sampling import DEFAULT_SAMPLER, MeasurementCounts
 
 from ..utils.bit import different_bit_index, get_bit
 from .state import CircuitQuantumState, GeneralCircuitQuantumState
@@ -156,8 +155,9 @@ class ComputationalBasisState(CircuitQuantumState):
         """The phase of the state."""
         return self._phase * np.pi / 2
 
-    def sample(self, n_shots: int) -> MeasurementCounts:
-        return DEFAULT_SAMPLER(self, n_shots)
+    def sample(self, n_shots: int) -> Mapping[int, Union[int, float]]:
+        """Sample the state using qulacs."""
+        return self.circuit.sample(n_shots)
 
 
 def comp_basis_superposition(
