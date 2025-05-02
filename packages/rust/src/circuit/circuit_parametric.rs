@@ -420,9 +420,16 @@ impl ImmutableParametricQuantumCircuit {
         Ok(ret)
     }
 
-    fn sample<'py>(slf: &Bound<'py, Self>, shot_count: i32, params: Vec<f64>) -> PyResult<Bound<'py, PyAny>> {
-        let sampling = PyModule::import_bound(slf.py(), "quri_parts.core.sampling.default_sampler")?;
-        let sampling_counts = sampling.getattr("DEFAULT_SAMPLER")?.call1((slf, shot_count, params));
+    fn sample<'py>(
+        slf: &Bound<'py, Self>,
+        shot_count: i32,
+        params: Vec<f64>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let sampling =
+            PyModule::import_bound(slf.py(), "quri_parts.core.sampling.default_sampler")?;
+        let sampling_counts = sampling
+            .getattr("DEFAULT_SAMPLER")?
+            .call1((slf, shot_count, params));
         sampling_counts
     }
 
@@ -434,8 +441,12 @@ impl ImmutableParametricQuantumCircuit {
     // }
 
     fn draw<'py>(slf: &Bound<'py, Self>) {
-        let circuit_drawer = PyModule::import_bound(slf.py(), "quri_parts.circuit.utils.circuit_drawer").unwrap();
-        let _ = circuit_drawer.getattr("draw_circuit").unwrap().call1((slf,));
+        let circuit_drawer =
+            PyModule::import_bound(slf.py(), "quri_parts.circuit.utils.circuit_drawer").unwrap();
+        let _ = circuit_drawer
+            .getattr("draw_circuit")
+            .unwrap()
+            .call1((slf,));
     }
 }
 

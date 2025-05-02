@@ -48,7 +48,7 @@ class CircuitQuantumState(QuantumState):
 
     @abstractmethod
     def sample(self, n_shots: int) -> Mapping[int, Union[int, float]]:
-        """Samples the state using a default sampler"""
+        """Samples the state using a default sampler."""
         ...
 
 
@@ -73,7 +73,7 @@ class CircuitQuantumStateMixin(ABC):
         return self._circuit
 
     def sample(self, n_shots: int) -> Mapping[int, Union[int, float]]:
-        """Sample state using qulacs"""
+        """Sample state using qulacs."""
         return self.circuit.sample(n_shots)
 
 
