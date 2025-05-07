@@ -1,6 +1,6 @@
 [build-system]
-requires = ["poetry-core>=1.0.0", "maturin>=1.0,<2.0"]
-build-backend = "maturin"
+requires = ["poetry-core>=1.0.0", "setuptools>=64", "setuptools-rust"]
+build-backend = "setuptools.build_meta"
 
 [project]
 dependencies = ["typing-extensions>=4.1.1,<5.0.0", "numpy>=1.22.0"]
@@ -9,7 +9,7 @@ version = "0.22.0"
 description = "Platform-independent quantum circuit library"
 license = { text = "Apache-2.0" }
 
-authors = [{ name = "QURI Parts Authors", email = "<opensource@qunasys.com>" }]
+authors = [{ name = "QURI Parts Authors", email = "opensource@qunasys.com" }]
 requires-python = ">=3.9.8,<4.0.0"
 keywords = ["quantum", "quantum computing"]
 classifiers = ["Topic :: Scientific/Engineering :: Physics", "Typing :: Typed"]
@@ -44,9 +44,11 @@ mypy = ">=0.950"
 docformatter = "^1.4"
 isort = "^5.10.1"
 black = "^23.1.0"
-maturin = "1.7.0"
 
-# Some config is appended in rust-sdist-package CI.
-[tool.maturin]
-python-source = "."
-module-name = "quri_parts.rust.quri_parts_rust"
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["quri_parts", "Cargo.toml", "packages/rust"]
+
+[[tool.setuptools-rust.ext-modules]]
+target = "quri_parts.rust.quri_parts_rust"
+# path = "..." is added in rust-sdist-package workflow

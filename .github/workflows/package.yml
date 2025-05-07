@@ -2,7 +2,7 @@ name: Package and release
 
 on:
   push:
-    branches: [main]
+    branches: [main, integrate_st_bundled]
   release:
     types: [published]
 
@@ -69,7 +69,7 @@ jobs:
       - run: |
           poetry env use 3.11
           mkdir -p dist
-          poetry run pip install maturin==1.8.3
+          poetry run pip install --upgrade build
           source $VENV
 
           # For sdist generation, only files under `packages/rust` or `rust` are needed.
@@ -77,10 +77,10 @@ jobs:
           rm -rf README.md pyproject.toml quri_parts docs
           mv packages/rust/pyproject.toml .
           mv packages/rust/quri_parts .
+          mv packages/rust/MANIFEST.in .
           rm -rf packages/algo packages/braket packages/chem packages/circuit packages/cirq packages/core packages/ionq packages/itensor packages/openfermion packages/openqasm packages/pyscf packages/qiskit packages/quantinuum packages/qulacs packages/stim packages/tket packages/qsub
-          echo 'manifest-path = "packages/rust/Cargo.toml"' >> pyproject.toml
-          poetry run maturin build --sdist -i python3.11 --out dist -m packages/rust/Cargo.toml -vv
-          rm dist/*.whl
+          echo 'path = "packages/rust/Cargo.toml"' >> pyproject.toml
+          poetry run python -m build --sdist
 
       - run: |
           git reset --hard
@@ -145,12 +145,14 @@ jobs:
         run: |
           poetry env use '${{ steps.setup-python.outputs.python-path }}'
           mkdir -p dist
-          poetry run pip install maturin==1.8.3
+          poetry run pip install --upgrade build
           source $VENV
           for pkg in packages/*
           do
             if [[ -e "$pkg/Cargo.toml" ]]; then
-              poetry run maturin build --strip -i python3.${{ matrix.python-version }} --release --out dist -m $pkg/Cargo.toml
+              cd "$pkg"
+              poetry run python -m build --wheel -o ../../dist
+              cd ../..
             fi
           done
           ls dist
@@ -163,7 +165,7 @@ jobs:
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_BUILD: "cp3${{ matrix.python-version }}-manylinux_i686 cp3${{ matrix.python-version }}-manylinux_x86_64"
           CIBW_BUILD_VERBOSITY: 1
-          CIBW_BEFORE_ALL_LINUX: "pip install maturin==1.8.3 && curl https://sh.rustup.rs -sSf | sh -s -- --target ${{matrix.system.target}} --default-toolchain ${{matrix.toolchain}} -y && yum install -y openssl-devel"
+          CIBW_BEFORE_ALL_LINUX: "pip install setuptools setuptools-rust && curl https://sh.rustup.rs -sSf | sh -s -- --target ${{matrix.system.target}} --default-toolchain ${{matrix.toolchain}} -y && yum install -y openssl-devel"
           CIBW_BEFORE_BUILD_LINUX: "pip3 install --upgrade keyrings.alt"
           CIBW_ARCHS_LINUX: "auto"
           CIBW_ENVIRONMENT: 'PATH="$PATH:$HOME/.cargo/bin"'
