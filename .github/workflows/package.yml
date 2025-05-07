@@ -105,19 +105,23 @@ jobs:
       fail-fast: false
       matrix:
         system:
-          - os: "ubuntu-latest"
-            target: "x86_64-unknown-linux-gnu"
-          - os: "macos-13"
-            target: "x86_64-apple-darwin"
-          - os: "macos-latest"
-            target: "aarch64-apple-darwin"
+          #- os: "ubuntu-latest"
+          #  target: "x86_64-unknown-linux-gnu"
+          #- os: "macos-13"
+          #  target: "x86_64-apple-darwin"
+          #- os: "macos-latest"
+          #  target: "aarch64-apple-darwin"
           - os: "windows-latest"
             target: "x86_64-pc-windows-msvc"
-        python-version: [ "9", "10", "11", "12" ]
+            #python-version: [ "9", "10", "11", "12" ]
+        python-version: [ "9" ]
         toolchain: [ "stable" ]
     defaults:
       run:
         shell: bash
+    env:
+      # Needed to avoid format error in Windows
+      PYTHONUTF8: "1"
     steps:
       - uses: actions/checkout@v3
 
@@ -126,7 +130,7 @@ jobs:
         with:
           python-version: 3.${{matrix.python-version}}
 
-      - run: python -m pip install --upgrade pip
+      - run: python -m pip install --upgrade pip build
 
       - name: Install Poetry
         uses: snok/install-poetry@v1
@@ -143,15 +147,17 @@ jobs:
 
       - if: runner.os != 'Linux'
         run: |
-          poetry env use '${{ steps.setup-python.outputs.python-path }}'
+          # poetry env use '${{ steps.setup-python.outputs.python-path }}'
+          # python -m venv ./venv
+          # .\\venv\\Scripts\\activate
           mkdir -p dist
-          poetry run pip install --upgrade build
-          source $VENV
+          pip install --upgrade pip build setuptools requests tomli wheel https://github.com/QunaSys/setuptools-rust-bundled/releases/download/v0.1.3/setuptools_rust_bundled-0.1.3-py3-none-win_amd64.whl setuptools-rust
+          #source $VENV
           for pkg in packages/*
           do
             if [[ -e "$pkg/Cargo.toml" ]]; then
               cd "$pkg"
-              poetry run python -m build --wheel -o ../../dist
+              python -m build --no-isolation --wheel -o ../../dist
               cd ../..
             fi
           done
