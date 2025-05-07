@@ -4213,7 +4213,6 @@ develop = true
 
 [package.dependencies]
 numpy = ">=1.22.0"
-quri-parts-qulacs = "*"
 quri-parts-rust = "*"
 typing-extensions = "^4.1.1"
 
