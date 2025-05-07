@@ -433,13 +433,6 @@ impl ImmutableParametricQuantumCircuit {
         sampling_counts
     }
 
-    // #[pyo3(name = "__hash__")]
-    // fn py_hash<'py>(slf: PyRef<'py, Self>) -> i32 {
-    //     let builtins = PyModule::import_bound(slf.py(), "builtins").unwrap();
-    //     let hash = builtins.getattr("hash").unwrap().call1(((slf.qubit_count, slf.gates.0.clone(), ),)).unwrap().extract().unwrap();
-    //     hash
-    // }
-
     fn draw<'py>(slf: &Bound<'py, Self>) {
         let circuit_drawer =
             PyModule::import_bound(slf.py(), "quri_parts.circuit.utils.circuit_drawer").unwrap();
