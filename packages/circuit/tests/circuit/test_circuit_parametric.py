@@ -145,7 +145,6 @@ class TestUnboundParametricQuantumCircuit:
             ParametricRX(0),
             ParametricPauliRotation([1], [1]),
         ]
-    
 
     def test_sample(self) -> None:
         circuit = ParametricQuantumCircuit(3)

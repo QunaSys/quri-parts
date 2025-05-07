@@ -125,6 +125,7 @@ class TestQuantumCircuit:
         assert len(samples) == 2
         assert sum(samples.values()) == 1000
 
+
 class TestQuantumCircuitDeprecation:
     def test_order_flip(self) -> None:
         with warnings.catch_warnings(record=True) as w:
