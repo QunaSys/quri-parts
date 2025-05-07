@@ -153,13 +153,12 @@ impl ImmutableQuantumCircuit {
         sampling_counts
     }
 
-    fn draw<'py>(slf: &Bound<'py, Self>) {
+    fn draw<'py>(slf: &Bound<'py, Self>) -> Result<(), PyErr> {
         let circuit_drawer =
             PyModule::import_bound(slf.py(), "quri_parts.circuit.utils.circuit_drawer").unwrap();
-        let _ = circuit_drawer
-            .getattr("draw_circuit")
-            .unwrap()
-            .call1((slf,));
+        circuit_drawer.getattr("draw_circuit")?.call1((slf,))?;
+
+        Ok(())
     }
 }
 
