@@ -16,12 +16,23 @@ import numpy as np
 import numpy.typing as npt
 from tensornetwork import Edge, Node
 
+"""The following gates are in tensor form, which should not be confused with their
+matrix representation. Expanded in terms of its tensor representation can be written as
+
+.. math::
+    \\hat{O} = |i_{N},\\ldots,i_{2N-1}><i_0,\\ldots,i_{N-1}| T[i_0,\\ldots,i_{2N-1}]
+
+Some of the below gates therefore appear to be transposed versions of their matrix
+representations, but this is just a consequence of the tensor-arithmetic.
+"""
+
+
 _I_LIST: Sequence[Sequence[complex]] = [[1.0, 0.0], [0.0, 1.0]]
 _X_LIST: Sequence[Sequence[complex]] = [[0.0, 1.0], [1.0, 0.0]]
 _Y_LIST: Sequence[Sequence[complex]] = [
     [0.0, 1.0j],
     [-1.0j, 0.0],
-]  # This looks transposed, but it is the correct form
+]
 _Z_LIST: Sequence[Sequence[complex]] = [[1.0, 0.0], [0.0, -1.0]]
 _H_LIST: Sequence[Sequence[complex]] = [
     [1.0 / np.sqrt(2), 1.0 / np.sqrt(2)],
@@ -103,12 +114,9 @@ _TOFFOLI_LIST: Sequence[Sequence[Sequence[Sequence[Sequence[Sequence[complex]]]]
 ]
 
 
-class QuantumGate(Node, ABC):  # type: ignore
-    """:class:`~QuantumGate` class is a base class that wraps
+class TensorNetworkQuantumGate(Node, ABC):  # type: ignore
+    """:class:`~TensorNetworkQuantumGate` class is a base class that wraps
     :class:`~Node`."""
-
-    qubit_indices: Sequence[int]
-    conjugate: bool
 
     def __init__(
         self,
@@ -127,7 +135,7 @@ class QuantumGate(Node, ABC):  # type: ignore
         super().__init__(tensor, name=name, backend=backend)
 
     @abstractmethod
-    def copy(self, conjugate: bool = False) -> "QuantumGate":
+    def copy(self, conjugate: bool = False) -> "TensorNetworkQuantumGate":
         pass
 
     @property
@@ -141,7 +149,7 @@ class QuantumGate(Node, ABC):  # type: ignore
         pass
 
 
-class SingleQubitGate(QuantumGate, ABC):
+class SingleQubitGate(TensorNetworkQuantumGate, ABC):
     """:class:`~SingleQubitGate` class is a base class that facilitates one qubit
     gates."""
 
@@ -168,7 +176,7 @@ class SingleQubitGate(QuantumGate, ABC):
         return {self.qubit_indices[0]: self[1]}
 
 
-class SingleQubitRotationGate(QuantumGate, ABC):
+class SingleQubitRotationGate(TensorNetworkQuantumGate, ABC):
     """:class:`~SingleQubitRotationGate` class is a base class that facilitates
     single qubit rotation gates."""
 
@@ -216,7 +224,7 @@ class SingleQubitPauliRotationGate(SingleQubitRotationGate, ABC):
         super().__init__([angle], qubit_indices, name=name, backend=backend)
 
 
-class TwoQubitGate(QuantumGate, ABC):
+class TwoQubitGate(TensorNetworkQuantumGate, ABC):
     """:class:`~TwoQubitGate` class is a base class that facilitates two qubit
     gates."""
 
@@ -243,7 +251,7 @@ class TwoQubitGate(QuantumGate, ABC):
         return {qi: self[i + 2] for i, qi in enumerate(self.qubit_indices)}
 
 
-class ThreeQubitGate(QuantumGate, ABC):
+class ThreeQubitGate(TensorNetworkQuantumGate, ABC):
     """:class:`~ThreeQubitGate` class is a base class that facilitates three
     qubit gates."""
 

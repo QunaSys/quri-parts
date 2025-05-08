@@ -12,7 +12,11 @@ pub fn convert_add_gate<'py>(
 ) -> PyResult<Bound<'py, PyAny>> {
     match gate {
         QuantumGate::Identity(q1) => {
-            qulacs_circuit.call_method1("add_Identity_gate", (*q1,))?;
+            let identity_gate = py
+                .import_bound("qulacs.gate")?
+                .getattr("Identity")?
+                .call1((*q1,))?;
+            qulacs_circuit.call_method1("add_gate", (identity_gate,))?;
         }
         QuantumGate::X(q1) => {
             qulacs_circuit.call_method1("add_X_gate", (*q1,))?;
@@ -110,7 +114,7 @@ pub fn convert_add_gate<'py>(
         other => {
             return Err(PyRuntimeError::new_err(format!(
                 "{} is not supported",
-                &other.clone().into_property().name
+                &other.clone().map_param(Some).into_property().name
             )))
         }
     }

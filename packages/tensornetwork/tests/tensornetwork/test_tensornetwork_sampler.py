@@ -8,6 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 from numpy.random import default_rng
 from numpy.testing import assert_almost_equal
 
@@ -15,7 +16,7 @@ from quri_parts.circuit import QuantumCircuit
 from quri_parts.circuit.gates import CNOT, H, S
 from quri_parts.tensornetwork.sampler import (
     create_tensornetwork_ideal_sampler,
-    create_tensornetwork_probabilistic_sampler,
+    create_tensornetwork_sampler,
 )
 
 NSHOTS = 10000
@@ -47,10 +48,12 @@ def test_ideal_sampler() -> None:
         assert_almost_equal(count_list, p)
 
 
-def test_probabilistic_sampler() -> None:
-    sampler = create_tensornetwork_probabilistic_sampler(SEED)
-    rng = default_rng(SEED)
+def test_sampler() -> None:
+    sampler = create_tensornetwork_sampler(SEED)
     for c, p in circuit_probabilities_pairs:
+        rng = default_rng(SEED)
         counts = sampler(c, NSHOTS)
         count_list = [counts[b] / NSHOTS for b in range(2**c.qubit_count)]
-        assert_almost_equal(count_list, rng.multinomial(NSHOTS, p) / NSHOTS)
+        rp = np.round(p, 12)
+        norm = np.sum(rp)
+        assert_almost_equal(count_list, rng.multinomial(NSHOTS, rp / norm) / NSHOTS)
