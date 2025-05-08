@@ -7,6 +7,7 @@ from quri_parts.backend.cost_estimator import (
     estimate_circuit_latency,
 )
 from quri_parts.backend.devices import (
+    abstract_ftqc_device,
     clifford_t_device,
     nisq_iontrap_device,
     nisq_spcond_lattice,
@@ -117,7 +118,8 @@ def test_nisq_iontrap_device() -> None:
 
     device = nisq_iontrap_device.generate_device_property(
         qubit_count=16,
-        native_gates=native_gates,
+        native_gates_1q=native_gates & gate_names.SINGLE_QUBIT_GATE_NAMES,
+        native_gates_2q=native_gates & gate_names.TWO_QUBIT_GATE_NAMES,
         gate_error_1q=1.0e-5,
         gate_error_2q=1.0e-3,
         gate_error_meas=1.0e-3,
@@ -148,7 +150,8 @@ def test_nisq_spcond_device() -> None:
 
     device = nisq_spcond_lattice.generate_device_property(
         lattice=SquareLattice(4, 4),
-        native_gates=native_gates,
+        native_gates_1q=native_gates & gate_names.SINGLE_QUBIT_GATE_NAMES,
+        native_gates_2q=native_gates & gate_names.TWO_QUBIT_GATE_NAMES,
         gate_error_1q=1.0e-4,
         gate_error_2q=1.0e-2,
         gate_error_meas=1.0e-2,
@@ -179,7 +182,8 @@ def test_nisq_spcond_device_trans() -> None:
 
     device_prop = nisq_spcond_lattice.generate_device_property(
         lattice=SquareLattice(4, 4),
-        native_gates=native_gates,
+        native_gates_1q=native_gates & gate_names.SINGLE_QUBIT_GATE_NAMES,
+        native_gates_2q=native_gates & gate_names.TWO_QUBIT_GATE_NAMES,
         gate_error_1q=1e-3,
         gate_error_2q=1e-2,
         gate_error_meas=1e-2,
@@ -195,3 +199,35 @@ def test_nisq_spcond_device_trans() -> None:
     tc1 = device_prop.transpiler(circuit)
     tc2 = device_prop.transpiler(tc1)
     assert tc1.gates == tc2.gates
+
+
+def test_abstract_ftqc_device() -> None:
+    device = abstract_ftqc_device.generate_device_property(
+        logical_qubit_count=16,
+        qec_cycle=TimeValue(value=1.0, unit=TimeUnit.MICROSECOND),
+        logical_error_rate=1.0e-9,
+        delta_sk=1.0e-9,
+        clifford_gate_cycles=1,
+        t_gate_cycles=2,
+    )
+    assert device.qubit_count == 16
+    assert set(device.native_gates) == {
+        gate_names.H,
+        gate_names.S,
+        gate_names.T,
+        gate_names.CNOT,
+    }
+    assert device.background_error is not None
+    error, time = device.background_error
+    assert math.isclose(1.0e-9, error)
+    assert math.isclose(1.0e3, time.in_ns())
+
+    circuit = _star_native_circuit()
+    assert 0.0 < estimate_circuit_fidelity(circuit, device, background_error=True) < 1.0
+    assert 0.0 < estimate_circuit_latency(circuit, device).value
+
+    assert device.analyze_transpiler is not None
+    assert {
+        gate.name
+        for gate in device.analyze_transpiler(_non_star_native_circuit()).gates
+    } <= {gate_names.H, gate_names.S, gate_names.CNOT, gate_names.RZ}
