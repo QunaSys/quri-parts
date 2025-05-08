@@ -10,6 +10,7 @@
 
 from collections.abc import Collection, Sequence
 from copy import copy
+from functools import reduce
 from typing import Any, Literal, Mapping, Optional, Union
 
 import numpy as np
@@ -78,18 +79,6 @@ _operator_cache: dict[_OperatorKey, TensorNetworkOperator] = {}
 _mpo_cache: dict[_OperatorKey, TensorNetworkOperator] = {}
 
 
-def _kron(
-    pauli_list: Sequence[Sequence[Sequence[complex]]],
-) -> npt.NDArray[np.complex128]:
-    """Calculate the tensor product of a list of arrays."""
-
-    prod = np.array(pauli_list[0], dtype=np.complex128)
-    for u in pauli_list[1:]:
-        prod = np.kron(np.array(u, dtype=np.complex128), prod)
-
-    return prod
-
-
 def get_observable_data(
     pauli_list: Sequence[Sequence[Sequence[complex]]],
     dim: int = 2,
@@ -98,7 +87,9 @@ def get_observable_data(
     """Take a list of matrices that represent pauli operators and calculate
     their tensor-product."""
 
-    _obs = _kron(pauli_list)
+    pauli_list_arrays = [np.array(a, dtype=np.complex128) for a in pauli_list]
+    pauli_list_arrays.reverse()
+    _obs = reduce(np.kron, pauli_list_arrays)
     if n is None:
         n = len(pauli_list)
     obs_data = np.reshape(_obs, [dim for _ in range(2 * n)])
