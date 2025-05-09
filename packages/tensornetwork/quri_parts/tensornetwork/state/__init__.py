@@ -16,7 +16,7 @@ from h5py import Group
 from tensornetwork import AbstractNode, Edge, Node, NodeCollection, Tensor
 
 from quri_parts.circuit.transpile import CircuitTranspiler
-from quri_parts.core.state import CircuitQuantumState
+from quri_parts.core.state import CircuitQuantumState, QuantumStateVector
 from quri_parts.tensornetwork.circuit import (
     TensorNetworkLayer,
     TensorNetworkTranspiler,
@@ -244,3 +244,18 @@ def convert_state(
     )
     tn_state = zero_state.with_gates_applied(state_circuit)
     return tn_state
+
+
+def quantum_state_vector_from_tensor_network_state(state: TensorNetworkState) -> QuantumStateVector:
+    """Convert TensorNetworkState to QuantumStateVector that only contains the
+    state vector and no quantum circuit."""
+    state = state.contract()
+    qubit_count = len(state.edges)
+
+    tensor = np.reshape(
+        state._container.pop().tensor,
+        (2**qubit_count),
+        order="F",
+    )
+
+    return QuantumStateVector(qubit_count, tensor)
