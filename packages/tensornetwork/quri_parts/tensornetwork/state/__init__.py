@@ -246,7 +246,9 @@ def convert_state(
     return tn_state
 
 
-def quantum_state_vector_from_tensor_network_state(state: TensorNetworkState) -> QuantumStateVector:
+def quantum_state_vector_from_tensor_network_state(
+    state: TensorNetworkState,
+) -> QuantumStateVector:
     """Convert TensorNetworkState to QuantumStateVector that only contains the
     state vector and no quantum circuit."""
     state = state.contract()
