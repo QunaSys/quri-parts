@@ -10,10 +10,18 @@
 
 from .device import device_connectivity_graph
 from .sampling import BraketSamplingBackend, BraketSamplingJob, BraketSamplingResult
+from .saved_sampling import (
+    BraketSavedDataSamplingBackend,
+    BraketSavedDataSamplingJob,
+    BraketSavedDataSamplingResult,
+)
 
 __all__ = [
     "BraketSamplingBackend",
     "BraketSamplingJob",
     "BraketSamplingResult",
     "device_connectivity_graph",
+    "BraketSavedDataSamplingBackend",
+    "BraketSavedDataSamplingJob",
+    "BraketSavedDataSamplingResult",
 ]
