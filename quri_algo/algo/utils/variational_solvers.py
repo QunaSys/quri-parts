@@ -44,7 +44,7 @@ class QURIPartsVariationalSolver(VariationalSolver):
         self, cost: CostFunction, grad: GradientFunction | None, init_params: Params
     ) -> Sequence[OptimizerState]:
         optimizer_state = self.optimizer.get_init_state(init_params)
-        optimizer_history = [optimizer_state]
+        optimizer_history = []
         while True:
             optimizer_state = self.optimizer.step(optimizer_state, cost, grad)
             optimizer_history.append(optimizer_state)
