@@ -842,7 +842,7 @@ description = "Easily serialize dataclasses to and from JSON"
 optional = false
 python-versions = ">=3.6"
 groups = ["main", "dev"]
-markers = "python_version == \"3.10\" or python_version == \"3.11\""
+markers = "python_version >= \"3.10\""
 files = [
     {file = "dataclasses-json-0.5.9.tar.gz", hash = "sha256:e9ac87b73edc0141aafbce02b44e93553c3123ad574958f0fe52a534b6707e8e"},
     {file = "dataclasses_json-0.5.9-py3-none-any.whl", hash = "sha256:1280542631df1c375b7bc92e5b86d39e06c44760d7e3571a537b3b8acabf2f0c"},
@@ -1455,7 +1455,7 @@ description = "Core library used by SDKs for IBM Cloud Services"
 optional = false
 python-versions = ">=3.8"
 groups = ["main", "dev"]
-markers = "python_version == \"3.10\" or python_version == \"3.11\""
+markers = "python_version >= \"3.10\""
 files = [
     {file = "ibm_cloud_sdk_core-3.21.0-py3-none-any.whl", hash = "sha256:0d7c4ba6e22c21479479d78251451832d9aa1515dd4625893ab36087b071aaef"},
     {file = "ibm_cloud_sdk_core-3.21.0.tar.gz", hash = "sha256:1b72ef675ddffda25b08c43b84b8b6e54d2b5e21af1e1bd3e8507a2d2571a544"},
@@ -1493,7 +1493,7 @@ description = "Python client library for IBM Cloud Platform Services"
 optional = false
 python-versions = ">=3.8"
 groups = ["main", "dev"]
-markers = "python_version == \"3.10\" or python_version == \"3.11\""
+markers = "python_version >= \"3.10\""
 files = [
     {file = "ibm_platform_services-0.57.1-py3-none-any.whl", hash = "sha256:e005fd18a447481356f11ba523dd5e2d8b024e6b56d9a3125c6b19b76982f6ac"},
     {file = "ibm_platform_services-0.57.1.tar.gz", hash = "sha256:dc1c710faffc2ad0fd57c13b5d86bf8ef49890361a11d26ba483f7d406037b6f"},
@@ -1727,7 +1727,7 @@ files = [
     {file = "jinja2-3.1.4-py3-none-any.whl", hash = "sha256:bc5dd2abb727a5319567b7a813e6a2e7318c39f4f487cfe6c89c6f9c7d25197d"},
     {file = "jinja2-3.1.4.tar.gz", hash = "sha256:4a3aee7acbbe7303aede8e9648d13b8bf88a429282aa6122a993f0ac800cb369"},
 ]
-markers = {main = "python_version == \"3.10\" or python_version == \"3.11\"", dev = "python_version == \"3.10\" or python_version == \"3.11\""}
+markers = {main = "python_version >= \"3.10\"", dev = "python_version >= \"3.10\""}
 
 [package.dependencies]
 MarkupSafe = ">=2.0"
@@ -2196,7 +2196,7 @@ description = "a modern parsing library"
 optional = false
 python-versions = ">=3.8"
 groups = ["main", "dev"]
-markers = "python_version == \"3.10\" or python_version == \"3.11\""
+markers = "python_version >= \"3.10\""
 files = [
     {file = "lark-1.2.2-py3-none-any.whl", hash = "sha256:c2276486b02f0f1b90be155f2c8ba4a8e194d42775786db622faccd652d8e80c"},
     {file = "lark-1.2.2.tar.gz", hash = "sha256:ca807d0162cd16cef15a8feecb862d7319e7a09bdb13aef927968e45040fed80"},
@@ -2317,7 +2317,7 @@ files = [
     {file = "MarkupSafe-2.1.5-cp39-cp39-win_amd64.whl", hash = "sha256:fa173ec60341d6bb97a89f5ea19c85c5643c1e7dedebc22f5181eb73573142c5"},
     {file = "MarkupSafe-2.1.5.tar.gz", hash = "sha256:d283d37a890ba4c1ae73ffadf8046435c76e7bc2247bbb63c00bd1a709c6544b"},
 ]
-markers = {main = "python_version == \"3.10\" or python_version == \"3.11\"", dev = "python_version == \"3.10\" or python_version == \"3.11\""}
+markers = {main = "python_version >= \"3.10\"", dev = "python_version >= \"3.10\""}
 
 [[package]]
 name = "marshmallow"
@@ -2326,7 +2326,7 @@ description = "A lightweight library for converting complex datatypes to and fro
 optional = false
 python-versions = ">=3.9"
 groups = ["main", "dev"]
-markers = "python_version == \"3.10\" or python_version == \"3.11\""
+markers = "python_version >= \"3.10\""
 files = [
     {file = "marshmallow-3.26.1-py3-none-any.whl", hash = "sha256:3350409f20a70a7e4e11a27661187b77cdcaeb20abca41c1454fe33636bea09c"},
     {file = "marshmallow-3.26.1.tar.gz", hash = "sha256:e6d8affb6cb61d39d26402096dc0aee12d5a26d490a121f118d2e81dc0719dc6"},
@@ -2347,7 +2347,7 @@ description = "Enum field for Marshmallow"
 optional = false
 python-versions = "*"
 groups = ["main", "dev"]
-markers = "python_version == \"3.10\" or python_version == \"3.11\""
+markers = "python_version >= \"3.10\""
 files = [
     {file = "marshmallow-enum-1.5.1.tar.gz", hash = "sha256:38e697e11f45a8e64b4a1e664000897c659b60aa57bfa18d44e226a9920b6e58"},
     {file = "marshmallow_enum-1.5.1-py2.py3-none-any.whl", hash = "sha256:57161ab3dbfde4f57adeb12090f39592e992b9c86d206d02f6bd03ebec60f072"},
@@ -3029,6 +3029,7 @@ files = [
 numpy = [
     {version = ">=1.22.4", markers = "python_version < \"3.11\""},
     {version = ">=1.23.2", markers = "python_version == \"3.11\""},
+    {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
 ]
 python-dateutil = ">=2.8.2"
 pytz = ">=2020.1"
@@ -3732,7 +3733,7 @@ description = "Quantum computing toolkit and interface to the TKET compiler"
 optional = false
 python-versions = ">=3.10"
 groups = ["main", "dev"]
-markers = "python_version == \"3.10\" or python_version == \"3.11\""
+markers = "python_version >= \"3.10\""
 files = [
     {file = "pytket-1.41.0-cp310-cp310-macosx_13_0_arm64.whl", hash = "sha256:13809e034ae88271d5d1c6cf04d92711c7fdd31c4ee191b96e07b5f72d1156d5"},
     {file = "pytket-1.41.0-cp310-cp310-macosx_13_0_x86_64.whl", hash = "sha256:607f7d517e67c319a4500c37c9e08ec5086bf9b90cd527e5bc59f996dd96002e"},
@@ -4123,7 +4124,7 @@ description = "visualizers for qulacs"
 optional = false
 python-versions = ">=3.9"
 groups = ["main", "dev"]
-markers = "python_version == \"3.10\" or python_version == \"3.11\""
+markers = "python_version >= \"3.10\""
 files = [
     {file = "qulacsvis-0.7.4-py3-none-any.whl", hash = "sha256:66ad3cc402ed572a462dce6005d36d077c5cd3c3be661c1aa359db68189d05b2"},
     {file = "qulacsvis-0.7.4.tar.gz", hash = "sha256:5a4f5be082ab32c77ba9f7e8da73ac580f149a1a72c457de5a0a3c223d6b3e8d"},
@@ -4248,6 +4249,7 @@ develop = true
 networkx = "*"
 numpy = ">=1.22.0"
 quri-parts-circuit = "*"
+quri-parts-qulacs = "*"
 scipy = "^1.11.3"
 typing-extensions = "^4.1.1"
 
@@ -4355,7 +4357,7 @@ name = "quri-parts-qiskit"
 version = "0.0.0"
 description = "A plugin to use Qiskit with QURI Parts"
 optional = false
-python-versions = "^3.9.8,<3.12"
+python-versions = "^3.9.8,<3.13"
 groups = ["main", "dev"]
 files = []
 develop = true
@@ -4380,7 +4382,7 @@ description = "A support library for consturcting structured quantum circuits"
 optional = false
 python-versions = ">=3.10"
 groups = ["main", "dev"]
-markers = "python_version == \"3.10\" or python_version == \"3.11\""
+markers = "python_version >= \"3.10\""
 files = []
 develop = true
 
@@ -4434,7 +4436,7 @@ url = "packages/qulacs"
 
 [[package]]
 name = "quri-parts-rust"
-version = "0.21.0"
+version = "0.22.0"
 description = "Platform-independent quantum circuit library"
 optional = false
 python-versions = "^3.9.8"
@@ -4495,7 +4497,7 @@ description = "A plugin to use tket with QURI Parts"
 optional = false
 python-versions = "^3.10"
 groups = ["main", "dev"]
-markers = "python_version == \"3.10\" or python_version == \"3.11\""
+markers = "python_version >= \"3.10\""
 files = []
 develop = true
 
@@ -4515,7 +4517,7 @@ description = "WebAssembly decoder & disassembler"
 optional = false
 python-versions = "*"
 groups = ["main", "dev"]
-markers = "python_version == \"3.10\" or python_version == \"3.11\""
+markers = "python_version >= \"3.10\""
 files = [
     {file = "qwasm-1.0.1-py3-none-any.whl", hash = "sha256:c4c82a3f962d29314634868e06375f0cb4676c3d5266fbe137f6cd67321b0ef1"},
     {file = "qwasm-1.0.1.tar.gz", hash = "sha256:01f5dfe27159b7fdd9d02cd299833225d528fa383d1278268e5e1526357950fb"},
@@ -5313,7 +5315,7 @@ description = "temp.tempdir(), temp.tempfile() functions"
 optional = false
 python-versions = "*"
 groups = ["main", "dev"]
-markers = "python_version == \"3.10\" or python_version == \"3.11\""
+markers = "python_version >= \"3.10\""
 files = [
     {file = "temp-2020.7.2.tar.gz", hash = "sha256:aefecf9e4d0d3900fba7fde844dc9dc62918ab66ad4003c8fdddcf3cd0a1edb4"},
 ]
@@ -5481,7 +5483,7 @@ description = "Runtime inspection utilities for typing module."
 optional = false
 python-versions = "*"
 groups = ["main", "dev"]
-markers = "python_version == \"3.10\" or python_version == \"3.11\""
+markers = "python_version >= \"3.10\""
 files = [
     {file = "typing_inspect-0.9.0-py3-none-any.whl", hash = "sha256:9ee6fc59062311ef8547596ab6b955e1b8aa46242d854bfc78f4f6b0eff35f9f"},
     {file = "typing_inspect-0.9.0.tar.gz", hash = "sha256:b23fc42ff6f6ef6954e4852c1fb512cdd18dbea03134f91f856a95ccc9461f78"},
@@ -5554,7 +5556,7 @@ description = "HTTP library with thread-safe connection pooling, file post, and 
 optional = false
 python-versions = ">=3.8"
 groups = ["main", "dev", "doc"]
-markers = "python_version == \"3.10\" or python_version == \"3.11\""
+markers = "python_version >= \"3.10\""
 files = [
     {file = "urllib3-2.2.3-py3-none-any.whl", hash = "sha256:ca899ca043dcb1bafa3e262d73aa25c465bfb49e0bd9dd5d59f1d0acba2f8fac"},
     {file = "urllib3-2.2.3.tar.gz", hash = "sha256:e7d814a81dad81e6caf2ec9fdedb284ecc9c73076b62654547cc64ccdcae26e9"},
@@ -5662,5 +5664,5 @@ tket = ["quri-parts-tket"]
 
 [metadata]
 lock-version = "2.1"
-python-versions = "^3.9.8,<3.12"
-content-hash = "5fd381c0b99a769f7ca87e36c37b4f66521add0524003ba69a7240c6600596dd"
+python-versions = "^3.9.8,<3.13"
+content-hash = "3de78d1f90b424c00bced9f8279fb0fef8262c1e912b2ed7d8e3d076fd7fac75"
