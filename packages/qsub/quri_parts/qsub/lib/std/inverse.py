@@ -95,6 +95,8 @@ def inverse_sub_resolver(op: Op, repository: SubRepository) -> Sub | None:
             io = o
         builder.add_op(io, qubits, regs)
 
+    phase = target_sub.phase
+    builder.add_phase(-phase)
     return builder.build()
 
 
@@ -158,6 +160,17 @@ def inverse_multicontrolled_resolver(op: Op, repository: SubRepository) -> Sub:
     return builder.build()
 
 
+def inverse_inverse_resolver(op: Op, repository: SubRepository) -> Sub:
+    target = op.id.params[0]
+    assert isinstance(target, Op)
+    assert target.base_id == Inverse.base_id
+    inner_op = target.id.params[0]
+    assert isinstance(inner_op, Op)
+    builder = SubBuilder(op.qubit_count, op.reg_count)
+    builder.add_op(inner_op, builder.qubits)
+    return builder.build()
+
+
 _repo = default_repository()
 _repo.register_sub_resolver(Inverse, inverse_sub_resolver)
 
@@ -176,6 +189,7 @@ _resolvers: Collection[tuple[AbstractOp, SubResolver]] = [
     (Tdag, _inverse_op_resolver_gen(T)),
     (Controlled, inverse_controlled_resolver),
     (MultiControlled, inverse_multicontrolled_resolver),
+    (Inverse, inverse_inverse_resolver),
 ]
 
 for target, resolver in _resolvers:
