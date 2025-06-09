@@ -4,13 +4,16 @@ Example and tutorial notebooks used in QURI SDK documentation
 ## Getting started
 To get a general overview of the capabilities and workflow of QURI SDK, please see these notebooks to start with
 
-- `quri_sdk_notebooks/tutorials/0_general/hadamard_tutorial.ipynb`
-- `quri_sdk_notebooks/tutorials/2_quri-vm/0_vm-introduction/0_vm-introduction.ipynb`
-- `quri_sdk_notebooks/tutorials/1_quri-algo/0_basics/1_estimator/1_estimator.ipynb`
-- `quri_sdk_notebooks/tutorials/1_quri-algo/0_basics/0_time_evolution/0_time_evo.ipynb`
-- `quri_sdk_notebooks/examples/0_quri-algo-vm/0_qsci/0_qsci.ipynb`
-- `quri_sdk_notebooks/examples/0_quri-algo-vm/1_spe/1_spe.ipynb`
-- `quri_sdk_notebooks/examples/0_quri-algo-vm/2_qaqc/2_qaqc.ipynb`
+- [Hadamard Tutorial](quri_sdk_notebooks/tutorials/0_general/hadamard_tutorial.ipynb)
+- [VM Introduction](quri_sdk_notebooks/tutorials/2_quri-vm/0_vm-introduction/0_vm-introduction.ipynb)
+- [Estimator]quri_sdk_notebooks/tutorials/1_quri-algo/0_basics/1_estimator/1_estimator.ipynb)
+- [Time evolution]quri_sdk_notebooks/tutorials/1_quri-algo/0_basics/0_time_evolution/0_time_evo.ipynb)
+- [QSCI](quri_sdk_notebooks/examples/0_quri-algo-vm/0_qsci/0_qsci.ipynb)
+- [SPE](quri_sdk_notebooks/examples/0_quri-algo-vm/1_spe/1_spe.ipynb)
+- [QAQC](quri_sdk_notebooks/examples/0_quri-algo-vm/2_qaqc/2_qaqc.ipynb)
+- [Scalar Field Theory](quri_sdk_notebooks/examples/0_quri-algo-vm/3_scalar_field_theory/3_scalar_field_theory.ipynb)
+- [Surface Code](quri_sdk_notebooks/examples/0_quri-algo-vm/4_surface_code/4_surface_code.ipynb)
+- [Transverse Field Ising Model](quri_sdk_notebooks/examples/0_quri-algo-vm/5_tfim/TFIM.ipynb)
 
 
 ## Installation instructions
