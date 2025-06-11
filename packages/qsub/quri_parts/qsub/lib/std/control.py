@@ -14,7 +14,6 @@ from typing import Any
 
 from quri_parts.qsub.op import (
     AbstractOp,
-    BaseIdent,
     Ident,
     Op,
     OpFactory,
@@ -387,15 +386,16 @@ def _get_ctrl_inverse_resolver(
         assert isinstance(inner_op, Op)
         return inner_op
 
-    def ctrl_inv_resolver(ctrl_inv_op: Op, repository: SubRepository) -> Sub | None:
-        # ctrl_inv_op is supposed to be Controlled(Inverse(op))
-        inner_op = get_inner_op(ctrl_inv_op)
-        ctrl_sub = ctrl_resolver(Controlled(inner_op), repository)
-        assert ctrl_sub is not None
-        inv_ctrl_sub = get_inverted_sub(ctrl_sub)
-        return inv_ctrl_sub
+    class ControlInvSubResolver(SubResolver):
+        def __call__(self, ctrl_inv_op: Op, repository: SubRepository) -> Sub | None:
+            # ctrl_inv_op is supposed to be Controlled(Inverse(op))
+            inner_op = get_inner_op(ctrl_inv_op)
+            ctrl_sub = ctrl_resolver(Controlled(inner_op), repository)
+            assert ctrl_sub is not None
+            inv_ctrl_sub = get_inverted_sub(ctrl_sub)
+            return inv_ctrl_sub
 
-    return ctrl_inv_resolver
+    return ControlInvSubResolver()
 
 
 def _get_inv_target_condition(op: AbstractOp) -> SubResolverCondition:
@@ -430,7 +430,7 @@ def register_controlled_resolver(
     control_resolver: SubResolver,
     op: Op | OpFactory[Any],
 ) -> None:
-    """ """
+    """"""
     sub_repository.register_sub_resolver(
         Controlled, control_resolver, control_target_condition(op)
     )

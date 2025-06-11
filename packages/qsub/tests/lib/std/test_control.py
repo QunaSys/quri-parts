@@ -29,7 +29,6 @@ from quri_parts.qsub.lib.std import (
     Z,
 )
 from quri_parts.qsub.lib.std.control import (
-    control_target_condition,
     controlled_sub_resolver,
     register_controlled_resolver,
 )
@@ -648,7 +647,6 @@ def test_controlled_multicontrolled() -> None:
     assert sub.phase == 0
 
 
-
 def test_inverse_optimized_controlled() -> None:
     class _HCXH(OpSubDef):
         name = "HCXH"
@@ -680,9 +678,7 @@ def test_inverse_optimized_controlled() -> None:
         builder.add_op(Controlled(H), (qs[0], qs[1]))
         return builder.build()
 
-    register_controlled_resolver(
-        default_repository(), controlled_h_cx_h_resolver, HCXH
-    )
+    register_controlled_resolver(default_repository(), controlled_h_cx_h_resolver, HCXH)
 
     inv_op = Inverse(Controlled(HCXH))
     ctrl_inv_sub = resolve_sub(inv_op)
