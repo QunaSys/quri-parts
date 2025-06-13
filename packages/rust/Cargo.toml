@@ -6,7 +6,7 @@ publish = false
 
 [dependencies]
 num-complex = "0.4.6"
-quri-parts = { path = "../../", version = "0.22.0", features = ["python"] }
+quri-parts = { path = "../../", version = "0.22.1", features = ["python"] }
 
 [dependencies.pyo3]
 version = "0.22.6"
