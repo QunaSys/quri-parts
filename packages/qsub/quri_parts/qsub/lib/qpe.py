@@ -77,10 +77,10 @@ class _QPE(ParamUnitarySubDef[int, Op]):
 #: It implements QPE by applying a line of H-gates, controlled unitaries and
 #: the inverse quantum Fourier transform in the way described by e.g. Nielsen
 #: and Chuang (2010) (https://doi.org/10.1017/CBO9780511976667).
-#: 
+#:
 #: bits is the number of ancilla bits that are used to store the binary
 #: expansion of the phase.
-#: 
+#:
 #: op is the unitary operator that is applied, controlled sequentially by each
 #: ancilla qubit in accordance with the standard formulation of QPE, where the
 #: op is applied a number of times corresponding to the binary power
@@ -110,10 +110,10 @@ class _QPEListUk(ParamUnitarySubDef[int, tuple[Op]]):
 #: the inverse quantum Fourier transform. The procedure provides a
 #: generalization of the standard formulation described by e.g. Nielsen and
 #: Chuang (2010) (https://doi.org/10.1017/CBO9780511976667).
-#: 
+#:
 #: bits is the number of ancilla bits that are used to store the binary
 #: expansion of the phase.
-#: 
+#:
 #: ops is a sequence of unitary operators that are applied, controlled by each
 #: ancilla bit in sequence. Each op in the sequence is applied only once.
 QPEListUk, QPEListUkSub = param_opsub(_QPEListUk)
