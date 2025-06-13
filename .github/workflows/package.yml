@@ -27,7 +27,7 @@ jobs:
         poetry self add "poetry-dynamic-versioning[plugin]"
 
     - run: |
-        poetry env use 3.11
+        poetry env use python3.11
         poetry build
 
     - uses: actions/upload-artifact@v4

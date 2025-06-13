@@ -10,7 +10,7 @@ from quri_parts.qsub.sub import SubBuilder
 from quri_algo.problem import QubitHamiltonian
 
 
-class TrotterTimeEvoDef(ParamUnitarySubDef[QubitHamiltonian, float, int, int]):
+class _TrotterTimeEvo(ParamUnitarySubDef[QubitHamiltonian, float, int, int]):
     name = "TrotterTimeEvolution"
 
     def qubit_count_fn(self, h: QubitHamiltonian, *_: Any) -> int:
@@ -26,11 +26,13 @@ class TrotterTimeEvoDef(ParamUnitarySubDef[QubitHamiltonian, float, int, int]):
     ) -> None:
         if order == 1:
             hamiltonian_items = h.qubit_hamiltonian.items()
-            pauli_coef_pairs = [(op, coeff) for op, coeff in hamiltonian_items]
+            pauli_coef_pairs = [
+                (op, 2 * t * coeff / n_trotter) for op, coeff in hamiltonian_items
+            ]
         else:
             assert order % 2 == 0, "Trotter order must be 1 or an even number."
             exp_list = trotter_suzuki_decomposition(
-                h.qubit_hamiltonian, t / n_trotter, order // 2
+                h.qubit_hamiltonian, 2 * t / n_trotter, order // 2
             )
             pauli_coef_pairs = [(op, coeff) for op, coeff in exp_list]
         op_q_list: list[tuple[Op, Sequence[Qubit]]] = []
@@ -40,11 +42,14 @@ class TrotterTimeEvoDef(ParamUnitarySubDef[QubitHamiltonian, float, int, int]):
             else:
                 qubits, pauli_ids = p.index_and_pauli_id_list
                 op_q_list.append(
-                    (PauliRotation(pauli_ids, c), [builder.qubits[q] for q in qubits])
+                    (
+                        PauliRotation(tuple(pauli_ids), c),
+                        tuple(builder.qubits[q] for q in qubits),
+                    )
                 )
         for _ in range(n_trotter):
             for op, q in op_q_list:
                 builder.add_op(op, q)
 
 
-TrotterTimeEvo, TrotterTimeEvoSub = param_opsub(TrotterTimeEvoDef)
+TrotterTimeEvo, TrotterTimeEvoSub = param_opsub(_TrotterTimeEvo)

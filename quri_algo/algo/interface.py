@@ -13,7 +13,6 @@ from enum import Enum
 from typing import (
     Any,
     Callable,
-    Collection,
     Mapping,
     Optional,
     Protocol,
@@ -83,11 +82,6 @@ class VariationalAlgorithmResultMixin(ABC):
     @property
     def cost_function_history(self) -> Sequence[float]:
         return [optimizer_state.cost for optimizer_state in self.optimizer_history]
-
-
-class EnergyEstimationResultMixin(ABC):
-    def __init__(self, eigen_values: Collection[float]):
-        self.eigen_values = eigen_values
 
 
 T = TypeVar("T")

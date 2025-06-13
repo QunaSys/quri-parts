@@ -47,6 +47,8 @@ class NonLocalCostFunction(CostFunction, ABC):
 
 
 class LocalCostFunction(CostFunction, ABC):
+    restriction_size: int
+
     @abstractmethod
     def _local_estimate(
         self,
