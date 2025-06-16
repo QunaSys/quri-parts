@@ -108,7 +108,7 @@ class Analysis(ABC):
         circuit_latency: Mapping[T, TimeValue | None],
         circuit_execution_count: Mapping[T, int],
         circuit_fidelities: Mapping[T, float | None],
-        circuit_physical_qubit_count: Mapping[T, int],
+        circuit_qubit_count: Mapping[T, int],
     ) -> None:
         self.lowering_level = lowering_level
         self.circuit_gate_count = circuit_gate_count
@@ -116,7 +116,7 @@ class Analysis(ABC):
         self.circuit_latency = circuit_latency
         self.circuit_execution_count = circuit_execution_count
         self.circuit_fidelities = circuit_fidelities
-        self.circuit_qubit_count = circuit_physical_qubit_count
+        self.circuit_qubit_count = circuit_qubit_count
 
     @property
     @abstractmethod

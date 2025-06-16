@@ -9,6 +9,7 @@
 # limitations under the License.
 
 from collections import defaultdict
+from functools import reduce
 from typing import Any, NamedTuple, Union, cast
 
 import numpy as np
@@ -118,13 +119,19 @@ def shift_state_circuit(
     return remapping_transpiler(shifted_circuit)
 
 
-def remap_state_for_hadamard_test(state: QuantumStateT) -> QuantumStateT:
+def remap_state_for_hadamard_test(
+    state: QuantumStateT, shift: int = 1
+) -> QuantumStateT:
     """Shift the input state by 1 qubit for to conform with the Hadamard test
     convention."""
-    n_hadamard_test_qubit = state.qubit_count + 1
-    circuit = shift_state_circuit(state.circuit)
+    n_hadamard_test_qubit = state.qubit_count + shift
+    circuit = shift_state_circuit(state.circuit, shift)
     if isinstance(state, QuantumStateVector):
-        vector = np.kron(state.vector, [1, 0])
+        padding = np.zeros(2**shift, dtype=np.complex128)
+        padding[0] = 1.0
+        state_list = [state.vector]
+        state_list.extend([padding])
+        vector = reduce(np.kron, state_list)
         return QuantumStateVector(n_hadamard_test_qubit, vector=vector, circuit=circuit)
     return GeneralCircuitQuantumState(n_hadamard_test_qubit, circuit=circuit)
 

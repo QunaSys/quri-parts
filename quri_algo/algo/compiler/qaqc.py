@@ -14,7 +14,6 @@ import numpy as np
 from numpy.random import default_rng
 from quri_parts.algo.optimizer import CostFunction as QPCostFunction
 from quri_parts.algo.optimizer import GradientFunction, OptimizerState, Params
-from quri_parts.backend.units import TimeUnit, TimeValue
 from quri_parts.circuit import (
     ImmutableQuantumCircuit,
     LinearMappedUnboundParametricQuantumCircuit,
@@ -22,9 +21,12 @@ from quri_parts.circuit import (
 )
 from quri_parts.circuit.parameter_shift import ShiftedParameters
 
-from quri_algo.algo.compiler.base_classes import CompilationResult, QuantumCompiler
-from quri_algo.algo.interface import Analysis, Analyzer, AnalyzeResult, LoweringLevel
-from quri_algo.algo.utils.mappings import CircuitMapping
+from quri_algo.algo.compiler.base_classes import (
+    CompilationAnalysis,
+    CompilationResult,
+    QuantumCompiler,
+)
+from quri_algo.algo.interface import Analyzer
 from quri_algo.algo.utils.timer import timer
 from quri_algo.algo.utils.variational_solvers import (
     VariationalSolver,
@@ -36,80 +38,6 @@ from quri_algo.core.cost_functions.hilbert_schmidt_test import (
     create_default_hilbert_schmidt_test,
 )
 from quri_algo.core.cost_functions.utils import prepare_circuit_hilbert_schmidt_test
-
-
-class QAQCAnalysis(Analysis):
-    def __init__(
-        self,
-        lowering_level: LoweringLevel,
-        circuit_gate_count: CircuitMapping[int],
-        circuit_depth: CircuitMapping[int],
-        circuit_latency: CircuitMapping[TimeValue | None],
-        circuit_execution_count: CircuitMapping[int],
-        circuit_fidelities: CircuitMapping[float | None],
-        circuit_qubit_count: CircuitMapping[int],
-        concurrency: int = 1,
-    ):
-        super().__init__(
-            lowering_level,
-            circuit_gate_count,
-            circuit_depth,
-            circuit_latency,
-            circuit_execution_count,
-            circuit_fidelities,
-            circuit_qubit_count,
-        )
-
-        self.concurrency = concurrency
-
-    @classmethod
-    def from_circuit_list(
-        cls,
-        circuit_analysis: AnalyzeResult,
-        total_circuit_executions: int,
-        circuit_list: Sequence[ImmutableQuantumCircuit],
-        concurrency: int = 1,
-    ) -> "QAQCAnalysis":
-        return cls(
-            lowering_level=circuit_analysis.lowering_level,
-            circuit_depth=CircuitMapping(
-                [(c, circuit_analysis.depth) for c in circuit_list]
-            ),
-            circuit_gate_count=CircuitMapping(
-                [(c, circuit_analysis.gate_count) for c in circuit_list]
-            ),
-            circuit_latency=CircuitMapping(
-                [(c, circuit_analysis.latency) for c in circuit_list]
-            ),
-            circuit_execution_count=CircuitMapping(
-                [(c, total_circuit_executions) for c in circuit_list]
-            ),
-            circuit_fidelities=CircuitMapping(
-                [(c, circuit_analysis.fidelity) for c in circuit_list]
-            ),
-            circuit_qubit_count=CircuitMapping(
-                [(c, circuit_analysis.qubit_count) for c in circuit_list]
-            ),
-            # The analysis is the same for all circuits
-            concurrency=concurrency,
-        )
-
-    @property
-    def total_latency(self) -> TimeValue:
-        """Total latency of the circuit."""
-        latency_in_ns = 0.0
-        for c, l in self.circuit_latency.items():
-            if l is None:
-                continue
-            n = (self.circuit_execution_count[c] - 1) // self.concurrency + 1
-            latency_in_ns += l.in_ns() * n
-        return TimeValue(latency_in_ns, TimeUnit.NANOSECOND)
-
-    @property
-    def max_physical_qubit_count(self) -> int:
-        """Total number of physical qubits of the circuit."""
-        qubit_counts = [c * self.concurrency for c in self.circuit_qubit_count.values()]
-        return max(qubit_counts)
 
 
 class QAQC(QuantumCompiler):
@@ -266,7 +194,7 @@ class QAQC(QuantumCompiler):
         concurrency: int = 1,
         *args: Any,
         **kwargs: Any,
-    ) -> QAQCAnalysis:
+    ) -> CompilationAnalysis:
         """This function analyses the quantum resources required to run the
         quantum compilation.
 
@@ -300,7 +228,7 @@ class QAQC(QuantumCompiler):
         circuit_analysis = analyzer(
             circuit_list[-1]
         )  # QAQC analysis can be assumed to result identically for each circuit
-        analysis = QAQCAnalysis.from_circuit_list(
+        analysis = CompilationAnalysis.from_circuit_list(
             circuit_analysis, total_circuit_executions, circuit_list, concurrency
         )
 
