@@ -63,6 +63,7 @@ from quri_parts.circuit.transpile import (
     SqrtYdag2RZSqrtXTranspiler,
     STARSetTranspiler,
     SWAP2CNOTTranspiler,
+    SWAPInsertionTranspiler,
     T2RZTranspiler,
     Tdag2RZTranspiler,
     TOFFOLI2HTTdagCNOTTranspiler,
@@ -689,6 +690,52 @@ class TestCliffordRZSetTranspile:
 
         for t, e in zip(transpiled.gates, expect.gates):
             assert _gates_close(t, e)
+
+
+class TestSWAPInsertionTranspiler:
+    def test_ordered_connectivity_transpile(self) -> None:
+        qubit_count = 7
+        transpiler = SWAPInsertionTranspiler()
+        for i in range(qubit_count-1):
+            for j in range(i+1, qubit_count):
+                circuit = QuantumCircuit(qubit_count)
+                circuit.add_CNOT_gate(i,j)
+
+                target_circuit = QuantumCircuit(qubit_count)
+
+                target_gatelist = []
+                swap_list = [SWAP(k,k+1) for k in range(i,j-1)]
+                swap_list_reversed = swap_list.copy()
+                swap_list_reversed.reverse()
+                target_gatelist.extend(swap_list)
+                target_gatelist.append(CNOT(j-1,j))
+                target_gatelist.extend(swap_list_reversed)
+                target_circuit.extend(target_gatelist)
+
+                transpiled = transpiler(circuit)
+                assert transpiled.gates == target_circuit.gates
+    
+    def test_reverse_ordered_connectivity_transpile(self) -> None:
+        qubit_count = 7
+        transpiler = SWAPInsertionTranspiler()
+        for i in range(qubit_count-1):
+            for j in range(i+1, qubit_count):
+                circuit = QuantumCircuit(qubit_count)
+                circuit.add_CNOT_gate(j,i)
+
+                target_circuit = QuantumCircuit(qubit_count)
+
+                target_gatelist = []
+                swap_list = [SWAP(k,k+1) for k in range(i,j-1)]
+                swap_list_reversed = swap_list.copy()
+                swap_list_reversed.reverse()
+                target_gatelist.extend(swap_list)
+                target_gatelist.append(CNOT(j,j-1))
+                target_gatelist.extend(swap_list_reversed)
+                target_circuit.extend(target_gatelist)
+
+                transpiled = transpiler(circuit)
+                assert transpiled.gates == target_circuit.gates
 
 
 class TestSTARSetTranspile:
