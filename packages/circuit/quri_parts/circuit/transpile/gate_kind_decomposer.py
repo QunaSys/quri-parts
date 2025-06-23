@@ -310,8 +310,8 @@ class SWAP2CNOTTranspiler(GateKindDecomposer):
 
 
 class SWAPInsertionTranspiler(GateKindDecomposer):
-    """CircuitTranspiler which inserts SWAP gates any time a multi-qubit gate is
-    used."""
+    """CircuitTranspiler which inserts SWAP gates any time a multi-qubit gate
+    is used."""
 
     @property
     def target_gate_names(self) -> Sequence[str]:
