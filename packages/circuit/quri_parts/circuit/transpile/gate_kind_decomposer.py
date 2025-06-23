@@ -311,7 +311,7 @@ class SWAP2CNOTTranspiler(GateKindDecomposer):
 
 class SWAPInsertionTranspiler(GateKindDecomposer):
     """CircuitTranspiler which inserts SWAP gates any time a multi-qubit gate
-    is used."""
+    is used assuming linear connectivity."""
 
     @property
     def target_gate_names(self) -> Sequence[str]:
@@ -331,9 +331,7 @@ class SWAPInsertionTranspiler(GateKindDecomposer):
             new_index_0 = index_1 - 1
             new_index_1 = index_1
         else:
-            swap_sequence = [
-                gates.SWAP(i, i + 1) for i in range(index_1, index_0 - 1)
-            ]
+            swap_sequence = [gates.SWAP(i, i + 1) for i in range(index_1, index_0 - 1)]
             new_index_0 = index_0
             new_index_1 = index_0 - 1
         swap_sequence_reversed = swap_sequence.copy()
