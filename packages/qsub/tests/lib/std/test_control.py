@@ -678,15 +678,14 @@ def test_inverse_optimized_controlled() -> None:
         builder.add_op(Controlled(H), (qs[0], qs[1]))
         return builder.build()
 
-    register_controlled_resolver(default_repository(), controlled_h_cx_h_resolver, HCXH)
+    test_sub_repository = SubRepository()
+    register_controlled_resolver(test_sub_repository, controlled_h_cx_h_resolver, HCXH)
 
-    inv_op = Inverse(Controlled(HCXH))
-    ctrl_inv_sub = resolve_sub(inv_op)
+    inv_op = Controlled(Inverse(HCXH))
+    ctrl_inv_sub = resolve_sub(inv_op, test_sub_repository)
     assert ctrl_inv_sub is not None
-    inv_sub = resolve_sub(ctrl_inv_sub.operations[0][0])
-    assert inv_sub is not None
-    qs = inv_sub.qubits
-    aux_qs = inv_sub.aux_qubits
+    qs = ctrl_inv_sub.qubits
+    aux_qs = ctrl_inv_sub.aux_qubits
     expected_resolved_sub = (
         (Inverse(Controlled(H)), (qs[0], qs[1]), ()),
         (Inverse(Controlled(H)), (qs[0], qs[2]), ()),
@@ -696,4 +695,4 @@ def test_inverse_optimized_controlled() -> None:
         (Inverse(Controlled(H)), (qs[0], qs[2]), ()),
         (Inverse(Controlled(H)), (qs[0], qs[1]), ()),
     )
-    assert tuple(inv_sub.operations) == expected_resolved_sub
+    assert tuple(ctrl_inv_sub.operations) == expected_resolved_sub

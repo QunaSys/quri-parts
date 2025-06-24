@@ -12,6 +12,7 @@ import math
 from collections.abc import Collection
 from typing import Any
 
+from quri_parts.qsub.lib import std
 from quri_parts.qsub.op import (
     AbstractOp,
     Ident,
@@ -399,15 +400,13 @@ def _get_ctrl_inverse_resolver(
 
 
 def _get_inv_target_condition(op: AbstractOp) -> SubResolverCondition:
-    from quri_parts.qsub.lib.std.inverse import Inverse
-
     inner_base_id = op.base_id
 
     def cond(op_id: Ident) -> bool:
         assert len(op_id.params) > 0
         outer_op = op_id.params[0]
         assert isinstance(outer_op, Op)
-        if outer_op.base_id != Inverse.base_id:
+        if outer_op.base_id != std.Inverse.base_id:
             return False
         assert len(outer_op.id.params) > 0
         inner_op = outer_op.id.params[0]
@@ -415,14 +414,6 @@ def _get_inv_target_condition(op: AbstractOp) -> SubResolverCondition:
         return inner_op.base_id == inner_base_id
 
     return cond
-
-
-def _register_inverse_controlled_resolver(
-    op: AbstractOp, ctrl_resolver: SubResolver, sub_repository: SubRepository
-) -> None:
-    inv_ctrl_resolver = _get_ctrl_inverse_resolver(ctrl_resolver, sub_repository)
-    cond = _get_inv_target_condition(op)
-    sub_repository.register_sub_resolver(Controlled, inv_ctrl_resolver, cond)
 
 
 def register_controlled_resolver(
@@ -434,7 +425,9 @@ def register_controlled_resolver(
     sub_repository.register_sub_resolver(
         Controlled, control_resolver, control_target_condition(op)
     )
-    _register_inverse_controlled_resolver(op, control_resolver, sub_repository)
+    inv_ctrl_resolver = _get_ctrl_inverse_resolver(control_resolver, sub_repository)
+    cond = _get_inv_target_condition(op)
+    sub_repository.register_sub_resolver(Controlled, inv_ctrl_resolver, cond)
 
 
 _repo = default_repository()
