@@ -21,6 +21,7 @@ jobs:
 
     - run: |
         git fetch
+        git show origin
 
     - run: |
         poetry install
