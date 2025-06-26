@@ -2,8 +2,9 @@ name: Check modified notebooks
 
 on:
   pull_request:
-    paths:
-      - 'quri_sdk_notebooks/**.ipynb'
+    # paths:
+    #   - 'quri_sdk_notebooks/**.ipynb'
+    
 
 jobs:
   execute:
