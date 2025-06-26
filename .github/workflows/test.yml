@@ -2,17 +2,17 @@ name: Test
 
 on:
   pull_request:
-    paths:
-      - packages/**/*.py
-      - packages/**/*.rs
-      - ./**/Cargo.toml
-      - ./**/Cargo.lock
-      - rust/**/*.rs
-      - poetry.lock
-      - .github/workflows/test.yml
-      - .github/actions/python-poetry-install/action.yml
-      - .github/actions/rust-install-cache/action.yml
-      - ./**/*.jl
+    # paths:
+    #   - packages/**/*.py
+    #   - packages/**/*.rs
+    #   - ./**/Cargo.toml
+    #   - ./**/Cargo.lock
+    #   - rust/**/*.rs
+    #   - poetry.lock
+    #   - .github/workflows/test.yml
+    #   - .github/actions/python-poetry-install/action.yml
+    #   - .github/actions/rust-install-cache/action.yml
+    #   - ./**/*.jl
   push:
     branches: [main]
 
