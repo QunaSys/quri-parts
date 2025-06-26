@@ -20,7 +20,7 @@ jobs:
         python-version: '3.11'
 
     - run: |
-        git show origin
+        git fetch
 
     - run: |
         poetry install
