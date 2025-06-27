@@ -60,12 +60,6 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
 
-      - uses: ./.github/actions/rust-install-cache
-        with:
-          os: ${{ runner.os }}
-          toolchain: "stable"
-          additional-key: "python"
-
       - run: |
           poetry env use 3.11
           mkdir -p dist
@@ -82,14 +76,6 @@ jobs:
           echo 'path = "packages/rust/Cargo.toml"' >> pyproject.toml
           poetry run python -m build --sdist
 
-      - run: |
-          git reset --hard
-          poetry install -v --only dev
-          poetry run pip uninstall -y quri-parts-rust
-          rm -rf quri_parts
-          poetry run pip install dist/*.tar.gz
-          poetry run pytest packages
-
       - uses: actions/upload-artifact@v4
         with:
           name: quri-parts-packages-rust-sdist
@@ -97,8 +83,74 @@ jobs:
           if-no-files-found: error
           overwrite: true
 
+  test-rust-sdist-package:
+    name: Run tests for rust sdist package on ${{matrix.system.os}}-3.${{matrix.python-version}}
+    needs: [rust-sdist-package]
+    runs-on: ${{matrix.system.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        system:
+          - os: "ubuntu-latest"
+            target: "x86_64-unknown-linux-gnu"
+          - os: "macos-13"
+            target: "x86_64-apple-darwin"
+          - os: "macos-latest"
+            target: "aarch64-apple-darwin"
+          - os: "windows-latest"
+            target: "x86_64-pc-windows-msvc"
+        python-version: [ "9", "10", "11", "12" ]
+    defaults:
+      run:
+        shell: bash
+    env:
+      # Needed to avoid format error in Windows
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: quri-parts-packages-rust-sdist
+          path: dist
+
+      - uses: actions/setup-python@v5
+        id: setup-python
+        with:
+          python-version: 3.${{matrix.python-version}}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Run test
+        shell: bash
+        run: |
+          poetry env use 3.${{ matrix.python-version }}
+          poetry run pip install pytest
+          if [[ "${{ runner.os }}" = "Linux" ]]; then
+              sudo apt install -y libjpeg-dev
+          fi
+          if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
+            poetry install -v --only main
+          else
+            poetry install -v --only dev
+          fi
+          for FILE in "$(find dist -name 'quri_parts*')"; do
+            poetry run pip install -v $FILE
+          done
+          if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
+            # We cannot run tests on native Windows, since pyscf does not support it.
+            poetry install -v --only main --extras qulacs --extras braket --extras qiskit --extras cirq --extras openfermion --extras stim --extras openqasm --extras quantinuum --extras ionq --extras tket --extras qsub --extras tensornetwork
+            poetry run pytest packages --ignore=packages/pyscf --ignore=packages/itensor
+          else
+            poetry run pytest packages
+          fi
+
   rust-wheel-package:
-    name: Rust wheel package on ${{matrix.system.os}}-3.${{matrix.python-version}}
+    name: Build Rust wheel package on ${{matrix.system.os}}
     needs: [pre-check]
     runs-on: ${{matrix.system.os}}
     strategy:
@@ -113,7 +165,6 @@ jobs:
             target: "aarch64-apple-darwin"
           - os: "windows-latest"
             target: "x86_64-pc-windows-msvc"
-        python-version: [ "11" ]
     defaults:
       run:
         shell: bash
@@ -126,7 +177,7 @@ jobs:
       - uses: actions/setup-python@v5
         id: setup-python
         with:
-          python-version: 3.${{matrix.python-version}}
+          python-version: 3.11
 
       - run: python -m pip install --upgrade pip build
 
@@ -157,7 +208,7 @@ jobs:
         env:
           CIBW_MANYLINUX_I686_IMAGE: manylinux2014
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
-          CIBW_BUILD: "cp3${{ matrix.python-version }}-manylinux_i686 cp3${{ matrix.python-version }}-manylinux_x86_64"
+          CIBW_BUILD: "cp311-manylinux_i686 cp311-manylinux_x86_64"
           CIBW_BUILD_VERBOSITY: 1
           CIBW_BEFORE_ALL_LINUX: "yum install -y openssl-devel"
           CIBW_BEFORE_BUILD_LINUX: "pip3 install --upgrade keyrings.alt"
@@ -166,6 +217,55 @@ jobs:
         with:
           package-dir: packages/rust
           output-dir: dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: quri-parts-packages-rust-whl-${{matrix.system.target}}-abi3
+          path: dist/*
+          if-no-files-found: error
+          overwrite: true
+
+  test-rust-wheel-package:
+    name: Run tests for rust wheel package on ${{matrix.system.os}}-3.${{matrix.python-version}}
+    needs: [rust-wheel-package]
+    runs-on: ${{matrix.system.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        system:
+          - os: "ubuntu-latest"
+            target: "x86_64-unknown-linux-gnu"
+          - os: "macos-13"
+            target: "x86_64-apple-darwin"
+          - os: "macos-latest"
+            target: "aarch64-apple-darwin"
+          - os: "windows-latest"
+            target: "x86_64-pc-windows-msvc"
+        python-version: [ "9", "10", "11", "12" ]
+    defaults:
+      run:
+        shell: bash
+    env:
+      # Needed to avoid format error in Windows
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: quri-parts-packages-rust-whl-${{matrix.system.target}}-abi3
+          path: dist
+
+      - uses: actions/setup-python@v5
+        id: setup-python
+        with:
+          python-version: 3.${{matrix.python-version}}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
 
       - name: Run test
         shell: bash
@@ -194,13 +294,6 @@ jobs:
           else
             poetry run pytest packages
           fi
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: quri-parts-packages-rust-whl-${{matrix.system.target}}-3.${{matrix.python-version}}
-          path: dist/*
-          if-no-files-found: error
-          overwrite: true
 
   python-package:
     needs: [pre-check]
@@ -246,7 +339,7 @@ jobs:
         overwrite: true
 
   merge:
-    needs: [python-package, rust-wheel-package, rust-sdist-package]
+    needs: [python-package, test-rust-wheel-package, test-rust-sdist-package]
     runs-on: ubuntu-latest
     steps:
       - name: Merge Artifacts
