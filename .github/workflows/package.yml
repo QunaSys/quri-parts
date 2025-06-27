@@ -110,7 +110,7 @@ jobs:
             target: "aarch64-apple-darwin"
           - os: "windows-latest"
             target: "x86_64-pc-windows-msvc"
-        python-version: [ "9", "10", "11", "12" ]
+        python-version: [ "11" ]
     defaults:
       run:
         shell: bash
@@ -140,7 +140,7 @@ jobs:
         with:
           python-version: 3.${{matrix.python-version}}
 
-      - name: Run test
+      - name: Install packages
         shell: bash
         run: |
           pip install pytest
@@ -162,6 +162,10 @@ jobs:
             fi
             pip install -v $FILE
           done
+
+      - name: Run test
+        shell: bash
+        run: |
           if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
             pytest packages --ignore=packages/pyscf --ignore=packages/itensor
           else
@@ -303,7 +307,7 @@ jobs:
 
       - run: python --version
 
-      - name: Run test
+      - name: Install packages
         shell: bash
         run: |
           pip install pytest
@@ -332,6 +336,10 @@ jobs:
             fi
             pip install -v $FILE
           done
+
+      - name: Run test
+        shell: bash
+        run: |
           if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
             pytest packages --ignore=packages/pyscf --ignore=packages/itensor
           else
