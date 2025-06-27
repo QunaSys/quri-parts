@@ -2,7 +2,7 @@ name: Package and release
 
 on:
   push:
-    branches: [main, integrate_st_bundled]
+    branches: [main, limited-api]
   release:
     types: [published]
 
@@ -113,7 +113,7 @@ jobs:
             target: "aarch64-apple-darwin"
           - os: "windows-latest"
             target: "x86_64-pc-windows-msvc"
-        python-version: [ "9", "10", "11", "12" ]
+        python-version: [ "11" ]
     defaults:
       run:
         shell: bash
@@ -145,7 +145,7 @@ jobs:
             if [[ -e "$pkg/Cargo.toml" ]]; then
               cd "$pkg"
               python -c "import sys; import platform; print('sys_platform =', sys.platform, ', platform_machine =', platform.machine())"
-              python -m pip wheel --no-deps -v -w ../../dist .
+              python -m pip wheel --config-settings=--build-option=--py-limited-api=cp39 --no-deps -v -w ../../dist .
               cd ../..
             fi
           done
