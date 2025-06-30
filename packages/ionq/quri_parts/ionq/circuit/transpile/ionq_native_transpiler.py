@@ -55,7 +55,18 @@ class IonQNativeTranspiler(CircuitTranspilerProtocol):
 
         for gate in circuit.gates:
 
-            if gate.name == gate_names.RZ:
+            if gate.name == ionq_gate_names.GPi:
+                target = gate.target_indices[0]
+                theta = gate.params[0] / (2.0 * np.pi)
+                cg.append(GPi(1.0 - (theta + phase[target]) % 1.0))
+                phase[target] = 1.0 - (2.0 * theta + phase[target]) % 1.0
+
+            elif gate.name == ionq_gate_names.GPi2:
+                target = gate.target_indices[0]
+                theta = gate.params[0] / (2.0 * np.pi)
+                cg.append(GPi2((theta + phase[target]) % 1.0))
+
+            elif gate.name == gate_names.RZ:
                 target = gate.target_indices[0]
                 theta = gate.params[0]
                 phase[target] = (phase[target] - theta / (2.0 * np.pi)) % 1.0
@@ -108,6 +119,8 @@ class IonQNativeTranspiler(CircuitTranspilerProtocol):
                             (phase[target1] + 0.5) % 1.0,
                         )
                     )
+            else:
+                raise RuntimeError(f"IonQNativeTranspiler does not support gate '{gate.name}'")
 
         cc = QuantumCircuit(circuit.qubit_count)
         cc.extend(cg)
