@@ -370,7 +370,7 @@ class SWAPInsertionTranspiler(GateKindDecomposer):
         if gate.name in gate_names.THREE_QUBIT_GATE_NAMES:
             return self._decompose_three_qubit_gate(gate)
         raise ValueError(
-            "SWAPINSERTIONTranspiler decompose method called with non-decomposable gate"
+            "SWAPInsertionTranspiler decompose method called with non-decomposable gate"
         )
 
 
