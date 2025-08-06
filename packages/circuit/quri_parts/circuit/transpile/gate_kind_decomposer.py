@@ -334,8 +334,6 @@ class SWAPInsertionTranspiler(GateKindDecomposer):
             swap_sequence = [gates.SWAP(i, i + 1) for i in range(index_1, index_0 - 1)]
             new_index_0 = index_0
             new_index_1 = index_0 - 1
-        swap_sequence_reversed = swap_sequence.copy()
-        swap_sequence_reversed.reverse()
         if gate.name == gate_names.SWAP:
             ti = [new_index_0, new_index_1]
             ci = []
@@ -356,7 +354,8 @@ class SWAPInsertionTranspiler(GateKindDecomposer):
                 gate.unitary_matrix,
             )
         )
-        gate_seq.extend(swap_sequence_reversed)
+        swap_sequence.reverse()
+        gate_seq.extend(swap_sequence)
         return gate_seq
 
     def _decompose_three_qubit_gate(self, gate: QuantumGate) -> Sequence[QuantumGate]:
