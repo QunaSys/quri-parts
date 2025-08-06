@@ -361,7 +361,7 @@ class SWAPInsertionTranspiler(GateKindDecomposer):
 
     def _decompose_three_qubit_gate(self, gate: QuantumGate) -> Sequence[QuantumGate]:
         raise NotImplementedError(
-            "SWAPINSERTIONTranspiler only supports two-qubit gates"
+            "SWAPInsertionTranspiler only supports two-qubit gates"
         )
 
     def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
