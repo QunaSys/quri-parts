@@ -41,7 +41,7 @@ jobs:
         echo "Version check finished successfully." 1>&2
 
   rust-sdist-package:
-    name: Rust sdist package
+    name: 🔨📦 Rust sdist
     needs: [pre-check]
     runs-on: "ubuntu-latest"
     steps:
@@ -95,7 +95,7 @@ jobs:
           overwrite: true
 
   test-rust-sdist-package:
-    name: Run tests for rust sdist package on ${{matrix.system.os}}-3.${{matrix.python-version}}
+    name: ▶️📦 sdist-${{matrix.system.os}}-3${{matrix.python-version}}
     needs: [rust-sdist-package, python-package]
     runs-on: ${{matrix.system.os}}
     strategy:
@@ -173,7 +173,7 @@ jobs:
           fi
 
   rust-wheel-package:
-    name: Build Rust wheel package on ${{matrix.system.os}}
+    name: 🔨📦 Rust wheel (on ${{matrix.system.os}})
     needs: [pre-check]
     runs-on: ${{matrix.system.os}}
     strategy:
@@ -260,7 +260,7 @@ jobs:
           overwrite: true
 
   test-rust-wheel-package:
-    name: Run tests for rust wheel package on ${{matrix.system.os}}-3.${{matrix.python-version}}
+    name: ▶️📦 wheel-${{matrix.system.os}}-3${{matrix.python-version}}
     needs: [rust-wheel-package, python-package]
     runs-on: ${{matrix.system.os}}
     strategy:
@@ -347,6 +347,7 @@ jobs:
           fi
 
   python-package:
+    name: 🔨📦 Python
     needs: [pre-check]
     runs-on: ubuntu-latest
 
