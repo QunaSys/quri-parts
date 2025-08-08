@@ -669,7 +669,7 @@ files = [
     {file = "colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"},
     {file = "colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44"},
 ]
-markers = {main = "platform_system == \"Windows\"", dev = "sys_platform == \"win32\""}
+markers = {main = "sys_platform == \"win32\" or platform_system == \"Windows\"", dev = "sys_platform == \"win32\""}
 
 [[package]]
 name = "comm"
@@ -1061,7 +1061,7 @@ version = "1.3.0"
 description = "Backport of PEP 654 (exception groups)"
 optional = false
 python-versions = ">=3.7"
-groups = ["dev"]
+groups = ["main", "dev"]
 markers = "python_version == \"3.10\""
 files = [
     {file = "exceptiongroup-1.3.0-py3-none-any.whl", hash = "sha256:4d111e6e0c13d0644cad6ddaa7ed0261a0b36971f6d23e7ec9b4b9097da78a10"},
@@ -1414,6 +1414,18 @@ files = [
 
 [package.extras]
 all = ["flake8 (>=7.1.1)", "mypy (>=1.11.2)", "pytest (>=8.3.2)", "ruff (>=0.6.2)"]
+
+[[package]]
+name = "iniconfig"
+version = "2.1.0"
+description = "brain-dead simple config-ini parsing"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "iniconfig-2.1.0-py3-none-any.whl", hash = "sha256:9deba5723312380e77435581c6bf4935c94cbfab9b1ed33ef8d238ea168eb760"},
+    {file = "iniconfig-2.1.0.tar.gz", hash = "sha256:3abbd2e30b36733fee78f9c7f7308f2d0050e88f0087fd25c2645f63c773e1c7"},
+]
 
 [[package]]
 name = "ipykernel"
@@ -2998,6 +3010,22 @@ test = ["appdirs (==1.4.4)", "covdefaults (>=2.3)", "pytest (>=8.3.4)", "pytest-
 type = ["mypy (>=1.14.1)"]
 
 [[package]]
+name = "pluggy"
+version = "1.6.0"
+description = "plugin and hook calling mechanisms for python"
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "pluggy-1.6.0-py3-none-any.whl", hash = "sha256:e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746"},
+    {file = "pluggy-1.6.0.tar.gz", hash = "sha256:7dcc130b76258d33b90f61b658791dede3486c3e6bfb003ee5c9bfb396dd22f3"},
+]
+
+[package.extras]
+dev = ["pre-commit", "tox"]
+testing = ["coverage", "pytest", "pytest-benchmark"]
+
+[[package]]
 name = "prometheus-client"
 version = "0.22.1"
 description = "Python client for the Prometheus monitoring system."
@@ -3246,7 +3274,7 @@ version = "2.19.2"
 description = "Pygments is a syntax highlighting package written in Python."
 optional = false
 python-versions = ">=3.8"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "pygments-2.19.2-py3-none-any.whl", hash = "sha256:86540386c03d588bb81d44bc3928634ff26449851e99741617ecb9037ee5ec0b"},
     {file = "pygments-2.19.2.tar.gz", hash = "sha256:636cb2477cec7f8952536970bc533bc43743542f70392ae026374600add5b887"},
@@ -3358,6 +3386,30 @@ sspilib = {version = ">=0.1.0", markers = "sys_platform == \"win32\""}
 [package.extras]
 kerberos = ["gssapi (>=1.6.0) ; sys_platform != \"win32\"", "krb5 (>=0.3.0) ; sys_platform != \"win32\""]
 yaml = ["ruamel.yaml"]
+
+[[package]]
+name = "pytest"
+version = "8.4.1"
+description = "pytest: simple powerful testing with Python"
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "pytest-8.4.1-py3-none-any.whl", hash = "sha256:539c70ba6fcead8e78eebbf1115e8b589e7565830d7d006a8723f19ac8a0afb7"},
+    {file = "pytest-8.4.1.tar.gz", hash = "sha256:7c67fd69174877359ed9371ec3af8a3d2b04741818c51e5e99cc1742251fa93c"},
+]
+
+[package.dependencies]
+colorama = {version = ">=0.4", markers = "sys_platform == \"win32\""}
+exceptiongroup = {version = ">=1", markers = "python_version < \"3.11\""}
+iniconfig = ">=1"
+packaging = ">=20"
+pluggy = ">=1.5,<2"
+pygments = ">=2.7.2"
+tomli = {version = ">=1", markers = "python_version < \"3.11\""}
+
+[package.extras]
+dev = ["argcomplete", "attrs (>=19.2)", "hypothesis (>=3.56)", "mock", "requests", "setuptools", "xmlschema"]
 
 [[package]]
 name = "python-dateutil"
@@ -3788,15 +3840,39 @@ reference = "main"
 resolved_reference = "ec75cec94748889febb9f37ae0f8db7c12ff4434"
 
 [[package]]
+name = "quri-algo"
+version = "0.2.0"
+description = "Algorithm library based on QURI Parts"
+optional = false
+python-versions = "<3.13,>=3.10"
+groups = ["main"]
+files = [
+    {file = "quri_algo-0.2.0-py3-none-any.whl", hash = "sha256:c0214ae06d39d4113ad994b18ffa28ac1e14c174c77473ddde7c54cf6032d39b"},
+    {file = "quri_algo-0.2.0.tar.gz", hash = "sha256:91a44acaa1d0e3944e7f57f319aa6143bae40fbc32719125dbfb8152eabc8ab8"},
+]
+
+[package.dependencies]
+pytest = ">=8.3.3,<9.0.0"
+quri-parts-algo = ">=0.22.1,<0.23.0"
+quri-parts-chem = ">=0.22.1,<0.23.0"
+quri-parts-circuit = ">=0.22.1,<0.23.0"
+quri-parts-core = ">=0.22.1,<0.23.0"
+quri-parts-openfermion = ">=0.22.1,<0.23.0"
+quri-parts-pyscf = ">=0.22.1,<0.23.0"
+quri-parts-qsub = ">=0.22.1,<0.23.0"
+quri-parts-qulacs = ">=0.22.1,<0.23.0"
+quri-parts-rust = ">=0.22.1,<0.23.0"
+
+[[package]]
 name = "quri-parts-algo"
-version = "0.22.0"
+version = "0.22.1"
 description = "Algorithms for quantum computers"
 optional = false
 python-versions = "<4.0.0,>=3.9.8"
 groups = ["main"]
 files = [
-    {file = "quri_parts_algo-0.22.0-py3-none-any.whl", hash = "sha256:1aa82211a94ba6d3d5959775a0f12c5720bbb46b52524680ff04e8fb1a775203"},
-    {file = "quri_parts_algo-0.22.0.tar.gz", hash = "sha256:5be2cc47df98c3b924c2d27b51a6b3f010e8f77f71659b3808a6c9633bf75e4c"},
+    {file = "quri_parts_algo-0.22.1-py3-none-any.whl", hash = "sha256:3d1da4e53ece94f5610589aed8941ea9d0581c2de4c9e47a6cc5c7caf11b1acb"},
+    {file = "quri_parts_algo-0.22.1.tar.gz", hash = "sha256:0cc72ed48acf83d09e151c41ddb3edc6c3ac03cef370df8cc394fee0b9224daa"},
 ]
 
 [package.dependencies]
@@ -3807,14 +3883,14 @@ typing-extensions = ">=4.1.1,<5.0.0"
 
 [[package]]
 name = "quri-parts-braket"
-version = "0.22.0"
+version = "0.22.1"
 description = "A plugin to use Amazon Braket SDK with QURI Parts"
 optional = false
 python-versions = "<4.0.0,>=3.9.8"
 groups = ["main"]
 files = [
-    {file = "quri_parts_braket-0.22.0-py3-none-any.whl", hash = "sha256:1cef8bd43f7a65a2e9d76306c8ea87b9866ef997a81dc90181e238c2027f388e"},
-    {file = "quri_parts_braket-0.22.0.tar.gz", hash = "sha256:b58f0f07c5c118e9237a9d32bd175406284cb8a8e31bc6d956629ac25c055f2e"},
+    {file = "quri_parts_braket-0.22.1-py3-none-any.whl", hash = "sha256:00c03bb5c3505440998ec4ea61c2d32337ec6712b06623c1fbe743dfa001f35b"},
+    {file = "quri_parts_braket-0.22.1.tar.gz", hash = "sha256:23552a9c01df8d8288c33bbaf98d32c9c1c4fb29ea1e89ac13507d8b4a597bc2"},
 ]
 
 [package.dependencies]
@@ -3826,14 +3902,14 @@ typing-extensions = ">=4.1.1,<5.0.0"
 
 [[package]]
 name = "quri-parts-chem"
-version = "0.22.0"
+version = "0.22.1"
 description = "Quantum computer algorithms for chemistry"
 optional = false
 python-versions = "<4.0.0,>=3.9.8"
 groups = ["main"]
 files = [
-    {file = "quri_parts_chem-0.22.0-py3-none-any.whl", hash = "sha256:f682a601a3b972fe5aed45888b9a30c0d4c41f2a1a5284a42db9759ed04e190d"},
-    {file = "quri_parts_chem-0.22.0.tar.gz", hash = "sha256:cf65199ac6cf3705eb9f2085932a6bd5492b32e83172944826eefaa8c2ea9071"},
+    {file = "quri_parts_chem-0.22.1-py3-none-any.whl", hash = "sha256:e870f32a05de79c9b2d0ff34c3107d9626a4863adaf748e117bc0daadb429a40"},
+    {file = "quri_parts_chem-0.22.1.tar.gz", hash = "sha256:6ba0e5040313b536a20af4424bec866b8a8904f7842d2ee25665aa0909271248"},
 ]
 
 [package.dependencies]
@@ -3842,14 +3918,14 @@ typing-extensions = ">=4.1.1,<5.0.0"
 
 [[package]]
 name = "quri-parts-circuit"
-version = "0.22.0"
+version = "0.22.1"
 description = "Platform-independent quantum circuit library"
 optional = false
 python-versions = "<4.0.0,>=3.9.8"
 groups = ["main"]
 files = [
-    {file = "quri_parts_circuit-0.22.0-py3-none-any.whl", hash = "sha256:85a07e38ca112532f13305157f6995729a5c3ac13d60521e369f56e7a4121d68"},
-    {file = "quri_parts_circuit-0.22.0.tar.gz", hash = "sha256:bbf180ab51ea5df18bf83929ef978f2cde351f6f54001195adb0a9c5a0d37d3d"},
+    {file = "quri_parts_circuit-0.22.1-py3-none-any.whl", hash = "sha256:956dac614d3f80ab6b06755ccea8ee8cd8adc1d8ca72ad2f067944301edfe305"},
+    {file = "quri_parts_circuit-0.22.1.tar.gz", hash = "sha256:a35b380ef92f8c02fe7391de033039ebe4845e3999826f16ced434cb270c4467"},
 ]
 
 [package.dependencies]
@@ -3859,14 +3935,14 @@ typing-extensions = ">=4.1.1,<5.0.0"
 
 [[package]]
 name = "quri-parts-cirq"
-version = "0.22.0"
+version = "0.22.1"
 description = "A plugin to use Cirq with QURI Parts"
 optional = false
 python-versions = "<4.0.0,>=3.9.8"
 groups = ["main"]
 files = [
-    {file = "quri_parts_cirq-0.22.0-py3-none-any.whl", hash = "sha256:3a05ae04d9ca8661a9b7fe0e2f136bdaabf11a38e294904bce06674b11f94748"},
-    {file = "quri_parts_cirq-0.22.0.tar.gz", hash = "sha256:abb58e99a4ec0a434beef0243f4ad4b6d3c6c9cbcdc6005ea43e3b1c1fd225e1"},
+    {file = "quri_parts_cirq-0.22.1-py3-none-any.whl", hash = "sha256:a621a347fdcf4e2acd7d3a01fa0b1e4fdef072ae8bce09a91622ec832d8e2670"},
+    {file = "quri_parts_cirq-0.22.1.tar.gz", hash = "sha256:6b54291cfd88b272c22c8dd2238f07519e0370bb2545828e0c52775c1f3240c4"},
 ]
 
 [package.dependencies]
@@ -3876,14 +3952,14 @@ quri-parts-circuit = "*"
 
 [[package]]
 name = "quri-parts-core"
-version = "0.22.0"
+version = "0.22.1"
 description = "A platform-independent library for quantum computing"
 optional = false
 python-versions = "<4.0.0,>=3.9.8"
 groups = ["main"]
 files = [
-    {file = "quri_parts_core-0.22.0-py3-none-any.whl", hash = "sha256:c6908d28b0b8599f509d617228d49d3e807df3cdf0f25bc0afe04ed488fc1d0b"},
-    {file = "quri_parts_core-0.22.0.tar.gz", hash = "sha256:a3feec8a08ab662a27a700c3e015c80dac4a887359fed724a6fb3a2c00b1d3e6"},
+    {file = "quri_parts_core-0.22.1-py3-none-any.whl", hash = "sha256:76917d07392e811c9958713bd831a2b8b58f83b76d660f2052976e691e2d5511"},
+    {file = "quri_parts_core-0.22.1.tar.gz", hash = "sha256:3a4c63f9c80fca85f93db8d67979257a5678f4cfeebc056e31ea89347127e401"},
 ]
 
 [package.dependencies]
@@ -3896,14 +3972,14 @@ typing-extensions = ">=4.1.1,<5.0.0"
 
 [[package]]
 name = "quri-parts-openfermion"
-version = "0.22.0"
+version = "0.22.1"
 description = "A support library for using OpenFermion with QURI Parts"
 optional = false
 python-versions = "<4.0.0,>=3.9.8"
 groups = ["main"]
 files = [
-    {file = "quri_parts_openfermion-0.22.0-py3-none-any.whl", hash = "sha256:9ac374262a3e2017d8caef664e8175e0be981dabfa11e70dd93363f2770a589d"},
-    {file = "quri_parts_openfermion-0.22.0.tar.gz", hash = "sha256:72d26e11e82d01d36b2c81f72af0c29b2b33e21bbd5cbf921521c292044d10f3"},
+    {file = "quri_parts_openfermion-0.22.1-py3-none-any.whl", hash = "sha256:8361806b9901bb5c987ab28043548898ece01939aaced28fd1f60004b2ea091e"},
+    {file = "quri_parts_openfermion-0.22.1.tar.gz", hash = "sha256:1f328d58b6b433336cdaf4a01ba1ec6300349cddf4cc9a543cc448d6f6e720b7"},
 ]
 
 [package.dependencies]
@@ -3914,14 +3990,14 @@ typing-extensions = ">=4.1.1,<5.0.0"
 
 [[package]]
 name = "quri-parts-pyscf"
-version = "0.22.0"
+version = "0.22.1"
 description = "A plugin to use PySCF with QURI Parts"
 optional = false
 python-versions = "<4.0.0,>=3.9.8"
 groups = ["main"]
 files = [
-    {file = "quri_parts_pyscf-0.22.0-py3-none-any.whl", hash = "sha256:0d7ab9a25d679fe603c609c2ca081c1ddcc8e6358143f59c0c76f85086991ec4"},
-    {file = "quri_parts_pyscf-0.22.0.tar.gz", hash = "sha256:530288ea1bb6f504fb237771f142be102919ff6cc9fdfc9ca47dc3caf44314b0"},
+    {file = "quri_parts_pyscf-0.22.1-py3-none-any.whl", hash = "sha256:154531965b17d2f68d86ec903a12c7f90b2c316400eb7fad8a8098bee0cc144d"},
+    {file = "quri_parts_pyscf-0.22.1.tar.gz", hash = "sha256:285679ae2918414658a1374ecae604b48b0471b79026d3d73522c912e556be4b"},
 ]
 
 [package.dependencies]
@@ -3933,14 +4009,14 @@ typing-extensions = ">=4.1.1,<5.0.0"
 
 [[package]]
 name = "quri-parts-qiskit"
-version = "0.22.0"
+version = "0.22.1"
 description = "A plugin to use Qiskit with QURI Parts"
 optional = false
 python-versions = "<3.13,>=3.9.8"
 groups = ["main"]
 files = [
-    {file = "quri_parts_qiskit-0.22.0-py3-none-any.whl", hash = "sha256:416f8af011a76c6aa8d2aa050479be18707a46c6b79a3ce536fae4b58acd66a8"},
-    {file = "quri_parts_qiskit-0.22.0.tar.gz", hash = "sha256:307391b504958b64a2bae23f8924de6d4d8f3b6a31c77aa6871663e7d0d55150"},
+    {file = "quri_parts_qiskit-0.22.1-py3-none-any.whl", hash = "sha256:9c87c43d5642101f6583f9ff2a4d0220a30bbd7c302eeb39d71fd860181815f6"},
+    {file = "quri_parts_qiskit-0.22.1.tar.gz", hash = "sha256:40c9fa19e7843281621b13b2f48512a5393edac55fef10b1be6b8f557e580bc8"},
 ]
 
 [package.dependencies]
@@ -3977,14 +4053,14 @@ resolved_reference = "f35ec37bfb0a90833c9b23eb085b7630447927a0"
 
 [[package]]
 name = "quri-parts-qsub"
-version = "0.22.0"
+version = "0.22.1"
 description = "A support library for consturcting structured quantum circuits"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "quri_parts_qsub-0.22.0-py3-none-any.whl", hash = "sha256:ea99f32afedf9fe3355f5ab4af05040e7af0ced02b3c0aa801cc0cc47dd660ec"},
-    {file = "quri_parts_qsub-0.22.0.tar.gz", hash = "sha256:cd0e08d288c0aaa0977c3d7ac915f7cafb3d7a98f8a16f94215b5be4d7dd3e8e"},
+    {file = "quri_parts_qsub-0.22.1-py3-none-any.whl", hash = "sha256:0ead5d2f877aae573b895cc508640e967764eadddff642aa39f4cb9b6277dc74"},
+    {file = "quri_parts_qsub-0.22.1.tar.gz", hash = "sha256:206faf1829d7f36251b2f8aa02ae5c4c6ee38e98dd312372be5b848ec1b1db67"},
 ]
 
 [package.dependencies]
@@ -3994,14 +4070,14 @@ quri-parts-qulacs = "*"
 
 [[package]]
 name = "quri-parts-qulacs"
-version = "0.22.0"
+version = "0.22.1"
 description = "A plugin to use Qulacs with QURI Parts"
 optional = false
 python-versions = "<4.0.0,>=3.9.8"
 groups = ["main"]
 files = [
-    {file = "quri_parts_qulacs-0.22.0-py3-none-any.whl", hash = "sha256:e710112b9996660913812adf0d330fb38610c6c2adfae4b949d9f1f770ec6725"},
-    {file = "quri_parts_qulacs-0.22.0.tar.gz", hash = "sha256:bb10b945bf8ee0b63833bec9c01abf9ef0edaf1b314aa2a46ccde5a7d6d0d02b"},
+    {file = "quri_parts_qulacs-0.22.1-py3-none-any.whl", hash = "sha256:5f947f56b21e0935f07feba91a0b3bb25ecd7655e1cfd5d96c9105533ba00709"},
+    {file = "quri_parts_qulacs-0.22.1.tar.gz", hash = "sha256:a38a17dc7c4b53794b49ce5d2bc60cf32f6e9cfed17a2cea5cdf12a20b0cca05"},
 ]
 
 [package.dependencies]
@@ -4013,33 +4089,33 @@ typing-extensions = ">=4.1.1,<5.0.0"
 
 [[package]]
 name = "quri-parts-rust"
-version = "0.22.0"
+version = "0.22.1"
 description = "Platform-independent quantum circuit library"
 optional = false
 python-versions = "<4.0.0,>=3.9.8"
 groups = ["main"]
 files = [
-    {file = "quri_parts_rust-0.22.0-cp310-cp310-macosx_10_12_x86_64.whl", hash = "sha256:ea66b32da995fd790737995069575fb4d94be24176fea38dc7cdeeb20b2b92fd"},
-    {file = "quri_parts_rust-0.22.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:d51381b91a1f94ed325d7ba40e261b1678bc0c6f5693d90092bd96d5869ed0fc"},
-    {file = "quri_parts_rust-0.22.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ea242deaf49cc3c990dd52e111eea2995ada050b68074ba806ea5037f923e5df"},
-    {file = "quri_parts_rust-0.22.0-cp310-cp310-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:eb92fbdf54cffc754e58e19d526a6cbaf825c9ba8f2a932f8773622ee7732d9c"},
-    {file = "quri_parts_rust-0.22.0-cp310-cp310-win_amd64.whl", hash = "sha256:7c27c5eda3383e0313dc467eecdd98f97be9673f2cabd40f7afccf51f16e9ba4"},
-    {file = "quri_parts_rust-0.22.0-cp311-cp311-macosx_10_12_x86_64.whl", hash = "sha256:5af136d30ef662a7edafb4107ab739dfbb8681f29331238c975728674d2733eb"},
-    {file = "quri_parts_rust-0.22.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:cbcb8c8d8698b3ae20e0dd3d859cccd841737082cd5999c4014605f2c1f7eaa2"},
-    {file = "quri_parts_rust-0.22.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a090bc89a6463f0ee7dc81e69ca82eb53f9863d8d2582a2776529e5be87c0619"},
-    {file = "quri_parts_rust-0.22.0-cp311-cp311-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:c823889d5cf21e23861bfdddbedaac63bf145b9805030b1f7e3ab63508243ae1"},
-    {file = "quri_parts_rust-0.22.0-cp311-cp311-win_amd64.whl", hash = "sha256:9c98d0aad0920d5e7f4e91c57fd5dcc2c04e70b2b02397c9f36f755bb8d600fe"},
-    {file = "quri_parts_rust-0.22.0-cp312-cp312-macosx_10_12_x86_64.whl", hash = "sha256:2693eb9cd79838cd45aeec69b5226d5b0f1ace99a63875dfcbc429e0cb5c10ae"},
-    {file = "quri_parts_rust-0.22.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:fe1b1e305819a137cd57c3041a54308ef448499005b2700de2e6b53079ffe7df"},
-    {file = "quri_parts_rust-0.22.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:35d7b3ae8cac9d8b783b47d2d013c98e30efaebaab7cedca43cd4528b198cf55"},
-    {file = "quri_parts_rust-0.22.0-cp312-cp312-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:1b7602293111e6e3e41669a0b39261f56bf34c8d9f6051c998d22948a20d883b"},
-    {file = "quri_parts_rust-0.22.0-cp312-cp312-win_amd64.whl", hash = "sha256:955738ab12f2b50758f9bb25950bf4eff0c9d9127e338c20ce2bc5673a8f83d7"},
-    {file = "quri_parts_rust-0.22.0-cp39-cp39-macosx_10_12_x86_64.whl", hash = "sha256:5b2c8128cf7d5e6c7ad1f501f3190b814f5ef8fd5c8a51cba0f8438a789de482"},
-    {file = "quri_parts_rust-0.22.0-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:63eb5c0e1b47e2eece7cab2dad5244eafa8c9cdcd1b624361b6040cf1d6ddee4"},
-    {file = "quri_parts_rust-0.22.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:01d25dbd03a93a64ab67efd245b592af3b7b0d110813ac4783e4d808c681c66d"},
-    {file = "quri_parts_rust-0.22.0-cp39-cp39-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:3fd0e3a30b9b66af052190911cfb6c2c38e56c11ce79d99f83868425a64e7ea9"},
-    {file = "quri_parts_rust-0.22.0-cp39-cp39-win_amd64.whl", hash = "sha256:ed9238635e473b674d8048d1d0896f4b03283a808eb7912b9c1ef8cd473e6c8f"},
-    {file = "quri_parts_rust-0.22.0.tar.gz", hash = "sha256:b76225e97d22ad7bb9ba189b6da870f8c7550b06bb552ae0eaac496bc2b92ae6"},
+    {file = "quri_parts_rust-0.22.1-cp310-cp310-macosx_11_0_universal2.whl", hash = "sha256:acdd95ffeeca1330f87a04dc9b7d4bd9468765b07fc26dd1377c3cf4cf32c14e"},
+    {file = "quri_parts_rust-0.22.1-cp310-cp310-macosx_13_0_x86_64.whl", hash = "sha256:6460f9c572dade1bd234d5aa9a7859a064b6d5f4f277276aa0cd0e90cff6daa7"},
+    {file = "quri_parts_rust-0.22.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:94f0dbdd9914ccd78bc5229d3f7692b1fb32df9130d27d4f6b240afe470b56f2"},
+    {file = "quri_parts_rust-0.22.1-cp310-cp310-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:409a53f29ede5416d6e1897020d5a776365bac69547e3f81f67456083f925f6d"},
+    {file = "quri_parts_rust-0.22.1-cp310-cp310-win_amd64.whl", hash = "sha256:f582c4562c87b13694fe55342d46add53bbcf3374e8923bc2df207c4e4a1b0f7"},
+    {file = "quri_parts_rust-0.22.1-cp311-cp311-macosx_10_12_universal2.whl", hash = "sha256:bb89b7eef361d72853ca16cb51db9d5bf3c143d3ac03e7fda73f58d44ac3c991"},
+    {file = "quri_parts_rust-0.22.1-cp311-cp311-macosx_11_0_universal2.whl", hash = "sha256:8757920138f61bd124d23b70282a4a0ee17f471acced1cbe430b4857d6ddc5b5"},
+    {file = "quri_parts_rust-0.22.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:212c7f6999aecfb265b27516366c473c7402d8f6c64cda22d279156ed8b107af"},
+    {file = "quri_parts_rust-0.22.1-cp311-cp311-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:fdc54be1afd0703cd07bbe0a95d7992d1992930c1deec7aaa4949d764f985afe"},
+    {file = "quri_parts_rust-0.22.1-cp311-cp311-win_amd64.whl", hash = "sha256:b9674c2f5b1a3bef0fcf51ed6e8939c4b92142fd697d44454b6dbe26370246dc"},
+    {file = "quri_parts_rust-0.22.1-cp312-cp312-macosx_10_13_universal2.whl", hash = "sha256:e8fa5a75a1f64fdb4b49b753e6728078fd5a1c8b16159fd7b717d7e87277d0c0"},
+    {file = "quri_parts_rust-0.22.1-cp312-cp312-macosx_11_0_universal2.whl", hash = "sha256:edc0a8f45231eb1a91b869daf3dc5e9feab064cd69b8a5552304306bbd264f78"},
+    {file = "quri_parts_rust-0.22.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ad12dc0a194a451935c3577e1af952f919c9035af1c1d1b70d21fb85a8ccbbca"},
+    {file = "quri_parts_rust-0.22.1-cp312-cp312-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:c80a55976259af0b426f2850205f99fbccc4f20b5002ff1a07a47e2540e30397"},
+    {file = "quri_parts_rust-0.22.1-cp312-cp312-win_amd64.whl", hash = "sha256:41b92888e7a23ceb6ec251b6ae9c2580dbd48a4e5f7eadc923d645526a36cfa9"},
+    {file = "quri_parts_rust-0.22.1-cp39-cp39-macosx_11_0_universal2.whl", hash = "sha256:336dd213ab205242667ec437e6c379927ab79d8e3efda4e5db8ca6bfc71236de"},
+    {file = "quri_parts_rust-0.22.1-cp39-cp39-macosx_13_0_x86_64.whl", hash = "sha256:e37ad6e2d715a202a4b3f73f899f4f74c4fa20d6c46c472ec17922a45b4a0e60"},
+    {file = "quri_parts_rust-0.22.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:08129bc849850394f0f2d2b4d1be9bfd4b6c2729cad9725859c8677631dec2fd"},
+    {file = "quri_parts_rust-0.22.1-cp39-cp39-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:fc2a4284673c4b9dfb8f38561b945e67224435f0abbd048888a695ebbcf343ad"},
+    {file = "quri_parts_rust-0.22.1-cp39-cp39-win_amd64.whl", hash = "sha256:1d2a9dfe73257d7765ee60d8a78afe1f1b195562a8f2ee791474dce5a20f84a4"},
+    {file = "quri_parts_rust-0.22.1.tar.gz", hash = "sha256:3b275c599c263b990f8c135bcbeff04db85de693b7792369ef697fe41a91e185"},
 ]
 
 [package.dependencies]
@@ -4048,14 +4124,14 @@ typing-extensions = ">=4.1.1,<5.0.0"
 
 [[package]]
 name = "quri-parts-tket"
-version = "0.22.0"
+version = "0.22.1"
 description = "A plugin to use tket with QURI Parts"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "quri_parts_tket-0.22.0-py3-none-any.whl", hash = "sha256:fb03c49db927dea91d6bba5a37b6c201f80df955e857a79e4cf72ae31cff77a2"},
-    {file = "quri_parts_tket-0.22.0.tar.gz", hash = "sha256:3b602b37934753f9467dccc73af3608340a2754b58f2c8bb4b9c5fca5bd6ad3c"},
+    {file = "quri_parts_tket-0.22.1-py3-none-any.whl", hash = "sha256:4dd1e0ee006018288664c192891528bb5effcad730d81a77bb6cd0cacd34e548"},
+    {file = "quri_parts_tket-0.22.1.tar.gz", hash = "sha256:e9778145ec3636c3810f6070b2a4941613a841489870faa0b6e1a72fc99e7c4c"},
 ]
 
 [package.dependencies]
@@ -4934,7 +5010,7 @@ version = "2.2.1"
 description = "A lil' TOML parser"
 optional = false
 python-versions = ">=3.8"
-groups = ["dev"]
+groups = ["main", "dev"]
 markers = "python_version == \"3.10\""
 files = [
     {file = "tomli-2.2.1-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:678e4fa69e4575eb77d103de3df8a895e1591b48e740211bd1067378c69e8249"},
@@ -5187,4 +5263,4 @@ test = ["websockets"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10, <3.13"
-content-hash = "46ac36ac23dcc1b6d42d3e333ad7bfdd7d5c03b3caeb2fc8baca2fce6e069579"
+content-hash = "d317d9c1e011faf7ab3740212c4adb17239e195a71f2acd60cfee98cf5421088"
