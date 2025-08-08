@@ -16,7 +16,8 @@ To get a general overview of the capabilities and workflow of QURI SDK, please s
     - [Quantum Assisted Quantum Compiling (QAQC)](quri_sdk_notebooks/examples/0_quri-algo-vm/2_qaqc/2_qaqc.ipynb)
     - [Scalar Field Theory](quri_sdk_notebooks/examples/0_quri-algo-vm/3_scalar_field_theory/3_scalar_field_theory.ipynb)
     - [Surface Code](quri_sdk_notebooks/examples/0_quri-algo-vm/4_surface_code/4_surface_code.ipynb)
-    - [Transverse Field Ising Model](quri_sdk_notebooks/examples/0_quri-algo-vm/5_transverse_field_ising_model/TFIM.ipynb)
+    - [Transverse Field Ising Model](quri_sdk_notebooks/examples/0_quri-algo-vm/6_transverse_field_ising_model/6_TFIM.ipynb)
+    - [Simulating Black holes with Quantum Computer](quri_sdk_notebooks/examples/0_quri-algo-vm/5_page_curve/5_page_curve.ipynb)
 
 
 ## Installation instructions
