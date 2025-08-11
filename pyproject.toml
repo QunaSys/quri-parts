@@ -9,7 +9,7 @@ package-mode = false
 [tool.poetry.dependencies]
 pillow = ">=9.5.0"
 python = ">=3.10, <3.13"
-qulacsvis = { git = "https://github.com/Qulacs-Osaka/qulacs-visualizer", branch = "main"}
+qulacsvis = ">=0.7.5"
 quri-parts-qsci = { git = "https://github.com/QunaSys/quri-parts-qsci.git", branch = "main"}
 quri-algo = "0.2.0"
 quri-vm = "^0.1"
