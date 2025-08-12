@@ -8,3 +8,9 @@ if sys.version_info < (3, 10):
             "packages/qsub",
         ]
     )
+if sys.version_info >= (3, 13):
+    collect_ignore.extend(
+        [
+            "packages/qsub",
+        ]
+    )
