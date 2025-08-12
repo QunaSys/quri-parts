@@ -20,10 +20,10 @@ enable = true
 style = "pep440"
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.13"
+python = "^3.9.8"
 
-quri-algo = "*"
-quri-vm = "*"
+quri-algo = { version = "*", python = ">=3.10" }
+quri-vm = { version = "*", python = ">=3.10" }
 
 quri-parts-rust = "*"
 quri-parts-core = "*"
@@ -63,8 +63,8 @@ tensornetwork = ["quri-parts-tensornetwork"]
 qsub = ["quri-parts-qsub"]
 
 [tool.poetry.group.dev.dependencies]
-quri-algo = { path = "quri-algo", develop = true }
-quri-vm = { path = "quri-vm", develop = true }
+quri-algo = { path = "quri-algo", develop = true, python = ">=3.10" }
+quri-vm = { path = "quri-vm", develop = true, python = ">=3.10" }
 quri-parts-rust = { path = "quri-parts/packages/rust", develop = true }
 quri-parts-circuit = { path = "quri-parts/packages/circuit", develop = true }
 quri-parts-core = { path = "quri-parts/packages/core", develop = true }
