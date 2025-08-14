@@ -1,4 +1,4 @@
-name: Test
+name: QURI Parts Test
 
 on:
   pull_request:

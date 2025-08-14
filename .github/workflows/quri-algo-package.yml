@@ -1,4 +1,4 @@
-name: Package and release
+name: QURI Algo Package and release
 
 on:
   pull_request:

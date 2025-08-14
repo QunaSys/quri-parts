@@ -1,4 +1,4 @@
-name: Check licenses of dependencies
+name: QURI Parts Check licenses of dependencies
 
 on:
   pull_request:

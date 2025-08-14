@@ -1,4 +1,4 @@
-name: Type check
+name: QURI Parts Type check
 
 on:
   pull_request:

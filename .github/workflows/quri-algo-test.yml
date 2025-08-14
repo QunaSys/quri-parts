@@ -1,4 +1,4 @@
-name: Test
+name: QURI Algo Test
 
 on:
   pull_request:

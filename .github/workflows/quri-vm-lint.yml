@@ -1,4 +1,4 @@
-name: Lint
+name: QURI VM Lint
 
 on:
   pull_request:

@@ -1,4 +1,4 @@
-name: Typecheck
+name: QURI Algo Typecheck
 
 on:
   pull_request:

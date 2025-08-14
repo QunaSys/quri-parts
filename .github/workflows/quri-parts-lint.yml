@@ -1,4 +1,4 @@
-name: Lint
+name: QURI Parts Lint
 
 on:
   pull_request:
