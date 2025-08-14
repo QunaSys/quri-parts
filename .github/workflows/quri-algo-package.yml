@@ -25,7 +25,7 @@ jobs:
       with:
         python-version: '3.11'
 
-    - uses: ./.github/actions/quri_algo/setup
+    - uses: ./.github/actions/quri-algo/setup
 
     - run: |
         poetry self add "poetry-dynamic-versioning[plugin]"
