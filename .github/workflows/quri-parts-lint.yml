@@ -15,6 +15,10 @@ on:
   push:
     branches: [main]
 
+defaults:
+  run:
+    working-directory: quri-parts
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -37,31 +41,25 @@ jobs:
 
     - name: Run format
       run: |
-        cd quri-parts
         cargo fmt --all -- --check
       if: success() || failure()
 
     - run: |
-        cd quri-parts
         poetry env use 3.10
         poetry install --only lint
 
     - run: |
-        cd quri-parts
         poetry run isort packages --check --diff
       if: success() || failure()
 
     - run: |
-        cd quri-parts
         poetry run black packages --check
       if: success() || failure()
 
     - run: |
-        cd quri-parts
         poetry run flake8 packages
       if: success() || failure()
 
     - run: |
-        cd quri-parts
         poetry run docformatter -c -r packages
       if: success() || failure()

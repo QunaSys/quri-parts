@@ -16,6 +16,10 @@ on:
   push:
     branches: [main]
 
+defaults:
+  run:
+    working-directory: quri-parts
+
 jobs:
   test:
 
@@ -48,24 +52,19 @@ jobs:
         restore-keys: ci-${{ runner.os }}-julia-
 
     - run: |
-        cd quri-parts
         cargo test --workspace
 
     - run: |
-        cd quri-parts
         poetry env use ${{ matrix.python_version }}
         poetry run pip install -vvv -e packages/rust
         poetry install -vvv --only main,dev
 
     - run: |
-        cd quri-parts
         poetry run python -c "import juliapkg; print('PROJECT={}'.format(juliapkg.project()))" | sed -ne '/^PROJECT=/p' >> "$GITHUB_OUTPUT"
       id: julia_project
 
     - run: |
-        cd quri-parts
         poetry run julia  "--project=${{ steps.julia_project.outputs.PROJECT }}" -e 'using Pkg; Pkg.add("PythonCall"); Pkg.instantiate()'
 
     - run: |
-        cd quri-parts
         poetry run pytest

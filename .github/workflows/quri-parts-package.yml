@@ -6,6 +6,10 @@ on:
   release:
     types: [published]
 
+defaults:
+  run:
+    working-directory: quri-parts
+
 jobs:
   pre-check:
     runs-on: ubuntu-latest
@@ -72,7 +76,6 @@ jobs:
           virtualenvs-in-project: true
 
       - run: |
-          cd quri-parts
           poetry env use 3.11
           mkdir -p dist
           poetry run pip install --upgrade build
@@ -144,7 +147,6 @@ jobs:
       - name: Install packages
         shell: bash
         run: |
-          cd quri-parts
           pip install pytest
           if [[ "${{ runner.os }}" = "Linux" ]]; then
               sudo apt install -y libjpeg-dev
@@ -225,7 +227,6 @@ jobs:
 
       - if: runner.os != 'Linux'
         run: |
-          cd quri-parts
           mkdir -p dist
           pip install -v --upgrade pip build
           for pkg in packages/*
@@ -313,7 +314,6 @@ jobs:
       - name: Install packages
         shell: bash
         run: |
-          cd quri-parts
           pip install pytest
           if [[ "${{ runner.os }}" = "Linux" ]]; then
               sudo apt install -y libjpeg-dev
@@ -368,7 +368,6 @@ jobs:
 
     - shell: bash
       run: |
-        cd quri-parts
         pip install setuptools
         poetry env use 3.10
         poetry self add setuptools
@@ -419,7 +418,6 @@ jobs:
 
       - name: Release to PyPI
         run: |
-          cd quri-parts
           COUNTER=0
           for f in *; do
             echo "Checking $f"

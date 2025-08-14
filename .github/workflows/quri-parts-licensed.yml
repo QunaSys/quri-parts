@@ -13,6 +13,10 @@ on:
     - cron: '0 0 * * MON-FRI'
   workflow_dispatch:
 
+defaults:
+  run:
+    working-directory: quri-parts
+
 jobs:
   check-licenses:
     runs-on: ubuntu-latest

@@ -10,6 +10,10 @@ on:
   push:
     branches: [main]
 
+defaults:
+  run:
+    working-directory: quri-parts
+
 jobs:
   typecheck:
 
@@ -29,7 +33,6 @@ jobs:
         python-version: ${{ matrix.python_version }}
 
     - run: |
-        cd quri-parts
         poetry env use ${{ matrix.python_version }}
         poetry run pip install -vvv -e packages/rust
         poetry install -vvv --only main,dev,typecheck
@@ -43,6 +46,5 @@ jobs:
           mypy-${{ runner.os }}-${{ matrix.python_version }}-
 
     - run: |
-        cd quri-parts
         poetry run mypy .
       if: success() || failure()
