@@ -33,7 +33,7 @@ jobs:
     - run: python -m venv venv
     - run: |
         . venv/bin/activate
-        pip install -e quri-parts/packages/*
+        pip install -e packages/*
 
     - uses: ruby/setup-ruby@v1
       with:
