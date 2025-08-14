@@ -37,7 +37,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: QURI Algo packages
-        path: dist/*
+        path: quri-algo/dist/*
         if-no-files-found: error
         overwrite: true
 
