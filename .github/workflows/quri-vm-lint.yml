@@ -3,26 +3,26 @@ name: Lint
 on:
   pull_request:
     paths:
-      - '**.py'
-      - pyproject.toml
-      - poetry.lock
-      - .flake8
-      - .github/workflows/lint.yml
+      - 'quri-vm/**.py'
+      - quri-vm/pyproject.toml
+      - quri-vm/poetry.lock
+      - quri-vm/.flake8
+      - .github/workflows/quri-vm-lint.yml
   push:
     branches: [main]
+
+defaults:
+  run:
+    working-directory: quri-vm
 
 jobs:
   lint:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: .
-
     steps:
     - uses: actions/checkout@v3
 
-    - uses: ./.github/actions/setup
+    - uses: ./.github/actions/quri-vm/setup
       with:
         poetry-version: '1.8.0'
         python-version: '3.10'
