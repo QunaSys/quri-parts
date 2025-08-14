@@ -47,7 +47,9 @@ jobs:
         key: ci-${{ runner.os }}-julia-${{ hashFiles('poetry.lock') }}-cache
         restore-keys: ci-${{ runner.os }}-julia-
 
-    - run: cargo test --workspace
+    - run: |
+        cd quri-parts
+        cargo test --workspace
 
     - run: |
         cd quri-parts

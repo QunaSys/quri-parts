@@ -51,12 +51,12 @@ jobs:
     - run: |
         cd quri-parts
         poetry run make html
-      working-directory: docs
+      working-directory: quri-parts/docs
 
     - name: deploy to Netlify
       uses: nwtgck/actions-netlify@v2.0
       with:
-        publish-dir: './docs/_build'
+        publish-dir: 'quri-parts/docs/_build'
         production-branch: main
         alias: deploy-preview-${{ github.event.number }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
