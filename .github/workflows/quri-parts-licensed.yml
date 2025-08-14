@@ -3,8 +3,8 @@ name: Check licenses of dependencies
 on:
   pull_request:
     paths:
-      - .licenses/**
-      - packages/*/pyproject.toml
+      - quri-parts/.licenses/**
+      - quri-parts/packages/*/pyproject.toml
   push:
     branches: [main]
     paths:

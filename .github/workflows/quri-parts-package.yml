@@ -72,6 +72,7 @@ jobs:
           virtualenvs-in-project: true
 
       - run: |
+          cd quri-parts
           poetry env use 3.11
           mkdir -p dist
           poetry run pip install --upgrade build
@@ -90,7 +91,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: quri-parts-packages-rust-sdist
-          path: dist/*
+          path: quri-parts/dist/*
           if-no-files-found: error
           overwrite: true
 
@@ -128,12 +129,12 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: quri-parts-packages-rust-sdist
-          path: dist
+          path: quri-parts/dist
 
       - uses: actions/download-artifact@v4
         with:
           name: quri-parts-packages-python
-          path: dist
+          path: quri-parts/dist
 
       - uses: actions/setup-python@v5
         id: setup-python
@@ -143,6 +144,7 @@ jobs:
       - name: Install packages
         shell: bash
         run: |
+          cd quri-parts
           pip install pytest
           if [[ "${{ runner.os }}" = "Linux" ]]; then
               sudo apt install -y libjpeg-dev
@@ -223,6 +225,7 @@ jobs:
 
       - if: runner.os != 'Linux'
         run: |
+          cd quri-parts
           mkdir -p dist
           pip install -v --upgrade pip build
           for pkg in packages/*
@@ -249,13 +252,13 @@ jobs:
           CIBW_ARCHS_LINUX: "auto"
           CIBW_ENVIRONMENT: 'PATH="$PATH:$HOME/.cargo/bin"'
         with:
-          package-dir: packages/rust
-          output-dir: dist
+          package-dir: quri-parts/packages/rust
+          output-dir: quri-parts/dist
 
       - uses: actions/upload-artifact@v4
         with:
           name: quri-parts-packages-rust-whl-${{matrix.system.target}}-abi3
-          path: dist/*
+          path: quri-parts/dist/*
           if-no-files-found: error
           overwrite: true
 
@@ -293,12 +296,12 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: quri-parts-packages-rust-whl-${{matrix.system.target}}-abi3
-          path: dist
+          path: quri-parts/dist
 
       - uses: actions/download-artifact@v4
         with:
           name: quri-parts-packages-python
-          path: dist_py
+          path: quri-parts/dist_py
 
       - uses: actions/setup-python@v5
         id: setup-python
@@ -310,6 +313,7 @@ jobs:
       - name: Install packages
         shell: bash
         run: |
+          cd quri-parts
           pip install pytest
           if [[ "${{ runner.os }}" = "Linux" ]]; then
               sudo apt install -y libjpeg-dev
@@ -341,9 +345,9 @@ jobs:
         shell: bash
         run: |
           if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
-            pytest packages --ignore=packages/pyscf --ignore=packages/itensor
+            pytest quri-parts/packages --ignore=quri-parts/packages/pyscf --ignore=quri-parts/packages/itensor
           else
-            pytest packages
+            pytest quri-parts/packages
           fi
 
   python-package:
@@ -364,6 +368,7 @@ jobs:
 
     - shell: bash
       run: |
+        cd quri-parts
         pip install setuptools
         poetry env use 3.10
         poetry self add setuptools
@@ -386,7 +391,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: quri-parts-packages-python
-        path: dist/*
+        path: quri-parts/dist/*
         if-no-files-found: error
         overwrite: true
 
@@ -414,6 +419,7 @@ jobs:
 
       - name: Release to PyPI
         run: |
+          cd quri-parts
           COUNTER=0
           for f in *; do
             echo "Checking $f"

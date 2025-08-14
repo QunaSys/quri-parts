@@ -3,10 +3,10 @@ name: Document
 on:
   pull_request:
     paths:
-      - packages/**/*.py
-      - docs
-      - poetry.lock
-      - .github/workflows/doc.yml
+      - quri-parts/packages/**/*.py
+      - quri-parts/docs
+      - quri-parts/poetry.lock
+      - .github/workflows/quri-parts-doc.yml
   push:
     branches: [main]
 
@@ -17,7 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - uses: ./.github/actions/python-poetry-install
+    - uses: ./.github/actions/quri-parts/python-poetry-install
       with:
         poetry-version: '1.4.0'
         python-version: '3.9'
@@ -39,13 +39,18 @@ jobs:
         yes | sudo dpkg -i pandoc-2.18-1-amd64.deb
 
     - run: |
+        cd quri-parts
         poetry env use 3.9
         poetry run pip install -vvv -e packages/rust
         poetry install -vvv --only main,dev,doc
 
-    - run: poetry run julia -e 'using Pkg; Pkg.add("PythonCall")'
+    - run: |
+        cd quri-parts
+        poetry run julia -e 'using Pkg; Pkg.add("PythonCall")'
   
-    - run: poetry run make html
+    - run: |
+        cd quri-parts
+        poetry run make html
       working-directory: docs
 
     - name: deploy to Netlify
