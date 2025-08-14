@@ -35,7 +35,7 @@ jobs:
         poetry-version: '1.4.0'
         python-version: ${{ matrix.python_version }}
 
-    - uses: ./.github/actions/rust-install-cache
+    - uses: ./.github/actions/quri-parts/rust-install-cache
       with:
         toolchain: "stable"
         additional-key: "test"

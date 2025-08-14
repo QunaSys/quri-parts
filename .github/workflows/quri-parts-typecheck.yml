@@ -23,12 +23,13 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - uses: ./.github/actions/python-poetry-install
+    - uses: ./.github/actions/quri-parts/python-poetry-install
       with:
         poetry-version: '1.4.0'
         python-version: ${{ matrix.python_version }}
 
     - run: |
+        cd quri-parts
         poetry env use ${{ matrix.python_version }}
         poetry run pip install -vvv -e packages/rust
         poetry install -vvv --only main,dev,typecheck
@@ -41,5 +42,7 @@ jobs:
         restore-keys: |
           mypy-${{ runner.os }}-${{ matrix.python_version }}-
 
-    - run: poetry run mypy .
+    - run: |
+        cd quri-parts
+        poetry run mypy .
       if: success() || failure()

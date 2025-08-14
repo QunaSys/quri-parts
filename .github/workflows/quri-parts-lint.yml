@@ -36,7 +36,9 @@ jobs:
       run: rustup component add rustfmt
 
     - name: Run format
-      run: cargo fmt --all -- --check
+      run: |
+        cd quri-parts
+        cargo fmt --all -- --check
       if: success() || failure()
 
     - run: |
