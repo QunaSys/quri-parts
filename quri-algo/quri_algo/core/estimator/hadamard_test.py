@@ -101,8 +101,8 @@ class HadamardTest(ExpectationValueEstimator[StateT]):
         )
 
         # TODO: Fix after GeneralSampler is available in QURI Parts
-        real_cnt = _general_sample_on_state(self.sampler, real_hadamard_state, n_shots)  # type: ignore
-        imag_cnt = _general_sample_on_state(self.sampler, imag_hadamard_state, n_shots)  # type: ignore
+        real_cnt = _general_sample_on_state(self.sampler, real_hadamard_state, n_shots)
+        imag_cnt = _general_sample_on_state(self.sampler, imag_hadamard_state, n_shots)
 
         real_cnt = get_hadamard_test_ancilla_qubit_counter(real_cnt)
         imag_cnt = get_hadamard_test_ancilla_qubit_counter(imag_cnt)
