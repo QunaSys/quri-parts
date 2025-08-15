@@ -8,6 +8,7 @@ on:
 
 jobs:
   pre-check:
+    name: 🔎 Check project versions
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -350,13 +351,13 @@ jobs:
         shell: bash
         run: |
           if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
-            pytest packages --ignore=quri-parts/packages/pyscf --ignore=quri-parts/packages/itensor
+            pytest packages --ignore=packages/pyscf --ignore=packages/itensor
           else
             pytest packages
           fi
 
   quri-parts-python-package:
-    name: 🔨📦 Python
+    name: 🔨📦 QURI Parts python packages
     needs: [pre-check]
     runs-on: ubuntu-latest
     defaults:
@@ -403,6 +404,7 @@ jobs:
         overwrite: true
 
   merge-quri-parts:
+    name: 🔨📦 QURI Parts
     needs: [quri-parts-python-package, test-rust-wheel-package, test-rust-sdist-package]
     runs-on: ubuntu-latest
     defaults:
@@ -416,6 +418,7 @@ jobs:
           pattern: quri-parts-packages-*
 
   release-quri-parts:
+    name: 🕊️ Release QURI Parts
     needs: merge-quri-parts
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
@@ -445,6 +448,7 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.TWINE_API_TOKEN }}
 
   quri-algo-package:
+    name: 🔨📦 QURI Algo
     runs-on: ubuntu-latest
     needs: pre-check
     defaults:
@@ -478,6 +482,7 @@ jobs:
         overwrite: true
 
   release-quri-algo:
+    name: 🕊️ Release QURI Algo
     needs: [quri-algo-package]
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
@@ -499,6 +504,7 @@ jobs:
         TWINE_PASSWORD: ${{ secrets.TWINE_API_TOKEN }}
 
   quri-vm-package:
+    name: 🔨📦 QURI VM
     runs-on: ubuntu-latest
     needs: pre-check
     defaults:
@@ -530,6 +536,7 @@ jobs:
         if-no-files-found: error
 
   release-quri-vm:
+    name: 🕊️ Release QURI VM
     needs: [quri-vm-package]
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
@@ -551,6 +558,7 @@ jobs:
         TWINE_PASSWORD: ${{ secrets.TWINE_API_TOKEN }}
 
   merge-quri-sdk:
+    name: 🔨📦 QURI SDK
     needs: [merge-quri-parts, quri-algo-package, quri-vm-package]
     runs-on: ubuntu-latest
     steps:
@@ -561,6 +569,7 @@ jobs:
           pattern: quri-sdk-*
 
   release-quri-sdk:
+    name: 🕊️ Release QURI SDK
     needs: merge-quri-sdk
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
