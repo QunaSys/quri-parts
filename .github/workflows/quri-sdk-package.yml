@@ -1,0 +1,43 @@
+name: QURI SDK Package and release
+
+on:
+  push:
+    branches: [main, quri_sdk_migration]
+  release:
+    types: [published]
+
+jobs:
+  pre-check:
+    runs-on: ubuntu-latest
+    defaults:
+      working-directory: /.
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        # Necessary to get tags for correct versioning
+        fetch-depth: 0
+
+    - name: check manual versioning
+      shell: bash
+      run: |
+        GIT_VERSION_TAG="$(git describe --tags --abbrev=0 | head -n 1)"
+
+        # process pyproject.toml files
+        for FILE in $(find . -name "pyproject.toml"); do
+          PYPROJECT_VERSION="$(sed -ne 's/version = "\(.*\)"$/\1/p' "$FILE" | head -n 1)"
+          if [[ ! "$PYPROJECT_VERSION" = "0.0.0" && ! "v$PYPROJECT_VERSION" = $GIT_VERSION_TAG ]]; then
+            echo "Version mismatch in $FILE; #PYPROJECT_VERSION != $GIT_VERSION_TAG" 1>&2
+            false
+          fi
+        done
+
+        # process Cargo.toml files
+        for FILE in $(find . -name "Cargo.toml"); do
+          CARGO_VERSION="$(sed -ne 's/version = "\(.*\)"$/\1/p' "$FILE" | head -n 1)"
+          if [[ ! "v$CARGO_VERSION" = $GIT_VERSION_TAG ]]; then
+            echo "Version mismatch in $FILE; #CARGO_VERSION != $GIT_VERSION_TAG" 1>&2
+            false
+          fi
+        done
+
+        echo "Version check finished successfully." 1>&2

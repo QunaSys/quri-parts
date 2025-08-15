@@ -2,7 +2,7 @@ name: QURI Parts Package and release
 
 on:
   push:
-    branches: [main, limited-api]
+    branches: [main]
   release:
     types: [published]
 
