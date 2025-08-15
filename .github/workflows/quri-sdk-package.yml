@@ -102,7 +102,7 @@ jobs:
 
   test-rust-sdist-package:
     name: ▶️📦 sdist-${{matrix.system.os}}-3${{matrix.python-version}}
-    needs: [rust-sdist-package, python-package]
+    needs: [rust-sdist-package, quri-parts-python-package]
     runs-on: ${{matrix.system.os}}
     strategy:
       fail-fast: false
@@ -269,7 +269,7 @@ jobs:
 
   test-rust-wheel-package:
     name: ▶️📦 wheel-${{matrix.system.os}}-3${{matrix.python-version}}
-    needs: [rust-wheel-package, python-package]
+    needs: [rust-wheel-package, quri-parts-python-package]
     runs-on: ${{matrix.system.os}}
     strategy:
       fail-fast: false
@@ -403,7 +403,7 @@ jobs:
         overwrite: true
 
   merge-quri-parts:
-    needs: [python-package, test-rust-wheel-package, test-rust-sdist-package]
+    needs: [quri-parts-python-package, test-rust-wheel-package, test-rust-sdist-package]
     runs-on: ubuntu-latest
     defaults:
       run:
