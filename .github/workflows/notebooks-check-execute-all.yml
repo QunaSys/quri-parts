@@ -3,8 +3,12 @@ name: Check all notebooks
 on:
   pull_request:
     paths:
-      - poetry.lock
-      - pyproject.toml
+      - notebooks/poetry.lock
+      - notebooks/pyproject.toml
+
+defaults:
+  run:
+    working-directory: notebooks
 
 jobs:
   execute-all:
@@ -13,7 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - uses: ./.github/actions/setup
+    - uses: ./.github/actions/notebooks/setup
 
     - uses: actions/setup-python@v4
       with:
