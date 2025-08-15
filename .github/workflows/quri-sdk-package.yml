@@ -10,7 +10,8 @@ jobs:
   pre-check:
     runs-on: ubuntu-latest
     defaults:
-      working-directory: /.
+      run:
+        working-directory: /.
     steps:
     - uses: actions/checkout@v3
       with:
