@@ -350,9 +350,9 @@ jobs:
         shell: bash
         run: |
           if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
-            pytest quri-parts/packages --ignore=quri-parts/packages/pyscf --ignore=quri-parts/packages/itensor
+            pytest packages --ignore=quri-parts/packages/pyscf --ignore=quri-parts/packages/itensor
           else
-            pytest quri-parts/packages
+            pytest packages
           fi
 
   quri-parts-python-package:
