@@ -2,7 +2,7 @@ name: Package and release
 
 on:
   push:
-    branches: [main, support-3.13]
+    branches: [main]
   release:
     types: [published]
 
