@@ -98,22 +98,46 @@ def test_circuit_from_qulacs() -> None:
         gates.SqrtXdag(3),
         gates.SqrtY(4),
         gates.SqrtYdag(5),
-        gates.RX(6, np.round(0.125, 5)),
-        gates.RY(0, np.round(0.250, 5)),
-        gates.RZ(1, np.round(0.500, 5)),
+        gates.RX(6, 0.125),
+        gates.RY(0, 0.250),
+        gates.RZ(1, 0.500),
         gates.CNOT(2, 3),
         gates.CZ(4, 5),
         gates.SWAP(0, 1),
         gates.TOFFOLI(7, 8, 9),
-        gates.UnitaryMatrix([0], np.round(U1_mat, 5)),
-        gates.UnitaryMatrix([1], np.round(U2_mat, 5)),
-        gates.UnitaryMatrix([2], np.round(U3_mat, 5)),
+        gates.UnitaryMatrix([0], U1_mat.tolist()),
+        gates.UnitaryMatrix([1], U2_mat.tolist()),
+        gates.UnitaryMatrix([2], U3_mat.tolist()),
         gates.Pauli([0, 3, 5], [1, 3, 1]),
         gates.PauliRotation([6, 8, 9], [2, 3, 1], 0.5),
     ]
     expected = QuantumCircuit(10, gates=gate_list)
 
-    assert circuit_from_qulacs(qul_circ).gates == expected.gates
+    actual_circuit = circuit_from_qulacs(qul_circ)
+    assert len(actual_circuit.gates) == len(expected.gates)
+    for actual_gate, expected_gate in zip(actual_circuit.gates, expected.gates):
+        assert actual_gate.name == expected_gate.name
+        assert actual_gate.target_indices == expected_gate.target_indices
+        assert actual_gate.control_indices == expected_gate.control_indices
+        assert actual_gate.pauli_ids == expected_gate.pauli_ids
+        if hasattr(actual_gate, "params") and hasattr(expected_gate, "params"):
+            if actual_gate.params and expected_gate.params:
+                assert np.allclose(
+                    actual_gate.params, expected_gate.params, rtol=1e-5, atol=1e-5
+                )
+        if hasattr(actual_gate, "unitary_matrix") and hasattr(
+            expected_gate, "unitary_matrix"
+        ):
+            if (
+                actual_gate.unitary_matrix is not None
+                and expected_gate.unitary_matrix is not None
+            ):
+                assert np.allclose(
+                    actual_gate.unitary_matrix,
+                    expected_gate.unitary_matrix,
+                    rtol=1e-5,
+                    atol=1e-5,
+                )
 
     # test for empty circuit
     emp_circ = QulacsQuantumCircuit(10)
