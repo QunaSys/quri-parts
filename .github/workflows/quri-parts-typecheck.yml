@@ -3,10 +3,10 @@ name: QURI Parts Type check
 on:
   pull_request:
     paths:
-      - packages/**/*.py
-      - poetry.lock
-      - mypy.ini
-      - .github/workflows/typecheck.yml
+      - quri-parts/packages/**/*.py
+      - quri-parts/poetry.lock
+      - quri-parts/mypy.ini
+      - .github/workflows/quri-parts-typecheck.yml
   push:
     branches: [main]
 

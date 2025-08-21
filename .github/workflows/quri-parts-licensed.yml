@@ -8,7 +8,7 @@ on:
   push:
     branches: [main]
     paths:
-      - packages/*/pyproject.toml
+      - quri-parts/packages/*/pyproject.toml
   schedule:
     - cron: '0 0 * * MON-FRI'
   workflow_dispatch:

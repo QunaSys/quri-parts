@@ -2,6 +2,8 @@ name: Check notebook diff
 
 on:
   pull_request:
+    paths:
+      - 'notebooks/quri_sdk_notebooks/**.ipynb'
 
 defaults:
   run:
