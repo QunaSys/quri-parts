@@ -2,7 +2,7 @@ name: QURI SDK Package and release
 
 on:
   push:
-    branches: [main, quri_sdk_migration]
+    branches: [main]
   release:
     types: [published]
 
@@ -117,7 +117,7 @@ jobs:
             target: "aarch64-apple-darwin"
           - os: "windows-latest"
             target: "x86_64-pc-windows-msvc"
-        python-version: [ "11" ]
+        python-version: [ "9", "11", "13" ]
     defaults:
       run:
         shell: bash
@@ -148,10 +148,19 @@ jobs:
         with:
           python-version: 3.${{matrix.python-version}}
 
+      - name: Install boost
+        uses: MarkusJx/install-boost@v2
+        if: runner.os == 'Windows'
+        id: install-boost
+        with:
+          boost_version: 1.73.0
+
       - name: Install packages
+        env:
+          BOOST_ROOT: ${{ runner.os == 'Windows' && steps.install-boost.outputs.BOOST_ROOT || '' }}
         shell: bash
         run: |
-          pip install pytest
+          pip install pytest setuptools==75.1.0
           if [[ "${{ runner.os }}" = "Linux" ]]; then
               sudo apt install -y libjpeg-dev
           fi
@@ -284,7 +293,7 @@ jobs:
             target: "aarch64-apple-darwin"
           - os: "windows-latest"
             target: "x86_64-pc-windows-msvc"
-        python-version: [ "9", "10", "11", "12" ]
+        python-version: [ "9", "10", "11", "12", "13" ]
     defaults:
       run:
         shell: bash
@@ -317,7 +326,16 @@ jobs:
 
       - run: python --version
 
+      - name: Install boost
+        uses: MarkusJx/install-boost@v2
+        if: runner.os == 'Windows' && matrix.python-version == '13'
+        id: install-boost
+        with:
+          boost_version: 1.73.0
+
       - name: Install packages
+        env:
+          BOOST_ROOT: ${{ (runner.os == 'Windows' && matrix.python-version == '13') && steps.install-boost.outputs.BOOST_ROOT || '' }}
         shell: bash
         run: |
           pip install pytest
