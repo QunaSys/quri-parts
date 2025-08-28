@@ -578,7 +578,6 @@ jobs:
   quri-sdk-meta-package:
     name: 🔨📦 QURI SDK meta
     needs: pre-check
-    if: github.event_name == 'release'
     runs-on: ubuntu-latest
 
     steps:
