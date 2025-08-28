@@ -2,7 +2,7 @@ name: QURI SDK Package and release
 
 on:
   push:
-    branches: [main, quri_sdk_migration]
+    branches: [main]
   release:
     types: [published]
 
