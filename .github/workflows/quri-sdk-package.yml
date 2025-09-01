@@ -440,9 +440,6 @@ jobs:
     needs: merge-quri-parts
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: quri-parts
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -504,9 +501,6 @@ jobs:
     needs: [quri-algo-package]
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: quri-algo
     steps:
     - uses: actions/download-artifact@v4
       with:
@@ -558,11 +552,8 @@ jobs:
     needs: [quri-vm-package]
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: quri-vm
     steps:
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: quri-sdk-quri-vm
 
