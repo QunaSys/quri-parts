@@ -46,9 +46,9 @@ def test_energy_gradient_estimator() -> None:
     qubit_count = 3
     h_params = [1, 2, 3, 4, 5, 6]
     estimator = create_qulacs_vector_concurrent_estimator()
-    energy_grad_estimator: Callable[
-        [ParamState, Sequence[float]], Sequence[float]
-    ] = create_energy_gradient_estimator(estimator, h_params, _h_generator)
+    energy_grad_estimator: Callable[[ParamState, Sequence[float]], Sequence[float]] = (
+        create_energy_gradient_estimator(estimator, h_params, _h_generator)
+    )
 
     # no circuit parameters
     param_circuit = ParametricQuantumCircuit(qubit_count)

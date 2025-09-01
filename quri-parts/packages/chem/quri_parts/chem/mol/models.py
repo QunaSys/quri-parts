@@ -86,12 +86,10 @@ class MolecularOrbitals(Protocol):
 
 class ActiveSpaceMolecularOrbitalsBase(MolecularOrbitals, ABC):
     @abstractproperty
-    def n_active_ele(self) -> int:
-        ...
+    def n_active_ele(self) -> int: ...
 
     @abstractproperty
-    def n_core_ele(self) -> int:
-        ...
+    def n_core_ele(self) -> int: ...
 
     @abstractproperty
     def n_active_orb(self) -> int:
@@ -109,12 +107,10 @@ class ActiveSpaceMolecularOrbitalsBase(MolecularOrbitals, ABC):
         ...
 
     @abstractmethod
-    def get_core_and_active_orb(self) -> tuple[Sequence[int], Sequence[int]]:
-        ...
+    def get_core_and_active_orb(self) -> tuple[Sequence[int], Sequence[int]]: ...
 
     @abstractmethod
-    def orb_type(self, mo_index: int) -> OrbitalType:
-        ...
+    def orb_type(self, mo_index: int) -> OrbitalType: ...
 
 
 class ActiveSpaceMolecularOrbitals(ActiveSpaceMolecularOrbitalsBase):

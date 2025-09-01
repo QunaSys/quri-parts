@@ -57,8 +57,7 @@ class Ident(NamedTuple):
 
 class AbstractOp(Protocol):
     @property
-    def base_id(self) -> BaseIdent:
-        ...
+    def base_id(self) -> BaseIdent: ...
 
 
 @dataclass(frozen=True)
@@ -79,11 +78,9 @@ class Op:
 
 class OpFactory(Protocol[Params]):
     @property
-    def base_id(self) -> BaseIdent:
-        ...
+    def base_id(self) -> BaseIdent: ...
 
-    def __call__(self, *params: Params.args) -> Op:
-        ...
+    def __call__(self, *params: Params.args) -> Op: ...
 
 
 class OpDef:
@@ -140,8 +137,7 @@ class ParametricMixin(Generic[Params]):
         return self.self_inverse
 
 
-class ParameterValidationError(Exception):
-    ...
+class ParameterValidationError(Exception): ...
 
 
 class ParamOpDef(ParametricMixin[Params]):
@@ -149,8 +145,7 @@ class ParamOpDef(ParametricMixin[Params]):
     name: str
     unitary: bool = True
 
-    def validate_params(self, *params: Params.args, **_: Params.kwargs) -> None:
-        ...
+    def validate_params(self, *params: Params.args, **_: Params.kwargs) -> None: ...
 
 
 class ParamUnitaryDef(ParamOpDef[Params]):

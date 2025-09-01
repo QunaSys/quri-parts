@@ -33,16 +33,13 @@ class AdjacentGateFuser(CircuitTranspilerProtocol, ABC):
 
     @property
     @abstractmethod
-    def target_gate_count(self) -> int:
-        ...
+    def target_gate_count(self) -> int: ...
 
     @abstractmethod
-    def is_target_sequence(self, seq: Sequence[QuantumGate]) -> bool:
-        ...
+    def is_target_sequence(self, seq: Sequence[QuantumGate]) -> bool: ...
 
     @abstractmethod
-    def fuse(self, seq: Sequence[QuantumGate]) -> Sequence[QuantumGate]:
-        ...
+    def fuse(self, seq: Sequence[QuantumGate]) -> Sequence[QuantumGate]: ...
 
     def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
         xs = list(circuit.gates)

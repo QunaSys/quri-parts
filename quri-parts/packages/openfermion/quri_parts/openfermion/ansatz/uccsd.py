@@ -254,9 +254,7 @@ def _construct_singlet_excitation_circuit(
     return circuit
 
 
-def _singlet_excitation_parameters(
-    n_spin_orbitals: int, n_fermions: int
-) -> tuple[
+def _singlet_excitation_parameters(n_spin_orbitals: int, n_fermions: int) -> tuple[
     list[str],
     dict[SingleExcitation, list[tuple[str, float]]],
     list[str],

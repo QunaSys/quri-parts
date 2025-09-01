@@ -23,8 +23,7 @@ Operations: TypeAlias = Sequence[tuple[Op, Sequence[Qubit], Sequence[Register]]]
 
 
 class SubTranspilerProtocol(Protocol):
-    def __call__(self, sub: Sub) -> Sub:
-        ...
+    def __call__(self, sub: Sub) -> Sub: ...
 
 
 class SequentialTranspiler(SubTranspilerProtocol):
@@ -40,12 +39,10 @@ class SequentialTranspiler(SubTranspilerProtocol):
 class SeparateTranspiler(SubTranspilerProtocol, ABC):
     @property
     @abstractmethod
-    def target_ops(self) -> Collection[BaseIdent]:
-        ...
+    def target_ops(self) -> Collection[BaseIdent]: ...
 
     @abstractmethod
-    def transpile_chunk(self, ops: Operations) -> Operations:
-        ...
+    def transpile_chunk(self, ops: Operations) -> Operations: ...
 
     def __call__(self, sub: Sub) -> Sub:
         ops = sub.operations

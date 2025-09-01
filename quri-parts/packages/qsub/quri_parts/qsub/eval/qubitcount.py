@@ -56,5 +56,4 @@ class AuxQubitCountEvaluatorHooks(EvaluatorHooks[int]):
         qubits: Sequence[Qubit],
         regs: Sequence[Register],
         call_stack: list[SubId],
-    ) -> None:
-        ...
+    ) -> None: ...

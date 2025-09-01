@@ -27,8 +27,7 @@ class MachineOp:
 
 
 @dataclass
-class Primitive(MachineOp):
-    ...
+class Primitive(MachineOp): ...
 
 
 @dataclass
@@ -60,5 +59,4 @@ class MachineSub:
         return id(self)
 
 
-class MachineSubRecursionError(Exception):
-    ...
+class MachineSubRecursionError(Exception): ...

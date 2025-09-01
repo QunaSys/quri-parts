@@ -91,8 +91,7 @@ class ParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
         ...
 
     @abstractproperty
-    def parameter_count(self) -> int:
-        ...
+    def parameter_count(self) -> int: ...
 
     @abstractproperty
     def gates(self) -> Sequence[Union[QuantumGate, ParametricQuantumGate]]:
@@ -147,8 +146,7 @@ UnboundParametricQuantumCircuitProtocol = ParametricQuantumCircuitProtocol
 
 class MutableParametricQuantumCircuitProtocol(
     ParametricQuantumCircuitProtocol, MutableQuantumCircuitProtocol, Protocol
-):
-    ...
+): ...
 
 
 #: Deprecated: use `MutableParametricQuantumCircuitProtocol` instead

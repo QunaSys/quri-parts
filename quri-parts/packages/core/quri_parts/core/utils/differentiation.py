@@ -46,16 +46,13 @@ class DifferentiableObjectProtocol(Protocol):
     """
 
     @abstractmethod
-    def __add__(self: _T, other: _T) -> _T:
-        ...
+    def __add__(self: _T, other: _T) -> _T: ...
 
     @abstractmethod
-    def __sub__(self: _T, other: _T) -> _T:
-        ...
+    def __sub__(self: _T, other: _T) -> _T: ...
 
     @abstractmethod
-    def __truediv__(self: _T, other: Union[int, float, complex]) -> _T:
-        ...
+    def __truediv__(self: _T, other: Union[int, float, complex]) -> _T: ...
 
 
 T = TypeVar("T", bound=DifferentiableObjectProtocol)

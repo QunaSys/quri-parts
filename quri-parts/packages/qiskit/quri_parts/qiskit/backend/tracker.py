@@ -23,12 +23,12 @@ class Tracker:
     def __init__(self) -> None:
         self._total_time = 0.0
 
-        self._running_jobs: dict[
-            str, QiskitRuntimeSamplingJob
-        ] = {}  # The key is job id string
-        self._finished_jobs: dict[
-            str, QiskitRuntimeSamplingJob
-        ] = {}  # The key is job id string
+        self._running_jobs: dict[str, QiskitRuntimeSamplingJob] = (
+            {}
+        )  # The key is job id string
+        self._finished_jobs: dict[str, QiskitRuntimeSamplingJob] = (
+            {}
+        )  # The key is job id string
 
     @property
     def total_run_time(self) -> float:

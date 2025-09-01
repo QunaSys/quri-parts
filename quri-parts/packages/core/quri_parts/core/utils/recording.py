@@ -83,8 +83,7 @@ class RecordableFunction(Protocol[P, R]):
 
     id: RecordableFunctionId
 
-    def __call__(self, *args: P.args, **kwargs: P.kwargs) -> R:
-        ...
+    def __call__(self, *args: P.args, **kwargs: P.kwargs) -> R: ...
 
 
 def recordable(f: Callable[Concatenate["Recorder", P], R]) -> RecordableFunction[P, R]:

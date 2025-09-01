@@ -40,9 +40,9 @@ class TestParameterMappingBase:
         class M(ParameterMappingBase):
             in_params: Sequence[Parameter] = (in_p0, in_p1)
             out_params: Sequence[Parameter] = (out_p0, out_p1)
-            mapper: Callable[
-                [ParameterValueAssignment], ParameterValueAssignment
-            ] = mock_mapper
+            mapper: Callable[[ParameterValueAssignment], ParameterValueAssignment] = (
+                mock_mapper
+            )
 
             def get_mapper_element(
                 self, out_param: Parameter

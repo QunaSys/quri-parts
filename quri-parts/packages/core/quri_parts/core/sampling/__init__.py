@@ -306,16 +306,16 @@ class GeneralSampler(Generic[_StateT, _ParametricStateT]):
     def _distribute_for_concurrent_sampling(
         param_circuit_or_state: UnboundParametricQuantumCircuitProtocol,
         shot_param_tuples: Iterable[tuple[int, Sequence[float]]],
-    ) -> Iterable[tuple[UnboundParametricQuantumCircuitProtocol, int, Sequence[float]]]:
-        ...
+    ) -> Iterable[
+        tuple[UnboundParametricQuantumCircuitProtocol, int, Sequence[float]]
+    ]: ...
 
     @overload
     @staticmethod
     def _distribute_for_concurrent_sampling(
         param_circuit_or_state: _StateT,
         shot_param_tuples: Iterable[tuple[int, Sequence[float]]],
-    ) -> Iterable[tuple[_StateT, int, Sequence[float]]]:
-        ...
+    ) -> Iterable[tuple[_StateT, int, Sequence[float]]]: ...
 
     @staticmethod
     def _distribute_for_concurrent_sampling(

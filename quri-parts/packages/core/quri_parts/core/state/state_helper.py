@@ -26,64 +26,56 @@ from .state_vector_parametric import ParametricQuantumStateVector
 def apply_circuit(
     circuit: ImmutableQuantumCircuit,
     state: CircuitQuantumState,
-) -> CircuitQuantumState:
-    ...
+) -> CircuitQuantumState: ...
 
 
 @overload
 def apply_circuit(
     circuit: ImmutableQuantumCircuit,
     state: QuantumStateVector,
-) -> QuantumStateVector:
-    ...
+) -> QuantumStateVector: ...
 
 
 @overload
 def apply_circuit(
     circuit: ImmutableQuantumCircuit,
     state: ParametricCircuitQuantumState,
-) -> ParametricCircuitQuantumState:
-    ...
+) -> ParametricCircuitQuantumState: ...
 
 
 @overload
 def apply_circuit(
     circuit: ImmutableQuantumCircuit,
     state: ParametricQuantumStateVector,
-) -> ParametricQuantumStateVector:
-    ...
+) -> ParametricQuantumStateVector: ...
 
 
 @overload
 def apply_circuit(
     circuit: ParametricQuantumCircuitProtocol,
     state: CircuitQuantumState,
-) -> ParametricCircuitQuantumState:
-    ...
+) -> ParametricCircuitQuantumState: ...
 
 
 @overload
 def apply_circuit(
     circuit: ParametricQuantumCircuitProtocol,
     state: QuantumStateVector,
-) -> ParametricQuantumStateVector:
-    ...
+) -> ParametricQuantumStateVector: ...
 
 
 @overload
 def apply_circuit(
     circuit: ParametricQuantumCircuitProtocol,
     state: ParametricCircuitQuantumState,
-) -> ParametricCircuitQuantumState:
-    ...
+) -> ParametricCircuitQuantumState: ...
 
 
 @overload
 def apply_circuit(
     circuit: ParametricQuantumCircuitProtocol,
     state: ParametricQuantumStateVector,
-) -> ParametricQuantumStateVector:
-    ...
+) -> ParametricQuantumStateVector: ...
 
 
 def apply_circuit(
@@ -115,48 +107,41 @@ def apply_circuit(
 
 
 @overload
-def quantum_state(n_qubits: int) -> ComputationalBasisState:
-    ...
+def quantum_state(n_qubits: int) -> ComputationalBasisState: ...
 
 
 @overload
-def quantum_state(n_qubits: int, *, bits: int) -> ComputationalBasisState:
-    ...
+def quantum_state(n_qubits: int, *, bits: int) -> ComputationalBasisState: ...
 
 
 @overload
 def quantum_state(
     n_qubits: int, *, bits: int, circuit: ImmutableQuantumCircuit
-) -> GeneralCircuitQuantumState:
-    ...
+) -> GeneralCircuitQuantumState: ...
 
 
 @overload
 def quantum_state(
     n_qubits: int, *, circuit: ImmutableQuantumCircuit
-) -> GeneralCircuitQuantumState:
-    ...
+) -> GeneralCircuitQuantumState: ...
 
 
 @overload
 def quantum_state(
     n_qubits: int, *, bits: int, circuit: ParametricQuantumCircuitProtocol
-) -> ParametricCircuitQuantumState:
-    ...
+) -> ParametricCircuitQuantumState: ...
 
 
 @overload
 def quantum_state(
     n_qubits: int, *, circuit: ParametricQuantumCircuitProtocol
-) -> ParametricCircuitQuantumState:
-    ...
+) -> ParametricCircuitQuantumState: ...
 
 
 @overload
 def quantum_state(
     n_qubits: int, *, vector: Union[StateVectorType, "npt.ArrayLike"]
-) -> QuantumStateVector:
-    ...
+) -> QuantumStateVector: ...
 
 
 @overload
@@ -165,8 +150,7 @@ def quantum_state(
     *,
     vector: Union[StateVectorType, "npt.ArrayLike"],
     circuit: ImmutableQuantumCircuit,
-) -> QuantumStateVector:
-    ...
+) -> QuantumStateVector: ...
 
 
 @overload
@@ -175,8 +159,7 @@ def quantum_state(
     *,
     vector: Union[StateVectorType, "npt.ArrayLike"],
     circuit: ParametricQuantumCircuitProtocol,
-) -> ParametricQuantumStateVector:
-    ...
+) -> ParametricQuantumStateVector: ...
 
 
 def quantum_state(

@@ -49,12 +49,10 @@ class BinaryArray(Sequence[int]):
         )
 
     @overload
-    def __getitem__(self, index: int) -> int:
-        ...
+    def __getitem__(self, index: int) -> int: ...
 
     @overload
-    def __getitem__(self, index: slice) -> Sequence[int]:
-        ...
+    def __getitem__(self, index: slice) -> Sequence[int]: ...
 
     def __getitem__(self, index: Union[int, slice]) -> Union[int, Sequence[int]]:
         if isinstance(index, int):
@@ -157,12 +155,10 @@ class BinaryMatrix(Iterable[BinaryArray], Sized):
         return self.__repr__()
 
     @overload
-    def __getitem__(self, index: int) -> BinaryArray:
-        ...
+    def __getitem__(self, index: int) -> BinaryArray: ...
 
     @overload
-    def __getitem__(self, index: tuple[int, int]) -> int:
-        ...
+    def __getitem__(self, index: tuple[int, int]) -> int: ...
 
     def __getitem__(
         self, index: Union[int, tuple[int, int]]
@@ -173,12 +169,10 @@ class BinaryMatrix(Iterable[BinaryArray], Sized):
         return self._rows[i][j]
 
     @overload
-    def __setitem__(self, index: int, value: BinaryArray) -> None:
-        ...
+    def __setitem__(self, index: int, value: BinaryArray) -> None: ...
 
     @overload
-    def __setitem__(self, index: tuple[int, int], value: int) -> None:
-        ...
+    def __setitem__(self, index: tuple[int, int], value: int) -> None: ...
 
     def __setitem__(
         self, index: Union[int, tuple[int, int]], value: Union[BinaryArray, int]
@@ -203,12 +197,10 @@ class BinaryMatrix(Iterable[BinaryArray], Sized):
             yield r
 
     @overload
-    def __matmul__(self, other: BinaryArray) -> BinaryArray:
-        ...
+    def __matmul__(self, other: BinaryArray) -> BinaryArray: ...
 
     @overload
-    def __matmul__(self, other: "BinaryMatrix") -> "BinaryMatrix":
-        ...
+    def __matmul__(self, other: "BinaryMatrix") -> "BinaryMatrix": ...
 
     def __matmul__(self, other: object) -> Union[BinaryArray, "BinaryMatrix"]:
         if isinstance(other, BinaryArray):

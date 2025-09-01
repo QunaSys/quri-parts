@@ -110,16 +110,13 @@ class ParameterMappingBase(ABC):
     """
 
     @abstractproperty
-    def in_params(self) -> Sequence[Parameter]:
-        ...
+    def in_params(self) -> Sequence[Parameter]: ...
 
     @abstractproperty
-    def out_params(self) -> Sequence[Parameter]:
-        ...
+    def out_params(self) -> Sequence[Parameter]: ...
 
     @abstractproperty
-    def mapper(self) -> Mapper:
-        ...
+    def mapper(self) -> Mapper: ...
 
     @abstractproperty
     def is_trivial_mapping(self) -> bool:
@@ -286,9 +283,9 @@ class LinearParameterMapping(ParameterMappingBase):
                 \frac{\partial f}{\partial \theta^\text{(in)}_1} &= (0.1, 0.4)
             \end{align}
         """
-        new_mappings: dict[
-            Parameter, dict[Parameter, LinearParameterFunction]
-        ] = defaultdict(dict)
+        new_mappings: dict[Parameter, dict[Parameter, LinearParameterFunction]] = (
+            defaultdict(dict)
+        )
         for out_param, fn in self.mapping.items():
             if isinstance(fn, Parameter):
                 new_mappings[fn][out_param] = {CONST: 1.0}

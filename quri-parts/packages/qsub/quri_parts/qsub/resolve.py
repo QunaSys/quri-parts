@@ -21,8 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class SubResolver(Protocol):
-    def __call__(self, op: Op, repository: "SubRepository") -> Sub | None:
-        ...
+    def __call__(self, op: Op, repository: "SubRepository") -> Sub | None: ...
 
 
 @dataclass

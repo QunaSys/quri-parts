@@ -36,8 +36,7 @@ class CircuitTranspilerProtocol(Protocol):
     ImmutableQuantumCircuit."""
 
     @abstractmethod
-    def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
-        ...
+    def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit: ...
 
 
 class SequentialTranspiler(CircuitTranspilerProtocol):
@@ -174,8 +173,7 @@ class ParametricCircuitTranspilerProtocol(Protocol):
 
     def __call__(
         self, circuit: ParametricQuantumCircuitProtocol
-    ) -> ParametricQuantumCircuitProtocol:
-        ...
+    ) -> ParametricQuantumCircuitProtocol: ...
 
 
 class ParametricTranspiler(ParametricCircuitTranspilerProtocol):

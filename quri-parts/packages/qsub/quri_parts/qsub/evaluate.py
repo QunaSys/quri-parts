@@ -29,12 +29,10 @@ T = TypeVar("T")
 
 class EvaluatorHooks(Generic[T], ABC):
     @abstractmethod
-    def reset(self) -> None:
-        ...
+    def reset(self) -> None: ...
 
     @abstractmethod
-    def result(self) -> T:
-        ...
+    def result(self) -> T: ...
 
     @abstractmethod
     def enter_sub(
@@ -43,14 +41,12 @@ class EvaluatorHooks(Generic[T], ABC):
         qubits: Sequence[Qubit],
         regs: Sequence[Register],
         call_stack: list[SubId],
-    ) -> bool:
-        ...
+    ) -> bool: ...
 
     @abstractmethod
     def exit_sub(
         self, sub: MachineSub, enter_sub: bool, call_stack: list[SubId]
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @abstractmethod
     def primitive(
@@ -59,8 +55,7 @@ class EvaluatorHooks(Generic[T], ABC):
         qubits: Sequence[Qubit],
         regs: Sequence[Register],
         call_stack: list[SubId],
-    ) -> None:
-        ...
+    ) -> None: ...
 
 
 @dataclass

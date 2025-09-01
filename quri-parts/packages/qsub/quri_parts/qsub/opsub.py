@@ -25,16 +25,13 @@ from .resolve import SubRepository, default_repository
 from .sub import ParamSubDef, Sub, SubDef, SubFactory, param_sub, sub
 
 
-class OpSubDef(OpDef, SubDef):
-    ...
+class OpSubDef(OpDef, SubDef): ...
 
 
-class UnitarySubDef(OpSubDef, UnitaryDef):
-    ...
+class UnitarySubDef(OpSubDef, UnitaryDef): ...
 
 
-class NonUnitarySubDef(OpSubDef, NonUnitaryDef):
-    ...
+class NonUnitarySubDef(OpSubDef, NonUnitaryDef): ...
 
 
 def opsub(
@@ -47,16 +44,13 @@ def opsub(
     return _op, _sub
 
 
-class ParamOpSubDef(ParamOpDef[Params], ParamSubDef[Params]):
-    ...
+class ParamOpSubDef(ParamOpDef[Params], ParamSubDef[Params]): ...
 
 
-class ParamUnitarySubDef(ParamOpSubDef[Params], ParamUnitaryDef[Params]):
-    ...
+class ParamUnitarySubDef(ParamOpSubDef[Params], ParamUnitaryDef[Params]): ...
 
 
-class ParamNonUnitarySubDef(ParamOpSubDef[Params], ParamNonUnitaryDef[Params]):
-    ...
+class ParamNonUnitarySubDef(ParamOpSubDef[Params], ParamNonUnitaryDef[Params]): ...
 
 
 def param_opsub(

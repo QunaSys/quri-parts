@@ -57,13 +57,11 @@ def _get_init_vector_from_state(state: QulacsStateT) -> NDArray[complex128]:
 @overload
 def _evaluate_qp_state_to_qulacs_state(
     state: QulacsStateT, noise_model: NoiseModel
-) -> ql.DensityMatrix:
-    ...
+) -> ql.DensityMatrix: ...
 
 
 @overload
-def _evaluate_qp_state_to_qulacs_state(state: QulacsStateT) -> ql.QuantumState:
-    ...
+def _evaluate_qp_state_to_qulacs_state(state: QulacsStateT) -> ql.QuantumState: ...
 
 
 def _evaluate_qp_state_to_qulacs_state(

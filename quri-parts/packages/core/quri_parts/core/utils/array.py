@@ -20,13 +20,11 @@ _DType = TypeVar("_DType", bound=np.generic)
 
 
 @overload
-def readonly_array(array: "npt.ArrayLike") -> "npt.NDArray[Any]":
-    ...
+def readonly_array(array: "npt.ArrayLike") -> "npt.NDArray[Any]": ...
 
 
 @overload
-def readonly_array(array: "npt.NDArray[_DType]") -> "npt.NDArray[_DType]":
-    ...
+def readonly_array(array: "npt.NDArray[_DType]") -> "npt.NDArray[_DType]": ...
 
 
 def readonly_array(array: "npt.ArrayLike") -> "npt.NDArray[Any]":

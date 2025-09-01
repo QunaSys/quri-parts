@@ -47,15 +47,13 @@ def compile_circuit(circuit: ImmutableQuantumCircuit) -> "_QulacsCircuit":
 @overload
 def compile_parametric_circuit(
     circuit: ParametricQuantumCircuit,
-) -> "_QulacsUnboundParametricCircuit":
-    ...
+) -> "_QulacsUnboundParametricCircuit": ...
 
 
 @overload
 def compile_parametric_circuit(
     circuit: LinearMappedParametricQuantumCircuit,
-) -> "_QulacsLinearMappedUnboundParametricCircuit":
-    ...
+) -> "_QulacsLinearMappedUnboundParametricCircuit": ...
 
 
 def compile_parametric_circuit(
