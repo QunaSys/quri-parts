@@ -30,4 +30,3 @@ quri-parts-rust==0.21.0
 quri-parts-tket==0.21.0
 quri-parts-qsub==0.21.0
 quri-vm==0.1.0
-quspin==1.0.0
