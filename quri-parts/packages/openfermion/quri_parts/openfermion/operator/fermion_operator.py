@@ -8,11 +8,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from openfermion import FermionOperator as OpenFermionFermionOperator
-from openfermion import hermitian_conjugated as hermitian_conjugated_openfermion
+from openfermion import FermionOperator as OpenFermionFermionOperator  # type: ignore
+from openfermion import (  # type: ignore
+    hermitian_conjugated as hermitian_conjugated_openfermion,
+)
 
 
-class FermionOperator(OpenFermionFermionOperator):  # type: ignore
+class FermionOperator(OpenFermionFermionOperator):
     """Wrapper class for OpenFermion's :class:`FermionOperator`."""
 
     def hermitian_conjugated(self) -> "FermionOperator":

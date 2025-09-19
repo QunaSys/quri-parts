@@ -43,9 +43,11 @@ def polynomial_fitting(
         at the input point of the fitted function (can be accessed with :attr:`.value`).
     """
 
-    fitted_params = list(Polynomial.fit(x_data, y_data, order).convert().coef)
+    fitted_params = list(
+        Polynomial.fit(np.array(x_data), np.array(y_data), order).convert().coef
+    )
     fitted_value = cast(float, Polynomial(fitted_params)(point))
-    return FittedResult(parameters=fitted_params, value=fitted_value)
+    return FittedResult(parameters=list(fitted_params), value=fitted_value)
 
 
 def exp_fitting(
@@ -85,7 +87,7 @@ def exp_fitting(
     fitted_value = fitted_params[0] + fitted_params[1] * np.exp(
         Polynomial(fitted_params[2:])(point)
     )
-    return FittedResult(parameters=fitted_params, value=fitted_value)
+    return FittedResult(parameters=list(fitted_params), value=fitted_value)
 
 
 def exp_fitting_with_const(
@@ -127,7 +129,7 @@ def exp_fitting_with_const(
     fitted_value = constant + fitted_params[0] * np.exp(
         Polynomial(fitted_params[1:])(point)
     )
-    return FittedResult(parameters=fitted_params, value=fitted_value)
+    return FittedResult(parameters=list(fitted_params), value=fitted_value)
 
 
 def exp_fitting_with_const_log(
@@ -158,7 +160,9 @@ def exp_fitting_with_const_log(
             "The order cannot be larger than the number of len(x_data) -1. "
         )
 
-    linear_param = Polynomial.fit(x_data, y_data, 1).convert().coef[1]
+    linear_param = Polynomial.fit(
+        np.array(x_data), np.array(y_data), 1
+    ).convert().coef[1]
     sign = np.sign(linear_param)
 
     regular_eps = 1.0e-8
@@ -167,7 +171,7 @@ def exp_fitting_with_const_log(
 
     fitted_params = (
         Polynomial.fit(
-            x_data,
+            np.array(x_data),
             log_values,
             deg=order,
         )
@@ -175,4 +179,4 @@ def exp_fitting_with_const_log(
         .coef
     )
     fitted_value = constant + sign * np.exp(Polynomial(fitted_params[0:])(point))
-    return FittedResult(parameters=fitted_params, value=fitted_value)
+    return FittedResult(parameters=list(fitted_params), value=fitted_value)

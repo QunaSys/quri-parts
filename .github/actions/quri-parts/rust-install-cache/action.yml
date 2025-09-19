@@ -29,7 +29,7 @@ runs:
           ~/.cargo/registry/cache/
           ~/.cargo/git/db/
           target/
-          Cargo.lock
+          quri-parts/target/
         key: ci-${{ runner.os }}-${{ runner.arch }}-${{ inputs.toolchain }}-cargo-${{ inputs.additional-key }}-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
           ci-${{ runner.os }}-${{ runner.arch }}-${{ inputs.toolchain }}-cargo-${{ inputs.additional-key }}-

@@ -10,7 +10,7 @@
 
 from typing import Sequence, TypeVar, Union, cast
 
-from openfermion.ops import FermionOperator
+from openfermion.ops import FermionOperator  # type: ignore
 
 from quri_parts.chem.utils.excitations import DoubleExcitation, SingleExcitation
 from quri_parts.circuit import LinearMappedParametricQuantumCircuit, Parameter

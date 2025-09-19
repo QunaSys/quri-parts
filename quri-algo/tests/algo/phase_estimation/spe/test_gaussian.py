@@ -58,7 +58,9 @@ class TestGaussianPhaseEstimation(unittest.TestCase):
     def test_gaussian(self) -> None:
         search_range = np.linspace(self.a - np.pi * 3, self.a + np.pi * 3, 10000)
         input_state = quantum_state(1)
-        result = self.gaussian_algo(input_state, self.gaussian_param, search_range, 0.8)
+        result = self.gaussian_algo(
+            input_state, self.gaussian_param, search_range.astype(np.float64), 0.8
+        )
         assert np.isclose(result.value, self.a, atol=1e-8)
 
 
@@ -94,7 +96,9 @@ class TestGaussianGSEE(unittest.TestCase):
             self.shift - np.pi * 3, self.shift + np.pi * 3, 10000
         )
         input_state = quantum_state(1)
-        result = self.gaussian_algo(input_state, self.gaussian_param, search_range, 0.8)
+        result = self.gaussian_algo(
+            input_state, self.gaussian_param, search_range.astype(np.float64), 0.8
+        )
         assert np.isclose(result.value, self.shift * self.tau, atol=1e-8)
 
 

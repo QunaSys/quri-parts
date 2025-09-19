@@ -51,12 +51,13 @@ jobs:
         key: ci-${{ runner.os }}-julia-${{ hashFiles('poetry.lock') }}-cache
         restore-keys: ci-${{ runner.os }}-julia-
 
-    - run: |
-        cargo test --workspace
+    - working-directory: quri-parts
+      run: |
+        cargo test --workspace --manifest-path quri-parts/Cargo.toml
 
     - run: |
         poetry env use ${{ matrix.python_version }}
-        poetry run pip install -vvv -e packages/rust
+        poetry run pip install -vvv -e quri-parts/packages/rust
         poetry install -vvv --only main,dev
 
     - run: |
@@ -67,4 +68,4 @@ jobs:
         poetry run julia  "--project=${{ steps.julia_project.outputs.PROJECT }}" -e 'using Pkg; Pkg.add("PythonCall"); Pkg.instantiate()'
 
     - run: |
-        poetry run pytest
+        poetry run pytest quri-parts

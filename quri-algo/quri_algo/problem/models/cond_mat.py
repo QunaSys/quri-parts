@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from openfermion import fermi_hubbard
+from openfermion import fermi_hubbard  # type: ignore
 from quri_parts.openfermion.transforms import OpenFermionQubitMapping
 
 from quri_algo.problem.operators.hamiltonian import (

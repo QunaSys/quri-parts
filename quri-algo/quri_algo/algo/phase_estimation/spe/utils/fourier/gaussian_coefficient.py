@@ -23,7 +23,8 @@ class GaussianParam:
     r"""Hyperparameters of the Gaussian distribution function.
 
     .. math::
-        G_{\sigma}(x) = \int_{-T}^{T} e^{-\frac{1}{2}(\sigma^2 \pi^2 k^2)} e^{2\pi i k x} dk
+        G_{\sigma}(x) = \int_{-T}^{T} e^{-\frac{1}{2}(\sigma^2 \pi^2 k^2)}
+            e^{2\pi i k x} dk
 
     Args:
         T: The boundary of the Fourier integration region.
@@ -41,7 +42,7 @@ class GaussianParam:
 
 def get_kn(T: float, N: int) -> npt.NDArray[np.float64]:
     n = np.arange(N)
-    return -T + 2 * T / N * n
+    return (-T + 2 * T / N * n).astype(np.float64)
 
 
 def get_classical_samples(distributions: list[float], n_samples: int) -> Counter[int]:

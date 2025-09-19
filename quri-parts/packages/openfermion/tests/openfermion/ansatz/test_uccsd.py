@@ -11,7 +11,7 @@
 from typing import Sequence
 
 import pytest
-from openfermion import FermionOperator
+from openfermion import FermionOperator  # type: ignore
 
 from quri_parts.chem.utils.excitations import excitations
 from quri_parts.circuit import LinearMappedParametricQuantumCircuit
@@ -438,7 +438,7 @@ class TestSingletUCCSD:
             )
 
         operator_mapper = operator_mapping.of_operator_mapper
-        s2_operator = operator_mapper(Sx * Sx + Sy * Sy + Sz * Sz)
+        s2_operator = operator_mapper(Sx * Sx + Sy * Sy + Sz * Sz)  # type: ignore
 
         # Sum all exponents together
         pauli_map = {1: "X", 2: "Y", 3: "Z"}

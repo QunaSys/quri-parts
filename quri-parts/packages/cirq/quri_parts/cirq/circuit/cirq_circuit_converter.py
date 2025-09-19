@@ -62,24 +62,30 @@ _three_qubit_gate_quri_parts: Mapping[Gate, ThreeQubitGateNameType] = {
 def circuit_from_cirq(cirq_circuit: Circuit) -> ImmutableQuantumCircuit:
     """Converts a :class:`cirq.Circuit` to
     :class:`~ImmutableQuantumCircuit`."""
-    qubit_count = max([qubit.x for qubit in cirq_circuit.all_qubits()]) + 1
+    qubit_count = (
+        max([getattr(qubit, 'x', 0) for qubit in cirq_circuit.all_qubits()]) + 1
+    )
     circuit = QuantumCircuit(qubit_count)
 
     for operation in cirq_circuit.all_operations():
         gate = operation.gate
-        if gate in _single_qubit_gate_quri_parts:
+        if gate is not None and gate in _single_qubit_gate_quri_parts:
             circuit.add_gate(
                 QuantumGate(
-                    name=_single_qubit_gate_quri_parts[gate],
-                    target_indices=(operation.qubits[0].x,),
+                    name=(
+                        _single_qubit_gate_quri_parts[gate]
+                        if gate is not None
+                        else ''
+                    ),
+                    target_indices=(getattr(operation.qubits[0], 'x', 0),),
                 )
             )
         elif gate in [CNOT, CZ]:
             circuit.add_gate(
                 QuantumGate(
                     name=_two_qubit_gate_quri_parts[gate],
-                    target_indices=(operation.qubits[1].x,),
-                    control_indices=(operation.qubits[0].x,),
+                    target_indices=(getattr(operation.qubits[1], 'x', 0),),
+                    control_indices=(getattr(operation.qubits[0], 'x', 0),),
                 )
             )
         elif gate == SWAP:
@@ -87,8 +93,8 @@ def circuit_from_cirq(cirq_circuit: Circuit) -> ImmutableQuantumCircuit:
                 QuantumGate(
                     name=_two_qubit_gate_quri_parts[gate],
                     target_indices=(
-                        operation.qubits[0].x,
-                        operation.qubits[1].x,
+                        getattr(operation.qubits[0], 'x', 0),
+                        getattr(operation.qubits[1], 'x', 0),
                     ),
                 )
             )
@@ -96,25 +102,25 @@ def circuit_from_cirq(cirq_circuit: Circuit) -> ImmutableQuantumCircuit:
             circuit.add_gate(
                 QuantumGate(
                     name=str(operation.gate)[:2].upper(),
-                    target_indices=(operation.qubits[0].x,),
+                    target_indices=(getattr(operation.qubits[0], 'x', 0),),
                     params=(gate._rads,),
                 )
             )
-        elif gate in _three_qubit_gate_quri_parts:
+        elif gate is not None and gate in _three_qubit_gate_quri_parts:
             circuit.add_gate(
                 QuantumGate(
-                    name=_three_qubit_gate_quri_parts[gate],
-                    target_indices=(operation.qubits[2].x,),
+                    name=_three_qubit_gate_quri_parts[gate] if gate is not None else '',
+                    target_indices=(getattr(operation.qubits[2], 'x', 0),),
                     control_indices=(
-                        operation.qubits[0].x,
-                        operation.qubits[1].x,
+                        getattr(operation.qubits[0], 'x', 0),
+                        getattr(operation.qubits[1], 'x', 0),
                     ),
                 )
             )
         else:
             circuit.add_gate(
                 UnitaryMatrix(
-                    target_indices=[i.x for i in operation.qubits],
+                    target_indices=[getattr(i, 'x', 0) for i in operation.qubits],
                     unitary_matrix=unitary(gate).tolist(),
                 )
             )

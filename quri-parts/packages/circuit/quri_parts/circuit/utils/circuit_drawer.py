@@ -97,8 +97,9 @@ def draw_circuit(
     # Add gate AA to ``circuit_pictures``.
     for idx, gate in enumerate(circuit.gates):
         gate_aa = _generate_gate_aa(gate, idx)
-        layer, row_idx, gate_map = _place_check(gate, depth, gate_map)
-        circuit_pictures[layer] = _write_gate_string(
+        layer, row_idx, gate_map = _place_check(gate, depth, gate_map)  # type: ignore
+        gate_map = gate_map
+        circuit_pictures[layer] = _write_gate_string(  # type: ignore
             gate_aa, row_idx, circuit_pictures[layer]
         )
 
@@ -327,8 +328,8 @@ def _create_swap_string(target_indices: Sequence[int], gate_idx: int) -> list[st
 def _place_check(
     gate: Union[ParametricQuantumGate, QuantumGate],
     depth: int,
-    gate_map: npt.NDArray[np.bool_],
-) -> tuple[int, int, npt.NDArray[np.bool_]]:
+    gate_map: npt.NDArray[np.bool_[bool]],
+) -> tuple[int, int, npt.NDArray[np.bool_[bool]]]:
     gate_indices = (*gate.control_indices, *gate.target_indices)
     min_idx = min(gate_indices)
     row_idx = min_idx * 4

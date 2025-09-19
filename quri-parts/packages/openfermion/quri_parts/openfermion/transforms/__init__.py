@@ -12,14 +12,25 @@ from abc import ABC, abstractproperty
 from collections.abc import Collection, Sequence
 from typing import Callable, Optional, Union
 
-from openfermion.ops import FermionOperator, InteractionOperator, MajoranaOperator
-from openfermion.transforms import bravyi_kitaev as of_bravyi_kitaev
-from openfermion.transforms import bravyi_kitaev_tree, get_fermion_operator
-from openfermion.transforms import jordan_wigner as of_jordan_wigner
-from openfermion.transforms import reorder
-from openfermion.transforms.opconversions import edit_hamiltonian_for_spin
-from openfermion.transforms.opconversions.remove_symmetry_qubits import remove_indices
-from openfermion.utils import up_then_down
+from openfermion.ops import (  # type: ignore
+    FermionOperator,
+    InteractionOperator,
+    MajoranaOperator,
+)
+from openfermion.transforms import bravyi_kitaev as of_bravyi_kitaev  # type: ignore
+from openfermion.transforms import (  # type: ignore
+    bravyi_kitaev_tree,
+    get_fermion_operator,
+)
+from openfermion.transforms import jordan_wigner as of_jordan_wigner  # type: ignore
+from openfermion.transforms import reorder  # type: ignore
+from openfermion.transforms.opconversions import (  # type: ignore
+    edit_hamiltonian_for_spin,
+)
+from openfermion.transforms.opconversions.remove_symmetry_qubits import (
+    remove_indices,
+)
+from openfermion.utils import up_then_down  # type: ignore
 from typing_extensions import TypeAlias
 
 from quri_parts.chem.transforms import (
@@ -538,7 +549,7 @@ class OpenFermionSymmetryConservingBravyiKitaev(
                 op = get_fermion_operator(op)
 
             symmetry_op = FermionOperator()
-            for op_tuple, coeff in op.terms.items():
+            for op_tuple, coeff in getattr(op, 'terms', {}).items():
                 single_op = FermionOperator(op_tuple, coeff)
                 if has_particle_number_symmetry(single_op, check_spin_symmetry=True):
                     symmetry_op += single_op

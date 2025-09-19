@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from openfermion.ops import QubitOperator
+from openfermion.ops import QubitOperator  # type: ignore
 
 from quri_parts.core.operator import Operator, pauli_label
 from quri_parts.openfermion.operator import operator_from_openfermion_op
