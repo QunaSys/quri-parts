@@ -89,7 +89,9 @@ def get_observable_data(
 
     pauli_list_arrays = [np.array(a, dtype=np.complex128) for a in pauli_list]
     pauli_list_arrays.reverse()
-    _obs = reduce(np.kron, pauli_list_arrays)
+    _obs: npt.NDArray[np.complex128] = reduce(
+        lambda x, y: np.kron(x, y).astype(np.complex128), pauli_list_arrays
+    )
     if n is None:
         n = len(pauli_list)
     obs_data = np.reshape(_obs, [dim for _ in range(2 * n)])

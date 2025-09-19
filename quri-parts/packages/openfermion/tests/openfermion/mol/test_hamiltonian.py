@@ -10,7 +10,7 @@
 
 
 from numpy import array, isclose
-from openfermion import FermionOperator
+from openfermion import FermionOperator  # type: ignore
 
 from quri_parts.chem.mol import SpinMO1eIntArray, SpinMO2eIntArray, SpinMOeIntSet, cas
 from quri_parts.core.operator import (

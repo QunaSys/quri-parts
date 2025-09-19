@@ -9,8 +9,8 @@
 # limitations under the License.
 
 import pytest
-from openfermion import FermionOperator as OpenFermionFermionOperator
-from openfermion import (
+from openfermion import FermionOperator as OpenFermionFermionOperator  # type: ignore
+from openfermion import (  # type: ignore
     symmetry_conserving_bravyi_kitaev as of_symmetry_conserving_bravyi_kitaev,
 )
 

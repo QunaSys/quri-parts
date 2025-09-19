@@ -13,7 +13,9 @@ from typing import TYPE_CHECKING
 from quri_parts.core.operator import Operator, PauliLabel, SinglePauli
 
 if TYPE_CHECKING:
-    from openfermion.ops import QubitOperator as OpenFermionQubitOperator
+    from openfermion.ops import (  # type: ignore
+        QubitOperator as OpenFermionQubitOperator,
+    )
 
 
 def operator_from_openfermion_op(

@@ -13,6 +13,7 @@ from functools import reduce
 from typing import Any, NamedTuple, Union, cast
 
 import numpy as np
+import numpy.typing as npt
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler, QubitRemappingTranspiler
 from quri_parts.core.estimator import Estimate
@@ -101,8 +102,12 @@ class HadamardTest(ExpectationValueEstimator[StateT]):
         )
 
         # TODO: Fix after GeneralSampler is available in QURI Parts
-        real_cnt = _general_sample_on_state(self.sampler, real_hadamard_state, n_shots)
-        imag_cnt = _general_sample_on_state(self.sampler, imag_hadamard_state, n_shots)
+        real_cnt = _general_sample_on_state(
+            self.sampler, real_hadamard_state, n_shots
+        )  # type: ignore
+        imag_cnt = _general_sample_on_state(
+            self.sampler, imag_hadamard_state, n_shots
+        )  # type: ignore
 
         real_cnt = get_hadamard_test_ancilla_qubit_counter(real_cnt)
         imag_cnt = get_hadamard_test_ancilla_qubit_counter(imag_cnt)
@@ -131,7 +136,9 @@ def remap_state_for_hadamard_test(
         padding[0] = 1.0
         state_list = [state.vector]
         state_list.extend([padding])
-        vector = reduce(np.kron, state_list)
+        vector: npt.NDArray[np.complex128] = reduce(
+            lambda x, y: np.kron(x, y).astype(np.complex128), state_list
+        )
         return QuantumStateVector(n_hadamard_test_qubit, vector=vector, circuit=circuit)
     return GeneralCircuitQuantumState(n_hadamard_test_qubit, circuit=circuit)
 

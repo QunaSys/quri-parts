@@ -41,7 +41,7 @@ jobs:
 
     - name: Run format
       run: |
-        cargo fmt --all -- --check
+        cargo fmt --manifest-path quri-parts/Cargo.toml --all -- --check
       if: success() || failure()
 
     - run: |
@@ -49,17 +49,17 @@ jobs:
         poetry install --only lint
 
     - run: |
-        poetry run isort packages --check --diff
+        poetry run isort quri-parts/packages --check --diff
       if: success() || failure()
 
     - run: |
-        poetry run black packages --check
+        poetry run black quri-parts/packages --check
       if: success() || failure()
 
     - run: |
-        poetry run flake8 packages
+        poetry run flake8 quri-parts/packages
       if: success() || failure()
 
     - run: |
-        poetry run docformatter -c -r packages
+        poetry run docformatter -c -r quri-parts/packages
       if: success() || failure()
