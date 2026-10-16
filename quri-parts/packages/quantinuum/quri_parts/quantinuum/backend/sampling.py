@@ -25,17 +25,21 @@ Job flow of :meth:`QuantinuumSamplingBackend.sample`:
 
 Authentication is handled by ``qnexus``: run ``qnexus.login()`` (browser) or
 ``qnexus.auth.login_no_interaction(email, password)`` (headless) once; tokens
-are stored under ``~/.qnx/auth``.
+are stored under ``~/.qnx/auth``. The backend itself never logs in. If no
+valid login is found, every call that talks to Nexus raises a
+:class:`~quri_parts.backend.BackendError` that says how to log in.
 """
 
 from collections import Counter
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Iterator, Mapping, Sequence
+from contextlib import contextmanager
 from typing import Any, Optional, Union
 from uuid import uuid4
 
 import qnexus as qnx
 from pytket.backends.backendresult import BackendResult
 from pytket.circuit import Circuit as TketCircuit
+from qnexus.exceptions import AuthenticationError
 from qnexus.models.job_status import JobStatusEnum
 from qnexus.models.references import CircuitRef, ExecuteJobRef, ProjectRef
 from typing_extensions import TypeAlias
@@ -53,6 +57,37 @@ from quri_parts.tket.circuit import convert_circuit
 
 #: A function converting a QURI Parts circuit to a pytket circuit.
 TketCircuitConverter: TypeAlias = Callable[[ImmutableQuantumCircuit], TketCircuit]
+
+_LOGIN_HINT = (
+    "not logged in to Quantinuum Nexus. Log in once with qnexus.login() "
+    "(opens a browser) or qnexus.auth.login_no_interaction(email, password) "
+    "(headless); the tokens are stored under ~/.qnx/auth."
+)
+
+
+@contextmanager
+def _nexus_errors(what: str) -> Iterator[None]:
+    """Turn exceptions raised by ``qnexus`` inside the block into
+    :class:`~quri_parts.backend.BackendError`.
+
+    An :class:`qnexus.exceptions.AuthenticationError` becomes a message that
+    says how to log in. Any other exception keeps its type and message in the
+    :class:`~quri_parts.backend.BackendError` message so that the real cause
+    (wrong device name, network failure, ...) stays visible. A
+    :class:`~quri_parts.backend.BackendError` raised inside the block is
+    re-raised unchanged.
+
+    Args:
+        what: Prefix of the error message, e.g. "Failed to submit ...".
+    """
+    try:
+        yield
+    except BackendError:
+        raise
+    except AuthenticationError as e:
+        raise BackendError(f"{what}: {_LOGIN_HINT}") from e
+    except Exception as e:
+        raise BackendError(f"{what}: {type(e).__name__}: {e}") from e
 
 
 def backend_result_to_sampling_counts(result: BackendResult) -> SamplingCounts:
@@ -157,8 +192,13 @@ class QuantinuumSamplingJob(SamplingJob):
 
         This allows retrieving results in a different process, e.g.
         after an HPC batch job ends.
+
+        Raises:
+            BackendError: If the job cannot be fetched from Nexus (including
+                when not logged in) or is not an execute job.
         """
-        job_ref = qnx.jobs.get(id=job_id)
+        with _nexus_errors(f"Failed to get Nexus job {job_id}"):
+            job_ref = qnx.jobs.get(id=job_id)
         if not isinstance(job_ref, ExecuteJobRef):
             raise BackendError(f"Nexus job {job_id} is not an execute job.")
         return cls(job_ref, timeout)
@@ -174,21 +214,33 @@ class QuantinuumSamplingJob(SamplingJob):
         return str(self._job_ref.id)
 
     def status(self) -> JobStatusEnum:
-        """Query the current status of the job from Nexus."""
-        return qnx.jobs.status(self._job_ref).status
+        """Query the current status of the job from Nexus.
+
+        Raises:
+            BackendError: If the status cannot be fetched from Nexus
+                (including when not logged in).
+        """
+        with _nexus_errors(f"Failed to get the status of Nexus job {self.id}"):
+            return qnx.jobs.status(self._job_ref).status
 
     def cancel(self) -> None:
-        """Request cancellation of the job."""
-        qnx.jobs.cancel(self._job_ref)
+        """Request cancellation of the job.
+
+        Raises:
+            BackendError: If the request fails (including when not logged in).
+        """
+        with _nexus_errors(f"Failed to cancel Nexus job {self.id}"):
+            qnx.jobs.cancel(self._job_ref)
 
     def result(self) -> QuantinuumSamplingResult:
         """Wait for the job to finish and return the merged sampling result.
 
         Raises:
-            BackendError: If the job fails, is cancelled, times out or returns
-                results other than pytket circuit results.
+            BackendError: If the job fails, is cancelled, times out, cannot be
+                reached (including when not logged in) or returns results
+                other than pytket circuit results.
         """
-        try:
+        with _nexus_errors(f"Failed to get the result of Nexus job {self.id}"):
             qnx.jobs.wait_for(self._job_ref, timeout=self._timeout)
             result_refs = qnx.jobs.results(self._job_ref)
             results = []
@@ -197,12 +249,6 @@ class QuantinuumSamplingJob(SamplingJob):
                 if download is None:
                     raise BackendError(f"Nexus job {self.id} has incomplete items.")
                 results.append(download())
-        except BackendError:
-            raise
-        except Exception as e:
-            raise BackendError(
-                f"Failed to get the result of Nexus job {self.id}."
-            ) from e
         backend_results: list[BackendResult] = []
         for r in results:
             if not isinstance(r, BackendResult):
@@ -320,10 +366,16 @@ class QuantinuumSamplingBackend(SamplingBackend):
         """The Nexus project.
 
         Resolved (and created if needed) on first access.
+
+        Raises:
+            BackendError: If the project cannot be fetched or created on Nexus
+                (including when not logged in).
         """
         if self._project_ref is None:
             assert self._project_name is not None
-            self._project_ref = qnx.projects.get_or_create(name=self._project_name)
+            name = self._project_name
+            with _nexus_errors(f"Failed to get or create Nexus project {name!r}"):
+                self._project_ref = qnx.projects.get_or_create(name=name)
         return self._project_ref
 
     def _to_tket_circuit(self, circuit: ImmutableQuantumCircuit) -> TketCircuit:
@@ -362,13 +414,14 @@ class QuantinuumSamplingBackend(SamplingBackend):
 
         Raises:
             ValueError: If ``shots`` is not positive.
-            BackendError: If any step on Nexus fails.
+            BackendError: If any step on Nexus fails, including when not
+                logged in.
         """
         shot_dist = distribute_shots(shots, self._max_shots)
         tket_circuit = self._to_tket_circuit(circuit)
         job_name = f"{self._job_name_prefix}-{uuid4().hex[:8]}"
 
-        try:
+        with _nexus_errors("Failed to submit a sampling job to Quantinuum Nexus"):
             project = self.project
             circuit_ref = qnx.circuits.upload(
                 circuit=tket_circuit, name=f"{job_name}-circuit", project=project
@@ -386,12 +439,5 @@ class QuantinuumSamplingBackend(SamplingBackend):
                 project=project,
                 **self._execute_kwargs,
             )
-        except BackendError:
-            raise
-        except Exception as e:
-            raise BackendError(
-                "Failed to submit a sampling job to Quantinuum Nexus. "
-                "Make sure you are logged in (qnexus.login())."
-            ) from e
 
         return QuantinuumSamplingJob(execute_ref, timeout=self._result_timeout)

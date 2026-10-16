@@ -22,6 +22,7 @@ qnx = pytest.importorskip("qnexus")
 from pytket.backends.backendresult import BackendResult  # noqa: E402
 from pytket.circuit import Bit, Circuit  # noqa: E402
 from pytket.utils.outcomearray import OutcomeArray  # noqa: E402
+from qnexus.exceptions import AuthenticationError  # noqa: E402
 from qnexus.models.annotations import Annotations  # noqa: E402
 from qnexus.models.job_status import JobStatusEnum  # noqa: E402
 from qnexus.models.references import ExecuteJobRef, ProjectRef  # noqa: E402
@@ -263,12 +264,36 @@ class TestQuantinuumSamplingBackend:
         fake.install(monkeypatch)
 
         def failing_upload(**kwargs: Any) -> Any:
-            raise RuntimeError("not logged in")
+            raise RuntimeError("device H9-9 does not exist")
 
         monkeypatch.setattr(qnx.circuits, "upload", failing_upload)
         backend = QuantinuumSamplingBackend("H2-1E")
-        with pytest.raises(BackendError):
+        with pytest.raises(BackendError) as info:
             backend.sample(_bell_circuit(), 1)
+        # the original error stays visible and no login advice is given
+        assert "RuntimeError: device H9-9 does not exist" in str(info.value)
+        assert "qnexus.login()" not in str(info.value)
+        assert isinstance(info.value.__cause__, RuntimeError)
+
+    def test_sample_not_logged_in(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        fake = FakeNexus([[[0, 0]]])
+        fake.install(monkeypatch)
+
+        def not_authenticated(**kwargs: Any) -> Any:
+            raise AuthenticationError("Not authenticated.")
+
+        monkeypatch.setattr(qnx.projects, "get_or_create", not_authenticated)
+        backend = QuantinuumSamplingBackend("H2-1E")
+        with pytest.raises(BackendError) as info:
+            backend.sample(_bell_circuit(), 1)
+        assert "not logged in to Quantinuum Nexus" in str(info.value)
+        assert "qnexus.login()" in str(info.value)
+        assert isinstance(info.value.__cause__, AuthenticationError)
+        assert fake.uploaded == []
+
+        # accessing the project directly gives the same advice
+        with pytest.raises(BackendError, match="qnexus.login"):
+            backend.project
 
     def test_result_wraps_errors(self, monkeypatch: pytest.MonkeyPatch) -> None:
         fake = FakeNexus([[[0, 0]]])
@@ -280,7 +305,31 @@ class TestQuantinuumSamplingBackend:
         backend = QuantinuumSamplingBackend("H2-1E")
         job = backend.sample(_bell_circuit(), 1)
         monkeypatch.setattr(qnx.jobs, "wait_for", failing_wait)
-        with pytest.raises(BackendError):
+        with pytest.raises(BackendError) as info:
+            job.result()
+        assert "RuntimeError: job errored" in str(info.value)
+        assert "qnexus.login()" not in str(info.value)
+
+    def test_job_not_logged_in(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        fake = FakeNexus([[[0, 0]]])
+        fake.install(monkeypatch)
+
+        def not_authenticated(*args: Any, **kwargs: Any) -> Any:
+            raise AuthenticationError("Not authenticated.")
+
+        monkeypatch.setattr(qnx.jobs, "get", not_authenticated)
+        with pytest.raises(BackendError, match="qnexus.login"):
+            QuantinuumSamplingJob.from_id(str(uuid4()))
+
+        job = QuantinuumSamplingJob(fake.execute_ref)
+        monkeypatch.setattr(qnx.jobs, "status", not_authenticated)
+        with pytest.raises(BackendError, match="qnexus.login"):
+            job.status()
+        monkeypatch.setattr(qnx.jobs, "cancel", not_authenticated)
+        with pytest.raises(BackendError, match="qnexus.login"):
+            job.cancel()
+        monkeypatch.setattr(qnx.jobs, "wait_for", not_authenticated)
+        with pytest.raises(BackendError, match="qnexus.login"):
             job.result()
 
     def test_job_from_id_and_cancel(self, monkeypatch: pytest.MonkeyPatch) -> None:
