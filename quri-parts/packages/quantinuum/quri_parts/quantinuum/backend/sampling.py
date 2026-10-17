@@ -374,7 +374,13 @@ class QuantinuumSamplingBackend(SamplingBackend):
                 raise ValueError("Either device_name or backend_config is required.")
             backend_config = default_backend_config(device_name)
         if _is_helios(backend_config):
-            raise ValueError(f"{_HELIOS_UNSUPPORTED} (got {backend_config!r})")
+            target = getattr(backend_config, "system_name", None) or getattr(
+                backend_config, "device_name", None
+            )
+            raise ValueError(
+                f"{_HELIOS_UNSUPPORTED} "
+                f"(got {type(backend_config).__name__} for {target!r})"
+            )
         self._backend_config = backend_config
         if max_shots is None and isinstance(backend_config, qnx.QuantinuumConfig):
             max_shots = QUANTINUUM_MAX_SHOTS_PER_ITEM
