@@ -67,11 +67,12 @@ TketCircuitConverter: TypeAlias = Callable[[ImmutableQuantumCircuit], TketCircui
 #: :class:`QuantinuumSamplingBackend` for :class:`qnexus.QuantinuumConfig`.
 QUANTINUUM_MAX_SHOTS_PER_ITEM = 10000
 
+# The reason (Helios accepts only QIR or HUGR programs, not pytket circuits)
+# is documented in the module docstring; users only need to know what to use.
 _HELIOS_UNSUPPORTED = (
-    "Quantinuum Helios is not supported by QuantinuumSamplingBackend yet: the "
-    "Helios endpoints on Nexus accept only QIR or HUGR programs, not pytket "
-    'circuits. Use an H-Series device (e.g. "H2-1", "H2-1E", "H2-1SC") '
-    "or a Nexus-hosted simulator (e.g. qnexus.AerConfig()) instead."
+    "Quantinuum Helios is not supported by QuantinuumSamplingBackend yet. "
+    'Use an H-Series device (e.g. "H2-1", "H2-1E", "H2-1SC") or a '
+    "Nexus-hosted simulator (e.g. qnexus.AerConfig()) instead."
 )
 
 
@@ -373,7 +374,7 @@ class QuantinuumSamplingBackend(SamplingBackend):
                 raise ValueError("Either device_name or backend_config is required.")
             backend_config = default_backend_config(device_name)
         if _is_helios(backend_config):
-            raise ValueError(_HELIOS_UNSUPPORTED)
+            raise ValueError(f"{_HELIOS_UNSUPPORTED} (got {backend_config!r})")
         self._backend_config = backend_config
         if max_shots is None and isinstance(backend_config, qnx.QuantinuumConfig):
             max_shots = QUANTINUUM_MAX_SHOTS_PER_ITEM
