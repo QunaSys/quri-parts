@@ -30,6 +30,7 @@ from qnexus.models.references import ExecuteJobRef, ProjectRef  # noqa: E402
 from quri_parts.backend import BackendError  # noqa: E402
 from quri_parts.circuit import QuantumCircuit  # noqa: E402
 from quri_parts.quantinuum.backend import (  # noqa: E402
+    QUANTINUUM_MAX_SHOTS_PER_ITEM,
     QuantinuumSamplingBackend,
     QuantinuumSamplingJob,
     QuantinuumSamplingResult,
@@ -152,9 +153,8 @@ class TestHelpers:
         assert isinstance(config, qnx.QuantinuumConfig)
         assert config.device_name == "H2-1E"
 
-        helios = default_backend_config("Helios-1E")
-        assert isinstance(helios, qnx.HeliosConfig)
-        assert helios.system_name == "Helios-1E"
+        with pytest.raises(ValueError, match="Helios is not supported"):
+            default_backend_config("Helios-1E")
 
 
 class TestQuantinuumSamplingBackend:
@@ -164,6 +164,44 @@ class TestQuantinuumSamplingBackend:
 
         backend = QuantinuumSamplingBackend(backend_config=qnx.AerConfig())
         assert isinstance(backend.backend_config, qnx.AerConfig)
+
+    def test_init_rejects_helios(self) -> None:
+        with pytest.raises(ValueError, match="Helios is not supported"):
+            QuantinuumSamplingBackend("Helios-1E")
+        with pytest.raises(ValueError, match="Helios is not supported"):
+            QuantinuumSamplingBackend(
+                backend_config=qnx.HeliosConfig(system_name="Helios-1E")
+            )
+        # qnexus itself warns that QuantinuumConfig is deprecated for Helios
+        with pytest.warns(DeprecationWarning):
+            config = qnx.QuantinuumConfig(device_name="Helios-1SC")
+        with pytest.raises(ValueError, match="Helios is not supported"):
+            QuantinuumSamplingBackend(backend_config=config)
+
+    def test_max_shots_default(self) -> None:
+        assert QUANTINUUM_MAX_SHOTS_PER_ITEM == 10000
+        # Quantinuum-hosted devices: 10000 shots per job item
+        assert QuantinuumSamplingBackend("H2-1E").max_shots == 10000
+        assert QuantinuumSamplingBackend("reimei").max_shots == 10000
+        # explicit value wins
+        assert QuantinuumSamplingBackend("H2-1E", max_shots=5000).max_shots == 5000
+        # Nexus-hosted simulators: no split
+        backend = QuantinuumSamplingBackend(backend_config=qnx.AerConfig())
+        assert backend.max_shots is None
+
+    def test_sample_splits_shots_by_default(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        fake = FakeNexus([[[0, 0]], [[0, 0]], [[1, 1]]])
+        fake.install(monkeypatch)
+
+        backend = QuantinuumSamplingBackend("H2-1E")
+        job = backend.sample(_bell_circuit(), 25000)
+
+        execute_call = fake.execute_calls[0]
+        assert execute_call["n_shots"] == [10000, 10000, 5000]
+        assert len(execute_call["programs"]) == 3
+        assert job.result().counts == {0b00: 2, 0b11: 1}
 
     def test_sample_with_compile(self, monkeypatch: pytest.MonkeyPatch) -> None:
         fake = FakeNexus([[[0, 0], [1, 1], [1, 1]]])

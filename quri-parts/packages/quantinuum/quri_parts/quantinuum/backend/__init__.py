@@ -24,6 +24,7 @@ except ImportError as e:  # pragma: no cover
     ) from e
 
 from .sampling import (
+    QUANTINUUM_MAX_SHOTS_PER_ITEM,
     QuantinuumSamplingBackend,
     QuantinuumSamplingJob,
     QuantinuumSamplingResult,
@@ -34,6 +35,7 @@ from .sampling import (
 )
 
 __all__ = [
+    "QUANTINUUM_MAX_SHOTS_PER_ITEM",
     "QuantinuumSamplingBackend",
     "QuantinuumSamplingJob",
     "QuantinuumSamplingResult",

@@ -5,7 +5,7 @@ QURI Parts Quantinuum is a support library for using Quantinuum with QURI Parts.
 It provides
 
 - `quri_parts.quantinuum.circuit`: Quantinuum native gates (`U1q`, `ZZ`, `RZZ`) and transpilers to the Quantinuum gate set.
-- `quri_parts.quantinuum.backend`: `QuantinuumSamplingBackend`, a `SamplingBackend` that submits circuits to Quantinuum systems (H-Series, Helios), their emulators and Nexus-hosted simulators through [Quantinuum Nexus](https://docs.quantinuum.com/nexus/).
+- `quri_parts.quantinuum.backend`: `QuantinuumSamplingBackend`, a `SamplingBackend` that submits circuits to Quantinuum systems (H-Series, Reimei), their emulators and Nexus-hosted simulators through [Quantinuum Nexus](https://docs.quantinuum.com/nexus/).
 
 ## Documentation
 
@@ -41,7 +41,11 @@ job = backend.sample(circuit, shots=1000)
 print(job.result().counts)
 ```
 
-Any Nexus backend config can be passed instead of a device name, e.g. `QuantinuumSamplingBackend(backend_config=qnx.AerConfig())` for a Nexus-hosted simulator or `QuantinuumSamplingBackend(backend_config=qnx.HeliosConfig(system_name="Helios-1E"))` for the Helios emulator.
+Any Nexus backend config can be passed instead of a device name, e.g. `QuantinuumSamplingBackend(backend_config=qnx.AerConfig())` for a Nexus-hosted simulator.
+
+Requests with more than 10,000 shots (the per-item limit of Quantinuum-hosted devices) are split into several job items of one Nexus job and the counts are merged; `max_shots` changes the chunk size.
+
+Quantinuum Helios is not supported yet: its Nexus endpoints accept only QIR or HUGR programs, so Helios device names and `qnx.HeliosConfig` are rejected with a `ValueError`.
 
 ## License
 

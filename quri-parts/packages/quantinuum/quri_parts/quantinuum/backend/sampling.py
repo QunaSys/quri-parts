@@ -9,8 +9,12 @@
 # limitations under the License.
 
 """A :class:`~quri_parts.backend.SamplingBackend` that submits circuits to
-Quantinuum systems (H-Series, Helios), their emulators and Nexus-hosted
+Quantinuum systems (H-Series, Reimei), their emulators and Nexus-hosted
 simulators through the Quantinuum Nexus client (``qnexus``).
+
+Quantinuum Helios is not supported yet: its Nexus endpoints accept only QIR or
+HUGR programs, not pytket circuits. Helios device names and
+:class:`qnexus.HeliosConfig` are rejected with a :class:`ValueError`.
 
 Job flow of :meth:`QuantinuumSamplingBackend.sample`:
 
@@ -57,6 +61,27 @@ from quri_parts.tket.circuit import convert_circuit
 
 #: A function converting a QURI Parts circuit to a pytket circuit.
 TketCircuitConverter: TypeAlias = Callable[[ImmutableQuantumCircuit], TketCircuit]
+
+#: Maximum number of shots per job item accepted by Quantinuum-hosted devices
+#: (H-Series, Reimei). Used as the default ``max_shots`` of
+#: :class:`QuantinuumSamplingBackend` for :class:`qnexus.QuantinuumConfig`.
+QUANTINUUM_MAX_SHOTS_PER_ITEM = 10000
+
+_HELIOS_UNSUPPORTED = (
+    "Quantinuum Helios is not supported by QuantinuumSamplingBackend yet: the "
+    "Helios endpoints on Nexus accept only QIR or HUGR programs, not pytket "
+    'circuits. Use an H-Series device (e.g. "H2-1", "H2-1E", "H2-1SC") '
+    "or a Nexus-hosted simulator (e.g. qnexus.AerConfig()) instead."
+)
+
+
+def _is_helios(backend_config: qnx.BackendConfig) -> bool:
+    """Return True if the config targets a Helios system."""
+    if isinstance(backend_config, qnx.HeliosConfig):
+        return True
+    device_name = getattr(backend_config, "device_name", "")
+    return isinstance(device_name, str) and device_name.lower().startswith("helios")
+
 
 _LOGIN_HINT = (
     "not logged in to Quantinuum Nexus. Log in once with qnexus.login() "
@@ -130,15 +155,18 @@ def distribute_shots(shots: int, max_shots: Optional[int]) -> list[int]:
     return dist
 
 
-def default_backend_config(device_name: str) -> qnx.BackendConfig:
+def default_backend_config(device_name: str) -> qnx.QuantinuumConfig:
     """Create the Nexus backend config for a Quantinuum device name.
 
-    Names starting with ``Helios`` (e.g. ``Helios-1``, ``Helios-1E``) map to
-    :class:`qnexus.HeliosConfig`; all other names (e.g. ``H2-1``, ``H2-1E``,
-    ``H2-1SC``) map to :class:`qnexus.QuantinuumConfig`.
+    Device names (e.g. ``H2-1``, ``H2-1E``, ``H2-1SC``, ``reimei``) map to
+    :class:`qnexus.QuantinuumConfig`.
+
+    Raises:
+        ValueError: If the name refers to Helios (``Helios-1``, ``Helios-1E``,
+            ...), which this backend does not support yet.
     """
     if device_name.lower().startswith("helios"):
-        return qnx.HeliosConfig(system_name=device_name)
+        raise ValueError(f"{_HELIOS_UNSUPPORTED} (got device_name={device_name!r})")
     return qnx.QuantinuumConfig(device_name=device_name)
 
 
@@ -277,11 +305,12 @@ class QuantinuumSamplingBackend(SamplingBackend):
 
     Args:
         device_name: Name of a Quantinuum device, emulator or syntax checker,
-            e.g. ``"H2-1"``, ``"H2-1E"``, ``"H2-1SC"``, ``"Helios-1"`` or
-            ``"Helios-1E"``. See :func:`default_backend_config`.
+            e.g. ``"H2-1"``, ``"H2-1E"``, ``"H2-1SC"`` or ``"reimei"``. Helios
+            names are rejected (not supported yet). See
+            :func:`default_backend_config`.
         backend_config: A ``qnexus`` backend config. Overrides ``device_name``
-            and allows any Nexus backend (``QuantinuumConfig``,
-            ``HeliosConfig``, ``AerConfig``, ...).
+            and allows any Nexus backend (``QuantinuumConfig``, ``AerConfig``,
+            ...) except ``HeliosConfig``.
         project: The Nexus project (name or ``ProjectRef``) that holds the
             uploaded circuits and jobs. A project with the given name is
             created if it does not exist.
@@ -295,9 +324,12 @@ class QuantinuumSamplingBackend(SamplingBackend):
             gate set (e.g. via ``circuit_transpiler``).
         optimisation_level: TKET optimisation level (0-3) used by the Nexus
             compile job.
-        max_shots: If specified, a request with more shots is split into
-            several job items of at most ``max_shots`` shots inside a single
-            Nexus job. The counts are merged in the result.
+        max_shots: A request with more shots is split into several job items
+            of at most ``max_shots`` shots inside a single Nexus job, and the
+            counts are merged in the result. Defaults to
+            :data:`QUANTINUUM_MAX_SHOTS_PER_ITEM` (10000, the per-item limit of
+            Quantinuum-hosted devices) when ``backend_config`` is a
+            ``QuantinuumConfig``, and to ``None`` (no split) otherwise.
         compile_timeout: Seconds to wait for the compile job. ``None`` means
             no limit (or ``QNEXUS_DEFAULT_JOB_TIMEOUT_SECONDS`` if set).
         result_timeout: Seconds to wait for the execute job in
@@ -331,12 +363,20 @@ class QuantinuumSamplingBackend(SamplingBackend):
 
         No request is sent to Nexus until
         :meth:`sample` or :attr:`project` is used.
+
+        Raises:
+            ValueError: If neither ``device_name`` nor ``backend_config`` is
+                given, or if the target is Helios (not supported yet).
         """
         if backend_config is None:
             if device_name is None:
                 raise ValueError("Either device_name or backend_config is required.")
             backend_config = default_backend_config(device_name)
+        if _is_helios(backend_config):
+            raise ValueError(_HELIOS_UNSUPPORTED)
         self._backend_config = backend_config
+        if max_shots is None and isinstance(backend_config, qnx.QuantinuumConfig):
+            max_shots = QUANTINUUM_MAX_SHOTS_PER_ITEM
 
         self._project_ref: Optional[ProjectRef] = (
             project if isinstance(project, ProjectRef) else None
@@ -360,6 +400,11 @@ class QuantinuumSamplingBackend(SamplingBackend):
     def backend_config(self) -> qnx.BackendConfig:
         """The Nexus backend config used for compile and execute jobs."""
         return self._backend_config
+
+    @property
+    def max_shots(self) -> Optional[int]:
+        """Maximum shots per job item, or ``None`` if requests are not split."""
+        return self._max_shots
 
     @property
     def project(self) -> ProjectRef:
