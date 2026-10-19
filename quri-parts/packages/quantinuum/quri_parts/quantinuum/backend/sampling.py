@@ -140,7 +140,7 @@ def _quantinuum_device_names() -> list[str]:
     return sorted(names)
 
 
-def backend_result_to_sampling_counts(result: BackendResult) -> SamplingCounts:
+def _backend_result_to_sampling_counts(result: BackendResult) -> SamplingCounts:
     """Convert a pytket :class:`~pytket.backends.backendresult.BackendResult`
     into :class:`~quri_parts.backend.SamplingCounts`.
 
@@ -161,7 +161,7 @@ def backend_result_to_sampling_counts(result: BackendResult) -> SamplingCounts:
     return converted
 
 
-def distribute_shots(shots: int, max_shots: Optional[int]) -> list[int]:
+def _distribute_shots(shots: int, max_shots: Optional[int]) -> list[int]:
     """Split ``shots`` into chunks of at most ``max_shots`` shots.
 
     Returns ``[shots]`` when ``max_shots`` is ``None`` or ``shots`` does
@@ -206,7 +206,7 @@ class QuantinuumSamplingResult(SamplingResult):
         self._backend_results = tuple(backend_results)
         total: Counter[int] = Counter()
         for r in self._backend_results:
-            total.update(backend_result_to_sampling_counts(r))
+            total.update(_backend_result_to_sampling_counts(r))
         self._counts: SamplingCounts = total
 
     @property
@@ -547,7 +547,7 @@ class QuantinuumSamplingBackend(SamplingBackend):
                 ``check_device``) or any step on Nexus fails, including when
                 not logged in.
         """
-        shot_dist = distribute_shots(shots, self._max_shots)
+        shot_dist = _distribute_shots(shots, self._max_shots)
         max_cost = self._execute_kwargs.get("max_cost")
         if isinstance(max_cost, (list, tuple)) and len(max_cost) != len(shot_dist):
             raise ValueError(

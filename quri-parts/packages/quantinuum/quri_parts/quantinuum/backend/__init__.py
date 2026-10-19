@@ -29,8 +29,6 @@ from .sampling import (
     QuantinuumSamplingJob,
     QuantinuumSamplingResult,
     TketCircuitConverter,
-    backend_result_to_sampling_counts,
-    distribute_shots,
 )
 
 __all__ = [
@@ -39,6 +37,4 @@ __all__ = [
     "QuantinuumSamplingJob",
     "QuantinuumSamplingResult",
     "TketCircuitConverter",
-    "backend_result_to_sampling_counts",
-    "distribute_shots",
 ]

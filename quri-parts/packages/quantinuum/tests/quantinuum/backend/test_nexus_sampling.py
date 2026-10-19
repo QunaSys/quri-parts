@@ -34,8 +34,10 @@ from quri_parts.quantinuum.backend import (  # noqa: E402
     QuantinuumSamplingBackend,
     QuantinuumSamplingJob,
     QuantinuumSamplingResult,
-    backend_result_to_sampling_counts,
-    distribute_shots,
+)
+from quri_parts.quantinuum.backend.sampling import (  # noqa: E402
+    _backend_result_to_sampling_counts,
+    _distribute_shots,
 )
 
 
@@ -167,23 +169,23 @@ class TestHelpers:
     def test_backend_result_to_sampling_counts(self) -> None:
         bits = [Bit("c", 0), Bit("c", 1), Bit("c", 2)]
         result = _backend_result([[1, 0, 0], [1, 0, 0], [0, 1, 1]], bits)
-        assert backend_result_to_sampling_counts(result) == {0b001: 2, 0b110: 1}
+        assert _backend_result_to_sampling_counts(result) == {0b001: 2, 0b110: 1}
 
     def test_backend_result_to_sampling_counts_sorts_bits(self) -> None:
         # bits registered out of order: index 2 first
         bits = [Bit("c", 2), Bit("c", 0), Bit("c", 1)]
         result = _backend_result([[1, 0, 0]], bits)
-        assert backend_result_to_sampling_counts(result) == {0b100: 1}
+        assert _backend_result_to_sampling_counts(result) == {0b100: 1}
 
     def test_distribute_shots(self) -> None:
-        assert distribute_shots(10, None) == [10]
-        assert distribute_shots(10, 10) == [10]
-        assert distribute_shots(10, 4) == [4, 4, 2]
-        assert distribute_shots(8, 4) == [4, 4]
+        assert _distribute_shots(10, None) == [10]
+        assert _distribute_shots(10, 10) == [10]
+        assert _distribute_shots(10, 4) == [4, 4, 2]
+        assert _distribute_shots(8, 4) == [4, 4]
         with pytest.raises(ValueError):
-            distribute_shots(0, None)
+            _distribute_shots(0, None)
         with pytest.raises(ValueError):
-            distribute_shots(5, 0)
+            _distribute_shots(5, 0)
 
 
 class TestQuantinuumSamplingBackend:
