@@ -16,6 +16,11 @@ Quantinuum Helios is not supported yet: its Nexus endpoints accept only QIR or
 HUGR programs, not pytket circuits. Helios device names and
 :class:`qnexus.HeliosConfig` are rejected with a :class:`ValueError`.
 
+Which device names work depends on the Nexus account (its plan and the
+organisation it belongs to). :func:`available_devices` lists them, and
+:meth:`QuantinuumSamplingBackend.sample` checks the device name against that
+list before it submits anything.
+
 Job flow of :meth:`QuantinuumSamplingBackend.sample`:
 
 1. The QURI Parts circuit is transpiled (optional), converted to a pytket
@@ -37,6 +42,7 @@ valid login is found, every call that talks to Nexus raises a
 from collections import Counter
 from collections.abc import Callable, Iterator, Mapping, Sequence
 from contextlib import contextmanager
+from dataclasses import dataclass
 from typing import Any, Optional, Union
 from uuid import uuid4
 
@@ -114,6 +120,63 @@ def _nexus_errors(what: str) -> Iterator[None]:
         raise BackendError(f"{what}: {_LOGIN_HINT}") from e
     except Exception as e:
         raise BackendError(f"{what}: {type(e).__name__}: {e}") from e
+
+
+@dataclass(frozen=True)
+class QuantinuumDevice:
+    """A Quantinuum device that the logged-in Nexus account can use.
+
+    Attributes:
+        name: Device name to pass to :class:`QuantinuumSamplingBackend`, e.g.
+            ``"H2-1"``, ``"H2-1E"``, ``"H2-1SC"``, ``"reimei"``.
+        system_type: ``"hardware"``, ``"emulator"``, ``"syntax checker"``,
+            ``"local_emulator"`` (Nexus-hosted) or ``""`` if Nexus does not
+            report it.
+        nexus_hosted: True for emulators that run on Nexus (e.g. ``"H2-1LE"``)
+            and do not consume HQC; False for Quantinuum-hosted devices.
+        max_shots: Maximum shots per job item reported by Nexus, if any.
+    """
+
+    name: str
+    system_type: str
+    nexus_hosted: bool
+    max_shots: Optional[int]
+
+
+def available_devices() -> list[QuantinuumDevice]:
+    """List the Quantinuum devices the logged-in Nexus account can use.
+
+    Only devices usable through :class:`qnexus.QuantinuumConfig` are listed
+    (Quantinuum hardware, emulators and syntax checkers, plus Nexus-hosted
+    Quantinuum emulators). Generic Nexus simulators such as Aer are not
+    included; pass their config as ``backend_config`` instead.
+
+    Returns:
+        Devices sorted by name.
+
+    Raises:
+        BackendError: If the list cannot be fetched (including when not
+            logged in).
+    """
+    with _nexus_errors("Failed to list the Quantinuum devices on Nexus"):
+        nexus_devices = qnx.devices.get_all()
+    devices = []
+    for d in nexus_devices:
+        name = getattr(d, "device_name", None)
+        if getattr(d, "backend_name", None) != "Quantinuum" or not name:
+            continue
+        info = getattr(d, "stored_backend_info", None)
+        misc = dict(getattr(info, "misc", None) or {})
+        max_shots = misc.get("max_n_shots", misc.get("n_shots"))
+        devices.append(
+            QuantinuumDevice(
+                name=str(name),
+                system_type=str(misc.get("system_type", "")),
+                nexus_hosted=bool(getattr(d, "nexus_hosted", False)),
+                max_shots=int(max_shots) if max_shots is not None else None,
+            )
+        )
+    return sorted(devices, key=lambda dev: dev.name)
 
 
 def backend_result_to_sampling_counts(result: BackendResult) -> SamplingCounts:
@@ -299,6 +362,12 @@ class QuantinuumSamplingBackend(SamplingBackend):
         >>> job = backend.sample(circuit, shots=1000)
         >>> job.result().counts
 
+        The device names an account can use are listed by
+        :func:`available_devices`:
+
+        >>> [d.name for d in available_devices()]
+        ['H2-1', 'H2-1E', 'H2-1SC', ...]
+
         A Nexus-hosted simulator (no HQC needed) can be used by passing the
         config explicitly:
 
@@ -306,8 +375,9 @@ class QuantinuumSamplingBackend(SamplingBackend):
 
     Args:
         device_name: Name of a Quantinuum device, emulator or syntax checker,
-            e.g. ``"H2-1"``, ``"H2-1E"``, ``"H2-1SC"`` or ``"reimei"``. Helios
-            names are rejected (not supported yet). See
+            e.g. ``"H2-1"``, ``"H2-1E"``, ``"H2-1SC"`` or ``"reimei"``. Which
+            names the account can use is listed by :func:`available_devices`.
+            Helios names are rejected (not supported yet). See
             :func:`default_backend_config`.
         backend_config: A ``qnexus`` backend config. Overrides ``device_name``
             and allows any Nexus backend (``QuantinuumConfig``, ``AerConfig``,
@@ -319,6 +389,12 @@ class QuantinuumSamplingBackend(SamplingBackend):
             pytket circuit.
         circuit_transpiler: A QURI Parts transpiler applied to the circuit
             before conversion.
+        check_device: If True (default) and the config is a
+            ``QuantinuumConfig``, the first :meth:`sample` call fetches
+            :func:`available_devices` once and raises
+            :class:`~quri_parts.backend.BackendError` listing them if the
+            device is not among them, instead of letting the job fail on
+            Nexus. Set False to skip the extra request.
         compile_on_nexus: If True, the uploaded circuit is compiled on Nexus
             for the target backend before execution. If False, the circuit is
             executed as uploaded; it must then already satisfy the backend's
@@ -351,6 +427,7 @@ class QuantinuumSamplingBackend(SamplingBackend):
         project: Union[str, ProjectRef] = "quri-parts",
         circuit_converter: TketCircuitConverter = convert_circuit,
         circuit_transpiler: Optional[CircuitTranspiler] = None,
+        check_device: bool = True,
         compile_on_nexus: bool = True,
         optimisation_level: int = 2,
         max_shots: Optional[int] = None,
@@ -394,6 +471,8 @@ class QuantinuumSamplingBackend(SamplingBackend):
 
         self._circuit_converter = circuit_converter
         self._circuit_transpiler = circuit_transpiler
+        self._check_device = check_device
+        self._device_checked = False
         self._compile_on_nexus = compile_on_nexus
         self._optimisation_level = optimisation_level
         self._max_shots = max_shots
@@ -429,6 +508,39 @@ class QuantinuumSamplingBackend(SamplingBackend):
             with _nexus_errors(f"Failed to get or create Nexus project {name!r}"):
                 self._project_ref = qnx.projects.get_or_create(name=name)
         return self._project_ref
+
+    def _ensure_device_available(self) -> None:
+        """Raise ``BackendError`` if the device is not available to the
+        account.
+
+        Runs once per backend, only for ``QuantinuumConfig``. If the
+        device list cannot be fetched for a reason other than
+        authentication, the check is skipped and the job is submitted as
+        is.
+        """
+        config = self._backend_config
+        if (
+            self._device_checked
+            or not self._check_device
+            or not isinstance(config, qnx.QuantinuumConfig)
+        ):
+            return
+        try:
+            devices = available_devices()
+        except BackendError as e:
+            if isinstance(e.__cause__, AuthenticationError):
+                raise
+            return
+        names = [d.name for d in devices]
+        if config.device_name not in names:
+            raise BackendError(
+                f"Quantinuum device {config.device_name!r} is not available to "
+                "your Nexus account. Available devices: "
+                f"{', '.join(names) if names else 'none'}. "
+                "Check the device name (see available_devices()) and the plan "
+                "of your account on https://nexus.quantinuum.com."
+            )
+        self._device_checked = True
 
     def _to_tket_circuit(self, circuit: ImmutableQuantumCircuit) -> TketCircuit:
         if self._circuit_transpiler is not None:
@@ -466,14 +578,16 @@ class QuantinuumSamplingBackend(SamplingBackend):
 
         Raises:
             ValueError: If ``shots`` is not positive.
-            BackendError: If any step on Nexus fails, including when not
-                logged in.
+            BackendError: If the device is not available to the account (see
+                ``check_device``) or any step on Nexus fails, including when
+                not logged in.
         """
         shot_dist = distribute_shots(shots, self._max_shots)
         tket_circuit = self._to_tket_circuit(circuit)
         job_name = f"{self._job_name_prefix}-{uuid4().hex[:8]}"
 
         with _nexus_errors("Failed to submit a sampling job to Quantinuum Nexus"):
+            self._ensure_device_available()
             project = self.project
             circuit_ref = qnx.circuits.upload(
                 circuit=tket_circuit, name=f"{job_name}-circuit", project=project

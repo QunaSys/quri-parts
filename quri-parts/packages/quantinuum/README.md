@@ -41,6 +41,15 @@ job = backend.sample(circuit, shots=1000)
 print(job.result().counts)
 ```
 
+Which device names your account can use depends on its plan. `available_devices()` lists them, and `sample()` checks the name against that list before submitting:
+
+```python
+from quri_parts.quantinuum.backend import available_devices
+
+for d in available_devices():
+    print(d.name, d.system_type, "Nexus-hosted" if d.nexus_hosted else "Quantinuum-hosted")
+```
+
 Any Nexus backend config can be passed instead of a device name, e.g. `QuantinuumSamplingBackend(backend_config=qnx.AerConfig())` for a Nexus-hosted simulator.
 
 Requests with more than 10,000 shots (the per-item limit of Quantinuum-hosted devices) are split into several job items of one Nexus job and the counts are merged; `max_shots` changes the chunk size.

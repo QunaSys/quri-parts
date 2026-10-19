@@ -31,9 +31,11 @@ from quri_parts.backend import BackendError  # noqa: E402
 from quri_parts.circuit import QuantumCircuit  # noqa: E402
 from quri_parts.quantinuum.backend import (  # noqa: E402
     QUANTINUUM_MAX_SHOTS_PER_ITEM,
+    QuantinuumDevice,
     QuantinuumSamplingBackend,
     QuantinuumSamplingJob,
     QuantinuumSamplingResult,
+    available_devices,
     backend_result_to_sampling_counts,
     default_backend_config,
     distribute_shots,
@@ -63,10 +65,43 @@ def _execute_job_ref(project: ProjectRef) -> ExecuteJobRef:
     )
 
 
+def _nexus_device(
+    device_name: Any,
+    backend_name: str = "Quantinuum",
+    nexus_hosted: bool = False,
+    misc: Any = None,
+) -> Any:
+    info = SimpleNamespace(misc=misc) if misc is not None else None
+    return SimpleNamespace(
+        device_name=device_name,
+        backend_name=backend_name,
+        nexus_hosted=nexus_hosted,
+        stored_backend_info=info,
+    )
+
+
+#: What qnexus.devices.get_all() returns for an account with H2 access.
+FAKE_DEVICES = [
+    _nexus_device("H2-1E", misc={"system_type": "emulator", "max_n_shots": 10000}),
+    _nexus_device(
+        "H2-1SC", misc={"system_type": "syntax checker", "max_n_shots": 10000}
+    ),
+    _nexus_device("H2-1", misc={"system_type": "hardware", "max_n_shots": 10000}),
+    _nexus_device("reimei", misc={"system_type": "hardware", "max_n_shots": 10000}),
+    _nexus_device(
+        "H2-1LE", nexus_hosted=True, misc={"system_type": "emulator", "n_shots": 10000}
+    ),
+    _nexus_device("aer_simulator", backend_name="Aer", nexus_hosted=True),
+    _nexus_device(None, backend_name="Qulacs", nexus_hosted=True),
+]
+
+
 class FakeNexus:
     """Records calls to the qnexus functions used by the backend."""
 
     def __init__(self, readouts_per_item: Sequence[Sequence[Sequence[int]]]):
+        self.devices: list[Any] = list(FAKE_DEVICES)
+        self.device_calls = 0
         self.project = _project_ref()
         self.readouts_per_item = readouts_per_item
         self.uploaded: list[Circuit] = []
@@ -109,7 +144,12 @@ class FakeNexus:
     def cancel(self, job: Any, **kwargs: Any) -> None:
         self.cancelled.append(job)
 
+    def get_all_devices(self, **kwargs: Any) -> list[Any]:
+        self.device_calls += 1
+        return self.devices
+
     def install(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setattr(qnx.devices, "get_all", self.get_all_devices)
         monkeypatch.setattr(qnx.projects, "get_or_create", self.get_or_create)
         monkeypatch.setattr(qnx.circuits, "upload", self.upload)
         monkeypatch.setattr(qnx, "start_compile_job", self.start_compile_job)
@@ -155,6 +195,36 @@ class TestHelpers:
 
         with pytest.raises(ValueError, match="Helios is not supported"):
             default_backend_config("Helios-1E")
+
+
+class TestAvailableDevices:
+    def test_available_devices(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        fake = FakeNexus([])
+        fake.install(monkeypatch)
+        devices = available_devices()
+        assert [d.name for d in devices] == [
+            "H2-1",
+            "H2-1E",
+            "H2-1LE",
+            "H2-1SC",
+            "reimei",
+        ]
+        assert devices[1] == QuantinuumDevice(
+            name="H2-1E", system_type="emulator", nexus_hosted=False, max_shots=10000
+        )
+        assert devices[2] == QuantinuumDevice(
+            name="H2-1LE", system_type="emulator", nexus_hosted=True, max_shots=10000
+        )
+
+    def test_available_devices_not_logged_in(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        def not_authenticated(**kwargs: Any) -> Any:
+            raise AuthenticationError("Not authenticated.")
+
+        monkeypatch.setattr(qnx.devices, "get_all", not_authenticated)
+        with pytest.raises(BackendError, match="qnexus.login"):
+            available_devices()
 
 
 class TestQuantinuumSamplingBackend:
@@ -246,6 +316,55 @@ class TestQuantinuumSamplingBackend:
         assert len(result.backend_results) == 1
         assert job.id == str(fake.execute_ref.id)
 
+    def test_sample_checks_device_once(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        fake = FakeNexus([[[0, 0]], [[0, 0]]])
+        fake.install(monkeypatch)
+        backend = QuantinuumSamplingBackend("H2-1E")
+        backend.sample(_bell_circuit(), 1)
+        backend.sample(_bell_circuit(), 1)
+        assert fake.device_calls == 1
+
+    def test_sample_rejects_unavailable_device(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        fake = FakeNexus([[[0, 0]]])
+        fake.install(monkeypatch)
+        backend = QuantinuumSamplingBackend("H1-1E")
+        with pytest.raises(BackendError) as info:
+            backend.sample(_bell_circuit(), 1)
+        message = str(info.value)
+        assert "'H1-1E' is not available to your Nexus account" in message
+        assert "H2-1, H2-1E, H2-1LE, H2-1SC, reimei" in message
+        assert fake.uploaded == []
+
+    def test_sample_skips_device_check(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        fake = FakeNexus([[[0, 0]]])
+        fake.install(monkeypatch)
+        # check_device=False: submitted even though the name is unknown
+        backend = QuantinuumSamplingBackend("H1-1E", check_device=False)
+        backend.sample(_bell_circuit(), 1)
+        assert fake.device_calls == 0
+        assert len(fake.uploaded) == 1
+
+        # Nexus-hosted simulators are never checked
+        backend = QuantinuumSamplingBackend(backend_config=qnx.AerConfig())
+        backend.sample(_bell_circuit(), 1)
+        assert fake.device_calls == 0
+
+    def test_sample_proceeds_if_device_list_fails(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        fake = FakeNexus([[[0, 0]]])
+        fake.install(monkeypatch)
+
+        def broken(**kwargs: Any) -> Any:
+            raise RuntimeError("devices endpoint down")
+
+        monkeypatch.setattr(qnx.devices, "get_all", broken)
+        backend = QuantinuumSamplingBackend("H1-1E")
+        backend.sample(_bell_circuit(), 1)
+        assert len(fake.uploaded) == 1
+
     def test_sample_without_compile(self, monkeypatch: pytest.MonkeyPatch) -> None:
         fake = FakeNexus([[[1, 0]]])
         fake.install(monkeypatch)
@@ -320,6 +439,7 @@ class TestQuantinuumSamplingBackend:
         def not_authenticated(**kwargs: Any) -> Any:
             raise AuthenticationError("Not authenticated.")
 
+        monkeypatch.setattr(qnx.devices, "get_all", not_authenticated)
         monkeypatch.setattr(qnx.projects, "get_or_create", not_authenticated)
         backend = QuantinuumSamplingBackend("H2-1E")
         with pytest.raises(BackendError) as info:
