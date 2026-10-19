@@ -410,7 +410,7 @@ class QuantinuumSamplingBackend(SamplingBackend):
 
     @property
     def max_shots(self) -> Optional[int]:
-        """Maximum shots per job item, or ``None`` if requests are not split."""
+        """Maximum shots per job item (``None`` means no split)."""
         return self._max_shots
 
     @property
