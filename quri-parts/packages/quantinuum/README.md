@@ -41,13 +41,12 @@ job = backend.sample(circuit, shots=1000)
 print(job.result().counts)
 ```
 
-Which device names your account can use depends on its plan. `available_devices()` lists them, and `sample()` checks the name against that list before submitting:
+Which device names your account can use depends on its plan. `qnexus` lists them, and `sample()` checks the name against that list before submitting:
 
 ```python
-from quri_parts.quantinuum.backend import available_devices
+from qnexus.models import IssuerEnum
 
-for d in available_devices():
-    print(d.name, d.system_type, "Nexus-hosted" if d.nexus_hosted else "Quantinuum-hosted")
+qnx.devices.get_all(issuers=[IssuerEnum.QUANTINUUM]).df()
 ```
 
 Any Nexus backend config can be passed instead of a device name, e.g. `QuantinuumSamplingBackend(backend_config=qnx.AerConfig())` for a Nexus-hosted simulator.

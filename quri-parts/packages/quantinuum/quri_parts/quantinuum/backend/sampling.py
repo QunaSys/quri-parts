@@ -17,9 +17,9 @@ HUGR programs, not pytket circuits. Helios device names and
 :class:`qnexus.HeliosConfig` are rejected with a :class:`ValueError`.
 
 Which device names work depends on the Nexus account (its plan and the
-organisation it belongs to). :func:`available_devices` lists them, and
-:meth:`QuantinuumSamplingBackend.sample` checks the device name against that
-list before it submits anything.
+organisation it belongs to). ``qnexus.devices.get_all(issuers=[IssuerEnum.QUANTINUUM])``
+lists them, and :meth:`QuantinuumSamplingBackend.sample` checks the device
+name against that list before it submits anything.
 
 Job flow of :meth:`QuantinuumSamplingBackend.sample`:
 
@@ -42,7 +42,6 @@ valid login is found, every call that talks to Nexus raises a
 from collections import Counter
 from collections.abc import Callable, Iterator, Mapping, Sequence
 from contextlib import contextmanager
-from dataclasses import dataclass
 from typing import Any, Optional, Union
 from uuid import uuid4
 
@@ -50,6 +49,7 @@ import qnexus as qnx
 from pytket.backends.backendresult import BackendResult
 from pytket.circuit import Circuit as TketCircuit
 from qnexus.exceptions import AuthenticationError
+from qnexus.models import IssuerEnum
 from qnexus.models.job_status import JobStatusEnum
 from qnexus.models.references import CircuitRef, ExecuteJobRef, ProjectRef
 from typing_extensions import TypeAlias
@@ -122,61 +122,22 @@ def _nexus_errors(what: str) -> Iterator[None]:
         raise BackendError(f"{what}: {type(e).__name__}: {e}") from e
 
 
-@dataclass(frozen=True)
-class QuantinuumDevice:
-    """A Quantinuum device that the logged-in Nexus account can use.
-
-    Attributes:
-        name: Device name to pass to :class:`QuantinuumSamplingBackend`, e.g.
-            ``"H2-1"``, ``"H2-1E"``, ``"H2-1SC"``, ``"reimei"``.
-        system_type: ``"hardware"``, ``"emulator"``, ``"syntax checker"``,
-            ``"local_emulator"`` (Nexus-hosted) or ``""`` if Nexus does not
-            report it.
-        nexus_hosted: True for emulators that run on Nexus (e.g. ``"H2-1LE"``)
-            and do not consume HQC; False for Quantinuum-hosted devices.
-        max_shots: Maximum shots per job item reported by Nexus, if any.
-    """
-
-    name: str
-    system_type: str
-    nexus_hosted: bool
-    max_shots: Optional[int]
-
-
-def available_devices() -> list[QuantinuumDevice]:
-    """List the Quantinuum devices the logged-in Nexus account can use.
-
-    Only devices usable through :class:`qnexus.QuantinuumConfig` are listed
-    (Quantinuum hardware, emulators and syntax checkers, plus Nexus-hosted
-    Quantinuum emulators). Generic Nexus simulators such as Aer are not
-    included; pass their config as ``backend_config`` instead.
-
-    Returns:
-        Devices sorted by name.
+def _quantinuum_device_names() -> list[str]:
+    """Names of the Quantinuum devices the logged-in Nexus account can use.
 
     Raises:
         BackendError: If the list cannot be fetched (including when not
             logged in).
     """
     with _nexus_errors("Failed to list the Quantinuum devices on Nexus"):
-        nexus_devices = qnx.devices.get_all()
-    devices = []
-    for d in nexus_devices:
-        name = getattr(d, "device_name", None)
-        if getattr(d, "backend_name", None) != "Quantinuum" or not name:
-            continue
-        info = getattr(d, "stored_backend_info", None)
-        misc = dict(getattr(info, "misc", None) or {})
-        max_shots = misc.get("max_n_shots", misc.get("n_shots"))
-        devices.append(
-            QuantinuumDevice(
-                name=str(name),
-                system_type=str(misc.get("system_type", "")),
-                nexus_hosted=bool(getattr(d, "nexus_hosted", False)),
-                max_shots=int(max_shots) if max_shots is not None else None,
-            )
-        )
-    return sorted(devices, key=lambda dev: dev.name)
+        devices = qnx.devices.get_all(issuers=[IssuerEnum.QUANTINUUM])
+    names = {
+        str(d.device_name)
+        for d in devices
+        if getattr(d, "backend_name", None) == "Quantinuum"
+        and getattr(d, "device_name", None)
+    }
+    return sorted(names)
 
 
 def backend_result_to_sampling_counts(result: BackendResult) -> SamplingCounts:
@@ -360,11 +321,10 @@ class QuantinuumSamplingBackend(SamplingBackend):
         >>> job = backend.sample(circuit, shots=1000)
         >>> job.result().counts
 
-        The device names an account can use are listed by
-        :func:`available_devices`:
+        The device names an account can use are listed by ``qnexus``:
 
-        >>> [d.name for d in available_devices()]
-        ['H2-1', 'H2-1E', 'H2-1SC', ...]
+        >>> from qnexus.models import IssuerEnum
+        >>> qnx.devices.get_all(issuers=[IssuerEnum.QUANTINUUM]).df()
 
         A Nexus-hosted simulator (no HQC needed) can be used by passing the
         config explicitly:
@@ -374,7 +334,8 @@ class QuantinuumSamplingBackend(SamplingBackend):
     Args:
         device_name: Name of a Quantinuum device, emulator or syntax checker,
             e.g. ``"H2-1"``, ``"H2-1E"``, ``"H2-1SC"`` or ``"reimei"``. Which
-            names the account can use is listed by :func:`available_devices`.
+            names the account can use is listed by
+            ``qnexus.devices.get_all(issuers=[IssuerEnum.QUANTINUUM])``.
             Helios names are rejected (not supported yet).
         backend_config: A ``qnexus`` backend config. Overrides ``device_name``
             and allows any Nexus backend (``QuantinuumConfig``, ``AerConfig``,
@@ -387,11 +348,11 @@ class QuantinuumSamplingBackend(SamplingBackend):
         circuit_transpiler: A QURI Parts transpiler applied to the circuit
             before conversion.
         check_device: If True (default) and the config is a
-            ``QuantinuumConfig``, the first :meth:`sample` call fetches
-            :func:`available_devices` once and raises
-            :class:`~quri_parts.backend.BackendError` listing them if the
-            device is not among them, instead of letting the job fail on
-            Nexus. Set False to skip the extra request.
+            ``QuantinuumConfig``, the first :meth:`sample` call fetches the
+            account's device list once and raises
+            :class:`~quri_parts.backend.BackendError` listing the available
+            devices if the device is not among them, instead of letting the
+            job fail on Nexus. Set False to skip the extra request.
         compile_on_nexus: If True, the uploaded circuit is compiled on Nexus
             for the target backend before execution. If False, the circuit is
             executed as uploaded; it must then already satisfy the backend's
@@ -523,19 +484,19 @@ class QuantinuumSamplingBackend(SamplingBackend):
         ):
             return
         try:
-            devices = available_devices()
+            names = _quantinuum_device_names()
         except BackendError as e:
             if isinstance(e.__cause__, AuthenticationError):
                 raise
             return
-        names = [d.name for d in devices]
         if config.device_name not in names:
             raise BackendError(
                 f"Quantinuum device {config.device_name!r} is not available to "
                 "your Nexus account. Available devices: "
                 f"{', '.join(names) if names else 'none'}. "
-                "Check the device name (see available_devices()) and the plan "
-                "of your account on https://nexus.quantinuum.com."
+                "Check the device name and the plan of your account; "
+                "qnexus.devices.get_all(issuers=[IssuerEnum.QUANTINUUM]) lists "
+                "the devices you can use."
             )
         self._device_checked = True
 

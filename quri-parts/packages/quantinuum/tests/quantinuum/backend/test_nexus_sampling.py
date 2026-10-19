@@ -31,11 +31,9 @@ from quri_parts.backend import BackendError  # noqa: E402
 from quri_parts.circuit import QuantumCircuit  # noqa: E402
 from quri_parts.quantinuum.backend import (  # noqa: E402
     QUANTINUUM_MAX_SHOTS_PER_ITEM,
-    QuantinuumDevice,
     QuantinuumSamplingBackend,
     QuantinuumSamplingJob,
     QuantinuumSamplingResult,
-    available_devices,
     backend_result_to_sampling_counts,
     distribute_shots,
 )
@@ -188,36 +186,6 @@ class TestHelpers:
             distribute_shots(5, 0)
 
 
-class TestAvailableDevices:
-    def test_available_devices(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        fake = FakeNexus([])
-        fake.install(monkeypatch)
-        devices = available_devices()
-        assert [d.name for d in devices] == [
-            "H2-1",
-            "H2-1E",
-            "H2-1LE",
-            "H2-1SC",
-            "reimei",
-        ]
-        assert devices[1] == QuantinuumDevice(
-            name="H2-1E", system_type="emulator", nexus_hosted=False, max_shots=10000
-        )
-        assert devices[2] == QuantinuumDevice(
-            name="H2-1LE", system_type="emulator", nexus_hosted=True, max_shots=10000
-        )
-
-    def test_available_devices_not_logged_in(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        def not_authenticated(**kwargs: Any) -> Any:
-            raise AuthenticationError("Not authenticated.")
-
-        monkeypatch.setattr(qnx.devices, "get_all", not_authenticated)
-        with pytest.raises(BackendError, match="qnexus.login"):
-            available_devices()
-
-
 class TestQuantinuumSamplingBackend:
     def test_init_requires_device_or_config(self) -> None:
         with pytest.raises(ValueError):
@@ -331,6 +299,7 @@ class TestQuantinuumSamplingBackend:
         message = str(info.value)
         assert "'H1-1E' is not available to your Nexus account" in message
         assert "H2-1, H2-1E, H2-1LE, H2-1SC, reimei" in message
+        assert "IssuerEnum.QUANTINUUM" in message
         assert fake.uploaded == []
 
     def test_sample_skips_device_check(self, monkeypatch: pytest.MonkeyPatch) -> None:

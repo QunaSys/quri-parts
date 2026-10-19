@@ -25,24 +25,20 @@ except ImportError as e:  # pragma: no cover
 
 from .sampling import (
     QUANTINUUM_MAX_SHOTS_PER_ITEM,
-    QuantinuumDevice,
     QuantinuumSamplingBackend,
     QuantinuumSamplingJob,
     QuantinuumSamplingResult,
     TketCircuitConverter,
-    available_devices,
     backend_result_to_sampling_counts,
     distribute_shots,
 )
 
 __all__ = [
     "QUANTINUUM_MAX_SHOTS_PER_ITEM",
-    "QuantinuumDevice",
     "QuantinuumSamplingBackend",
     "QuantinuumSamplingJob",
     "QuantinuumSamplingResult",
     "TketCircuitConverter",
-    "available_devices",
     "backend_result_to_sampling_counts",
     "distribute_shots",
 ]
