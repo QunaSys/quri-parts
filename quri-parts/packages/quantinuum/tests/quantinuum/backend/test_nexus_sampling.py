@@ -90,6 +90,7 @@ FAKE_DEVICES = [
     _nexus_device(
         "H2-1LE", nexus_hosted=True, misc={"system_type": "emulator", "n_shots": 10000}
     ),
+    _nexus_device("Helios-1E", misc={"system_type": "emulator", "max_n_shots": 10000}),
     _nexus_device("aer_simulator", backend_name="Aer", nexus_hosted=True),
     _nexus_device(None, backend_name="Qulacs", nexus_hosted=True),
 ]
@@ -301,6 +302,9 @@ class TestQuantinuumSamplingBackend:
         message = str(info.value)
         assert "'H1-1E' is not available to your Nexus account" in message
         assert "H2-1, H2-1E, H2-1LE, H2-1SC, H2-2" in message
+        # Helios is visible to the account but rejected by this backend,
+        # so it must not be suggested
+        assert "Helios" not in message
         assert "IssuerEnum.QUANTINUUM" in message
         assert fake.uploaded == []
 

@@ -123,7 +123,10 @@ def _nexus_errors(what: str) -> Iterator[None]:
 
 
 def _quantinuum_device_names() -> list[str]:
-    """Names of the Quantinuum devices the logged-in Nexus account can use.
+    """Names of the Quantinuum devices the logged-in Nexus account can use with
+    this backend.
+
+    Helios systems are left out because this backend rejects them.
 
     Raises:
         BackendError: If the list cannot be fetched (including when not
@@ -136,6 +139,7 @@ def _quantinuum_device_names() -> list[str]:
         for d in devices
         if getattr(d, "backend_name", None) == "Quantinuum"
         and getattr(d, "device_name", None)
+        and not str(d.device_name).lower().startswith("helios")
     }
     return sorted(names)
 
