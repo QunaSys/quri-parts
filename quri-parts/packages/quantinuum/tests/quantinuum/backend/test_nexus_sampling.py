@@ -358,6 +358,27 @@ class TestQuantinuumSamplingBackend:
         assert result.counts == {0b00: 3, 0b11: 2}
         assert len(result.backend_results) == 3
 
+    def test_sample_checks_max_cost_list_before_upload(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        fake = FakeNexus([[[0, 0]], [[0, 0]], [[0, 0]]])
+        fake.install(monkeypatch)
+
+        # 5 shots with max_shots=2 -> 3 items, but only 2 limits given
+        backend = QuantinuumSamplingBackend(
+            "H2-1E", max_shots=2, execute_kwargs={"max_cost": [1.0, 1.0]}
+        )
+        with pytest.raises(ValueError, match="3 job items"):
+            backend.sample(_bell_circuit(), 5)
+        assert fake.uploaded == []
+
+        # one limit per item is passed through unchanged
+        backend = QuantinuumSamplingBackend(
+            "H2-1E", max_shots=2, execute_kwargs={"max_cost": [1.0, 1.0, 1.0]}
+        )
+        backend.sample(_bell_circuit(), 5)
+        assert fake.execute_calls[0]["max_cost"] == [1.0, 1.0, 1.0]
+
     def test_sample_applies_transpiler(self, monkeypatch: pytest.MonkeyPatch) -> None:
         fake = FakeNexus([[[0, 0]]])
         fake.install(monkeypatch)

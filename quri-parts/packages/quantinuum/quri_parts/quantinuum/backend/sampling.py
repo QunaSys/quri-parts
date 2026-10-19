@@ -373,8 +373,13 @@ class QuantinuumSamplingBackend(SamplingBackend):
         compile_kwargs: Additional keyword arguments for
             :func:`qnexus.start_compile_job`.
         execute_kwargs: Additional keyword arguments for
-            :func:`qnexus.start_execute_job`, e.g. ``max_cost`` (HQC limit),
-            ``credential_name`` or ``user_group``.
+            :func:`qnexus.start_execute_job`, e.g. ``credential_name``,
+            ``user_group`` or ``max_cost``. Note that ``qnexus`` applies a
+            scalar ``max_cost`` (HQC limit) to **each job item**, so when a
+            request is split by ``max_shots`` into ``n`` items the job may
+            cost up to ``n * max_cost``. A list ``max_cost`` must have one
+            entry per item; its length is checked before anything is
+            uploaded.
     """
 
     def __init__(
@@ -535,12 +540,21 @@ class QuantinuumSamplingBackend(SamplingBackend):
         job. Returns as soon as the execute job is submitted.
 
         Raises:
-            ValueError: If ``shots`` is not positive.
+            ValueError: If ``shots`` is not positive, or if ``max_cost`` in
+                ``execute_kwargs`` is a list whose length differs from the
+                number of job items.
             BackendError: If the device is not available to the account (see
                 ``check_device``) or any step on Nexus fails, including when
                 not logged in.
         """
         shot_dist = distribute_shots(shots, self._max_shots)
+        max_cost = self._execute_kwargs.get("max_cost")
+        if isinstance(max_cost, (list, tuple)) and len(max_cost) != len(shot_dist):
+            raise ValueError(
+                f"max_cost has {len(max_cost)} entries but the request is split "
+                f"into {len(shot_dist)} job items (max_shots={self._max_shots}). "
+                "Pass one value per item or a single number applied to each item."
+            )
         tket_circuit = self._to_tket_circuit(circuit)
         job_name = f"{self._job_name_prefix}-{uuid4().hex[:8]}"
 
