@@ -37,7 +37,6 @@ from quri_parts.quantinuum.backend import (  # noqa: E402
     QuantinuumSamplingResult,
     available_devices,
     backend_result_to_sampling_counts,
-    default_backend_config,
     distribute_shots,
 )
 
@@ -188,14 +187,6 @@ class TestHelpers:
         with pytest.raises(ValueError):
             distribute_shots(5, 0)
 
-    def test_default_backend_config(self) -> None:
-        config = default_backend_config("H2-1E")
-        assert isinstance(config, qnx.QuantinuumConfig)
-        assert config.device_name == "H2-1E"
-
-        with pytest.raises(ValueError, match="Helios is not supported"):
-            default_backend_config("Helios-1E")
-
 
 class TestAvailableDevices:
     def test_available_devices(self, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -234,6 +225,11 @@ class TestQuantinuumSamplingBackend:
 
         backend = QuantinuumSamplingBackend(backend_config=qnx.AerConfig())
         assert isinstance(backend.backend_config, qnx.AerConfig)
+
+    def test_init_from_device_name(self) -> None:
+        backend = QuantinuumSamplingBackend("H2-1E")
+        assert isinstance(backend.backend_config, qnx.QuantinuumConfig)
+        assert backend.backend_config.device_name == "H2-1E"
 
     def test_init_rejects_helios(self) -> None:
         with pytest.raises(ValueError, match="Helios is not supported"):

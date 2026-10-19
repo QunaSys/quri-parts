@@ -219,11 +219,9 @@ def distribute_shots(shots: int, max_shots: Optional[int]) -> list[int]:
     return dist
 
 
-def default_backend_config(device_name: str) -> qnx.QuantinuumConfig:
-    """Create the Nexus backend config for a Quantinuum device name.
-
-    Device names (e.g. ``H2-1``, ``H2-1E``, ``H2-1SC``, ``reimei``) map to
-    :class:`qnexus.QuantinuumConfig`.
+def _quantinuum_config(device_name: str) -> qnx.QuantinuumConfig:
+    """Create the :class:`qnexus.QuantinuumConfig` for a Quantinuum device name
+    (e.g. ``H2-1``, ``H2-1E``, ``H2-1SC``, ``reimei``).
 
     Raises:
         ValueError: If the name refers to Helios (``Helios-1``, ``Helios-1E``,
@@ -377,8 +375,7 @@ class QuantinuumSamplingBackend(SamplingBackend):
         device_name: Name of a Quantinuum device, emulator or syntax checker,
             e.g. ``"H2-1"``, ``"H2-1E"``, ``"H2-1SC"`` or ``"reimei"``. Which
             names the account can use is listed by :func:`available_devices`.
-            Helios names are rejected (not supported yet). See
-            :func:`default_backend_config`.
+            Helios names are rejected (not supported yet).
         backend_config: A ``qnexus`` backend config. Overrides ``device_name``
             and allows any Nexus backend (``QuantinuumConfig``, ``AerConfig``,
             ...) except ``HeliosConfig``.
@@ -449,7 +446,7 @@ class QuantinuumSamplingBackend(SamplingBackend):
         if backend_config is None:
             if device_name is None:
                 raise ValueError("Either device_name or backend_config is required.")
-            backend_config = default_backend_config(device_name)
+            backend_config = _quantinuum_config(device_name)
         if _is_helios(backend_config):
             target = getattr(backend_config, "system_name", None) or getattr(
                 backend_config, "device_name", None

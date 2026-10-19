@@ -32,7 +32,6 @@ from .sampling import (
     TketCircuitConverter,
     available_devices,
     backend_result_to_sampling_counts,
-    default_backend_config,
     distribute_shots,
 )
 
@@ -45,6 +44,5 @@ __all__ = [
     "TketCircuitConverter",
     "available_devices",
     "backend_result_to_sampling_counts",
-    "default_backend_config",
     "distribute_shots",
 ]
