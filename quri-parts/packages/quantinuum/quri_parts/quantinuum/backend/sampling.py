@@ -9,8 +9,8 @@
 # limitations under the License.
 
 """A :class:`~quri_parts.backend.SamplingBackend` that submits circuits to
-Quantinuum systems (H-Series, Reimei), their emulators and Nexus-hosted
-simulators through the Quantinuum Nexus client (``qnexus``).
+Quantinuum systems (H-Series), their emulators and Nexus-hosted simulators
+through the Quantinuum Nexus client (``qnexus``).
 
 Quantinuum Helios is not supported yet: its Nexus endpoints accept only QIR or
 HUGR programs, not pytket circuits. Helios device names and
@@ -69,7 +69,7 @@ from quri_parts.tket.circuit import convert_circuit
 TketCircuitConverter: TypeAlias = Callable[[ImmutableQuantumCircuit], TketCircuit]
 
 #: Maximum number of shots per job item accepted by Quantinuum-hosted devices
-#: (H-Series, Reimei). Used as the default ``max_shots`` of
+#: (H-Series). Used as the default ``max_shots`` of
 #: :class:`QuantinuumSamplingBackend` for :class:`qnexus.QuantinuumConfig`.
 QUANTINUUM_MAX_SHOTS_PER_ITEM = 10000
 
@@ -182,7 +182,7 @@ def distribute_shots(shots: int, max_shots: Optional[int]) -> list[int]:
 
 def _quantinuum_config(device_name: str) -> qnx.QuantinuumConfig:
     """Create the :class:`qnexus.QuantinuumConfig` for a Quantinuum device name
-    (e.g. ``H2-1``, ``H2-1E``, ``H2-1SC``, ``reimei``).
+    (e.g. ``H2-1``, ``H2-1E``, ``H2-1SC``).
 
     Raises:
         ValueError: If the name refers to Helios (``Helios-1``, ``Helios-1E``,
@@ -333,7 +333,7 @@ class QuantinuumSamplingBackend(SamplingBackend):
 
     Args:
         device_name: Name of a Quantinuum device, emulator or syntax checker,
-            e.g. ``"H2-1"``, ``"H2-1E"``, ``"H2-1SC"`` or ``"reimei"``. Which
+            e.g. ``"H2-1"``, ``"H2-1E"`` or ``"H2-1SC"``. Which
             names the account can use is listed by
             ``qnexus.devices.get_all(issuers=[IssuerEnum.QUANTINUUM])``.
             Helios names are rejected (not supported yet).

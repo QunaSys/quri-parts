@@ -5,7 +5,7 @@ QURI Parts Quantinuum is a support library for using Quantinuum with QURI Parts.
 It provides
 
 - `quri_parts.quantinuum.circuit`: Quantinuum native gates (`U1q`, `ZZ`, `RZZ`) and transpilers to the Quantinuum gate set.
-- `quri_parts.quantinuum.backend`: `QuantinuumSamplingBackend`, a `SamplingBackend` that submits circuits to Quantinuum systems (H-Series, Reimei), their emulators and Nexus-hosted simulators through [Quantinuum Nexus](https://docs.quantinuum.com/nexus/).
+- `quri_parts.quantinuum.backend`: `QuantinuumSamplingBackend`, a `SamplingBackend` that submits circuits to Quantinuum systems (H-Series), their emulators and Nexus-hosted simulators through [Quantinuum Nexus](https://docs.quantinuum.com/nexus/).
 
 ## Documentation
 

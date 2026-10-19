@@ -84,7 +84,7 @@ FAKE_DEVICES = [
         "H2-1SC", misc={"system_type": "syntax checker", "max_n_shots": 10000}
     ),
     _nexus_device("H2-1", misc={"system_type": "hardware", "max_n_shots": 10000}),
-    _nexus_device("reimei", misc={"system_type": "hardware", "max_n_shots": 10000}),
+    _nexus_device("H2-2", misc={"system_type": "hardware", "max_n_shots": 10000}),
     _nexus_device(
         "H2-1LE", nexus_hosted=True, misc={"system_type": "emulator", "n_shots": 10000}
     ),
@@ -216,7 +216,7 @@ class TestQuantinuumSamplingBackend:
         assert QUANTINUUM_MAX_SHOTS_PER_ITEM == 10000
         # Quantinuum-hosted devices: 10000 shots per job item
         assert QuantinuumSamplingBackend("H2-1E").max_shots == 10000
-        assert QuantinuumSamplingBackend("reimei").max_shots == 10000
+        assert QuantinuumSamplingBackend("H2-2").max_shots == 10000
         # explicit value wins
         assert QuantinuumSamplingBackend("H2-1E", max_shots=5000).max_shots == 5000
         # Nexus-hosted simulators: no split
@@ -298,7 +298,7 @@ class TestQuantinuumSamplingBackend:
             backend.sample(_bell_circuit(), 1)
         message = str(info.value)
         assert "'H1-1E' is not available to your Nexus account" in message
-        assert "H2-1, H2-1E, H2-1LE, H2-1SC, reimei" in message
+        assert "H2-1, H2-1E, H2-1LE, H2-1SC, H2-2" in message
         assert "IssuerEnum.QUANTINUUM" in message
         assert fake.uploaded == []
 
