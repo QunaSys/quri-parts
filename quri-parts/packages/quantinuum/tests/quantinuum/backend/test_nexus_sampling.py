@@ -86,7 +86,7 @@ FAKE_DEVICES = [
         "H2-1SC", misc={"system_type": "syntax checker", "max_n_shots": 10000}
     ),
     _nexus_device("H2-1", misc={"system_type": "hardware", "max_n_shots": 10000}),
-    _nexus_device("H2-2", misc={"system_type": "hardware", "max_n_shots": 10000}),
+    _nexus_device("H2-2", misc={"system_type": "hardware", "max_n_shots": 5000}),
     _nexus_device(
         "H2-1LE", nexus_hosted=True, misc={"system_type": "emulator", "n_shots": 10000}
     ),
@@ -225,6 +225,31 @@ class TestQuantinuumSamplingBackend:
         # Nexus-hosted simulators: no split
         backend = QuantinuumSamplingBackend(backend_config=qnx.AerConfig())
         assert backend.max_shots is None
+
+    def test_max_shots_from_device_info(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        fake = FakeNexus([[[0, 0]], [[0, 0]], [[1, 1]]])
+        fake.install(monkeypatch)
+
+        # H2-2 reports max_n_shots=5000 in the fake device list
+        backend = QuantinuumSamplingBackend("H2-2")
+        assert backend.max_shots == QUANTINUUM_MAX_SHOTS_PER_ITEM  # before sample
+        job = backend.sample(_bell_circuit(), 12000)
+        assert backend.max_shots == 5000
+        assert fake.execute_calls[-1]["n_shots"] == [5000, 5000, 2000]
+        assert job.result().counts == {0b00: 2, 0b11: 1}
+
+        # an explicit value is kept
+        backend = QuantinuumSamplingBackend("H2-2", max_shots=3000)
+        backend.sample(_bell_circuit(), 1)
+        assert backend.max_shots == 3000
+
+        # not reported (Nexus-hosted emulator) or check skipped: fallback
+        backend = QuantinuumSamplingBackend("H2-1LE")
+        backend.sample(_bell_circuit(), 1)
+        assert backend.max_shots == QUANTINUUM_MAX_SHOTS_PER_ITEM
+        backend = QuantinuumSamplingBackend("H2-2", check_device=False)
+        backend.sample(_bell_circuit(), 1)
+        assert backend.max_shots == QUANTINUUM_MAX_SHOTS_PER_ITEM
 
     def test_sample_splits_shots_by_default(
         self, monkeypatch: pytest.MonkeyPatch

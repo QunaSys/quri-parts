@@ -68,9 +68,10 @@ from quri_parts.tket.circuit import convert_circuit
 #: A function converting a QURI Parts circuit to a pytket circuit.
 TketCircuitConverter: TypeAlias = Callable[[ImmutableQuantumCircuit], TketCircuit]
 
-#: Maximum number of shots per job item accepted by Quantinuum-hosted devices
-#: (H-Series). Used as the default ``max_shots`` of
-#: :class:`QuantinuumSamplingBackend` for :class:`qnexus.QuantinuumConfig`.
+#: Fallback for the maximum number of shots per job item on Quantinuum-hosted
+#: devices (H-Series). :class:`QuantinuumSamplingBackend` prefers the limit
+#: that Nexus reports for the device (``max_n_shots``) and uses this value
+#: when it is not reported or the device check is skipped.
 QUANTINUUM_MAX_SHOTS_PER_ITEM = 10000
 
 # The reason (Helios accepts only QIR or HUGR programs, not pytket circuits)
@@ -122,11 +123,16 @@ def _nexus_errors(what: str) -> Iterator[None]:
         raise BackendError(f"{what}: {type(e).__name__}: {e}") from e
 
 
-def _quantinuum_device_names() -> list[str]:
-    """Names of the Quantinuum devices the logged-in Nexus account can use with
-    this backend.
+def _quantinuum_devices() -> dict[str, Optional[int]]:
+    """Quantinuum devices the logged-in Nexus account can use with this
+    backend.
 
     Helios systems are left out because this backend rejects them.
+
+    Returns:
+        Device name to the maximum shots per job item that Nexus reports for
+        it (``max_n_shots``), or ``None`` if it is not reported. Sorted by
+        name.
 
     Raises:
         BackendError: If the list cannot be fetched (including when not
@@ -134,14 +140,20 @@ def _quantinuum_device_names() -> list[str]:
     """
     with _nexus_errors("Failed to list the Quantinuum devices on Nexus"):
         devices = qnx.devices.get_all(issuers=[IssuerEnum.QUANTINUUM])
-    names = {
-        str(d.device_name)
-        for d in devices
-        if getattr(d, "backend_name", None) == "Quantinuum"
-        and getattr(d, "device_name", None)
-        and not str(d.device_name).lower().startswith("helios")
-    }
-    return sorted(names)
+    limits: dict[str, Optional[int]] = {}
+    for d in devices:
+        name = getattr(d, "device_name", None)
+        if (
+            getattr(d, "backend_name", None) != "Quantinuum"
+            or not name
+            or str(name).lower().startswith("helios")
+        ):
+            continue
+        info = getattr(d, "stored_backend_info", None)
+        misc = dict(getattr(info, "misc", None) or {})
+        max_n_shots = misc.get("max_n_shots")
+        limits[str(name)] = int(max_n_shots) if max_n_shots is not None else None
+    return dict(sorted(limits.items()))
 
 
 def _backend_result_to_sampling_counts(result: BackendResult) -> SamplingCounts:
@@ -365,10 +377,12 @@ class QuantinuumSamplingBackend(SamplingBackend):
             compile job.
         max_shots: A request with more shots is split into several job items
             of at most ``max_shots`` shots inside a single Nexus job, and the
-            counts are merged in the result. Defaults to
-            :data:`QUANTINUUM_MAX_SHOTS_PER_ITEM` (10000, the per-item limit of
-            Quantinuum-hosted devices) when ``backend_config`` is a
-            ``QuantinuumConfig``, and to ``None`` (no split) otherwise.
+            counts are merged in the result. If not given and
+            ``backend_config`` is a ``QuantinuumConfig``, the limit that Nexus
+            reports for the device (``max_n_shots``) is used once the device
+            check has run, and :data:`QUANTINUUM_MAX_SHOTS_PER_ITEM` (10000)
+            before that or when it is not reported. ``None`` (no split) for
+            other configs.
         compile_timeout: Seconds to wait for the compile job. ``None`` means
             no limit (or ``QNEXUS_DEFAULT_JOB_TIMEOUT_SECONDS`` if set).
         result_timeout: Seconds to wait for the execute job in
@@ -426,6 +440,7 @@ class QuantinuumSamplingBackend(SamplingBackend):
                 f"(got {type(backend_config).__name__} for {target!r})"
             )
         self._backend_config = backend_config
+        self._max_shots_explicit = max_shots is not None
         if max_shots is None and isinstance(backend_config, qnx.QuantinuumConfig):
             max_shots = QUANTINUUM_MAX_SHOTS_PER_ITEM
 
@@ -483,7 +498,9 @@ class QuantinuumSamplingBackend(SamplingBackend):
         Runs once per backend, only for ``QuantinuumConfig``. If the
         device list cannot be fetched for a reason other than
         authentication, the check is skipped and the job is submitted as
-        is.
+        is. When the check passes and ``max_shots`` was not given, the
+        per-item shots limit reported for the device replaces the
+        fallback.
         """
         config = self._backend_config
         if (
@@ -493,12 +510,13 @@ class QuantinuumSamplingBackend(SamplingBackend):
         ):
             return
         try:
-            names = _quantinuum_device_names()
+            devices = _quantinuum_devices()
         except BackendError as e:
             if isinstance(e.__cause__, AuthenticationError):
                 raise
             return
-        if config.device_name not in names:
+        names = list(devices)
+        if config.device_name not in devices:
             raise BackendError(
                 f"Quantinuum device {config.device_name!r} is not available to "
                 "your Nexus account. Available devices: "
@@ -507,6 +525,9 @@ class QuantinuumSamplingBackend(SamplingBackend):
                 "qnexus.devices.get_all(issuers=[IssuerEnum.QUANTINUUM]) lists "
                 "the devices you can use."
             )
+        reported = devices[config.device_name]
+        if reported is not None and not self._max_shots_explicit:
+            self._max_shots = reported
         self._device_checked = True
 
     def _to_tket_circuit(self, circuit: ImmutableQuantumCircuit) -> TketCircuit:
@@ -551,6 +572,10 @@ class QuantinuumSamplingBackend(SamplingBackend):
                 ``check_device``) or any step on Nexus fails, including when
                 not logged in.
         """
+        if shots < 1:
+            raise ValueError("shots should be a positive integer.")
+        with _nexus_errors("Failed to submit a sampling job to Quantinuum Nexus"):
+            self._ensure_device_available()
         shot_dist = _distribute_shots(shots, self._max_shots)
         max_cost = self._execute_kwargs.get("max_cost")
         if isinstance(max_cost, (list, tuple)) and len(max_cost) != len(shot_dist):
@@ -563,7 +588,6 @@ class QuantinuumSamplingBackend(SamplingBackend):
         job_name = f"{self._job_name_prefix}-{uuid4().hex[:8]}"
 
         with _nexus_errors("Failed to submit a sampling job to Quantinuum Nexus"):
-            self._ensure_device_available()
             project = self.project
             circuit_ref = qnx.circuits.upload(
                 circuit=tket_circuit, name=f"{job_name}-circuit", project=project
