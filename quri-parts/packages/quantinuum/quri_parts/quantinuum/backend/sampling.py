@@ -391,8 +391,10 @@ class QuantinuumSamplingBackend(SamplingBackend):
         compile_kwargs: Additional keyword arguments for
             :func:`qnexus.start_compile_job`.
         execute_kwargs: Additional keyword arguments for
-            :func:`qnexus.start_execute_job`, e.g. ``credential_name``,
-            ``user_group`` or ``max_cost``. Note that ``qnexus`` applies a
+            :func:`qnexus.start_execute_job`, e.g. ``max_cost``. They reach
+            the execute job only; to run both the compile and the execute job
+            under an organisation group, set ``user_group`` on the
+            ``QuantinuumConfig`` instead. Note that ``qnexus`` applies a
             scalar ``max_cost`` (HQC limit) to **each job item**, so when a
             request is split by ``max_shots`` into ``n`` items the job may
             cost up to ``n * max_cost``. A list ``max_cost`` must have one
