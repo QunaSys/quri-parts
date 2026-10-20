@@ -28,7 +28,7 @@ Job flow of :meth:`QuantinuumSamplingBackend.sample`:
 2. The circuit is uploaded to a Nexus project.
 3. (Optional, default) The circuit is compiled on Nexus for the target backend
    with Quantinuum's TKET compiler. This step blocks until the compile job
-   finishes, which usually takes seconds.
+   finishes; ``compile_timeout`` bounds the wait.
 4. An execute job is submitted. :meth:`QuantinuumSamplingJob.result` waits for
    the job and converts the measurement results.
 
