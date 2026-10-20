@@ -425,6 +425,32 @@ class TestQuantinuumSamplingBackend:
         ops = sorted(cmd.op.type.name for cmd in fake.uploaded[0].get_commands())
         assert ops == ["Measure", "Measure", "X"]
 
+    def test_sample_decomposes_pauli_gates(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from quri_parts.circuit import gates
+
+        fake = FakeNexus([[[0, 0]], [[0, 0]]])
+        fake.install(monkeypatch)
+
+        circuit = QuantumCircuit(2)
+        circuit.add_gate(gates.Pauli([0, 1], [1, 3]))
+        circuit.add_gate(gates.PauliRotation([0, 1], [1, 3], 0.3))
+
+        # the default tket converter cannot convert these gates by itself
+        backend = QuantinuumSamplingBackend("H2-1E")
+        backend.sample(circuit, 1)
+        ops = {cmd.op.type.name for cmd in fake.uploaded[-1].get_commands()}
+        assert "Measure" in ops and len(ops) > 1
+
+        # a user transpiler that leaves the Pauli gates alone still works
+        def noop(c: Any) -> Any:
+            return c
+
+        backend = QuantinuumSamplingBackend("H2-1E", circuit_transpiler=noop)
+        backend.sample(circuit, 1)
+        assert len(fake.uploaded) == 2
+
     def test_sample_invalid_shots(self, monkeypatch: pytest.MonkeyPatch) -> None:
         fake = FakeNexus([[[0, 0]]])
         fake.install(monkeypatch)

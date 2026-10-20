@@ -23,8 +23,10 @@ name against that list before it submits anything.
 
 Job flow of :meth:`QuantinuumSamplingBackend.sample`:
 
-1. The QURI Parts circuit is transpiled (optional), converted to a pytket
-   :class:`~pytket.circuit.Circuit` and all qubits are measured.
+1. The QURI Parts circuit is transpiled (optional), its ``Pauli`` and
+   ``PauliRotation`` gates are decomposed (the pytket converter cannot handle
+   them), it is converted to a pytket :class:`~pytket.circuit.Circuit` and
+   all qubits are measured.
 2. The circuit is uploaded to a Nexus project.
 3. (Optional, default) The circuit is compiled on Nexus for the target backend
    with Quantinuum's TKET compiler. This step blocks until the compile job
@@ -62,11 +64,23 @@ from quri_parts.backend import (
     SamplingResult,
 )
 from quri_parts.circuit import ImmutableQuantumCircuit
-from quri_parts.circuit.transpile import CircuitTranspiler
+from quri_parts.circuit.transpile import (
+    CircuitTranspiler,
+    ParallelDecomposer,
+    PauliDecomposeTranspiler,
+    PauliRotationDecomposeTranspiler,
+)
 from quri_parts.tket.circuit import convert_circuit
 
 #: A function converting a QURI Parts circuit to a pytket circuit.
 TketCircuitConverter: TypeAlias = Callable[[ImmutableQuantumCircuit], TketCircuit]
+
+#: Decomposes the gates that :func:`quri_parts.tket.circuit.convert_circuit`
+#: cannot convert (``Pauli`` and ``PauliRotation``) and leaves the others as
+#: they are. Applied in one pass after the user's ``circuit_transpiler``.
+_TKET_PRE_TRANSPILER = ParallelDecomposer(
+    [PauliDecomposeTranspiler(), PauliRotationDecomposeTranspiler()]
+)
 
 #: Fallback for the maximum number of shots per job item on Quantinuum-hosted
 #: devices (H-Series). :class:`QuantinuumSamplingBackend` prefers the limit
@@ -362,7 +376,9 @@ class QuantinuumSamplingBackend(SamplingBackend):
         circuit_converter: A function converting a QURI Parts circuit to a
             pytket circuit.
         circuit_transpiler: A QURI Parts transpiler applied to the circuit
-            before conversion.
+            before conversion. Whether or not one is given, ``Pauli`` and
+            ``PauliRotation`` gates are decomposed afterwards, because the
+            pytket converter cannot convert them.
         check_device: If True (default) and the config is a
             ``QuantinuumConfig``, the first :meth:`sample` call fetches the
             account's device list once and raises
@@ -535,6 +551,7 @@ class QuantinuumSamplingBackend(SamplingBackend):
     def _to_tket_circuit(self, circuit: ImmutableQuantumCircuit) -> TketCircuit:
         if self._circuit_transpiler is not None:
             circuit = self._circuit_transpiler(circuit)
+        circuit = _TKET_PRE_TRANSPILER(circuit)
         tket_circuit = self._circuit_converter(circuit)
         tket_circuit.measure_all()
         return tket_circuit
