@@ -5277,7 +5277,7 @@ requires-dist = [
     { name = "networkx" },
     { name = "numpy", specifier = ">=1.22.0" },
     { name = "pydantic", specifier = ">=2.0,<3.0" },
-    { name = "qiskit", specifier = ">=2.2.0,<3.0" },
+    { name = "qiskit", specifier = ">=2.2.0,<2.6" },
     { name = "qiskit-ibm-runtime", specifier = ">=0.47.0,<0.48.0" },
     { name = "quri-parts-circuit", editable = "quri-parts/packages/circuit" },
     { name = "quri-parts-core", editable = "quri-parts/packages/core" },
