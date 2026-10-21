@@ -8,6 +8,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+tket to QURI Parts (:mod:`quri_parts.tket.circuit.tket_circuit_converter`)
+==========================================================================
+
+Convert tket quantum circuits to QURI Parts.
+
+Contents:
+
+- :func:`circuit_from_tket`: convert a tket circuit to a QURI Parts circuit
+"""
+
 from collections.abc import Mapping
 from typing import Callable, Sequence, cast
 

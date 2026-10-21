@@ -8,6 +8,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+QURI Parts to tket (:mod:`quri_parts.tket.circuit.circuit_converter`)
+=====================================================================
+
+Convert QURI Parts quantum gates and circuits to tket.
+
+Contents:
+
+- :func:`convert_gate`: convert a QURI Parts gate to a tket operation
+- :func:`convert_circuit`: convert a QURI Parts circuit to a tket circuit
+"""
+
 from collections.abc import Mapping
 from typing import Sequence
 
@@ -78,6 +90,20 @@ _special_named_gate_matrix: Mapping[
 def convert_gate(
     gate: QuantumGate,
 ) -> Op:
+    """Convert a QURI Parts gate to a tket operation.
+
+    Args:
+        gate: Gate to convert.
+
+    Returns:
+        A tket operation whose qubit arguments follow the gate's control
+        indices and then its target indices.
+
+    Raises:
+        ValueError: If the gate is parametric or a unitary matrix gate acts
+            on more than three qubits.
+        NotImplementedError: If the gate type has no supported conversion.
+    """
     if is_single_qubit_gate_name(gate.name):
         if gate.name in _single_qubit_gate_tket:
             return Op.create(_single_qubit_gate_tket[gate.name])
@@ -114,6 +140,19 @@ def convert_gate(
 
 
 def convert_circuit(circuit: ImmutableQuantumCircuit) -> Circuit:
+    """Convert a QURI Parts circuit to a tket circuit.
+
+    Args:
+        circuit: Circuit to convert.
+
+    Returns:
+        A tket circuit with the converted gates and the same qubit count.
+
+    Raises:
+        ValueError: If a gate is parametric or a unitary matrix gate acts
+            on more than three qubits.
+        NotImplementedError: If a gate type has no supported conversion.
+    """
     tket_circuit = Circuit(circuit.qubit_count)
     for gate in circuit.gates:
         converted = convert_gate(gate)
