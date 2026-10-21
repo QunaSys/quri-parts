@@ -12,7 +12,15 @@ from collections.abc import Mapping
 from typing import Sequence
 
 from numpy import array, pi
-from pytket.circuit import Circuit, Op, OpType, Unitary1qBox, Unitary2qBox, Unitary3qBox
+from pytket.circuit import (
+    BasisOrder,
+    Circuit,
+    Op,
+    OpType,
+    Unitary1qBox,
+    Unitary2qBox,
+    Unitary3qBox,
+)
 
 from quri_parts.circuit import ImmutableQuantumCircuit, QuantumGate, gate_names
 from quri_parts.circuit.gate_names import (
@@ -91,9 +99,9 @@ def convert_gate(
         if len(gate.target_indices) == 1:
             return Unitary1qBox(array(gate.unitary_matrix))
         elif len(gate.target_indices) == 2:
-            return Unitary2qBox(array(gate.unitary_matrix))
+            return Unitary2qBox(array(gate.unitary_matrix), basis=BasisOrder.dlo)
         elif len(gate.target_indices) == 3:
-            return Unitary3qBox(array(gate.unitary_matrix))
+            return Unitary3qBox(array(gate.unitary_matrix), basis=BasisOrder.dlo)
         else:
             raise ValueError("tKet only supports unitary gates up to 3 qubits")
 
